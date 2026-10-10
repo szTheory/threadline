@@ -214,7 +214,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <strong>Active filters</strong>
         <span class="tl-chip tl-chip--info" title={@window.title}>Window: <%= @window.label %></span>
         <span class="tl-filter-summary__window"><%= @window.detail %></span>
-        <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral">
+        <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral tl-filter-summary__filter">
           <%= label %>: <%= value %>
         </span>
         <span :if={@active_filters == []} class="tl-filter-summary__empty">

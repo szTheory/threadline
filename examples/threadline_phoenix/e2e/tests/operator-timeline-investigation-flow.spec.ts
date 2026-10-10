@@ -199,6 +199,23 @@ async function expectTimelineWorkflow(page: Page, viewportWidth: number) {
   await expect(firstRow).toBeVisible();
   await expect(transaction).toBeVisible();
 
+  const factsLayout = await page.locator(".tl-timeline-command__facts").evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      display: styles.display,
+      columns: styles.gridTemplateColumns.split(" ").length,
+    };
+  });
+  if (viewportWidth <= 480) {
+    expect(factsLayout.display).toBe("none");
+  } else if (viewportWidth < 768) {
+    expect(factsLayout.columns).toBe(1);
+  } else if (viewportWidth < 1280) {
+    expect(factsLayout.columns).toBe(2);
+  } else {
+    expect(factsLayout.columns).toBe(3);
+  }
+
   const rowMetrics = await page.evaluate(() => {
     const command = document.querySelector(".tl-timeline-command");
     const firstRow = document.querySelector('[data-testid="timeline-row"]');
@@ -610,6 +627,15 @@ test.describe("Timeline investigation flow browser proof", () => {
 
         await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);
         await expect(correlationInput).toHaveValue(correlation);
+        const activeFilter = page
+          .locator(".tl-filter-summary__filter")
+          .filter({ hasText: correlation });
+        await expect(activeFilter).toBeVisible();
+        await expect(activeFilter).toContainText(correlation);
+        const filterCornerRadius = await activeFilter.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element).borderTopLeftRadius),
+        );
+        expect(filterCornerRadius).toBeLessThanOrEqual(4);
         const matchingRows = page.getByTestId("timeline-row").filter({
           has: page.locator(`[aria-label="Copy correlation id"][data-tl-copy="${correlation}"]`),
         });

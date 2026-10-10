@@ -745,6 +745,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     src = StyleSource.read!()
     base = base_responsive_section(src)
 
+    assert_selector_contains(base, ".tl-filter-summary__filter", [
+      "align-items: flex-start;",
+      "border-radius: var(--tl-radius-sm);",
+      "white-space: normal;"
+    ])
+
     assert_selector_contains(base, ".tl-timeline-command__lede", [
       "font-size: var(--tl-font-size-body);"
     ])
@@ -830,6 +836,14 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Timeline rows must fix narrow-width overflow at row/control level, not hide horizontal overflow"
   end
 
+  test "phase 239 Home lead keeps its display type role at narrow widths" do
+    base = base_responsive_section(StyleSource.read!())
+
+    assert_selector_contains(base, ".tl-home__headline", [
+      "font-size: var(--tl-font-size-display);"
+    ])
+  end
+
   test "phase 142 responsive primitives keep tablet wrapping and desktop table restoration" do
     src = StyleSource.read!()
     tablet = media_section(src, "768px")
@@ -839,7 +853,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(desktop, ".tl-page", ["padding: var(--tl-space-4);"])
 
     assert_selector_contains(tablet, ".tl-timeline-command__facts", [
-      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+      "grid-template-columns: repeat(2, minmax(0, 1fr));"
     ])
 
     assert_selector_contains(tablet, ".tl-filter-grid--primary", [
@@ -862,6 +876,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(desktop, ".tl-filter-grid--primary", [
       "grid-template-columns: minmax(178px, .8fr) minmax(178px, .8fr) minmax(180px, 1fr) minmax(240px, 1.3fr);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-timeline-command__facts", [
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
     ])
 
     assert_selector_contains(desktop, ".tl-toolbar.tl-timeline-command", [

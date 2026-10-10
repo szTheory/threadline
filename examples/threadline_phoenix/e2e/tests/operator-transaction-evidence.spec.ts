@@ -163,6 +163,9 @@ for (const viewport of responsiveCases) {
     const primaryCard = page.locator(".tl-home__card--primary");
     const earnedLookups = page.locator(".tl-home__earned-flow");
     await expect(primaryCard).toBeVisible();
+    await expect
+      .poll(() => page.locator(".tl-home__headline").evaluate((heading) => getComputedStyle(heading).fontSize))
+      .toBe("32px");
     await expect(primaryCard.getByRole("heading", { name: "Find what changed", exact: true })).toBeVisible();
     await expect(primaryCard.getByRole("link", { name: "Open the timeline", exact: true })).toBeVisible();
     const primaryPrecedesLookups = await page.locator(".tl-home").evaluate((home) => {

@@ -27,7 +27,7 @@
 
   .tl-home__headline {
     margin: 0;
-    font-size: var(--tl-font-size-title);
+    font-size: var(--tl-font-size-display);
     line-height: var(--tl-line-display);
     font-weight: var(--tl-weight-medium);
     letter-spacing: var(--tl-tracking-tight);

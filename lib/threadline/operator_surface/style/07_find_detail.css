@@ -91,6 +91,12 @@
     overflow-wrap: anywhere;
   }
 
+  .tl-filter-summary__filter {
+    align-items: flex-start;
+    border-radius: var(--tl-radius-sm);
+    white-space: normal;
+  }
+
   .tl-filter-summary > strong {
     color: var(--tl-color-text);
     font-weight: var(--tl-weight-strong);

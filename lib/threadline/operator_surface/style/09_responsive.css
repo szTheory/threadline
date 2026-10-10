@@ -229,16 +229,12 @@
       min-width: 0;
     }
 
-    .tl-home__headline {
-      font-size: var(--tl-font-size-display);
-    }
-
     .threadline-ui .tl-shell-nav__item {
       min-height: var(--tl-control-height-compact);
     }
 
     .tl-timeline-command__facts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tl-filter-grid--primary {
@@ -252,6 +248,10 @@
 
   /* Desktop dense/operator layer starts at 1280px: full multi-column layout and sticky chrome. */
   @media (min-width: 1280px) {
+    .tl-timeline-command__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .tl-page {
       padding: var(--tl-space-4);
     }
