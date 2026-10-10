@@ -23,7 +23,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # :coverage_for_schema (the snapshot specific to the requested ?schema=)
     # and :form_error (set when ?schema=NAME is invalid).
     def mount(_params, _session, socket) do
-      initial = socket.assigns[:threadline_coverage] || Snapshot.empty(DateTime.utc_now())
+      initial = socket.assigns[:threadline_coverage] || Snapshot.empty(nil)
 
       socket =
         socket
@@ -45,28 +45,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       schema_param = Map.get(params, "schema", "public")
 
       if socket.assigns[:threadline_coverage_enabled] do
-        with {:ok, schemas} <- safe_available_schemas(socket),
-             {:ok, schema} <- safe_validate_schema(socket, schema_param, schemas) do
-          socket =
-            socket
-            |> assign(:schema_param, schema)
-            |> assign(:available_schemas, schemas)
-            |> assign(:form_error, nil)
-            |> fetch_coverage_for_schema(schema)
-
-          {:noreply, socket}
-        else
-          {:error, message, schemas} ->
-            socket =
-              socket
-              |> assign(:schema_param, schema_param)
-              |> assign(:available_schemas, schemas)
-              |> assign(:coverage_for_schema, %{Snapshot.empty(nil) | error: message})
-              |> assign(:coverage_for_schema_name, schema_param)
-              |> assign(:form_error, message)
-
-            {:noreply, socket}
-        end
+        {:noreply, load_selected_schema(socket, schema_param)}
       else
         {:noreply, socket}
       end
@@ -102,7 +81,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end
 
           schema = socket.assigns[:schema_param] || "public"
-          socket = fetch_coverage_for_schema(socket, schema)
+          socket = load_selected_schema(socket, schema)
 
           # Reschedule using the same interval Coverage.OnMount uses.
           interval =
@@ -152,28 +131,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if @form_error do %>
               <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
             <% else %>
-              <%= if stale_selected_schema?(@coverage_for_schema) do %>
-                <div class="tl-alert tl-alert--warning" role="status">
-                  Could not refresh coverage for <%= @schema_param %>; showing last known results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
-                  Retry refresh.
-                </div>
-              <% end %>
-
-              <.coverage_verdict snapshot={@coverage_for_schema} schema={@schema_param} />
-
-              <%= if all_empty?(@coverage_for_schema) do %>
-                <div class="tl-empty">
-                  <h3 class="tl-empty__title">No audited tables found</h3>
-                  <p class="tl-empty__body">
-                    No audited tables were found for schema <%= @schema_param %>. Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness.
-                  </p>
+              <%= if unavailable_selected_schema?(@coverage_for_schema) do %>
+                <div class="tl-alert tl-alert--error" role="alert" data-testid="coverage-unavailable">
+                  Coverage could not be read for schema <%= @schema_param %>. Retry the inspection. No coverage result is confirmed.
                 </div>
               <% else %>
-                <.coverage_table
-                  coverage_for_schema={@coverage_for_schema}
-                  schema_param={@schema_param}
-                  base_path={@base_path}
-                />
+                <%= if stale_selected_schema?(@coverage_for_schema) do %>
+                  <div class="tl-alert tl-alert--warning" role="status">
+                    Showing last successful inspection from <%= last_label(@coverage_for_schema.last_checked_at) %>. The current refresh failed; these rows may be stale.
+                  </div>
+                <% end %>
+
+                <.coverage_verdict snapshot={@coverage_for_schema} schema={@schema_param} />
+
+                <%= if all_empty?(@coverage_for_schema) do %>
+                  <div class="tl-empty">
+                    <h3 class="tl-empty__title">No audited tables found</h3>
+                    <p class="tl-empty__body">
+                      No tables were found in schema <%= @schema_param %> during this inspection.
+                    </p>
+                  </div>
+                <% else %>
+                  <.coverage_table
+                    coverage_for_schema={@coverage_for_schema}
+                    schema_param={@schema_param}
+                    base_path={@base_path}
+                  />
+                <% end %>
               <% end %>
             <% end %>
           <% else %>
@@ -369,16 +353,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp safe_available_schemas(socket) do
       {:ok, available_schemas(socket)}
     rescue
-      e -> {:error, Exception.message(e), ["public"]}
+      _ -> {:error, :unavailable}
     end
 
-    defp safe_validate_schema(socket, schema, schemas) when is_binary(schema) do
+    defp safe_validate_schema(socket, schema) when is_binary(schema) do
       case validate_schema(socket, schema) do
         {:ok, schema} -> {:ok, schema}
-        {:error, message} -> {:error, message, schemas}
+        {:error, message} -> {:invalid, message}
       end
     rescue
-      e -> {:error, Exception.message(e), schemas}
+      e ->
+        Threadline.Telemetry.emit_health_checked_error(e)
+        {:unavailable, Exception.message(e)}
+    end
+
+    defp safe_validate_schema(_socket, _schema), do: {:invalid, "Choose a schema from the list."}
+
+    defp load_selected_schema(socket, schema_param) do
+      case safe_validate_schema(socket, schema_param) do
+        {:ok, schema} ->
+          schemas =
+            case safe_available_schemas(socket) do
+              {:ok, available} -> available
+              {:error, :unavailable} -> ["public", schema]
+            end
+
+          socket
+          |> assign(:schema_param, schema)
+          |> assign(:available_schemas, schemas)
+          |> assign(:form_error, nil)
+          |> fetch_coverage_for_schema(schema)
+
+        {:invalid, message} ->
+          schemas =
+            case safe_available_schemas(socket) do
+              {:ok, available} -> available
+              {:error, :unavailable} -> ["public"]
+            end
+
+          socket
+          |> assign(:schema_param, schema_param)
+          |> assign(:available_schemas, schemas)
+          |> assign(:coverage_for_schema, Snapshot.empty(nil))
+          |> assign(:coverage_for_schema_name, nil)
+          |> assign(:form_error, message)
+
+        {:unavailable, message} ->
+          schemas = ["public", schema_param]
+
+          socket
+          |> assign(:schema_param, schema_param)
+          |> assign(:available_schemas, schemas)
+          |> assign(:form_error, nil)
+          |> assign_selected_snapshot(
+            schema_param,
+            failed_snapshot(socket, schema_param, message)
+          )
+      end
     end
 
     defp fetch_coverage_for_schema(socket, schema) do
@@ -397,22 +428,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           message = Exception.message(e)
           Threadline.Telemetry.emit_health_checked_error(e)
 
-          previous = socket.assigns[:coverage_for_schema]
-          previous_schema = socket.assigns[:coverage_for_schema_name]
-
-          snapshot =
-            case {previous_schema, previous} do
-              {^schema, %Snapshot{last_checked_at: %DateTime{}} = last_good} ->
-                %{last_good | error: message}
-
-              _ ->
-                %{Snapshot.empty(nil) | error: message}
-            end
-
           socket
-          |> assign(:coverage_for_schema, snapshot)
-          |> assign(:coverage_for_schema_name, schema)
+          |> assign_selected_snapshot(schema, failed_snapshot(socket, schema, message))
       end
+    end
+
+    defp failed_snapshot(socket, schema, message) do
+      previous = socket.assigns[:coverage_for_schema]
+      previous_schema = socket.assigns[:coverage_for_schema_name]
+
+      case {previous_schema, previous} do
+        {^schema, %Snapshot{last_checked_at: %DateTime{}} = last_good} ->
+          %{last_good | error: message}
+
+        _ ->
+          %{Snapshot.empty(nil) | error: message}
+      end
+    end
+
+    defp assign_selected_snapshot(socket, schema, snapshot) do
+      socket
+      |> assign(:coverage_for_schema, snapshot)
+      |> assign(:coverage_for_schema_name, schema)
+      |> assign(:threadline_coverage, snapshot)
+      |> assign(:threadline_coverage_error, snapshot.error)
     end
 
     defp resolve_repo(socket) do
@@ -447,6 +486,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp stale_selected_schema?(_), do: false
+
+    defp unavailable_selected_schema?(%Snapshot{error: error, last_checked_at: nil})
+         when is_binary(error) do
+      String.trim(error) != ""
+    end
+
+    defp unavailable_selected_schema?(_), do: false
 
     defp verdict_status(snapshot) do
       cond do
@@ -540,7 +586,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp all_empty?(%Snapshot{
            covered_count: 0,
            uncovered_count: 0,
-           expected_uncovered_count: 0
+           expected_uncovered_count: 0,
+           last_checked_at: %DateTime{}
          }),
          do: true
 

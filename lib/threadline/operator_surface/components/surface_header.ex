@@ -30,15 +30,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           title="Results are limited to the records you are authorized to see."
         >Scoped view</span>
         <%= if @coverage_enabled do %>
-          <%= if @coverage && @coverage.uncovered_count > 0 do %>
+          <%= if @error do %>
+            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
+              <%= if last_checked?(@coverage), do: "Coverage refresh failed", else: "Coverage unavailable" %>
+            </a>
+          <% else %>
+            <%= if @coverage && @coverage.uncovered_count > 0 do %>
             <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
               <%= @coverage.uncovered_count %> tables need audit coverage
             </a>
-          <% else %>
-            <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All tables captured</a>
+            <% else %>
+              <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All tables captured</a>
+            <% end %>
           <% end %>
         <% end %>
-        <%= if @error do %>
+        <%= if @error && last_checked?(@coverage) do %>
           <span class="tl-topbar__stale">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
         <% end %>
         </div>
@@ -145,5 +151,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp seconds_ago(_), do: 0
+
+    defp last_checked?(%{last_checked_at: %DateTime{}}), do: true
+    defp last_checked?(_), do: false
   end
 end
