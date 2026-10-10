@@ -105,7 +105,8 @@ test("evidence canary scan rejects secret text, attributes, and output bytes", (
 
 test("capture metadata accepts known scalar fields and rejects unknown, nested, or canary-bearing values", () => {
   const canary = "synthetic-secret-canary-239-6f71";
-  assert.doesNotThrow(() => validateCaptureMetadata({ httpStatus: 200, permission: "granted", limitation: "Actual denial remains unverified." }, canary, "metadata"));
+  assert.doesNotThrow(() => validateCaptureMetadata({ httpStatus: 200, permission: "granted", limitation: "Actual denial remains unverified.", scopeDecision: "host callback" }, canary, "metadata"));
+  assert.throws(() => validateCaptureMetadata({ authorizationSource: "host callback" }, canary, "metadata"), /secret-bearing/i);
   assert.throws(() => validateCaptureMetadata({ internalToken: "must not be persisted" }, canary, "metadata"), /secret-bearing/i);
   assert.throws(() => validateCaptureMetadata({ arbitrary: "unreviewed value" }, canary, "metadata"), /unknown capture metadata field/i);
   assert.throws(() => validateCaptureMetadata({ limitation: { value: "nested arbitrary metadata" } }, canary, "metadata"), /invalid capture metadata value/i);

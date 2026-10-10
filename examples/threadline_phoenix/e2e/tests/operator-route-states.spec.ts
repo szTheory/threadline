@@ -266,7 +266,7 @@ test("real host denial under Acme support is distinct from busy and disabled", a
   expect(denied.status()).toBe(403);
   await expect(page).toHaveURL(/\/audit\/timeline(?:\?|$)/);
   if (e) {
-    await e.capture("state.denied", "/audit/timeline", "real-export-http-denied", { httpStatus: denied.status(), role: "Acme support read-only", authorizationSource: "Router.my_export_authorize_fn", timelineAllowed: true, unauthenticatedTimelineStatus: unauthenticated.status(), notPending: true });
+    await e.capture("state.denied", "/audit/timeline", "real-export-http-denied", { httpStatus: denied.status(), role: "Acme support read-only", scopeDecision: "host callback", timelineAllowed: true, unauthenticatedTimelineStatus: unauthenticated.status(), notPending: true });
     e.finish("state.denied", "/audit/timeline", "real-host-denial");
   }
 });

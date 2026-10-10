@@ -88,7 +88,7 @@ const captureMetadataFields: Readonly<Record<string, "string" | "number" | "bool
   disabled: "boolean", ariaDisabled: "nullable-string", mutationMarker: "boolean", pointerEvents: "string",
   jobsBefore: "number", jobsAfter: "number", observedAddedJobs: "number", completionClaim: "boolean",
   focusedInside: "boolean", returned: "boolean", physicalDevice: "boolean", role: "string",
-  authorizationSource: "string", timelineAllowed: "boolean", unauthenticatedTimelineStatus: "number",
+  scopeDecision: "string", timelineAllowed: "boolean", unauthenticatedTimelineStatus: "number",
   notPending: "boolean",
 };
 
