@@ -128,6 +128,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <UI.Overlay.drawer
           id={@id}
           show
+          motion={:immediate}
           on_cancel={JS.patch(@close_path)}
           class="tl-row-history-drawer"
           data-testid="row-history-drawer"

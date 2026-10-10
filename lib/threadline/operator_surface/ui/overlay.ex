@@ -98,6 +98,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     attr(:id, :string, required: true)
     attr(:show, :boolean, default: false)
     attr(:on_cancel, JS, default: %JS{})
+    attr(:motion, :atom, values: [:standard, :immediate], default: :standard)
     attr(:class, :any, default: nil)
     attr(:rest, :global)
     slot(:inner_block, required: true)
@@ -106,10 +107,10 @@ if Code.ensure_loaded?(Phoenix.Component) do
       ~H"""
       <div
       id={@id}
-      phx-mounted={@show && show_drawer(@id)}
+      phx-mounted={@show && show_drawer_for_motion(@id, @motion)}
       phx-remove={JS.exec("data-tl-hide", to: "##{@id}.tl-overlay-visible")}
-      data-tl-hide={hide_drawer(@id)}
-      data-tl-cancel={hide_drawer(@on_cancel, @id)}
+      data-tl-hide={hide_drawer_for_motion(@id, @motion)}
+      data-tl-cancel={cancel_drawer_for_motion(@on_cancel, @id, @motion)}
       class={["tl-drawer-container", if(!@show, do: "hidden")]}
       {@rest}
       >
@@ -161,6 +162,38 @@ if Code.ensure_loaded?(Phoenix.Component) do
       |> JS.focus(to: "##{id}-content")
       |> JS.focus_first(to: "##{id}-content")
       |> JS.focus(to: "##{id} [data-tl-initial-focus]")
+    end
+
+    defp show_drawer_for_motion(id, :immediate), do: show_drawer_immediately(id)
+    defp show_drawer_for_motion(id, _motion), do: show_drawer(id)
+
+    defp show_drawer_immediately(js \\ %JS{}, id) do
+      js
+      |> JS.add_class("tl-overlay-visible", to: "##{id}")
+      |> JS.add_class("tl-overlay-visible", to: "##{id}-content")
+      |> JS.show(to: "##{id}")
+      |> JS.show(to: "##{id}-content")
+      |> JS.add_class("overflow-hidden", to: "body")
+      |> JS.focus(to: "##{id}-content")
+      |> JS.focus_first(to: "##{id}-content")
+      |> JS.focus(to: "##{id} [data-tl-initial-focus]")
+    end
+
+    defp hide_drawer_for_motion(id, :immediate), do: hide_drawer_immediately(id)
+    defp hide_drawer_for_motion(id, _motion), do: hide_drawer(id)
+
+    defp cancel_drawer_for_motion(js, _id, :immediate), do: js
+    defp cancel_drawer_for_motion(js, id, _motion), do: hide_drawer(js, id)
+
+    defp hide_drawer_immediately(id) do
+      %JS{}
+      |> JS.hide(to: "##{id}-content")
+      |> JS.hide(to: "##{id}")
+      |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}-content")
+      |> JS.focus(to: "#tl-main")
+      |> JS.pop_focus()
     end
 
     @doc false

@@ -938,19 +938,6 @@
       "exclusion": ""
     },
     {
-      "id": "control.overlay.phx-mounted.7433643221",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-mounted={@show && show_drawer(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
       "id": "control.overlay.phx-mounted.9bc301445d",
       "kind": "control",
       "anchors": [
@@ -1179,19 +1166,6 @@
           "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
           "kind": "control",
           "anchor": "phx-submit=\"prune_now\"",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.row-history.patch.3bdce659ca",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/live/row_history_component.ex",
-          "kind": "control",
-          "anchor": "patch={\"#{@history_path}?as_of=#{DateTime.to_iso8601(change.captured_at)}\"}>",
           "occurrence": 1
         }
       ],
@@ -1973,19 +1947,6 @@
           "kind": "control",
           "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
           "occurrence": 2
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.transaction.patch.1b9ea15fef",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
-          "kind": "control",
-          "anchor": "patch={row_history_path} class=\"tl-button tl-button--compact tl-button--secondary\" title=\"Open row history\" data-testid=\"row-history-link\">",
-          "occurrence": 1
         }
       ],
       "exclusion": ""
@@ -3501,19 +3462,6 @@
       "exclusion": ""
     },
     {
-      "id": "state.probe.1dc48d7f1bb5",
-      "kind": "state",
-      "anchors": [
-        {
-          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
-          "kind": "state",
-          "anchor": "test(\"row-history drawer enters without off-screen reduced-motion transform\"",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
       "id": "state.probe.204b6707b4ed",
       "kind": "state",
       "anchors": [
@@ -4965,6 +4913,266 @@
           "kind": "anchor",
           "anchor": "browserZoom",
           "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.dc882cbc86",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline-origin row history preserves committed filters and safe return\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.00bf05efd2",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline-origin row history stays reachable at actual 200% zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.768d9c32dd",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"transaction-origin row history returns to the same transaction\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.d8a3197e44",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"evidence cards and actor investigation rows do not animate on entry\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.6e25bfe50a",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"reduced motion preserves keyboard row-history route, dialog, and focus\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.a2e77d459a",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"row-history drawer and evidence stay immediate with reduced motion\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.06ccfc4380",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"row-history evidence stays immediate across as-of LiveView patches\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.b299bd1b21",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"actor and correlation pivots re-enter Timeline with only their supported filters\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.f8d8b4b3e4",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"saved search actions stay in bounds at verified 200% browser zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.77dc216b51",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"saved searches keep canonical sharing, long summaries, and destructive actions reachable\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.fa57a9f772",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline pagination appends the next page without changing the applied search URL\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.row_history_component.70f3fafdec",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "patch={as_of_path(@history_path, change.captured_at)}>",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.row_history_component.704aeee295",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"retry\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.timeline_live.f53f1af5d9",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"close-delete-view\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.timeline_live.d6ba1cec46",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"confirm-delete-view\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.filters.383d0060f7",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "data-tl-copy={@search_url}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.cb4ff57980",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "href={row_history_path}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.f60668a09f",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click={JS.push_focus() |> JS.patch(row_history_path)}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.23102906f6",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-mounted={JS.focus(to: \"##{@history_focus_return_id}\") |> JS.push(\"clear_history_focus_return\")}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.overlay.d7969d79ea",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-mounted={@show && show_drawer_for_motion(@id, @motion)}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/ui/overlay.ex"
         }
       ],
       "exclusion": ""

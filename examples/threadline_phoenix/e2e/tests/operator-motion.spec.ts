@@ -133,6 +133,24 @@ function expectNoTransitionDelay(style: StyleSnapshot) {
   expectDurationList(style.transitionDelay, "0s");
 }
 
+async function expectImmediateMotion(locator: Locator) {
+  const style = await computedStyle(locator);
+  expect(style.animationName).toBe("none");
+  expectDurationList(style.animationDuration, "0s");
+  expectDurationList(style.animationDelay, "0s");
+  expect(style.transitionProperty).toBe("none");
+  expectDurationList(style.transitionDuration, "0s");
+  expectNoTransitionDelay(style);
+  expectIdentityOrNone(style.transform);
+}
+
+async function expectNoEntranceMotion(locator: Locator) {
+  const style = await computedStyle(locator);
+  expect(style.animationName).toBe("none");
+  expectDurationList(style.animationDuration, "0s");
+  expectDurationList(style.animationDelay, "0s");
+}
+
 function expectIdentityOrNone(transform: string) {
   expect(["none", "matrix(1, 0, 0, 1, 0, 0)"]).toContain(transform);
 }
@@ -179,6 +197,50 @@ test.describe("operator motion contracts with default motion", () => {
     expect(signatureThreadStyle.animationName).toBe("tl-thread-draw");
     expect(signatureThreadStyle.animationDuration).toBe("0.24s");
     expect(signatureThreadStyle.animationDelay).toBe("0.12s");
+  });
+
+  test("row-history evidence stays immediate across as-of LiveView patches", async ({ page }) => {
+    const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
+    await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+    const drawer = page.locator(".tl-row-history-drawer");
+    const rows = drawer.locator(".tl-subview__timeline li");
+    await expect(drawer).toBeVisible();
+    await expect(rows.first()).toBeVisible();
+    await expectImmediateMotion(drawer);
+    await expectImmediateMotion(rows.first());
+
+    const asOf = drawer.locator('input[name="as_of"]');
+    for (const value of ["2026-10-10T10:00", "2026-10-10T10:05"]) {
+      await asOf.fill(value);
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get("as_of"))
+        .toBe(`${value}:00Z`);
+      await expect(drawer).toBeVisible();
+      await expectImmediateMotion(drawer);
+      await expectImmediateMotion(rows.first());
+    }
+  });
+
+  test("evidence cards and actor investigation rows do not animate on entry", async ({ page }) => {
+    await page.goto("/audit/evidence");
+    const evidenceCard = page.locator(".tl-record-list > .tl-record-card").first();
+    await expect(evidenceCard).toBeVisible();
+    await expectNoEntranceMotion(evidenceCard);
+
+    await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+    const actorHref = await page
+      .getByTestId("timeline-row")
+      .first()
+      .getByTitle("View actor activity")
+      .getAttribute("href");
+    expect(actorHref).not.toBeNull();
+    await page.goto(actorHref!);
+
+    const transactionRow = page.locator("#transactions-list > .tl-change").first();
+    await expect(transactionRow).toBeVisible();
+    await expectNoEntranceMotion(transactionRow);
   });
 
   test("stress overlays, popovers, details, and toasts compute tokenized compositor motion", async ({
@@ -307,15 +369,58 @@ test.describe("operator motion contracts with reduced motion", () => {
     expect(signatureThreadStyle.animationDelay).toBe("0s");
   });
 
-  test("row-history drawer enters without off-screen reduced-motion transform", async ({
+  test("row-history drawer and evidence stay immediate with reduced motion", async ({
     page,
   }) => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
 
-    const drawerStyle = await computedStyle(page.getByTestId("row-history-drawer"));
-    expect(drawerStyle.animationName).toBe("none");
-    expectIdentityOrNone(drawerStyle.transform);
+    const drawer = page.locator(".tl-row-history-drawer");
+    const firstRow = drawer.locator(".tl-subview__timeline li").first();
+    await expect(drawer).toBeVisible();
+    await expect(firstRow).toBeVisible();
+    await expectImmediateMotion(drawer);
+    await expectImmediateMotion(firstRow);
+  });
+
+  test("reduced motion preserves keyboard row-history route, dialog, and focus", async ({
+    page,
+  }) => {
+    await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+    await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+
+    const transactionLink = page
+      .getByTestId("timeline-row")
+      .filter({ hasText: rowTable })
+      .first()
+      .getByTestId("transaction-link");
+    const transactionHref = await transactionLink.getAttribute("href");
+    expect(transactionHref).not.toBeNull();
+    await page.goto(transactionHref!);
+
+    const rowHistoryLink = page
+      .getByTestId("transaction-change-row")
+      .filter({ hasText: rowTable })
+      .getByTestId("row-history-link")
+      .first();
+    const rowHistoryHref = await rowHistoryLink.getAttribute("href");
+    expect(rowHistoryHref).not.toBeNull();
+    await rowHistoryLink.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new URL(rowHistoryHref!, page.url()).toString());
+
+    const drawer = page.locator(".tl-row-history-drawer");
+    const dialog = page.getByRole("dialog", { name: /Row history/ });
+    const close = dialog.getByRole("link", { name: "Close", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    await expect(close).toBeFocused();
+    await expectImmediateMotion(drawer);
+
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(transactionHref!);
+    await expect(dialog).toBeHidden();
+    await expect(rowHistoryLink).toBeFocused();
   });
 
   test("policy details content transition durations collapse", async ({ page }) => {
@@ -340,7 +445,8 @@ test.describe("operator motion contracts with reduced motion", () => {
     expectDurationList(toastStyle.transitionDuration, "0.001s");
     expectNoTransitionDelay(toastStyle);
     expectIdentityOrNone(toastStyle.transform);
-    await toast.getByRole("button", { name: "Close" }).click();
+    const closeToast = toast.getByRole("button", { name: "Close" });
+    await closeToast.click();
     await expect(toast).toBeHidden();
 
     await page.getByRole("button", { name: "Show Modal" }).click();
@@ -354,6 +460,11 @@ test.describe("operator motion contracts with reduced motion", () => {
 
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
     await expect(modalContainer).toBeHidden();
+    if (await toast.isVisible()) {
+      await closeToast.click();
+      await expect(toast).toBeHidden();
+    }
+
     await page.getByRole("button", { name: "Show Drawer" }).click();
     const drawer = page.locator("#stress-drawer-content");
     await expect(drawer).toBeVisible();

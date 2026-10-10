@@ -460,11 +460,6 @@
       "label": "overlay phx-click={"
     },
     {
-      "id": "control.overlay.phx-mounted.7433643221",
-      "kind": "control",
-      "label": "overlay phx-mounted={@show && show_drawer(@id)}"
-    },
-    {
       "id": "control.overlay.phx-mounted.9bc301445d",
       "kind": "control",
       "label": "overlay phx-mounted={show_toast(@id)}"
@@ -553,11 +548,6 @@
       "id": "control.retention-history.phx-submit.e4adfa4855",
       "kind": "control",
       "label": "retention-history phx-submit=\"prune_now\""
-    },
-    {
-      "id": "control.row-history.patch.3bdce659ca",
-      "kind": "control",
-      "label": "row-history patch={\"#{@history_path}?as_of=#{DateTime.to_iso8601(change.captured_at)}\"}>"
     },
     {
       "id": "control.row-history.patch.6c7e1061bc",
@@ -858,11 +848,6 @@
       "id": "control.transaction.navigate.e54ea0cac2",
       "kind": "control",
       "label": "transaction navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">"
-    },
-    {
-      "id": "control.transaction.patch.1b9ea15fef",
-      "kind": "control",
-      "label": "transaction patch={row_history_path} class=\"tl-button tl-button--compact tl-button--secondary\" title=\"Open "
     },
     {
       "id": "control.transaction.phx-viewport-bottom.2a39161ff3",
@@ -1363,11 +1348,6 @@
       "id": "state.probe.1a4c32daf5fb",
       "kind": "state",
       "label": "keeps Home task hierarchy, theme, active state, and launcher validation explicit"
-    },
-    {
-      "id": "state.probe.1dc48d7f1bb5",
-      "kind": "state",
-      "label": "row-history drawer enters without off-screen reduced-motion transform"
     },
     {
       "id": "state.probe.204b6707b4ed",
@@ -1928,6 +1908,106 @@
       "id": "state.zoom.browser",
       "kind": "state",
       "label": "Actual browser-chrome magnification"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.dc882cbc86",
+      "kind": "state",
+      "label": "Timeline-origin row history preserves committed filters and safe return"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.00bf05efd2",
+      "kind": "state",
+      "label": "Timeline-origin row history stays reachable at actual 200% zoom"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.768d9c32dd",
+      "kind": "state",
+      "label": "transaction-origin row history returns to the same transaction"
+    },
+    {
+      "id": "state.generated.operator_motion.d8a3197e44",
+      "kind": "state",
+      "label": "evidence cards and actor investigation rows do not animate on entry"
+    },
+    {
+      "id": "state.generated.operator_motion.6e25bfe50a",
+      "kind": "state",
+      "label": "reduced motion preserves keyboard row-history route, dialog, and focus"
+    },
+    {
+      "id": "state.generated.operator_motion.a2e77d459a",
+      "kind": "state",
+      "label": "row-history drawer and evidence stay immediate with reduced motion"
+    },
+    {
+      "id": "state.generated.operator_motion.06ccfc4380",
+      "kind": "state",
+      "label": "row-history evidence stays immediate across as-of LiveView patches"
+    },
+    {
+      "id": "state.generated.operator_route_states.b299bd1b21",
+      "kind": "state",
+      "label": "actor and correlation pivots re-enter Timeline with only their supported filters"
+    },
+    {
+      "id": "state.generated.operator_route_states.f8d8b4b3e4",
+      "kind": "state",
+      "label": "saved search actions stay in bounds at verified 200% browser zoom"
+    },
+    {
+      "id": "state.generated.operator_route_states.77dc216b51",
+      "kind": "state",
+      "label": "saved searches keep canonical sharing, long summaries, and destructive actions reachable"
+    },
+    {
+      "id": "state.generated.operator_route_states.fa57a9f772",
+      "kind": "state",
+      "label": "Timeline pagination appends the next page without changing the applied search URL"
+    },
+    {
+      "id": "control.generated.row_history_component.70f3fafdec",
+      "kind": "control",
+      "label": "row_history_component patch={as_of_path(@history_path, change.captured_at)}>"
+    },
+    {
+      "id": "control.generated.row_history_component.704aeee295",
+      "kind": "control",
+      "label": "row_history_component phx-click=\"retry\""
+    },
+    {
+      "id": "control.generated.timeline_live.f53f1af5d9",
+      "kind": "control",
+      "label": "timeline_live phx-click=\"close-delete-view\""
+    },
+    {
+      "id": "control.generated.timeline_live.d6ba1cec46",
+      "kind": "control",
+      "label": "timeline_live phx-click=\"confirm-delete-view\""
+    },
+    {
+      "id": "control.generated.filters.383d0060f7",
+      "kind": "control",
+      "label": "filters data-tl-copy={@search_url}"
+    },
+    {
+      "id": "control.generated.transaction_live.cb4ff57980",
+      "kind": "control",
+      "label": "transaction_live href={row_history_path}"
+    },
+    {
+      "id": "control.generated.transaction_live.f60668a09f",
+      "kind": "control",
+      "label": "transaction_live phx-click={JS.push_focus() |> JS.patch(row_history_path)}"
+    },
+    {
+      "id": "control.generated.transaction_live.23102906f6",
+      "kind": "control",
+      "label": "transaction_live phx-mounted={JS.focus(to: \"##{@history_focus_return_id}\") |> JS.push(\"clear_history_focus_return\")}"
+    },
+    {
+      "id": "control.generated.overlay.d7969d79ea",
+      "kind": "control",
+      "label": "overlay phx-mounted={@show && show_drawer_for_motion(@id, @motion)}"
     }
   ]
 }

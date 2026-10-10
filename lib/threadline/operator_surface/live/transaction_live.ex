@@ -2,6 +2,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
     @moduledoc false
     use Phoenix.LiveView
+    alias Phoenix.LiveView.JS
 
     # This page declares its own form policy, so a change that adds a form control
     # fails the guard in the same diff. See
@@ -72,20 +73,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             _ -> nil
           end
 
+        return_focus_id =
+          if socket.assigns[:show_history] == true and socket.assigns[:history_focus_id] do
+            socket.assigns.history_focus_id
+          else
+            row_history_focus_id(table, record_id, params["as_of"])
+          end
+
         {:noreply,
          assign(socket,
            show_history: true,
            history_table: table,
            history_record_id: record_id,
-           history_as_of: as_of
+           history_as_of: as_of,
+           history_focus_id: return_focus_id,
+           history_focus_return_id: nil
          )}
       else
+        return_focus_id = socket.assigns[:history_focus_id]
+
         {:noreply,
          assign(socket,
            show_history: false,
            history_table: nil,
            history_record_id: nil,
-           history_as_of: nil
+           history_as_of: nil,
+           history_focus_id: nil,
+           history_focus_return_id: return_focus_id
          )}
       end
     end
@@ -192,6 +206,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope_query_fn={@threadline_scope_query_fn}
           />
         <% end %>
+        <div
+          :if={@history_focus_return_id}
+          id="row-history-focus-return"
+          class="hidden"
+          aria-hidden="true"
+          phx-mounted={JS.focus(to: "##{@history_focus_return_id}") |> JS.push("clear_history_focus_return")}
+        />
       </UI.Page.shell>
       """
     end
@@ -288,7 +309,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                   <% row_history_path = change_history_path(@base_path, change) %>
                   <div class="tl-change__actions" :if={row_history_path}>
-                    <.link patch={row_history_path} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                    <.link
+                      href={row_history_path}
+                      phx-click={JS.push_focus() |> JS.patch(row_history_path)}
+                      id={row_history_focus_id(change)}
+                      class="tl-button tl-button--compact tl-button--secondary"
+                      title="Open row history"
+                      data-testid="row-history-link"
+                    >
                       <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                       Open row history
                     </.link>
@@ -343,6 +371,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("next-page", _, socket) do
       {:noreply, socket}
+    end
+
+    def handle_event("clear_history_focus_return", _, socket) do
+      {:noreply, assign(socket, :history_focus_return_id, nil)}
     end
 
     # `@base_path` is the request path including `/transactions/:id` for
@@ -483,6 +515,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           captured_at = change.change_diff["captured_at"]
 
           "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
+      end
+    end
+
+    defp row_history_focus_id(change) do
+      case Helpers.routeable_row_ref(change) do
+        nil ->
+          nil
+
+        record_id ->
+          row_history_focus_id(
+            change.change_diff["table_name"],
+            record_id,
+            change.change_diff["captured_at"]
+          )
+      end
+    end
+
+    defp row_history_focus_id(_table, _record_id, nil), do: nil
+
+    defp row_history_focus_id(table, record_id, as_of) do
+      timestamp =
+        case as_of do
+          %DateTime{} = datetime -> DateTime.to_iso8601(datetime)
+          value when is_binary(value) -> normalize_history_timestamp(value)
+          _ -> to_string(as_of)
+        end
+
+      key = Base.url_encode64("#{table}\0#{record_id}\0#{timestamp}", padding: false)
+      "row-history-open-#{key}"
+    end
+
+    defp normalize_history_timestamp(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, datetime, _offset} -> DateTime.to_iso8601(datetime)
+        _ -> value
       end
     end
 

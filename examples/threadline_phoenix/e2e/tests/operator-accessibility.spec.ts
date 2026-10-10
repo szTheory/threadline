@@ -104,6 +104,27 @@ async function expectFocused(locator: Locator) {
   expect(hasFocusRing).toBe(true);
 }
 
+async function expectImmediateMotion(locator: Locator) {
+  const style = await locator.evaluate((element) => {
+    const computed = window.getComputedStyle(element);
+    return {
+      animationDelay: computed.animationDelay,
+      animationDuration: computed.animationDuration,
+      animationName: computed.animationName,
+      transitionDelay: computed.transitionDelay,
+      transitionDuration: computed.transitionDuration,
+      transitionProperty: computed.transitionProperty,
+    };
+  });
+
+  expect(style.animationName).toBe("none");
+  expect(style.animationDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.animationDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.transitionProperty).toBe("none");
+  expect(style.transitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.transitionDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
+}
+
 async function expectThemeOptionFocusVisible(radio: Locator) {
   await expect(radio).toBeFocused();
   const option = radio.locator(
@@ -742,7 +763,9 @@ test.describe("operator accessibility baseline", () => {
     await rowHistoryLink.focus();
     await expectNonObscuredFocused(rowHistoryLink, page);
 
-    await page.goto(rowHistoryHref);
+    const expectedHistoryUrl = new URL(rowHistoryHref, page.url());
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(expectedHistoryUrl.toString());
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const drawer = page.getByTestId("row-history-drawer");
     const dialog = drawer.getByRole("dialog", { name: /Row history/ });
@@ -756,10 +779,23 @@ test.describe("operator accessibility baseline", () => {
 
     const close = dialog.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
+    await expect(close).toBeFocused();
+    await expectImmediateMotion(dialog.locator(".tl-row-history-drawer"));
+    await expectImmediateMotion(dialog.locator(".tl-subview__timeline li").first());
 
     const snapshot = dialog.getByLabel("View snapshot at");
     await expect(snapshot).toBeVisible();
     await snapshot.focus();
+
+    for (const value of ["2026-10-10T10:00", "2026-10-10T10:05"]) {
+      await snapshot.fill(value);
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get("as_of"))
+        .toBe(`${value}:00Z`);
+      await expect(snapshot).toBeFocused();
+      await expectImmediateMotion(dialog.locator(".tl-row-history-drawer"));
+      await expectImmediateMotion(dialog.locator(".tl-subview__timeline li").first());
+    }
 
     if (rowHistoryRedControl === "obscure-date-input") {
       await snapshot.evaluate((element) => {
@@ -861,6 +897,11 @@ test.describe("operator accessibility baseline", () => {
       );
       await expect(redControl).toHaveCount(0);
     }
+
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(transactionHref);
+    await expect(dialog).toBeHidden();
+    await expectNonObscuredFocused(rowHistoryLink, page);
   });
 
   test("opens stress rendered widgets with names, keyboard state, and focus entry", async ({

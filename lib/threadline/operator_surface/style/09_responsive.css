@@ -526,4 +526,11 @@
       animation: none !important;
       transform: none !important;
     }
+
+    .tl-row-history-drawer,
+    .tl-row-history-drawer * {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
   }
