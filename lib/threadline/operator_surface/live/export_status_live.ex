@@ -107,7 +107,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             :ok ->
               {:noreply,
                socket
-               |> put_flash(:info, "Timeline export context queued.")
+               |> put_flash(:info, "Export queued. You can follow its status here.")
                |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
 
             {:error, reason} ->
@@ -176,6 +176,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if @timeline_export_context do %>
               <.timeline_context
                 timeline_export_context={@timeline_export_context}
+            <div :if={Phoenix.Flash.get(@flash, :info)} class="tl-alert tl-alert--success" role="status">
+              <%= Phoenix.Flash.get(@flash, :info) %>
+            </div>
+            <div :if={Phoenix.Flash.get(@flash, :error)} class="tl-alert tl-alert--error" role="alert">
+              <%= Phoenix.Flash.get(@flash, :error) %>
+            </div>
+
                 base_path={@base_path}
                 threadline_scope={assigns[:threadline_scope]}
                 threadline_export_scope={assigns[:threadline_export_scope]}

@@ -11,6 +11,7 @@ test.beforeEach(async ({}, info) => {
   if ([
     "Evidence keeps selected subject/reference through latest and proof-history navigation",
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
+    "Timeline export reaches protected download and returns to its committed search",
     "Timeline keeps populated query identity while an applied replacement is pending",
     "real host denial under Acme support is distinct from busy and disabled",
     "saved searches keep canonical sharing, long summaries, and destructive actions reachable",
@@ -424,6 +425,40 @@ test("Exports seeded pending, failed, completed, unavailable and invalid context
   await expect(page.locator("#tl-main [role=alert]").first()).toBeVisible();
   await e.capture("state.exports.invalid", "/audit/exports?subject_type=invalid&subject_ref_json=%7B", "invalid-context-alert");
   e.finish("state.exports", "/audit/exports", "seeded-status-and-invalid-context");
+});
+
+test("Timeline export reaches protected download and returns to its committed search", async ({ page }) => {
+  await login(page);
+  const correlation = "walk-acme-4521-close";
+  const sourcePath = `/audit/timeline?table=ticket_replies&correlation_id=${correlation}`;
+  await page.goto(sourcePath);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.locator("#timeline-filters")).toBeVisible();
+
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await page.getByRole("button", { name: "Queue export", exact: true }).click();
+  await expect(page).toHaveURL(/\/audit\/exports(?:\?|$)/);
+  await expect(page.getByText("Export queued. You can follow its status here.", { exact: true })).toBeVisible();
+
+  const jobs = page.getByTestId("export-jobs");
+  const sourceReturn = jobs.getByRole("link", { name: "Reopen source search", exact: true }).first();
+  await expect(sourceReturn).toHaveAttribute("href", `/audit/timeline?table=ticket_replies&correlation_id=${correlation}`);
+  const download = jobs.getByRole("link", { name: "Download export", exact: true }).first();
+  await expect(download).toBeVisible({ timeout: 60_000 });
+  await expect(download).toHaveAttribute("target", "_blank");
+
+  const downloadPath = await download.getAttribute("href");
+  expect(downloadPath).toMatch(/^\/audit\/exports\/download\/[0-9a-f-]+$/i);
+  const response = await page.request.get(downloadPath!);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-disposition"]).toContain("attachment;");
+
+  await sourceReturn.click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  const returned = new URL(page.url());
+  expect(returned.searchParams.get("table")).toBe("ticket_replies");
+  expect(returned.searchParams.get("correlation_id")).toBe(correlation);
+  expect([...returned.searchParams.keys()].sort()).toEqual(["correlation_id", "table"]);
 });
 
 test("Evidence keeps selected subject/reference through latest and proof-history navigation", async ({ page, browser }) => {

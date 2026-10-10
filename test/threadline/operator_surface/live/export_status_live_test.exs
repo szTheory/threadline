@@ -209,6 +209,91 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             conn,
             "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
           )
+      test "a failed actor-owned history read is not presented as empty", %{conn: conn} do
+        original_repos = Application.get_env(:threadline, :ecto_repos)
+        Application.put_env(:threadline, :ecto_repos, [FailingRepo])
+
+        on_exit(fn ->
+          if original_repos do
+            Application.put_env(:threadline, :ecto_repos, original_repos)
+          else
+            Application.delete_env(:threadline, :ecto_repos)
+          end
+        end)
+
+        {:ok, view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "Export history is unavailable"
+        assert html =~ "Export history could not be loaded"
+        refute html =~ "No export jobs</h2>"
+        assert has_element?(view, "button", "Refresh export history")
+
+        render_click(view, "refresh_jobs", %{})
+        assert render(view) =~ "Export history could not be loaded"
+      end
+
+      test "unfiltered jobs retain a local Timeline return and ignore forged saved fields", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        job =
+          %ExportJob{}
+          |> ExportJob.changeset(%{
+            status: "pending",
+            query_params: %{
+              "return_url" => "https://evil.example/steal",
+              "tenant_id" => "tenant-secret",
+              "scope" => "all",
+              "cursor" => "forged-cursor"
+            },
+            actor_ref: actor_ref,
+            started_at: now
+          })
+          |> Repo.insert!(repo_opts())
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ ~s|href="/audit/timeline"|
+        refute html =~ "evil.example"
+        refute html =~ "tenant-secret"
+        refute html =~ "forged-cursor"
+        assert html =~ "export-job-#{job.id}"
+      end
+
+      test "source Timeline return keeps only valid supported saved filters", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
+        |> ExportJob.changeset(%{
+          status: "pending",
+          query_params: %{
+            "table" => "ticket_replies",
+            "correlation_id" => "request-42",
+            "tenant_id" => "tenant-secret",
+            "scope" => "all",
+            "cursor" => "forged-cursor",
+            "return_url" => "https://evil.example/steal"
+          },
+          actor_ref: actor_ref,
+          started_at: now
+        })
+        |> Repo.insert!(repo_opts())
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~
+                 ~s|href="/audit/timeline?table=ticket_replies&amp;correlation_id=request-42"|
+
+        refute html =~ "evil.example"
+        refute html =~ "tenant-secret"
+        refute html =~ "forged-cursor"
+      end
+
 
         assert has_element?(
                  view,

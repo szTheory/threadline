@@ -428,7 +428,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       job_changeset =
         ExportJob.operator_changeset(%{
           status: "pending",
-          query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
+          query_params: committed_export_params(socket.assigns.filters_raw),
           actor_ref: actor_ref
         })
 
@@ -450,7 +450,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            socket
            |> put_flash(
              :info,
-             "Background export requested. View progress on the Export Status page."
+             "Export queued. You can follow its status here."
            )
            |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
 
@@ -716,13 +716,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
 
-    defp background_export_error_message(:supervisor_not_started) do
-      "Background export could not start because the built-in export runtime is unavailable."
+    defp committed_export_params(raw) do
+      raw
+      |> FilterParams.canonical_query()
+      |> URI.decode_query()
     end
 
-    defp background_export_error_message(reason) do
-      "Background export could not start: #{inspect(reason)}."
-    end
+    defp background_export_error_message(_reason),
+      do: "Export could not be queued. Check the export status, then try again from Timeline."
 
     defp terminal_export_expiry do
       retention_ttl_hours =
