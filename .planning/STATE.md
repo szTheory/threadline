@@ -4,16 +4,16 @@ milestone: v1.46
 milestone_name: Operator UI Refinement
 current_phase: 240
 current_phase_name: Connected investigation and recovery
-status: discussing
-stopped_at: Phase 240 UI-SPEC approved
-last_updated: "2026-10-10T10:01:24.294Z"
+status: planned
+stopped_at: Phase 240 plans approved
+last_updated: "2026-10-10T10:43:51.000Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 239 passed verification; Phase 240 discussion started
-state_head: 61b5cc777fccbb0b38f7c8a968bbc350423de4e6
+last_activity_desc: Phase 240 plans passed independent review; execution is next
+state_head: c5e1d06a95c7e2ee196d12c164ef29010bcea958
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 10
+  total_plans: 14
   completed_plans: 10
   percent: 33
 ---
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-09 after Phase 238 verification)
 
 ## Current Position
 
-Phase: 240 (Connected investigation and recovery) — DISCUSSING
-Plan: discussion before planning; Phase 239 complete (7/7 plans)
-Status: Discussing Phase 240
-Last activity: 2026-10-10 — Phase 239 verification passed; Phase 240 discussion started
+Phase: 240 (Connected investigation and recovery) — PLANNED
+Plan: 4 plans across 3 waves; Phase 239 complete (7/7 plans)
+Status: Ready to execute Phase 240
+Last activity: 2026-10-10 — Phase 240 plans passed independent review
 
-Progress: [███░░░░░░░] 33% of milestone phases — 2/6 phases complete; 10/10 currently planned plans complete; later plans TBD
+Progress: [███░░░░░░░] 33% of milestone phases — 2/6 phases complete; 10/14 currently planned plans complete; later plans TBD
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
