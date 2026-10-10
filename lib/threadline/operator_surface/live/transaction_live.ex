@@ -446,6 +446,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # complete value in :title when it truncates; when it does not truncate the
     # rendered text IS the full value. Sentinel placeholders (omitted/absent/null)
     # have no copyable value.
+    defp diff_full(%{modifier: "tl-value--redacted"}), do: nil
     defp diff_full(%{title: title}) when is_binary(title), do: title
 
     defp diff_full(%{text: text, modifier: modifier}) do

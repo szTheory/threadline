@@ -562,6 +562,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "null"
       assert html =~ ~s|class="tl-value tl-value--redacted"|
       assert html =~ "[REDACTED]"
+      refute html =~ ~s|data-tl-copy="[REDACTED]"|
       assert html =~ "(omitted)"
       assert html =~ "(absent)"
       assert html =~ ~s|title="2026-06-04T12:30:00Z"|

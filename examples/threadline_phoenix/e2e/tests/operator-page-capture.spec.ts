@@ -402,6 +402,7 @@ test.describe("operator real-route deterministic capture", () => {
         if (route.id === "route.transaction") {
           await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
           await expect(page.locator("#tl-main")).toContainText("[REDACTED]");
+          await expect(page.locator('#tl-main button[data-tl-copy="[REDACTED]"]')).toHaveCount(0);
         }
         const id = `${route.id}__dark-${width}`;
         const observation = await evidence.capture(id, path, "direct-entry", { pattern: route.pattern, seedResolution: route.seedResolution, httpStatus: response!.status() });
