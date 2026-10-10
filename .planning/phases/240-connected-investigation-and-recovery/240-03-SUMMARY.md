@@ -96,7 +96,7 @@ status: complete
 - Clipboard API writes run synchronously from the activation handler. Success appears only after a resolved write; rejected or unconfirmed attempts provide the approved manual-copy message.
 - The fallback removes its temporary textarea on every path, preserves the prior focus and selection, and leaves authorized source values selectable. Redacted, omitted, absent, and null sentinel values remain ineligible for copy controls.
 - Desktop and mobile browser coverage exercises fresh entry, repeated LiveView patches, API and fallback outcomes, status geometry, long selectable values, and exact applied-search copying.
-- Refactored the Timeline change list into `timeline_live/changes.ex` and corrected the repository hygiene checker and source inventories required by the existing contracts.
+- Refactored the Timeline change list into `lib/threadline/operator_surface/live/timeline_live/changes.ex` and corrected the repository hygiene checker and source inventories required by the existing contracts.
 
 ## Task Commits
 

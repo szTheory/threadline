@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.46 Operator UI Refinement** — scope, all 26 requirements and six-phase roadmap approved 2026-10-08. Phases 238–239 are complete; Phase 240 is planned and ready to execute; Phases 241–243 are not started.
+- [ ] **v1.46 Operator UI Refinement** — scope, all 26 requirements and six-phase roadmap approved 2026-10-08. Phases 238–240 are complete; Phases 241–243 are not started.
 
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07; closeout audit records `tech_debt` with no blockers. Archive: `.planning/milestones/v1.45-ROADMAP.md`
 - [x] **v1.44 Behavioral Depth: Properties, Twins, Telemetry** — Phases 224–230; shipped 2026-10-02 as 0.12.0. Archive: `.planning/milestones/v1.44-ROADMAP.md`
@@ -19,7 +19,7 @@
 
 ## v1.46 — Operator UI Refinement
 
-**Status:** Approved by the maintainer on 2026-10-08. Phase 238 is complete (3/3 plans, 14/14 verified must-haves); Phase 239 is complete (7/7 plans, five roadmap success criteria verified on candidate `b97f0ab9`). Phase 240 has four approved plans across three dependency waves and is ready to execute.
+**Status:** Approved by the maintainer on 2026-10-08. Phase 238 is complete (3/3 plans, 14/14 verified must-haves); Phase 239 is complete (7/7 plans, five roadmap success criteria and 10/10 requirements verified on candidate `b97f0ab9`); Phase 240 is complete (4/4 plans, 49/49 verified truths on candidate `6aba225c`). Phase 241 is next to plan.
 
 **Delivery boundary:** Refine the eleven existing operator routes and their theme/export seams using the established Threadline identity and private Phoenix/HEEx primitives. Preserve host authentication, authorization, tenant scope, redaction, routes, public 1.x contracts and Phoenix optionality. Do not expand backend capabilities, introduce a framework or public component package, or revive paid visual judging.
 
@@ -31,7 +31,7 @@
 
 - [x] **Phase 238: Current-main preview and acceptance baseline** - Establish source-bound rendered evidence and a ranked disposition for every route, control and material state before UI changes. (completed 2026-10-09)
 - [x] **Phase 239: Investigation entry and transaction composition** - Make home, timeline and transaction inspection readable and predictable while proving the shared presentation in one complete journey. (completed 2026-10-10; 7/7 plans; verification passed)
-- [ ] **Phase 240: Connected investigation and recovery** - Preserve context through row history, actor/correlation pivots and saved searches, with reliable copy and motion behavior.
+- [x] **Phase 240: Connected investigation and recovery** - Preserve context through row history, actor/correlation pivots and saved searches, with reliable copy and motion behavior. (completed 2026-10-10)
 - [ ] **Phase 241: Operational evidence and policy inspection** - Make capture coverage, evidence limits and redaction drift understandable without overstating certainty.
 - [ ] **Phase 242: Export and retention operations** - Complete existing export and confirmed prune journeys with accurate asynchronous, permission and reconnect feedback.
 - [ ] **Phase 243: Integrated verification and review preview** - Prove the delivered journeys in required checks and provide source-bound review evidence and a release-ready recommendation.
@@ -118,7 +118,7 @@ Plans:
 4. Operators can copy authorized complete values on fresh direct entry and after repeated LiveView patches, with truthful failure feedback and no duplicate event handling.
 5. Operators see purposeful, interruptible motion where state or spatial relationships change; frequent actions remain immediate and reduced-motion preferences are honored.
 
-**Plans**: 4/4 plans complete; phase verification pending
+**Plans**: 4/4 plans complete; phase verification passed (49/49 truths)
 Plans:
 **Wave 1**
 - [x] 240-01-PLAN.md — Preserve row-history context and recover safely from unavailable evidence
@@ -177,7 +177,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 238. Current-main preview and acceptance baseline | 3/3 | Complete    | 2026-10-09 |
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
-| 240. Connected investigation and recovery | 4/4 | In Progress | - |
+| 240. Connected investigation and recovery | 4/4 | Complete    | 2026-10-10 |
 | 241. Operational evidence and policy inspection | 0/TBD | Not started | - |
 | 242. Export and retention operations | 0/TBD | Not started | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |

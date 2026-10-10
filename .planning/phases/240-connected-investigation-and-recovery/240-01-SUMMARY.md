@@ -118,7 +118,7 @@ status: complete
 
 ## Files Created/Modified
 
-- `lib/threadline/operator_surface/live/timeline_live.ex` and `timeline_live/helpers.ex` - pass committed filters into safe row-history URLs.
+- `lib/threadline/operator_surface/live/timeline_live.ex` and `lib/threadline/operator_surface/live/timeline_live/helpers.ex` - pass committed filters into safe row-history URLs.
 - `lib/threadline/operator_surface/live/row_history_live.ex` - accept bounded origin state and reconstruct canonical return/history routes.
 - `lib/threadline/operator_surface/live/row_history_component.ex` - preserve as-of context and render retryable connection failures.
 - `lib/threadline/operator_surface/live/transaction_live.ex` - mount nested history only after the parent transaction loads.
@@ -135,9 +135,9 @@ status: complete
 
 ### Auto-fixed Issues
 
-**1. Corrected nonexistent transaction-test paths in Phase 240 plans and validation mapping**
+**1. Corrected a nonexistent transaction-test path in Phase 240 plans and validation mapping**
 - **Found during:** Task 2 planning checks
-- **Issue:** Plans 240-01 and 240-03 cited `test/threadline/operator_surface/live/transaction_live_test.exs`, which does not exist.
+- **Issue:** Plans 240-01 and 240-03 initially cited a nested test path that was not present in the repository.
 - **Fix:** Pointed the read list and commands to the actual `test/threadline/operator_surface/transaction_live_test.exs` file.
 - **Verification:** The corrected command ran as part of the 199-test focused suite.
 - **Committed in:** Plan metadata commit.

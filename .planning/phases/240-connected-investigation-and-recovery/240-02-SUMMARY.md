@@ -129,7 +129,7 @@ status: complete
 
 ## Files Created/Modified
 
-- `timeline_live.ex`, `timeline_live/filters.ex`, and `timeline_live/helpers.ex` - actor-scoped saved-search actions, canonical applied search URL, and concise filter summaries.
+- `lib/threadline/operator_surface/live/timeline_live.ex`, `lib/threadline/operator_surface/live/timeline_live/filters.ex`, and `lib/threadline/operator_surface/live/timeline_live/helpers.ex` - actor-scoped saved-search actions, canonical applied search URL, and concise filter summaries.
 - `actor_live.ex` - canonical ordering for the Open Timeline actor link.
 - `04_controls.css` - responsive saved-search layout and local wrapping for long values.
 - Timeline and actor LiveView tests - ownership, committed-filter persistence, canonical sharing, confirmation, pivots, and failure boundaries.
@@ -166,7 +166,7 @@ None - no external service configuration required.
 
 ## Verification
 
-- `mix test test/threadline/operator_surface/live/timeline_live_test.exs test/threadline/operator_surface/live/actor_live_test.exs` - 79 tests, 0 failures.
+- Focused Timeline and actor LiveView ExUnit suite - 79 tests, 0 failures.
 - `mix format --check-formatted` on all modified Elixir source and test files - passed.
 - `npm run typecheck` in the Phoenix example E2E package - passed.
 - `operator-route-states.spec.ts` on desktop and mobile Chromium - 13 passed, 19 intentionally skipped, 0 failed. The actual 200% zoom scenario runs on desktop Chromium only.

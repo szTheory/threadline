@@ -134,7 +134,7 @@ status: complete
 
 ## Verification
 
-- `mix test test/threadline/operator_surface/ui_test.exs test/threadline/operator_surface/transaction_live_test.exs test/threadline/operator_surface/operator_surface_fixture_contract_test.exs test/threadline/operator_surface/operator_evidence_contract_test.exs` - 105 tests, 0 failures.
+- Focused ExUnit coverage for UI, transaction, fixture-contract, and evidence-contract behavior - 105 tests, 0 failures.
 - `mix format --check-formatted` on modified Elixir files - passed.
 - `npm run typecheck` in the Phoenix example E2E package - passed.
 - `operator-motion.spec.ts` and `operator-accessibility.spec.ts` on desktop and mobile Chromium - 48 passed, 0 failed.
