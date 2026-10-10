@@ -29,6 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       endpoint: Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint
 
     alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
+    alias Threadline.OperatorSurface.Live.PolicyRedactionLive
     alias Threadline.Policy.RedactionPresenter
     alias Threadline.Semantics.AuditAction
     alias Threadline.StorageSchema
@@ -117,6 +118,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "refresh ignores disabled policy access and an invalid selected schema" do
+        for {enabled, error, schema} <- [{false, nil, "public"}, {true, "invalid", "Public"}] do
+          socket = %Phoenix.LiveView.Socket{
+            assigns: %{
+              __changed__: %{},
+              threadline_policy_enabled: enabled,
+              form_error: error,
+              schema_param: schema,
+              report: nil
+            }
+          }
+
+          assert {:noreply, ^socket} =
+                   PolicyRedactionLive.handle_event(
+                     "refresh-policy-inspection",
+                     %{},
+                     socket
+                   )
+        end
+      end
+
       test "declares the host-schema picker as its form capability" do
         source = File.read!("lib/threadline/operator_surface/live/policy_redaction_live.ex")
 
@@ -144,6 +166,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Redaction policy"
         assert html =~ "Compare the configured redaction policy"
+        assert html =~ "Refresh policy inspection"
+        assert html =~ "This inspection compares current deployed trigger definitions only."
+
+        assert html =~
+                 "It does not establish whether historical audit rows or downstream exports were redacted."
+
         assert count_occurrences(html, ~s(aria-label="Redaction policy posture")) == 1
         refute html =~ ~s(class="tl-trust-rail")
         refute html =~ ~s(class="tl-summary-grid")
@@ -160,6 +188,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Drift detected"
         assert html =~ "Could not introspect"
+        assert html =~ "Could not inspect"
         assert html =~ "Config matches deployed"
         assert html =~ "Redaction drift detected"
         refute html =~ "Run redaction"
@@ -207,6 +236,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         refute html =~ "alice@example.com"
         refute html =~ "super-secret"
+        refute html =~ "raw-trigger-sql-canary-241"
+        refute html =~ "sample-value-canary-241"
+        refute html =~ "redacted-value-canary-241"
       end
 
       test "selects support host schema and links Timeline with table_schema", %{conn: conn} do
@@ -241,6 +273,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Could not load redaction policy for Public"
         assert html =~ "Use public schema"
         assert html =~ ~s|href="/audit/policy/redaction?schema=public"|
+        refute html =~ "Refresh policy inspection"
         refute html =~ @alpha
       end
 
@@ -254,6 +287,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_submit(view, "select-schema", %{"schema" => "public"})
 
         assert_patch(view, "/audit/policy/redaction?schema=public")
+      end
+
+      test "an empty configured policy with no deployed trigger is drift and can be reinspected",
+           %{
+             conn: conn
+           } do
+        Application.put_env(:threadline, :trigger_capture, tables: %{@delta => []})
+
+        {:ok, view, html} = live(conn, "/audit/policy/redaction")
+        delta_row = row_html(html, @delta)
+
+        assert delta_row =~ "Drift detected"
+        assert delta_row =~ "No deployed Threadline trigger found for configured table."
+        assert html =~ "Refresh policy inspection"
+
+        render_click(view, "refresh-policy-inspection")
+
+        refreshed_html = render(view)
+        assert row_html(refreshed_html, @delta) =~ "Drift detected"
+        refute refreshed_html =~ "Configured policy matches deployed trigger policy"
       end
     end
 
@@ -349,6 +402,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       LANGUAGE plpgsql
       AS $$
       BEGIN
+        -- raw-trigger-sql-canary-241 SELECT 'sample-value-canary-241';
+        -- redacted-value-canary-241
         RETURN NEW;
       END;
       $$;
@@ -420,6 +475,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Regex.scan(~r/class="tl-policy__table">([^<]+)</, body, capture: :all_but_first)
       |> List.flatten()
+    end
+
+    defp row_html(html, table) do
+      html
+      |> then(&Regex.scan(~r/<details[^>]*>.*?<\/details>/s, &1))
+      |> Enum.find(fn [row] ->
+        Regex.match?(~r/class="tl-policy__table">#{Regex.escape(table)}</, row)
+      end)
+      |> List.first()
     end
 
     defp status_label(:drift_detected), do: "Drift detected"

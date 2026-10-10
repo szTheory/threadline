@@ -77,6 +77,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        )}
     end
 
+    def handle_event(
+          "refresh-policy-inspection",
+          _params,
+          %{assigns: %{threadline_policy_enabled: true, form_error: nil}} = socket
+        ) do
+      {:noreply, fetch_report_for_schema(socket, socket.assigns.schema_param)}
+    end
+
+    def handle_event("refresh-policy-inspection", _params, socket), do: {:noreply, socket}
+
     def render(assigns) do
       ~H"""
       <UI.Page.shell
@@ -97,6 +107,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </UI.Page.page_header>
 
             <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
+            <.policy_refresh :if={is_nil(@form_error)} />
 
             <%= if @form_error do %>
               <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
@@ -186,6 +197,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             />
           <% end %>
       </UI.Page.shell>
+      """
+    end
+
+    defp policy_refresh(assigns) do
+      ~H"""
+      <div class="tl-cluster tl-cluster--start">
+        <button
+          type="button"
+          phx-click="refresh-policy-inspection"
+          phx-disable-with="Inspecting policy…"
+          class="tl-button tl-button--primary"
+        >
+          Refresh policy inspection
+        </button>
+      </div>
       """
     end
 
@@ -291,18 +317,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assigns =
         assigns
         |> assign(:all_clear?, redaction_all_clear?(assigns.report.summary))
+        |> assign(:empty?, assigns.report.tables == [])
         |> assign(:actions, redaction_contextual_actions(assigns))
 
       ~H"""
       <section class="tl-section tl-policy__posture" aria-label="Redaction policy posture">
         <header class="tl-section__header">
           <h2 class="tl-section__title">
-            <%= if @all_clear?, do: "Configured policy matches deployed trigger policy", else: "Redaction drift detected" %>
+            <%= cond do %>
+              <% @empty? -> %> No configured policy to compare
+              <% @all_clear? -> %> Configured policy matches deployed trigger policy
+              <% @report.summary.drift_detected == 0 -> %> Deployed policy could not be inspected
+              <% true -> %> Redaction drift detected
+            <% end %>
           </h2>
         </header>
 
         <p :if={@all_clear?} class="tl-policy__success">
           Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
+        </p>
+
+        <p :if={@report.tables == []} class="tl-policy__empty">
+          No configured redaction policies were found for this inspection.
+        </p>
+
+        <p :if={@report.summary.could_not_introspect > 0} class="tl-policy__hint">
+          Deployed policy could not be inspected. Retry before treating policy as matched.
+        </p>
+
+        <p class="tl-policy__scope-note">
+          This inspection compares current deployed trigger definitions only. It does not establish whether historical audit rows or downstream exports were redacted.
         </p>
 
         <UI.Display.kv>
@@ -339,7 +383,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp redaction_all_clear?(summary) do
-      summary.drift_detected == 0 and summary.could_not_introspect == 0
+      summary.config_matches_deployed > 0 and summary.drift_detected == 0 and
+        summary.could_not_introspect == 0
     end
 
     defp redaction_contextual_actions(assigns) do
@@ -371,7 +416,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp row_modifier(:config_matches_deployed), do: "tl-policy__row--match"
 
     defp status_label(:drift_detected), do: "Drift detected"
-    defp status_label(:could_not_introspect), do: "Could not introspect"
+    defp status_label(:could_not_introspect), do: "Could not inspect"
     defp status_label(:config_matches_deployed), do: "Deployed matches config"
 
     defp empty_section_label(:drift_detected), do: "No redaction drift detected."

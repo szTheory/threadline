@@ -136,6 +136,25 @@ defmodule Threadline.Policy.RedactionPresenterTest do
       assert warning == "No deployed Threadline trigger found for configured table."
     end
 
+    test "treats a missing trigger as drift when the configured policy is empty" do
+      report = RedactionPresenter.build_report(%{"users" => []}, [])
+
+      assert report.summary == %{
+               drift_detected: 1,
+               could_not_introspect: 0,
+               config_matches_deployed: 0
+             }
+
+      assert [
+               %{
+                 status: :drift_detected,
+                 configured: %{exclude: [], mask: [], mask_placeholder: "[REDACTED]"},
+                 deployed: nil,
+                 warning: "No deployed Threadline trigger found for configured table."
+               }
+             ] = report.tables
+    end
+
     test "treats deployed-only redaction as drift" do
       report =
         RedactionPresenter.build_report(
@@ -355,6 +374,34 @@ defmodule Threadline.Policy.RedactionPresenterTest do
         refute rendered =~ "alice@example.com"
         refute rendered =~ "secret"
       end)
+    end
+
+    test "does not include raw source canaries in a normalized policy report" do
+      source =
+        TriggerSQL.install_function_for_table("users",
+          mask: ["email"],
+          store_changed_from: true
+        ) <>
+          "\n-- raw-trigger-sql-canary-241 SELECT 'sample-value-canary-241';\n-- redacted-value-canary-241\n"
+
+      report =
+        RedactionPresenter.build_report(
+          %{"users" => [mask: ["email"]]},
+          [
+            %{
+              table: "users",
+              trigger_name: "threadline_audit_users",
+              function_name: "threadline_capture_changes_users",
+              function_language: "plpgsql",
+              function_source: source
+            }
+          ]
+        )
+
+      rendered_report = inspect(report)
+      refute rendered_report =~ "raw-trigger-sql-canary-241"
+      refute rendered_report =~ "sample-value-canary-241"
+      refute rendered_report =~ "redacted-value-canary-241"
     end
   end
 
