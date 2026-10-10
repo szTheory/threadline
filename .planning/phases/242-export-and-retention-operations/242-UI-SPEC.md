@@ -1,10 +1,11 @@
 ---
 phase: "242"
 slug: "export-and-retention-operations"
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: "2026-10-10"
+reviewed_at: "2026-10-10T20:28:27Z"
 ---
 
 # Phase 242 — UI Design Contract
@@ -58,11 +59,12 @@ Exceptions: existing 1px borders/dividers and 3px status stripe are not spacing 
 
 ## Typography
 
-Use the existing semantic roles and font families. These four sizes and two weights govern primary phase content; inherited subordinate metadata may continue using existing 12–13px roles.
+Use the existing semantic roles and font families. All phase roles, including subordinate metadata and captions, use only these four sizes and two weights. Map subordinate metadata and captions to the existing 14px label/identifier role; do not use 12px, 13px, or other inherited smaller roles in this phase.
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Label and identifier | 14px | 400 | 1.4 |
+| Subordinate metadata and captions | 14px | 400 | 1.4 |
 | Body and controls | 16px | 400 | 1.5 |
 | Section heading | 20px | 600 | 1.2 |
 | Page title | 24px | 600 | 1.2 |
@@ -99,7 +101,7 @@ Use calm, precise operator language. An accepted queue request is not a complete
 | Retention failure | `Retention prune failed ({safe_category}). {completed_count} rows were deleted before the failure. Review the run details and resolve the reported category before starting another prune.` Render only a safe category, never raw database or exception text. |
 | Disconnected status | `Connection lost. Read-only information may be stale; actions are paused until current status is refreshed.` |
 | Reconnecting status | `Reconnecting. Actions will remain unavailable until current status is refreshed.` |
-| Destructive confirmation | Title: `Prune retained audit data?`; body: use the full Retention scope explanation above, then `To confirm, type the policy name “default” exactly. This action cannot be undone.` Actions: `Cancel`; `Prune now`. |
+| Destructive confirmation | Title: `Prune retained audit data?`; body: use the full Retention scope explanation above, then `To confirm, type the policy name “default” exactly. This action cannot be undone.` Actions: `Keep audit data`; `Prune now`. |
 
 Never say or imply “exactly once,” tenant-filtered pruning, a preview count, a historical cutoff, or file availability based only on job metadata. Do not claim a prune completed from a flash or queue acknowledgement; show the persisted run status. Distinguish pending, running, failed, completed, expired, and missing-file export states. Keep host authorization as the server authority.
 
@@ -111,8 +113,8 @@ Never say or imply “exactly once,” tenant-filtered pruning, a preview count,
 | Export job lifecycle | Treat the current actor-owned persisted `ExportJob` as the source of truth after mount and reconnect. Render pending/queued, running, failed, completed-ready, expired, and missing-file outcomes distinctly. Say “queued” only after adapter acceptance. Keep scoped exports unavailable where the existing product contract disallows them. |
 | Download | Offer download only when current readiness permits it. The existing request controller remains authoritative for actor ownership, completion, expiry, and storage delivery. A failed request must show actionable unavailable feedback; do not probe storage on every render. Intentional repeat export requests remain possible. |
 | Retention history | Keep the recent-run summary adjacent to the newest-first history and state the actual displayed/capped row count. Show status, cumulative rows deleted, duration, and available timestamps. Keep safe failure category and partial completed-deletion count with the failed run. Do not infer cutoff or historical policy snapshot from current configuration. |
-| Prune confirmation | Preserve the exact canonical policy-name type-to-confirm flow. The modal explains global schema scope and consequence before submission. `Cancel`, Escape, or the existing close control dismisses without pruning; only deliberate submit requests the operation. Server authorization, constant-time token comparison, audit-before-prune ordering, and server duplicate/in-flight guards remain authoritative. |
-| Modal focus | On open, use the existing modal focus trap and focus the labeled confirmation input. Keep Tab/Shift+Tab inside while modal is open. Escape and Cancel close it without submitting. On close, restore focus to the original `Prune now` trigger. Give title and description stable IDs and associate them through the existing modal primitive. Do not move focus to the reconnect banner or status messages. |
+| Prune confirmation | Preserve the exact canonical policy-name type-to-confirm flow. The modal explains global schema scope and consequence before submission. `Keep audit data`, Escape, or the existing close control dismisses without pruning; only deliberate submit requests the operation. Server authorization, constant-time token comparison, audit-before-prune ordering, and server duplicate/in-flight guards remain authoritative. |
+| Modal focus | On open, use the existing modal focus trap and focus the labeled confirmation input. Keep Tab/Shift+Tab inside while modal is open. Escape and `Keep audit data` close it without submitting. On close, restore focus to the original `Prune now` trigger. Give title and description stable IDs and associate them through the existing modal primitive. Do not move focus to the reconnect banner or status messages. |
 | Disconnect/reconnect | Use the existing shell-level polite `role="status"` banner driven by actual LiveView transport state. Keep page content and read-only navigation available. Native-disable every mutation button while disconnected/reconnecting and while that action is in flight; keep CSS dimming/pointer suppression only as a secondary affordance. Do not use page-wide inertness or remove read-only content. |
 | Reconciliation | On reconnect, refresh durable jobs and runs before reenabling mutations. Announce the status change without setting focus, scrolling, or moving the current focus. Never replay a pending or uncertain export/prune. If the outcome is unknown, show current persisted state and require a fresh deliberate activation. No exactly-once guarantee is implied. |
 | Authorization and scope | Preserve existing host authorization and per-request download ownership checks. Client visibility, disabled attributes, return URLs, confirmation fields, and tenant context are never security boundaries. Retention always describes the configured schema-wide policy accurately. |
@@ -125,11 +127,11 @@ Never say or imply “exactly once,” tenant-filtered pruning, a preview count,
 - Keep confirmation text, global scope explanation, input label, and both modal actions available without clipped dialog content. Use a scrollable modal body when the short viewport requires it; keep the action row reachable.
 - Use semantic buttons for mutation and links for navigation or downloads. Preserve a visible high-contrast focus ring and at least 40×40px interactive targets. Native `disabled` must block pointer, Enter, and Space activation during disconnect and in-flight submission; server guards still reject forged/repeated events.
 - Connection changes are announced in the existing polite status region and do not receive programmatic focus. Reconnect must not steal focus from read-only navigation or a still-usable control. Do not auto-submit after reconnection.
-- Verify keyboard opening, focus containment, Escape/Cancel behavior, focus return, keyboard-disabled mutations, touch targets, and reduced motion. Do not communicate status by color alone.
+- Verify keyboard opening, focus containment, Escape/`Keep audit data` behavior, focus return, keyboard-disabled mutations, touch targets, and reduced motion. Do not communicate status by color alone.
 
 ## UI Considerations
 
-Applicable state considerations resolved: 25 total (18 explicit, 7 backstop), 0 unresolved, 0 unclassified. Empty/error state copy is defined in `Copywriting Contract`; this section defines coverage and truth conditions. These are acceptance criteria for planning and verification, not claims that checks have already passed.
+The compiled UI-consideration probe evaluated seven surfaces: export jobs, retention runs, prune confirmation, Timeline source search, export navigation, reconnect status, and mutation controls. It found 35 applicable considerations, all resolved (22 explicit, 13 backstop), with 0 unresolved and 0 unclassified. Empty/error state copy is defined in `Copywriting Contract`; this section defines coverage and truth conditions. These are acceptance criteria for planning and verification, not claims that checks have already passed.
 
 | Surface / state | Status | Verification | Acceptance criterion |
 |---|---|---|---|
@@ -140,7 +142,7 @@ Applicable state considerations resolved: 25 total (18 explicit, 7 backstop), 0 
 | Export jobs / partial | resolved | explicit | Expired or missing-file completion metadata remains distinct from usable completed download; transport loss remains separate from job failure. |
 | Export jobs / overflow | resolved | backstop | At narrow widths and zoom, job identity, current status, source return, and available download remain reachable without document overflow. |
 | Export jobs / zero-one-many | resolved | backstop | Empty, one, and many job histories retain accurate counts and the recent-history cap wording. |
-| Export jobs / long-text | resolved | backstop | Long filter values and IDs wrap or use an existing full-value affordance without obscuring status or actions. |
+| Export jobs / long-text | resolved | backstop | Long filter values, IDs, and safe failure categories wrap or use an existing full-value affordance without obscuring status or actions. |
 | Retention runs / empty | resolved | explicit | Show documented empty-history copy only after a successful read with zero runs. |
 | Retention runs / loading | resolved | explicit | Keep retention page identity and schema-wide policy explanation available while the run list loads. |
 | Retention runs / error | resolved | explicit | A failed run-history read is not shown as an empty history; offer the existing safe refresh path. |
@@ -150,21 +152,31 @@ Applicable state considerations resolved: 25 total (18 explicit, 7 backstop), 0 
 | Retention runs / zero-one-many | resolved | backstop | Zero, one, and many runs have correct singular/plural and cap wording; order remains newest first. |
 | Retention runs / long-text | resolved | backstop | Long run IDs and safe category labels wrap without displacing counts or status. |
 | Prune confirmation / empty | resolved | explicit | An empty confirmation input cannot be represented as confirmation; the exact policy name is required. |
-| Prune confirmation / loading | resolved | explicit | While submission is in flight, disable the prune submit natively and keep Cancel/read-only context available. |
+| Prune confirmation / loading | resolved | explicit | While submission is in flight, disable the prune submit natively and keep `Keep audit data`/read-only context available. |
 | Prune confirmation / error | resolved | explicit | Mismatch, lost authorization, or runtime unavailable returns actionable safe feedback and performs no prune. |
 | Prune confirmation / partial | resolved | explicit | Confirm copy states global configured-schema scope and possible empty-transaction removal without implying tenant filtering, preview count, or stored historical cutoff. |
 | Prune confirmation / long-text | resolved | backstop | At short heights and zoom, full consequence and confirmation controls remain reachable; scrolling stays inside the modal. |
-| Reconnect status / loading | resolved | explicit | Actual socket loss announces a polite status and clearly marks information as potentially stale while mutations are unavailable. |
-| Reconnect status / error | resolved | explicit | Prolonged connection failure preserves read-only page and status copy; no action is reported failed solely from transport loss. |
-| Reconnect status / partial | resolved | explicit | On reconnect, refreshed persisted state is shown before mutations reenable; uncertain requests are not replayed or called exactly once. |
+| Timeline source search / empty | resolved | explicit | Empty supported filters use the canonical unfiltered Timeline path; do not invent scope or include unsupported fields. |
+| Timeline source search / loading | resolved | explicit | Keep the source page and committed query identity visible while data loads; do not show queue acceptance before enqueue succeeds. |
+| Timeline source search / error | resolved | explicit | Invalid or unavailable query state remains distinct from an empty result and never broadens into arbitrary filters or a remote return URL. |
+| Timeline source search / partial | resolved | explicit | Preserve only the committed supported filter fields; do not serialize tenant, scope, cursor, or draft state. |
+| Timeline source search / long-text | resolved | backstop | Long supported filter values remain readable and preserved without clipping the query identity or export action. |
+| Export navigation / loading | resolved | explicit | Keep the local source-return link available while an export is pending or running. |
+| Export navigation / error | resolved | explicit | If download delivery is unavailable or expired, retain the usable local Timeline return path. |
+| Export navigation / overflow | resolved | backstop | Download and source-return actions remain reachable at narrow widths and actual 200% zoom. |
+| Export navigation / long-text | resolved | backstop | Long local filter values or file identifiers do not obscure link labels or change the local destination. |
+| Reconnect status / overflow | resolved | backstop | The status banner wraps at narrow widths and zoom without covering or displacing readable operator content. |
+| Reconnect status / long-text | resolved | backstop | Prolonged connection-status copy wraps without clipping and remains announced in the existing polite status region. |
 | Mutation controls / loading | resolved | explicit | Native disabled blocks keyboard and pointer activation while disconnected or in flight; server-side guards remain active. |
+| Mutation controls / error | resolved | explicit | A rejected or unavailable server event shows safe feedback and never treats a client-side disabled state as authorization. |
+| Mutation controls / long-text | resolved | backstop | Full action labels wrap or reflow without reducing target size or hiding the control state. |
 
 ### Cross-cutting checks outside the compiled state taxonomy
 
 | Element | Status | Resolution |
 |---------|--------|------------|
 | Global retention scope | resolved (explicit) | Say the policy operates globally within the configured Threadline storage schema; current host operator/tenant filters do not scope pruning. The cutoff is evaluated at execution and not recorded in run history. |
-| Modal focus lifecycle | resolved (explicit) | Focus the labeled input on open; contain focus; Escape/Cancel dismiss without mutation; restore focus to the trigger. |
+| Modal focus lifecycle | resolved (explicit) | Focus the labeled input on open; contain focus; Escape/`Keep audit data` dismisses without mutation; restore focus to the trigger. |
 | Reconnect announcement | resolved (explicit) | Use the existing polite status banner, update copy as needed, and never move focus or replay mutation. |
 | Themes, zoom, and motion | resolved (backstop) | Check Light/Dark/System, 320/375/768/1280px, actual 200% zoom, keyboard, touch, visible focus, and reduced motion for affected journeys. |
 
@@ -176,12 +188,12 @@ Applicable state considerations resolved: 25 total (18 explicit, 7 backstop), 0 
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending checker review
+**Approval:** Approved by independent seven-dimension UI review; 2026-10-10.
