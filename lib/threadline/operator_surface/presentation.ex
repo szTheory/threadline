@@ -476,21 +476,29 @@ defmodule Threadline.OperatorSurface.Presentation do
           follow_up: String.t()
         }
   def coverage_remediation(table_name, opts \\ []) do
-    table_name = table_name |> to_string() |> String.trim()
-    schema = opts |> Keyword.get(:schema, "public") |> to_string() |> String.trim()
+    table_name = to_string(table_name)
+    schema = opts |> Keyword.get(:schema, "public") |> to_string()
 
-    if schema == "public" and safe_generator_identifier?(table_name) do
+    if safe_generator_identifier?(schema) and safe_generator_identifier?(table_name) do
       %{
         label: "Add capture",
-        command: "mix threadline.gen.triggers --tables #{table_name}",
-        follow_up: "Run mix threadline.verify_coverage after applying the migration."
+        command: "mix threadline.gen.triggers --tables #{schema}.#{table_name}",
+        follow_up:
+          "Run mix threadline.verify_coverage --schema=#{schema} after applying the migration."
       }
     else
+      verifier =
+        if safe_generator_identifier?(schema) do
+          "then run mix threadline.verify_coverage --schema=#{schema}"
+        else
+          "then verify coverage for schema #{schema}"
+        end
+
       %{
         label: "Add capture",
         command: nil,
         follow_up:
-          "Generate a trigger migration for #{schema}.#{table_name} after confirming the identifier; do not paste an auto-built shell command for this table."
+          "Create and apply a host-owned trigger migration for #{schema}.#{table_name}, #{verifier}. No command is generated because an identifier is not safe to copy."
       }
     end
   end

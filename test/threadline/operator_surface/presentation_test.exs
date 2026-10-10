@@ -402,7 +402,7 @@ defmodule Threadline.OperatorSurface.PresentationTest do
                label: "Add capture",
                command: nil,
                follow_up:
-                 "Create and apply a host-owned trigger migration for tenant iso. tickets , then run mix threadline.verify_coverage --schema=tenant iso. No command is generated because an identifier is not safe to copy."
+                 "Create and apply a host-owned trigger migration for tenant iso. tickets , then verify coverage for schema tenant iso. No command is generated because an identifier is not safe to copy."
              }
     end
   end

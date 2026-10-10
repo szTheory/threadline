@@ -213,7 +213,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   aria-disabled={not is_nil(@form_error)}
                 >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:refresh} class="tl-button__icon" />
-                  Refresh
+                  Refresh coverage
                 </button>
               </:actions>
             </UI.Page.page_header>
@@ -227,7 +227,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp coverage_table(assigns) do
       ~H"""
                 <div class="tl-table-wrap" data-testid="coverage-table">
-                  <table class="tl-table tl-table--coverage tl-table--compact tl-table--sticky tl-table--actionable tl-table--responsive">
+                  <table aria-label={"Coverage for schema #{@schema_param}"} class="tl-table tl-table--coverage tl-table--compact tl-table--sticky tl-table--actionable tl-table--responsive">
                     <thead>
                       <tr><th>TABLE</th><th>STATUS</th><th>SOURCE</th><th>Actions</th></tr>
                     </thead>
@@ -248,7 +248,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                                 <div class="tl-row-action__body">
                                   <div :if={remediation.command} class="tl-command-copy">
                                     <code class="tl-remediation__command"><%= remediation.command %></code>
-                                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-copy--command" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>
+                                    <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-copy--command" data-tl-copy={remediation.command} aria-label={"Copy #{@schema_param}.#{table} capture command"}>
                                       Copy
                                     </button>
                                     <span :if={Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>

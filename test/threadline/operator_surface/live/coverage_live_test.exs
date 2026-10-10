@@ -141,9 +141,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|<details class="tl-row-action tl-row-action--capture">|
         assert html =~ ~s|<summary class="tl-row-action__summary">|
         assert html =~ ~s|class="tl-command-copy"|
-        assert html =~ "mix threadline.gen.triggers --tables"
-        assert html =~ "Run mix threadline.verify_coverage after applying the migration."
-        assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
+        assert html =~ "mix threadline.gen.triggers --tables public."
+
+        assert html =~
+                 "Run mix threadline.verify_coverage --schema=public after applying the migration."
+
+        assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables public.|
+        assert html =~ ~s|aria-label="Copy public.|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
         assert html =~ "Fix rows marked Needs capture"
@@ -203,10 +207,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ ~r/Coverage: \d+ covered, \d+ need capture/
       end
 
-      test "shows 'Refresh' link with phx-click=refresh", %{conn: conn} do
+      test "shows the explicit Refresh coverage action", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
-        assert html =~ "Refresh"
+        assert html =~ "Refresh coverage"
         assert html =~ ~s|phx-click="refresh"|
       end
 
@@ -403,7 +407,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=public")
 
         assert html =~ "Selected schema readiness"
-        assert html =~ "Refresh"
+        assert html =~ "Refresh coverage"
         assert html =~ "Add capture"
         assert html =~ "Excluded from readiness"
         assert html =~ "View activity"
@@ -459,8 +463,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "table_schema=tenant_demo"
         assert html =~ "table=coverage_link_target"
         assert html =~ "mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"
+
         assert html =~
                  "Run mix threadline.verify_coverage --schema=tenant_demo after applying the migration."
+
         assert html =~
                  ~s|data-tl-copy="mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"|
       end
