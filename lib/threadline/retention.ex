@@ -21,6 +21,8 @@ defmodule Threadline.Retention do
   alias Threadline.Retention.Policy
   alias Threadline.StorageSchema
 
+  @accepted_run_id_key {__MODULE__, :accepted_run_id}
+
   @typedoc "Accumulator returned by `purge/1` on success (counts are cumulative)."
   @type purge_result :: %{
           deleted_changes: non_neg_integer(),
@@ -85,6 +87,7 @@ defmodule Threadline.Retention do
     policy = Policy.resolve!(retention_kw)
 
     if policy.enabled != true do
+      mark_accepted_run_failed(repo, storage_opts, "disabled")
       {:error, :disabled}
     else
       policy_cutoff = Policy.cutoff_utc_datetime_usec!()
@@ -125,14 +128,7 @@ defmodule Threadline.Retention do
        ) do
     started_at = DateTime.utc_now(:microsecond)
 
-    run_record =
-      repo.insert!(
-        RetentionRun.changeset(%RetentionRun{}, %{
-          status: "running",
-          started_at: started_at
-        }),
-        storage_opts
-      )
+    run_record = accepted_run(repo, storage_opts, started_at)
 
     result =
       purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts)
@@ -151,6 +147,55 @@ defmodule Threadline.Retention do
     )
 
     result
+  end
+
+  defp accepted_run(repo, storage_opts, started_at) do
+    case Process.get(@accepted_run_id_key) do
+      nil ->
+        repo.insert!(
+          RetentionRun.changeset(%RetentionRun{}, %{
+            status: "running",
+            started_at: started_at,
+            deleted_count: 0
+          }),
+          storage_opts
+        )
+
+      run_id ->
+        run = repo.get!(RetentionRun, run_id, storage_opts)
+
+        repo.update!(
+          RetentionRun.changeset(run, %{
+            status: "running",
+            started_at: started_at,
+            deleted_count: 0,
+            error_message: nil
+          }),
+          storage_opts
+        )
+    end
+  end
+
+  defp mark_accepted_run_failed(repo, storage_opts, category) do
+    case Process.get(@accepted_run_id_key) do
+      nil ->
+        :ok
+
+      run_id ->
+        completed_at = DateTime.utc_now(:microsecond)
+        run = repo.get!(RetentionRun, run_id, storage_opts)
+
+        repo.update!(
+          RetentionRun.changeset(run, %{
+            status: "failed",
+            deleted_count: 0,
+            duration_ms: 0,
+            error_message: category,
+            completed_at: completed_at
+          }),
+          storage_opts
+        )
+    end
   end
 
   defp resolve_cutoff(nil, policy_cutoff), do: policy_cutoff

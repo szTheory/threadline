@@ -84,6 +84,80 @@ defmodule Threadline.Retention.PrunerTest do
     )
   end
 
+  test "trigger persists one run before acknowledgement and permits a later deliberate run" do
+    Repo.delete_all(RetentionRun, repo_opts())
+    start_application_supervisor!()
+
+    pruner = Process.whereis(Pruner)
+    :sys.suspend(pruner)
+    trigger = Task.async(fn -> Pruner.trigger() end)
+
+    try do
+      assert Task.yield(trigger, 50) == nil,
+             "trigger must wait for the pruner to finish synchronous acceptance"
+    after
+      :sys.resume(pruner)
+    end
+
+    assert :ok = Task.await(trigger)
+    assert [_accepted] = Repo.all(RetentionRun, repo_opts())
+
+    [accepted] = Repo.all(RetentionRun, repo_opts())
+
+    assert_eventually(
+      fn ->
+        Repo.get!(RetentionRun, accepted.id, repo_opts()).status in ["completed", "failed"]
+      end,
+      message: "the accepted RetentionRun should reach a terminal state"
+    )
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn -> length(Repo.all(RetentionRun, repo_opts())) == 2 end,
+      message: "a deliberate request after terminal state should create a new run"
+    )
+  end
+
+  test "rapid triggers coalesce while the accepted run is active" do
+    Repo.delete_all(RetentionRun, repo_opts())
+
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: false,
+      interval_ms: :timer.hours(24),
+      sleep_ms: 100
+    )
+
+    transaction = insert_expired_transaction!()
+    insert_expired_change!(transaction)
+    start_application_supervisor!()
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn ->
+        case Repo.all(RetentionRun, repo_opts()) do
+          [%RetentionRun{status: status}] -> status in ["queued", "running"]
+          _ -> false
+        end
+      end,
+      message: "accepted run should be visible while active"
+    )
+
+    send(Process.whereis(Pruner), :run_purge)
+
+    for _ <- 1..5, do: assert(:ok = Pruner.trigger())
+
+    assert_eventually(
+      fn -> Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status == "completed")) end,
+      message: "coalesced run should complete"
+    )
+
+    assert length(Repo.all(RetentionRun, repo_opts())) == 1
+  end
+
   test "skips purging while the advisory lock is held elsewhere, then resumes after release" do
     Repo.delete_all(RetentionRun, repo_opts())
 
@@ -103,19 +177,17 @@ defmodule Threadline.Retention.PrunerTest do
     # pg_try_advisory_lock reliably fails — no pool-allocation race.
     with_advisory_lock_held(Repo, @lock_key, fn ->
       Pruner.trigger()
-      drain_mailbox(Pruner)
 
-      assert Repo.all(RetentionRun, repo_opts()) == [],
-             "pruner must skip purging while the advisory lock is held by another session"
+      assert [%RetentionRun{status: "queued"}] = Repo.all(RetentionRun, repo_opts()),
+             "accepted work should remain visibly queued while another session holds the execution lock"
     end)
 
-    # Lock released: a triggered prune now acquires the lock and records a run.
+    # Lock released: the accepted run acquires the lock and records completion.
     Pruner.trigger()
-    drain_mailbox(Pruner)
 
     assert_eventually(
-      fn -> Repo.all(RetentionRun, repo_opts()) != [] end,
-      message: "pruner should record a RetentionRun once the lock is free"
+      fn -> Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status == "completed")) end,
+      message: "the queued RetentionRun should complete once the lock is free"
     )
   end
 
@@ -168,5 +240,30 @@ defmodule Threadline.Retention.PrunerTest do
     )
 
     assert Repo.all(RetentionRun, repo_opts()) == []
+  end
+
+  defp insert_expired_transaction! do
+    Repo.insert!(
+      Threadline.Capture.AuditTransaction.changeset(%Threadline.Capture.AuditTransaction{}, %{
+        txid: System.unique_integer([:positive]),
+        occurred_at: DateTime.utc_now(:microsecond)
+      }),
+      repo_opts()
+    )
+  end
+
+  defp insert_expired_change!(transaction) do
+    Repo.insert!(
+      Threadline.Capture.AuditChange.changeset(%Threadline.Capture.AuditChange{}, %{
+        transaction_id: transaction.id,
+        table_schema: "public",
+        table_name: "pruner_fixture",
+        table_pk: %{"id" => Ecto.UUID.generate()},
+        op: "insert",
+        captured_at: DateTime.add(DateTime.utc_now(:microsecond), -10, :day),
+        data_after: %{"expired" => true}
+      }),
+      repo_opts()
+    )
   end
 end

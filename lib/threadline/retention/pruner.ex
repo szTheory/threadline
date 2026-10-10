@@ -10,8 +10,11 @@ defmodule Threadline.Retention.Pruner do
   alias Threadline.StorageSchema
 
   @lock_key :erlang.phash2("threadline_retention_pruner")
+  @acceptance_lock_prefix :erlang.phash2("threadline_retention_acceptance")
   @default_interval_ms :timer.minutes(60)
   @default_sleep_ms 50
+  @lock_retry_ms 100
+  @run_id_key {Threadline.Retention, :accepted_run_id}
 
   @doc """
   Starts the pruner GenServer.
@@ -29,11 +32,16 @@ defmodule Threadline.Retention.Pruner do
   Triggers an immediate prune on the supervised runtime path.
   """
   def trigger do
-    if started?() do
-      GenServer.cast(__MODULE__, :prune)
-      :ok
-    else
-      {:error, :not_started}
+    case Process.whereis(__MODULE__) do
+      nil ->
+        {:error, :not_started}
+
+      pid ->
+        try do
+          GenServer.call(pid, :prune)
+        catch
+          :exit, {:noproc, _} -> {:error, :not_started}
+        end
     end
   end
 
@@ -52,17 +60,20 @@ defmodule Threadline.Retention.Pruner do
     storage_schema = StorageSchema.get(opts)
     storage_opts = StorageSchema.repo_opts(storage_schema: storage_schema)
 
-    # Clean up any abandoned runs (e.g. from node crashes)
+    # Clean up abandoned accepted runs (e.g. from node crashes).
     cutoff = DateTime.utc_now() |> DateTime.add(-24, :hour) |> DateTime.truncate(:microsecond)
 
     from(r in RetentionRun,
-      where: r.status == "running" and r.started_at < ^cutoff
+      where:
+        (r.status == "running" and r.started_at < ^cutoff) or
+          (r.status == "queued" and r.inserted_at < ^cutoff)
     )
     |> repo.update_all(
       [
         set: [
           status: "failed",
           error_message: "Abandoned",
+          completed_at: DateTime.utc_now(:microsecond),
           updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
         ]
       ],
@@ -76,40 +87,135 @@ defmodule Threadline.Retention.Pruner do
        repo: repo,
        interval_ms: interval_ms,
        sleep_ms: sleep_ms,
-       storage_schema: storage_schema
+       storage_schema: storage_schema,
+       storage_opts: storage_opts
      }}
   end
 
   @impl true
-  def handle_cast(:prune, state) do
-    # Trigger an immediate purge run
-    send(self(), :run_purge)
-    {:noreply, state}
+  def handle_call(:prune, _from, state) do
+    {:reply, accept_or_coalesce(state), state}
   end
 
   @impl true
   def handle_info(:run_purge, state) do
-    %{repo: repo, interval_ms: interval_ms, sleep_ms: sleep_ms, storage_schema: storage_schema} =
+    _ = accept_or_coalesce(state)
+    schedule_next(state.interval_ms)
+    {:noreply, state}
+  end
+
+  def handle_info({:execute, run_id}, state) do
+    %{repo: repo, sleep_ms: sleep_ms, storage_schema: storage_schema, storage_opts: storage_opts} =
       state
 
-    repo.checkout(fn ->
-      if acquire_lock(repo) do
-        try do
-          Threadline.Retention.purge(
-            repo: repo,
-            sleep_ms: sleep_ms,
-            storage_schema: storage_schema
-          )
-        after
-          release_lock(repo)
-        end
-      else
-        Logger.debug("threadline_retention_pruner lock held elsewhere, skipping purge")
-      end
-    end)
+    case Task.start(fn ->
+           execute_when_lock_available(repo, run_id, sleep_ms, storage_schema, storage_opts)
+         end) do
+      {:ok, _pid} ->
+        :ok
 
-    schedule_next(interval_ms)
+      {:error, reason} ->
+        Logger.error("threadline retention worker could not start", reason: inspect(reason))
+    end
+
     {:noreply, state}
+  end
+
+  defp accept_or_coalesce(state) do
+    %{repo: repo, storage_schema: storage_schema, storage_opts: storage_opts} = state
+
+    result =
+      repo.transaction(
+        fn ->
+          SQL.query!(repo, "SELECT pg_advisory_xact_lock($1)", [
+            acceptance_lock_key(storage_schema)
+          ])
+
+          active =
+            repo.one(
+              from(r in RetentionRun,
+                where: r.status in ["queued", "running"],
+                order_by: [desc: r.inserted_at],
+                limit: 1
+              ),
+              storage_opts
+            )
+
+          case active do
+            %RetentionRun{} = run ->
+              {:active, run}
+
+            nil ->
+              run =
+                repo.insert!(
+                  RetentionRun.changeset(%RetentionRun{}, %{
+                    status: "queued",
+                    deleted_count: 0
+                  }),
+                  storage_opts
+                )
+
+              {:created, run}
+          end
+        end,
+        storage_opts
+      )
+
+    case result do
+      {:ok, {:created, run}} ->
+        send(self(), {:execute, run.id})
+        :ok
+
+      {:ok, {:active, _run}} ->
+        :ok
+
+      {:error, _reason} ->
+        {:error, :unavailable}
+    end
+  rescue
+    exception ->
+      Logger.warning("threadline retention acceptance failed",
+        reason: inspect(exception.__struct__)
+      )
+
+      {:error, :unavailable}
+  end
+
+  defp execute_when_lock_available(repo, run_id, sleep_ms, storage_schema, storage_opts) do
+    acquired? =
+      repo.checkout(fn ->
+        if acquire_lock(repo) do
+          previous_run_id = Process.put(@run_id_key, run_id)
+
+          try do
+            Threadline.Retention.purge(
+              repo: repo,
+              sleep_ms: sleep_ms,
+              storage_schema: storage_schema
+            )
+          after
+            restore_run_id(previous_run_id)
+            release_lock(repo)
+          end
+
+          true
+        else
+          false
+        end
+      end)
+
+    if acquired? == false do
+      Logger.debug("threadline_retention_pruner lock held elsewhere, waiting")
+      Process.sleep(@lock_retry_ms)
+      execute_when_lock_available(repo, run_id, sleep_ms, storage_schema, storage_opts)
+    end
+  end
+
+  defp restore_run_id(nil), do: Process.delete(@run_id_key)
+  defp restore_run_id(value), do: Process.put(@run_id_key, value)
+
+  defp acceptance_lock_key(storage_schema) do
+    :erlang.phash2({@acceptance_lock_prefix, storage_schema})
   end
 
   defp schedule_next(interval_ms) do
