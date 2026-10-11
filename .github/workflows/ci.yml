@@ -639,6 +639,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The root ExUnit suite checks the required operator journey identities
+      # against Playwright's real --list output. Install the locked CLI for all
+      # toolchain lanes; browser binaries are installed only by the browser job.
+      - name: Set up Node for browser journey contract
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+      - name: Install locked E2E dependencies for browser journey contract
+        working-directory: examples/threadline_phoenix/e2e
+        run: npm ci
+
       - uses: erlef/setup-beam@v1
         id: beam
         with:

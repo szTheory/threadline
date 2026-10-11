@@ -74,6 +74,15 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     workflow = read!(@workflow_path)
     config = read!(@config_path)
     [browser_job, required_job] = String.split(workflow, "  ci-required:\n", parts: 2)
+    [_, test_workflow] = String.split(workflow, "  verify-test:\n", parts: 2)
+    [test_job, _] = String.split(test_workflow, "\n  verify-capture:\n", parts: 2)
+
+    assert test_job =~ "uses: actions/setup-node@v5"
+    assert test_job =~ "cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json"
+    assert test_job =~ "working-directory: examples/threadline_phoenix/e2e\n        run: npm ci"
+
+    assert :binary.match(test_job, "run: npm ci") < :binary.match(test_job, "- name: Run tests"),
+           "locked E2E dependencies must be installed before ExUnit invokes Playwright"
 
     assert browser_job =~ "  verify-example-browser:\n", "stable browser job ID changed"
 
