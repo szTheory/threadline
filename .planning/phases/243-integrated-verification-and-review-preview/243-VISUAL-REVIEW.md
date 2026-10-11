@@ -48,3 +48,36 @@ The full-shell evidence-bound route capture above is dark-only at 1280/768/375; 
 The 320px captures are targeted candidate probes, not matched baseline pairs; their image hashes and measurements establish current post-fix rendering only. The focused light and zoom commands do not produce candidate-receipt-bound full-shell manifests. Plan 05 remains responsible for fresh evidence-bound final route captures after all source changes. Phase 238’s accepted evidence does not claim browser-chrome 200% zoom, and the Plan 241 mobile zoom path remains explicitly unsupported.
 
 No accepted baseline image or manifest was edited. Generated capture bundles remain local/ignored; only this compact hash and finding ledger is intended for commit.
+
+## Final corrected-candidate confirmation (Plan 05)
+
+The final capture was generated from candidate HEAD `86db9f2d31304fd2239e455146e8f8318ad23fd3`, candidate diff digest `22d70d26c2b84c4e28e0409c65e7f94c7ee67c4fe078d7febed33a1f8b6509f4`, and receipt SHA-256 `a466c6b73db571e09c584366ccaf154c75e34ba66a92800e641e06c621ac9010`. The receipt binds 81 relevant source paths, including current staged, unstaged and untracked source bytes. The fresh route bundle is `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_243_routes_1791717407_28440`; it contains 34 full-shell PNGs for all eleven named routes and the degraded Timeline state. The route-capture project passed 12 tests with one expected skip for the legacy reference-writing test in read-only evidence mode.
+
+The candidate review validator passed and kept the comparison **limited**. It confirmed the immutable baseline byte digest remains `c744df9cd8e999109be2ac0956028288b4f4b1eb734354d8d22d0bcf3332f4aa`. Its 782 differences are evidence/environment differences rather than pixel-equivalence claims: the baseline does not record OS while this run records Darwin 25.6.0; the semantic fixture IDs differ (`86a439…` baseline and `4de938…` candidate); the generated operator stylesheet differs (`b5053f…` baseline and `eaa666…` candidate); generated JavaScript differs; and seeded route/state identifiers differ. The validator checked candidate served/local assets and output hashes and found all required shell outputs. These differences remain visible as limits in the report at `<capture bundle>/candidate-review.json`.
+
+| Finding | Final confirmation and disposition |
+|---|---|
+| UI-241-01 | Final dark 375px Redaction shell: `route.redaction__dark-375-shell.png`, SHA-256 `0cf8dd30508db4efd4ca2440f8cf9421708244866e109dd2d782bb6bf60d7454`. The refresh action is separated from the posture card; the prior 320px focused run measured the gap at 16px. Fixed and confirmed. |
+| UI-241-02 | Final dark 375px Evidence shell: `route.evidence__dark-375-shell.png`, SHA-256 `9e3dda307cd116ee3f4e6bc19511708a6902ea9bafdcda77b93f064445ca26d0`. Both group-footer links are visible with separation from the card edge; the prior 320px focused run measured 40px targets and an 8px card-edge gap. Fixed and confirmed. |
+| UI-241-03 | Final dark 375px Redaction shell above renders the heading `Could not inspect (0)`. The mounted test preserves the public `:could_not_introspect` status. Fixed and confirmed. |
+| DR-243-01 | Final dark 1280px drawer shell: `route.drawer__dark-1280-shell.png`, SHA-256 `e2e2baa5f8a1fe2fc9b9225f1a6b063d74daa7156956802de21b82e1e9a7a5c0`. The title remains partly behind the fixed header while Close is visible and reachable. The accepted Phase 238 observation records the same clipping; comparison is limited by route/state and environment differences. Carry forward as a medium visual-clarity risk owned by overlay positioning, with no new regression or blocked close action established. |
+
+No additional visual findings were added from the final dark route shells. The prior light/System and actual 2× tab-zoom checks were run on the earlier Plan 04 candidate; this Plan 05 route bundle is dark-only and makes no fresh theme or zoom claim. The unrelated full-suite formatting failure is recorded in the Plan 05 execution summary, not treated as visual evidence.
+
+## Guarded local preview (Plan 05)
+
+Final preview receipt: `.planning/phases/243-integrated-verification-and-review-preview/243-PREVIEW-RECEIPT.json` (SHA-256 `0ac17d191359451e9faefd9888cfea8a692dc2b5eb9fe49a8812bb2a503adfdb`). The process-bound receipt reports candidate HEAD and diff digest above, `http://127.0.0.1:4121`, listener PID `41448`, partition `operator_243pf_1791717692_41076`, database `threadline_phoenix_testoperator_243pf_1791717692_41076`, eleven authenticated routes, unauthenticated login redirect, connected LiveView, and matching local/served JavaScript and CSS hashes. Read-only checks confirmed the exact listener is `beam.smp`, cwd is this worktree's `examples/threadline_phoenix`, and PostgreSQL reports that database connected from `127.0.0.1`. The preview is intentionally left running.
+
+Guarded stop command for this exact receipt:
+
+```sh
+THREADLINE_E2E_PREVIEW_STATE=/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/threadline-e2e-preview-operator_243pf_1791717692_41076.json MIX_TEST_PARTITION=operator_243pf_1791717692_41076 THREADLINE_E2E_STOP_PREVIEW=1 bash examples/threadline_phoenix/e2e/run-e2e.sh --stop-preview
+```
+
+Guarded reopen command template using a new partition and a free loopback port:
+
+```sh
+THREADLINE_E2E_PORT=4122 THREADLINE_E2E_EVIDENCE=1 THREADLINE_E2E_PREVIEW=1 THREADLINE_E2E_CANDIDATE_RECEIPT=.planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json MIX_TEST_PARTITION=operator_243pf_reopen_20261011 mix verify.example_browser --preview
+```
+
+The runner refuses a busy requested port, reused database, stale candidate receipt, non-loopback address or unowned listener. If a later documentation commit advances candidate HEAD, refresh and revalidate the candidate receipt and recapture before using the reopen command; do not treat this receipt as proof for a later HEAD.
