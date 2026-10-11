@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { identityKey, parseDiscovered, parseExecuted, validateEvidence, type OperatorJourneyIdentity } from "./operator-ci-evidence.js";
+import { identityKey, parseDiscovered, parseExecuted, parseExecutedJson, validateEvidence, type OperatorJourneyIdentity } from "./operator-ci-evidence.js";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const projects = ["desktop-chromium", "mobile-chromium"] as const;
@@ -17,6 +17,7 @@ const inventory = {
   schemaVersion: 1 as const,
   votingProjects: projects,
   rows: projects.map((project) => ({
+    category: "investigation",
     requirement: "UIV-01",
     journey: "Home to Timeline transaction investigation",
     failureClass: "missing-or-retry-only-journey",
@@ -28,7 +29,8 @@ const inventory = {
 function report(status = "passed", attempts = 1, expectedStatus = "passed") {
   return {
     suites: projects.map((project) => ({
-      title: "",
+      title: file,
+      file,
       suites: [{
         title: titlePath[0],
         file: `tests/${file}`,
@@ -53,6 +55,15 @@ test("journey identity includes project, file, and complete title path", () => {
     identityKey(identity("desktop-chromium")),
     JSON.stringify(["desktop-chromium", file, titlePath]),
   );
+});
+
+test("native reporter file suites do not become part of the title path", () => {
+  const executed = parseExecuted(report());
+  assert.deepEqual(executed.map(({ project, file: executedFile, titlePath: executedTitlePath }) => ({
+    project,
+    file: executedFile,
+    titlePath: executedTitlePath,
+  })), projects.map((project) => ({ project, file, titlePath })));
 });
 
 test("required inventory names every supported journey and material failure class", () => {
@@ -88,7 +99,8 @@ test("filtered projects, duplicate identities, and unexpected projects fail clos
 test("missing, malformed, zero-test, and skipped executed reports fail closed", () => {
   assert.throws(() => parseExecuted({ suites: [] }), /zero suites/i);
   assert.throws(() => parseExecuted({ suites: [{ title: "", specs: [], suites: [] }] }), /zero tests/i);
-  assert.throws(() => JSON.parse("{ truncated"), /JSON|property/i);
+  assert.throws(() => parseExecutedJson(""), /missing/i);
+  assert.throws(() => parseExecutedJson("{ truncated"), /JSON|property/i);
   assert.throws(() => validateEvidence(inventory, projects.map(identity), parseExecuted(report("skipped")), { githubSha: "a".repeat(40), githubRunId: "123" }), /did not pass/i);
   assert.throws(() => validateEvidence(inventory, projects.map(identity), parseExecuted(report("skipped", 0, "skipped")), { githubSha: "a".repeat(40), githubRunId: "123" }), /did not pass/i);
 });
