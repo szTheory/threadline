@@ -206,10 +206,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           detail: %{"status" => "completed"}
         )
 
-        {:ok, _view, html} = live(conn, "/audit/evidence")
+        {:ok, view, html} = live(conn, "/audit/evidence")
 
         assert html =~ "View proof history"
         assert html =~ "Open exports"
+        assert has_element?(view, ".tl-evidence__group-footer a", "Filter to subject")
+        assert has_element?(view, ".tl-evidence__group-footer a", "Open exports")
 
         [card_support_position | _] =
           html
