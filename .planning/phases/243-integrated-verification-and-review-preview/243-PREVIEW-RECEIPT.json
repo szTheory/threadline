@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "candidateHead": "86db9f2d31304fd2239e455146e8f8318ad23fd3",
+  "candidateDiffDigest": "22d70d26c2b84c4e28e0409c65e7f94c7ee67c4fe078d7febed33a1f8b6509f4",
+  "sourceReceiptSha256": "a466c6b73db571e09c584366ccaf154c75e34ba66a92800e641e06c621ac9010",
+  "fixture": {
+    "scenario": "threadline-demo-seed",
+    "version": "seed-pipeline-v1",
+    "seedManifestSha256": "4a44105fca8d931f1c8ef1d420f13693f0e803b4efa05cfa6e87198a5fd1acea",
+    "semanticId": "4305fd447ac36edf25b424f7909c08869569c6278d2b3807552cd50d82629a27"
+  },
+  "url": "http://127.0.0.1:4121",
+  "pid": 41448,
+  "database": "threadline_phoenix_testoperator_243pf_1791717692_41076",
+  "partition": "operator_243pf_1791717692_41076",
+  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator",
+  "branch": "agent-241-01",
+  "probes": {
+    "unauthenticatedLoginRedirect": true,
+    "authenticatedRoutes": [
+      "/audit",
+      "/audit/timeline",
+      "/audit/transactions/939cee88-60b9-4b08-9b3c-3997d9be6d1a",
+      "/audit/rows/tickets/da2ca58f-bb5c-4c9f-a0a4-58f794c361d1",
+      "/audit/transactions/939cee88-60b9-4b08-9b3c-3997d9be6d1a/history/tickets/da2ca58f-bb5c-4c9f-a0a4-58f794c361d1",
+      "/audit/actors/service_account/zendesk-sync",
+      "/audit/coverage",
+      "/audit/evidence",
+      "/audit/exports",
+      "/audit/policy/redaction",
+      "/audit/policy/retention"
+    ],
+    "liveViewConnected": true
+  },
+  "assets": [
+    {
+      "url": "http://127.0.0.1:4121/assets/app.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "db2c13efe67be20c497f2b18eec870066611e64e310d506f1f36b6acccee051a",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/app.js",
+      "localSha256": "db2c13efe67be20c497f2b18eec870066611e64e310d506f1f36b6acccee051a"
+    },
+    {
+      "url": "http://127.0.0.1:4121/assets/phoenix.mjs",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "514db00d9819585e1765df2c78b5f416f6e5fab501b631842182cae7d51439a0",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/phoenix.mjs",
+      "localSha256": "514db00d9819585e1765df2c78b5f416f6e5fab501b631842182cae7d51439a0"
+    },
+    {
+      "url": "http://127.0.0.1:4121/assets/phoenix_live_view.esm.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "880c3dd028e9cd8557ded490f11b712623184f0c3952b1336aef9779de989010",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/phoenix_live_view.esm.js",
+      "localSha256": "880c3dd028e9cd8557ded490f11b712623184f0c3952b1336aef9779de989010"
+    },
+    {
+      "url": "inline:/audit#threadline-operator-stylesheet",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "servedSha256": "eaa6661249378705e1445c2fde5075c31e8884cf424d5e069f71e85f9b8b9631",
+      "localPath": "lib/threadline/operator_surface/style/*.css (ordered segments)",
+      "localSha256": "eaa6661249378705e1445c2fde5075c31e8884cf424d5e069f71e85f9b8b9631"
+    }
+  ]
+}
