@@ -295,9 +295,12 @@ function runnerFixture(t: TestContext) {
   mkdirSync(dirname(receipt), { recursive: true });
   writeFileSync(receipt, JSON.stringify({ base_sha: base, expected_task_commits: [], worktree: root, branch: git("branch", "--show-current"), copied_context_sha256: {} }));
   const bin = join(root, "bin"); mkdirSync(bin);
-  writeFileSync(join(bin, "psql"), '#!/usr/bin/env bash\nprintf "%s" "${FAKE_EXISTING_DB:-}"\n');
+  writeFileSync(join(bin, "psql"), '#!/usr/bin/env bash\n[ -z "${PSQL_SENTINEL:-}" ] || printf "called\\n" >> "$PSQL_SENTINEL"\nprintf "%s" "${FAKE_EXISTING_DB:-}"\n');
   writeFileSync(join(bin, "mix"), '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$RUNNER_SENTINEL"\nexit 89\n');
+  const tsx = join(e2e, "node_modules/.bin/tsx"); mkdirSync(dirname(tsx), { recursive: true });
+  writeFileSync(tsx, '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$VALIDATOR_SENTINEL"\nexit 86\n');
   for (const command of ["psql", "mix"]) chmodSync(join(bin, command), 0o755);
+  chmodSync(tsx, 0o755);
   const sentinel = join(root, "reset-called");
   const env: NodeJS.ProcessEnv = { PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME, TMPDIR: root, RUNNER_SENTINEL: sentinel, THREADLINE_E2E_PARTITION_REGISTRY: join(root, "registry"), THREADLINE_E2E_EVIDENCE: "1", THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "1", MIX_TEST_PARTITION: "operator_contract", DB_HOST: "127.0.0.1", DB_PORT: "5432" };
   const run = (overrides: NodeJS.ProcessEnv = {}, args: string[] = []) => spawnSync("bash", [join(e2e, "run-e2e.sh"), ...args], { env: { ...env, ...overrides }, encoding: "utf8" });
@@ -325,6 +328,28 @@ test("runner proof rejects unsafe evidence/preview targets before any reset subp
     }
   }
   assert.notEqual(run({ THREADLINE_E2E_EVIDENCE: "0" }, ["--preview"]).status, 0);
+});
+
+test("Phase 243 candidate receipt path and validation fail before PostgreSQL or output setup", (t) => {
+  const { root, run } = runnerFixture(t);
+  const validator = join(root, "validator-called");
+  const psql = join(root, "psql-called");
+  const candidate = ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json";
+  const candidateFile = join(root, candidate);
+  mkdirSync(dirname(candidateFile), { recursive: true });
+  writeFileSync(candidateFile, "forged receipt");
+
+  const wrongPath = run({ THREADLINE_E2E_CANDIDATE_RECEIPT: "../outside.json", VALIDATOR_SENTINEL: validator, PSQL_SENTINEL: psql });
+  assert.notEqual(wrongPath.status, 0);
+  assert.match(wrongPath.stderr, /exact owned candidate receipt path/i);
+  assert.equal(existsSync(validator), false);
+  assert.equal(existsSync(psql), false);
+
+  const forged = run({ THREADLINE_E2E_CANDIDATE_RECEIPT: candidate, VALIDATOR_SENTINEL: validator, PSQL_SENTINEL: psql });
+  assert.equal(forged.status, 1);
+  assert.match(readFileSync(validator, "utf8"), /operator-candidate-receipt\.ts --validate/);
+  assert.equal(existsSync(psql), false);
+  assert.equal(existsSync(join(root, "examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_contract")), false);
 });
 
 test("runner proof rejects altered isolation root, branch, context and ancestry before reset", (t) => {

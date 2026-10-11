@@ -75,7 +75,7 @@ loopback_host() {
 }
 
 evidence_preflight() {
-  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits forward_receipt
+  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits forward_receipt candidate_receipt
   [[ "$EVIDENCE_MODE" == "1" ]] || return 0
   [[ -n "$partition" && "$partition" =~ ^operator_[A-Za-z0-9_]+$ ]] || {
     echo "Evidence mode requires a fresh MIX_TEST_PARTITION matching operator_<unique-id>." >&2
@@ -99,9 +99,22 @@ evidence_preflight() {
     echo "Evidence mode could not verify the exact test database derivation in config/test.exs." >&2; return 1;
   }
   forward_receipt="${THREADLINE_E2E_FORWARD_RECEIPT:-}"
+  candidate_receipt="${THREADLINE_E2E_CANDIDATE_RECEIPT:-}"
   receipt="$ROOT/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json"
   [[ -f "$receipt" ]] || { echo "Evidence mode requires the immutable Phase 238 isolation receipt." >&2; return 1; }
-  if [[ -n "$forward_receipt" ]]; then
+  if [[ -n "$candidate_receipt" && -n "$forward_receipt" ]]; then
+    echo "Evidence mode accepts one candidate receipt authority at a time." >&2; return 1;
+  fi
+  if [[ -n "$candidate_receipt" ]]; then
+    [[ "$candidate_receipt" == ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json" ]] || {
+      echo "Phase 243 evidence mode requires the exact owned candidate receipt path." >&2; return 1;
+    }
+    [[ -f "$ROOT/$candidate_receipt" ]] || { echo "Phase 243 evidence mode requires a refreshed candidate receipt." >&2; return 1; }
+    "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-candidate-receipt.ts" --validate "$candidate_receipt" || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).baseSha || "")' "$ROOT/$candidate_receipt")"
+    export THREADLINE_E2E_CANDIDATE_RECEIPT="$ROOT/$candidate_receipt"
+    export THREADLINE_E2E_CANDIDATE_RECEIPT_SHA256="$(shasum -a 256 "$ROOT/$candidate_receipt" | awk '{print $1}')"
+  elif [[ -n "$forward_receipt" ]]; then
     [[ "$forward_receipt" == "$ROOT/.planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json" ]] || {
       echo "Forward evidence mode requires the Phase 239 candidate receipt at its owned path." >&2; return 1;
     }
@@ -129,7 +142,7 @@ evidence_preflight() {
   git -C "$ROOT" merge-base --is-ancestor "$THREADLINE_E2E_BASE_SHA" HEAD || {
     echo "Evidence candidate HEAD is not descended from the isolation receipt base." >&2; return 1;
   }
-  if [[ -z "$forward_receipt" ]]; then
+  if [[ -z "$forward_receipt" && -z "$candidate_receipt" ]]; then
     expected_commits="$(node -e 'const r=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); process.stdout.write((r.expected_task_commits || []).join("\n"))' "$receipt")"
     actual_commits="$(git -C "$ROOT" rev-list --first-parent --reverse "$THREADLINE_E2E_BASE_SHA..HEAD")"
     [[ "$actual_commits" == "$expected_commits" ]] || {

@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test, { type TestContext } from "node:test";
-import { build243CandidateReceipt } from "./operator-candidate-receipt.js";
+import { build243CandidateReceipt, CANDIDATE_RECEIPT_PATH, refresh243CandidateReceipt, validate243CandidateReceipt } from "./operator-candidate-receipt.js";
 
 const sha = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 
@@ -46,6 +46,10 @@ function checkout(t: TestContext) {
   writeFileSync(join(root, acceptedDir, "238-EVIDENCE-INDEX.md"), evidenceIndex);
   git("add", acceptedDir);
   git("commit", "-qm", "accept synthetic evidence custody");
+  const acceptedHead = git("rev-parse", "HEAD");
+  writeFileSync(join(root, acceptedDir, "238-ISOLATION-RECEIPT.json"), JSON.stringify({ phase: 238, base_sha: base, candidate_head: acceptedHead }));
+  git("add", acceptedDir);
+  git("commit", "-qm", "finalize synthetic accepted receipt");
   return { root, git, base, acceptedDir };
 }
 
@@ -54,6 +58,33 @@ test("candidate receipt binds approved baseline, worktree, branch, dirty source 
   writeFileSync(join(root, "mix.exs"), "candidate mix");
 
   let receipt: unknown;
-  try { receipt = build243CandidateReceipt(root); } catch { receipt = undefined; }
+  try { receipt = build243CandidateReceipt(root, false); } catch { receipt = undefined; }
   assert.ok(receipt, "candidate builder must return a source-bound receipt");
+  assert.equal((receipt as { worktree: string }).worktree, root);
+  assert.equal((receipt as { branch: string }).branch, git("branch", "--show-current"));
+  assert.equal((receipt as { baseSha: string }).baseSha, git("rev-parse", "HEAD~2"));
+  assert.ok((receipt as { fixture: { semanticId: string } }).fixture.semanticId);
+});
+
+test("refresh and validation reject stale bytes, forged identities and paths outside the owned receipt", (t) => {
+  const { root, git } = checkout(t);
+  const receiptDir = join(root, dirname(CANDIDATE_RECEIPT_PATH));
+  mkdirSync(receiptDir, { recursive: true });
+  writeFileSync(join(root, "mix.exs"), "candidate mix");
+  const receipt = refresh243CandidateReceipt(root, CANDIDATE_RECEIPT_PATH, false);
+  assert.doesNotThrow(() => validate243CandidateReceipt(root, receipt, CANDIDATE_RECEIPT_PATH, false));
+  assert.throws(() => validate243CandidateReceipt(root, receipt, "../forged.json", false), /exact owned/i);
+
+  writeFileSync(join(root, "mix.exs"), "changed after receipt");
+  assert.throws(() => validate243CandidateReceipt(root, receipt, CANDIDATE_RECEIPT_PATH, false), /stale or forged/i);
+  writeFileSync(join(root, "mix.exs"), "candidate mix");
+  git("checkout", "-b", "agent-forged-branch");
+  assert.throws(() => validate243CandidateReceipt(root, receipt, CANDIDATE_RECEIPT_PATH, false), /stale or forged/i);
+});
+
+test("approved Phase 238 receipt and selected manifest hashes are immutable anchors", (t) => {
+  const { root, acceptedDir } = checkout(t);
+  assert.throws(() => build243CandidateReceipt(root), /approved immutable baseline/i);
+  writeFileSync(join(root, acceptedDir, "238-EVIDENCE-INDEX.md"), "changed approved index");
+  assert.throws(() => build243CandidateReceipt(root), /approved immutable baseline|incomplete/i);
 });

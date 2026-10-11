@@ -48,6 +48,25 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
   const base = process.env.THREADLINE_E2E_BASE_SHA;
   if (!base) throw new Error("Missing verified isolation base");
   const identity = candidateIdentity(paths.repositoryRoot, base);
+  const candidateReceiptPath = process.env.THREADLINE_E2E_CANDIDATE_RECEIPT;
+  if (candidateReceiptPath) {
+    const expectedPath = join(paths.repositoryRoot, ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json");
+    if (candidateReceiptPath !== expectedPath) throw new Error("Phase 243 receipt path is not the fixed owned path");
+    const receiptBytes = readFileSync(candidateReceiptPath);
+    const receiptSha256 = sha(receiptBytes);
+    if (receiptSha256 !== process.env.THREADLINE_E2E_CANDIDATE_RECEIPT_SHA256) throw new Error("Phase 243 candidate receipt changed after runner preflight");
+    const receipt = JSON.parse(receiptBytes.toString("utf8")) as {
+      baseSha: string; acceptedHead: string; acceptedReceiptSha256: string; acceptedEvidenceIndexSha256: string;
+      forwardTaskCommits: string[]; candidateHead: string; candidateDiffDigest: string;
+    };
+    if (receipt.baseSha !== base || receipt.candidateHead !== identity.candidateHead || receipt.candidateDiffDigest !== identity.candidateDiffDigest) throw new Error("Phase 243 receipt does not bind the current candidate source");
+    const custody: OperatorEvidenceManifest["custody"] = {
+      receiptSha256, acceptedReceiptSha256: receipt.acceptedReceiptSha256,
+      acceptedEvidenceIndexSha256: receipt.acceptedEvidenceIndexSha256,
+      acceptedHead: receipt.acceptedHead, forwardTaskCommits: receipt.forwardTaskCommits,
+    };
+    return startBoundEvidence(page, browser, info, identity, custody, role);
+  }
   const receiptPath = process.env.THREADLINE_E2E_FORWARD_RECEIPT;
   if (!receiptPath) throw new Error("Missing verified Phase 239 forward receipt");
   const receiptBytes = readFileSync(receiptPath);
@@ -63,6 +82,10 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
     acceptedEvidenceIndexSha256: forwardReceipt.acceptedEvidenceIndexSha256,
     acceptedHead: forwardReceipt.acceptedHead, forwardTaskCommits: forwardReceipt.forwardTaskCommits,
   };
+  return startBoundEvidence(page, browser, info, identity, custody, role);
+}
+
+async function startBoundEvidence(page: Page, browser: Browser, info: TestInfo, identity: ReturnType<typeof candidateIdentity>, custody: OperatorEvidenceManifest["custody"], role: string) {
   const seedRoot = join(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo");
   const seedHash = createHash("sha256");
   const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedRoot, "seed"), { recursive: true }).map((entry) => `seed/${entry}`)].sort();
