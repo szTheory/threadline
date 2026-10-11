@@ -228,6 +228,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Redaction policy"
         assert html =~ "Compare the configured redaction policy"
         assert html =~ "Refresh policy inspection"
+        assert html =~ ~s(class="tl-cluster tl-cluster--start tl-policy__refresh")
         assert html =~ "This inspection compares current deployed trigger definitions only."
 
         assert html =~
@@ -248,8 +249,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  Enum.map(report.grouped[:config_matches_deployed], & &1.table)
 
         assert html =~ "Drift detected"
-        assert html =~ "Could not introspect"
+        assert html =~ "Could not inspect (#{length(report.grouped[:could_not_introspect])})"
         assert html =~ "Could not inspect"
+        refute html =~ "Could not introspect ("
         assert html =~ "Config matches deployed"
         assert html =~ "Redaction drift detected"
         refute html =~ "Run redaction"
@@ -575,7 +577,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp status_label(:drift_detected), do: "Drift detected"
-    defp status_label(:could_not_introspect), do: "Could not introspect"
+    defp status_label(:could_not_introspect), do: "Could not inspect"
     defp status_label(:config_matches_deployed), do: "Config matches deployed"
 
     defp count_occurrences(html, needle) do
