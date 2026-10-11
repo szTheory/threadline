@@ -191,7 +191,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               is row-specific (subject_ref). --%>
               <footer
                 :if={show_subject_link?(@request) or support_action(@base_path, group.title)}
-                class="tl-cluster tl-cluster--start"
+                class="tl-cluster tl-cluster--start tl-evidence__group-footer"
               >
                 <.link
                   :if={show_subject_link?(@request)}

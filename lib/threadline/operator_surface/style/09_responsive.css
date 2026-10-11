@@ -108,6 +108,18 @@
   }
 
   @media (max-width: 480px) {
+    .tl-evidence__group-footer {
+      gap: var(--tl-space-2);
+      margin-top: var(--tl-space-2);
+    }
+
+    .tl-evidence__group-footer > .tl-link--deep {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--tl-hit-area);
+      padding: 0 var(--tl-space-2);
+    }
+
     .tl-shell-nav__panel {
       gap: var(--tl-space-2);
       padding: 0 var(--tl-space-2) var(--tl-space-2);
