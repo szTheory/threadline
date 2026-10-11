@@ -3182,7 +3182,7 @@
     max-width: 100%;
     align-items: baseline;
     gap: var(--tl-space-1);
-    padding: 3px var(--tl-space-2);
+    padding: var(--tl-space-1) var(--tl-space-2);
     border-radius: var(--tl-radius-md);
     background: var(--tl-color-surface);
     color: var(--tl-color-text);
@@ -3254,6 +3254,10 @@
 
   .tl-policy__section--drift .tl-policy__section-header {
     border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
+  }
+
+  .tl-policy__refresh {
+    margin-bottom: var(--tl-space-4);
   }
 
   .tl-policy__section--introspect .tl-policy__section-header {
@@ -3513,7 +3517,7 @@
   .tl-drawer-scrim {
     position: absolute;
     inset: 0;
-    background: var(--tl-color-scrim, rgba(7, 11, 20, 0.62));
+    background: var(--tl-color-backdrop);
   }
 
   .tl-modal-wrapper {
@@ -3644,12 +3648,30 @@
    */
   .tl-reconnect-banner {
     display: none;
+    min-width: 0;
+  }
+
+  .tl-reconnect-banner__lost,
+  .tl-reconnect-banner__reconnecting {
+    display: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner__reconnecting {
+    display: inline;
+  }
+
+  [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner__lost,
+  [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner__lost {
+    display: inline;
   }
 
   [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--tl-gap-inline);
     padding: var(--tl-space-2) var(--tl-space-4);
@@ -4140,6 +4162,18 @@
   }
 
   @media (max-width: 480px) {
+    .tl-evidence__group-footer {
+      gap: var(--tl-space-2);
+      margin-top: var(--tl-space-2);
+    }
+
+    .tl-evidence__group-footer > .tl-link--deep {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--tl-hit-area);
+      padding: 0 var(--tl-space-2);
+    }
+
     .tl-shell-nav__panel {
       gap: var(--tl-space-2);
       padding: 0 var(--tl-space-2) var(--tl-space-2);
