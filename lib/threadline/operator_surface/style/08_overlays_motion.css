@@ -154,7 +154,7 @@
   .tl-drawer-scrim {
     position: absolute;
     inset: 0;
-    background: var(--tl-color-scrim, rgba(7, 11, 20, 0.62));
+    background: var(--tl-color-backdrop);
   }
 
   .tl-modal-wrapper {

@@ -182,7 +182,7 @@
     {
       "id": "control.components.href.fe8fee9337",
       "kind": "control",
-      "label": "components href={timeline_search_path(@base_path, job.query_params)} class=\"tl-button tl-button--compact t"
+      "label": "components href={timeline_search_path(@base_path, query_params)} class=\"tl-button tl-button--compact tl-button--secondary\">"
     },
     {
       "id": "control.copy.value",
@@ -1702,7 +1702,7 @@
     {
       "id": "state.probe.a9370ecfbef0",
       "kind": "state",
-      "label": "Retention keyboard Escape focus return and Chromium touch navigation are observed"
+      "label": "Retention confirmation focus and cancel preserve state; Chromium touch navigation works"
     },
     {
       "id": "state.probe.ab1fb39e5d14",
@@ -1817,7 +1817,7 @@
     {
       "id": "state.probe.dc31c97bf183",
       "kind": "state",
-      "label": "offline Exports ${input} activation and reconnect record actual mutation outcome"
+      "label": "offline Exports blocks ${input} activation until fresh persisted state returns"
     },
     {
       "id": "state.probe.de2e6831ec4d",
@@ -2078,6 +2078,36 @@
       "id": "state.generated.phase241.0b14f1f8f1",
       "kind": "state",
       "label": "test(\"inspection routes preserve exact scope and controls at verified real 200% tab zoom\""
+    },
+    {
+      "id": "state.phase242.export-retention-accessibility",
+      "kind": "state",
+      "label": "keeps export and retention journeys readable across themes, widths, and a live reconnect"
+    },
+    {
+      "id": "state.phase242.retention-reduced-motion",
+      "kind": "state",
+      "label": "retention confirmation remains immediate and usable with reduced motion"
+    },
+    {
+      "id": "state.phase242.timeline-export-journey",
+      "kind": "state",
+      "label": "Timeline export reaches protected download and returns to its committed search"
+    },
+    {
+      "id": "control.phase242.export-status.refresh",
+      "kind": "control",
+      "label": "export-status phx-click=\"refresh_jobs\""
+    },
+    {
+      "id": "control.phase242.retention.refresh",
+      "kind": "control",
+      "label": "retention-history phx-click=\"refresh_runs\""
+    },
+    {
+      "id": "control.phase242.retention.submit",
+      "kind": "control",
+      "label": "retention-history phx-disable-with=\"Starting prune…\""
     }
   ]
 }

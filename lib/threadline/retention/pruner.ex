@@ -88,7 +88,8 @@ defmodule Threadline.Retention.Pruner do
        interval_ms: interval_ms,
        sleep_ms: sleep_ms,
        storage_schema: storage_schema,
-       storage_opts: storage_opts
+       storage_opts: storage_opts,
+       task_start: &Task.start/1
      }}
   end
 
@@ -105,17 +106,23 @@ defmodule Threadline.Retention.Pruner do
   end
 
   def handle_info({:execute, run_id}, state) do
-    %{repo: repo, sleep_ms: sleep_ms, storage_schema: storage_schema, storage_opts: storage_opts} =
-      state
+    %{
+      repo: repo,
+      sleep_ms: sleep_ms,
+      storage_schema: storage_schema,
+      storage_opts: storage_opts,
+      task_start: task_start
+    } = state
 
-    case Task.start(fn ->
+    case task_start.(fn ->
            execute_when_lock_available(repo, run_id, sleep_ms, storage_schema, storage_opts)
          end) do
       {:ok, _pid} ->
         :ok
 
       {:error, reason} ->
-        Logger.error("threadline retention worker could not start", reason: inspect(reason))
+        Logger.warning("threadline retention worker could not start", reason: inspect(reason))
+        mark_worker_start_failed(repo, run_id, storage_opts)
     end
 
     {:noreply, state}
@@ -127,9 +134,10 @@ defmodule Threadline.Retention.Pruner do
     result =
       repo.transaction(
         fn ->
-          SQL.query!(repo, "SELECT pg_advisory_xact_lock($1)", [
-            acceptance_lock_key(storage_schema)
-          ])
+          _ =
+            SQL.query!(repo, "SELECT pg_advisory_xact_lock($1)", [
+              acceptance_lock_key(storage_schema)
+            ])
 
           active =
             repo.one(
@@ -187,22 +195,24 @@ defmodule Threadline.Retention.Pruner do
         if acquire_lock(repo) do
           previous_run_id = Process.put(@run_id_key, run_id)
 
-          try do
-            Threadline.Retention.purge(
-              repo: repo,
-              sleep_ms: sleep_ms,
-              storage_schema: storage_schema
-            )
-          rescue
-            _exception ->
-              Logger.warning("threadline retention run failed")
-          catch
-            _kind, _reason ->
-              Logger.warning("threadline retention run failed")
-          after
-            restore_run_id(previous_run_id)
-            release_lock(repo)
-          end
+          _ =
+            try do
+              _ =
+                Threadline.Retention.purge(
+                  repo: repo,
+                  sleep_ms: sleep_ms,
+                  storage_schema: storage_schema
+                )
+            rescue
+              _exception ->
+                Logger.warning("threadline retention run failed")
+            catch
+              _kind, _reason ->
+                Logger.warning("threadline retention run failed")
+            after
+              restore_run_id(previous_run_id)
+              release_lock(repo)
+            end
 
           true
         else
@@ -215,6 +225,40 @@ defmodule Threadline.Retention.Pruner do
       Process.sleep(@lock_retry_ms)
       execute_when_lock_available(repo, run_id, sleep_ms, storage_schema, storage_opts)
     end
+  end
+
+  defp mark_worker_start_failed(repo, run_id, storage_opts) do
+    completed_at = DateTime.utc_now(:microsecond)
+    updated_at = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    result =
+      from(r in RetentionRun, where: r.id == ^run_id and r.status == "queued")
+      |> repo.update_all(
+        [
+          set: [
+            status: "failed",
+            deleted_count: 0,
+            duration_ms: 0,
+            error_message: "prune_error",
+            completed_at: completed_at,
+            updated_at: updated_at
+          ]
+        ],
+        storage_opts
+      )
+
+    case result do
+      {1, _} ->
+        :ok
+
+      {0, _} ->
+        Logger.warning("threadline retention worker start failure did not find a queued run")
+    end
+  rescue
+    exception ->
+      Logger.error("threadline retention worker failure could not be persisted",
+        reason: inspect(exception.__struct__)
+      )
   end
 
   defp restore_run_id(nil), do: Process.delete(@run_id_key)

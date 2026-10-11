@@ -546,7 +546,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
     16,
   );
   await expect(
-    page.getByRole("button", { name: "Run retention prune" }).last(),
+    page.getByRole("button", { name: "Prune now" }).last(),
   ).toBeVisible();
   await expectResponsiveTable(
     page.getByTestId("retention-runs-table"),

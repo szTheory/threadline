@@ -120,6 +120,40 @@ defmodule Threadline.Retention.PrunerTest do
     )
   end
 
+  test "worker startup failure marks the accepted run failed and permits a later request" do
+    Repo.delete_all(RetentionRun, repo_opts())
+    start_application_supervisor!()
+
+    pruner = Process.whereis(Pruner)
+
+    :sys.replace_state(pruner, fn state ->
+      Map.put(state, :task_start, fn _task -> {:error, :system_limit} end)
+    end)
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn ->
+        case Repo.all(RetentionRun, repo_opts()) do
+          [%RetentionRun{status: "failed"}] -> true
+          _ -> false
+        end
+      end,
+      message: "a run whose worker cannot start should reach a terminal failure"
+    )
+
+    [failed_run] = Repo.all(RetentionRun, repo_opts())
+    assert failed_run.error_message == "prune_error"
+    assert %DateTime{} = failed_run.completed_at
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn -> length(Repo.all(RetentionRun, repo_opts())) == 2 end,
+      message: "a failed worker start must not block a later deliberate run"
+    )
+  end
+
   test "rapid triggers coalesce while the accepted run is active" do
     Repo.delete_all(RetentionRun, repo_opts())
 

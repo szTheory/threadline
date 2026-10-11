@@ -134,7 +134,7 @@ const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(moduleDirectory, "../../../..");
 const mode = process.argv[2];
 const cliPath = process.argv[3] ?? CANDIDATE_RECEIPT_PATH;
-if (mode === "--refresh" || mode === "--validate") {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url) && (mode === "--refresh" || mode === "--validate")) {
   try {
     if (mode === "--refresh") {
       const receipt = refresh243CandidateReceipt(repositoryRoot, cliPath);

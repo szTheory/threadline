@@ -237,7 +237,7 @@ test.describe("operator surface — pass-3 features", () => {
     await expect(
       page.getByRole("alert").filter({ hasText: "Retention history unavailable" }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Run retention prune" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Prune now" })).toHaveCount(0);
 
     await page.goto("/audit/exports");
     await expect(page.getByRole("alert").filter({ hasText: "Export access needed" })).toBeVisible();

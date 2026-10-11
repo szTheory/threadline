@@ -338,7 +338,9 @@ test.describe("operator accessibility baseline", () => {
         await expect(page.locator("#coverage-schema")).toHaveValue("public");
         await expectNoHorizontalOverflow(page);
 
-        await page.goto(`/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}&mode=history`);
+        await page.goto(
+          `/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}&mode=history`,
+        );
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
         const scope = page.locator(".tl-evidence__workflow-summary");
         await expect(scope.locator("code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
@@ -702,7 +704,7 @@ test.describe("operator accessibility baseline", () => {
       /phx-connected/,
     );
     const prune = page
-      .getByRole("button", { name: "Run retention prune" })
+      .getByRole("button", { name: "Prune now" })
       .last();
     await expect(prune).toBeVisible();
     await prune.focus();
@@ -710,7 +712,7 @@ test.describe("operator accessibility baseline", () => {
     await prune.click();
     const pruneModal = page.locator("#prune-confirm");
     const pruneDialog = page.getByRole("dialog", {
-      name: "Prune retention window permanently?",
+      name: "Prune retained audit data?",
     });
     await expect(pruneModal).toBeVisible();
     await expect(pruneDialog).toBeVisible();
@@ -720,13 +722,16 @@ test.describe("operator accessibility baseline", () => {
       "prune-confirm-description",
     );
     await expect(pruneModal).toContainText(
-      "This permanently deletes audit records older than the retention window",
+      "This prune applies the configured retention policy globally to the configured Threadline storage schema",
+    );
+    await expect(pruneModal).toContainText(
+      "removes AuditChange rows strictly older than the policy cutoff",
     );
     await expect(
-      pruneModal.getByText("Type the policy name default to confirm"),
+      pruneModal.getByText("Type the policy name “default” to confirm"),
     ).toBeVisible();
     await expect(
-      pruneModal.getByRole("button", { name: "Keep retention window" }),
+      pruneModal.getByRole("button", { name: "Keep audit data" }),
     ).toBeVisible();
     const confirm = pruneModal.getByLabel("Policy name to confirm");
     await expect(confirm).toBeVisible();
@@ -1387,15 +1392,15 @@ test.describe("operator accessibility baseline", () => {
 
     await page.goto("/audit/policy/retention");
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-    await page.getByRole("button", { name: "Run retention prune" }).last().click();
+    await page.getByRole("button", { name: "Prune now" }).last().click();
     const retentionSnapshot = await expectAriaSnapshotContains(
-      page.getByRole("dialog", { name: "Prune retention window permanently?" }),
+      page.getByRole("dialog", { name: "Prune retained audit data?" }),
       [
-        'dialog "Prune retention window permanently?"',
-        'heading "Prune retention window permanently?" [level=2]',
+        'dialog "Prune retained audit data?"',
+        'heading "Prune retained audit data?" [level=2]',
         'textbox "Policy name to confirm"',
-        'button "Keep retention window"',
-        'button "Prune records permanently"',
+        'button "Keep audit data"',
+        'button "Prune now"',
       ],
       { depth: 5 },
     );

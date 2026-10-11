@@ -36,6 +36,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         socket
         |> assign(:base_path, nil)
         |> assign(:prune_modal_open, false)
+        |> assign(:prune_confirmation_error, nil)
         |> assign(:prune_submitting, false)
         |> assign(:mutation_revision, nil)
         |> assign(:runs_state, :loading)
@@ -109,6 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          socket
          |> load_runs()
          |> assign(:prune_modal_open, false)
+         |> assign(:prune_confirmation_error, nil)
          |> put_flash(:info, "Prune request accepted. Follow its persisted status here.")}
       else
         {:error, :not_started} ->
@@ -129,22 +131,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              "Prune could not start because its audit record could not be saved."
            )}
 
-        _ ->
-          # Fail closed: token mismatch, forged id, or missing authorization.
-          # No prune is performed and no destructive action is audited.
+        {:error, :unauthorized} ->
           {:noreply,
            socket
            |> assign(:prune_modal_open, false)
-           |> put_flash(:error, prune_modal_copy(@canonical_policy_name).mismatch_flash)}
+           |> assign(:prune_confirmation_error, nil)
+           |> put_flash(
+             :error,
+             "You are not authorized to start this retention prune. Refresh the history or contact your administrator."
+           )}
+
+        false ->
+          {:noreply,
+           socket
+           |> assign(:prune_modal_open, true)
+           |> assign(
+             :prune_confirmation_error,
+             "The policy name did not match. Check the exact name and try again."
+           )}
+
+        _ ->
+          # Fail closed on any unexpected backend response.
+          {:noreply,
+           socket
+           |> assign(:prune_modal_open, false)
+           |> assign(:prune_confirmation_error, nil)
+           |> put_flash(
+             :error,
+             "The prune could not start. Refresh the retention history and try again."
+           )}
       end
     end
 
     def handle_event("open_prune_modal", _params, socket) do
-      {:noreply, assign(socket, :prune_modal_open, true)}
+      {:noreply,
+       socket
+       |> assign(:prune_modal_open, true)
+       |> assign(:prune_confirmation_error, nil)}
     end
 
     def handle_event("close_prune_modal", _params, socket) do
-      {:noreply, assign(socket, :prune_modal_open, false)}
+      {:noreply,
+       socket
+       |> assign(:prune_modal_open, false)
+       |> assign(:prune_confirmation_error, nil)}
     end
 
     def handle_event("refresh_runs", _params, socket) do
@@ -232,7 +262,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <:actions>
                     <button
                       type="button"
-                      class="tl-button tl-button--secondary tl-button--danger"
+                      class="tl-button tl-button--secondary"
                       phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
                     >
                       <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
@@ -257,7 +287,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   prune_now handler and is never shipped to the client for a
                   client-side comparison. The danger button copy names the
                   irreversible consequence (not "Continue"). --%>
-            <.prune_modal :if={@prune_modal_open} prune_copy={@prune_copy} submitting={@prune_submitting} />
+            <.prune_modal
+              :if={@prune_modal_open}
+              prune_copy={@prune_copy}
+              submitting={@prune_submitting}
+              confirmation_error={@prune_confirmation_error}
+            />
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
               descriptor={Unsupported.descriptor(:retention_unavailable)}
@@ -287,7 +322,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <strong class="tl-card__metric"><%= @retention_summary.latest_completed %></strong>
                 </div>
                 <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Rows deleted</span>
+                  <span class="tl-card__metric-label">Rows deleted in recent runs</span>
                   <strong class="tl-card__metric"><%= @retention_summary.total_deleted %></strong>
                 </div>
                 <div class="tl-card--metric" data-status={if @retention_summary.failure_count > 0, do: "danger"}>
@@ -310,7 +345,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-page__actions">
                 <button
                   type="button"
-                  class="tl-button tl-button--secondary tl-button--danger"
+                  class="tl-button tl-button--secondary"
                   phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
                 >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
@@ -377,6 +412,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     attr(:prune_copy, :map, required: true)
     attr(:submitting, :boolean, required: true)
+    attr(:confirmation_error, :string, default: nil)
 
     defp prune_modal(assigns) do
       ~H"""
@@ -396,9 +432,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     autocomplete="off"
                     class="tl-control"
                     aria-label="Policy name to confirm"
+                    aria-describedby={if(@confirmation_error, do: "prune-confirm-error", else: nil)}
+                    aria-invalid={@confirmation_error != nil}
+                    required
                     data-tl-initial-focus
                   />
                 </label>
+                <p
+                  :if={@confirmation_error}
+                  id="prune-confirm-error"
+                  class="tl-alert tl-alert--error"
+                  role="alert"
+                >
+                  <%= @confirmation_error %>
+                </p>
                 <div class="tl-modal__actions">
                   <button type="button" class="tl-button tl-button--secondary" phx-click={JS.push("close_prune_modal")}>
                     <%= @prune_copy.cancel_label %>
@@ -593,8 +640,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "This prune applies the configured retention policy globally to the configured Threadline storage schema. At execution, it removes AuditChange rows strictly older than the policy cutoff and may also remove empty AuditTransaction rows when configured. The current operator or tenant scope does not limit this prune. This history does not record a preview count or the cutoff used for this run.",
         policy_name: policy_name,
         cancel_label: "Keep audit data",
-        submit_label: "Prune now",
-        mismatch_flash: "Could not prune - confirmation did not match."
+        submit_label: "Prune now"
       }
     end
 

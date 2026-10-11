@@ -398,7 +398,7 @@ async function openPruneModal(page: Page) {
   await expect(liveRoot).toHaveClass(/phx-connected/);
 
   const pruneButton = page
-    .getByRole("button", { name: /^Run retention prune$/ })
+    .getByRole("button", { name: /^Prune now$/ })
     .first();
   await expect(pruneButton).toBeVisible();
   await expect(pruneButton).toBeEnabled();

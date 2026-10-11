@@ -216,7 +216,7 @@
         {
           "path": "lib/threadline/operator_surface/live/export_status_live/components.ex",
           "kind": "control",
-          "anchor": "href={timeline_search_path(@base_path, job.query_params)} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "anchor": "href={timeline_search_path(@base_path, query_params)} class=\"tl-button tl-button--compact tl-button--secondary\">",
           "occurrence": 1
         }
       ],
@@ -3052,7 +3052,7 @@
         {
           "path": "lib/threadline/operator_surface/live/timeline_live.ex",
           "kind": "anchor",
-          "anchor": "Export Status",
+          "anchor": "export status, then try again from Timeline.",
           "occurrence": 1
         }
       ],
@@ -4378,7 +4378,7 @@
         {
           "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
           "kind": "state",
-          "anchor": "test(\"Retention keyboard Escape focus return and Chromium touch navigation are observed\"",
+          "anchor": "test(\"Retention confirmation focus and cancel preserve state; Chromium touch navigation works\"",
           "occurrence": 1
         }
       ],
@@ -4677,7 +4677,7 @@
         {
           "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
           "kind": "state",
-          "anchor": "test(`offline Exports ${input} activation and reconnect record actual mutation outcome`",
+          "anchor": "test(`offline Exports blocks ${input} activation until fresh persisted state returns`",
           "occurrence": 1
         }
       ],
@@ -5355,6 +5355,84 @@
           "kind": "state",
           "occurrence": 1,
           "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.export-retention-accessibility",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps export and retention journeys readable across themes, widths, and a live reconnect\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.retention-reduced-motion",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"retention confirmation remains immediate and usable with reduced motion\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.timeline-export-journey",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline export reaches protected download and returns to its committed search\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.export-status.refresh",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"refresh_jobs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.retention.refresh",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"refresh_runs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.retention.submit",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Starting prune…\"",
+          "occurrence": 1
         }
       ],
       "exclusion": ""

@@ -132,8 +132,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         sha256: "16250bb948aa1f2dcb3d36d78418c9b151fcf49fa5cb438c710588f2f8859810"
       },
       "row_history.shell" => %{
-        elements: 117,
-        sha256: "7eb7f5e4b6feea0c173901e7d2e9c45e04e806e554e5935265594af6a714556d"
+        elements: 118,
+        sha256: "baf2ca11fb3c1a3d0a91a9238bad66472bf7453b30f4a8f50b44c864fb80bac0"
       },
       "timeline.carry_to_exports" => %{
         elements: 4,

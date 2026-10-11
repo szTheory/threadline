@@ -425,7 +425,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           data-tl-mutating
         >
           <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-          Queue export
+          Export changes
         </button>
         <.link
           :if={@export_ready}

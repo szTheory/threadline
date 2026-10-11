@@ -642,7 +642,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "actor id is required for non-anonymous actors"
       refute html =~ "must-not-render"
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
     end
 
     test "actor id without actor kind renders an error and no unfiltered rows", %{conn: conn} do
@@ -652,7 +652,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "actor kind is required when actor id is present"
       refute html =~ "must-not-render"
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
     end
 
@@ -843,7 +843,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|href="/audit/exports?from=not-a-date&amp;table=posts"|
       assert has_element?(lv, ~s|button[aria-label="Copy search URL"][disabled]|)
       assert html =~ "Fix the Timeline filters before sharing this search."
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
 
       render_click(lv, "request_background_export", %{})
@@ -854,7 +854,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "actorless Timeline mounts hide and reject background export actions", %{conn: conn} do
       {:ok, lv, html} = live(conn, "/audit/timeline?table=posts")
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit/exports/changes.csv?|
 
       render_click(lv, "request_background_export", %{})
@@ -877,8 +877,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
       {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
 
-      refute html_a =~ "Queue export"
-      refute html_b =~ "Queue export"
+      refute html_a =~ "Export changes"
+      refute html_b =~ "Export changes"
 
       render_click(view_a, "request_background_export", %{})
       render_click(view_b, "request_background_export", %{})
@@ -1721,7 +1721,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit_actor/exports/changes.csv?|
 
       render_click(lv, "request_background_export", %{})
@@ -1953,7 +1953,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       initial_jobs = Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
       html = render(lv)
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit_scoped/exports/changes.csv?|
 
       # A forged event must also fail closed without inserting or enqueueing a job.
@@ -2020,7 +2020,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       refute html =~ ">CSV<"
       refute html =~ ">JSON<"
       refute html =~ ">NDJSON<"

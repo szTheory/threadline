@@ -145,7 +145,7 @@ test.describe("operator screenshot regression guard", () => {
   test("Retention safety hierarchy stays stable", async ({ page }) => {
     await page.goto("/audit/policy/retention");
     await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Run retention prune" }).last()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Prune now" }).last()).toBeVisible();
     await expectOperatorScreenshot(page, "retention");
   });
 });

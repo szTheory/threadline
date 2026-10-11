@@ -280,7 +280,7 @@ async function expectDrawerFocusReturn(page: Page, viewportWidth: number) {
   await expect(drawer.getByLabel("Actor id")).toBeVisible();
   await expect(drawer.getByRole("button", { name: "Apply filters" })).toBeVisible();
   await expect(drawer.getByRole("link", { name: "Carry to Exports" })).toBeVisible();
-  await expect(drawer.getByRole("button", { name: "Queue export" })).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Export changes" })).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
@@ -353,7 +353,7 @@ async function expectExportAnchorsUseCurrentQuery(page: Page, proof: CorrelatedP
 
   await carry.focus();
   await page.keyboard.press("Tab");
-  await expect(drawer.getByRole("button", { name: "Queue export" })).toBeFocused();
+  await expect(drawer.getByRole("button", { name: "Export changes" })).toBeFocused();
 
   for (const format of ["CSV", "JSON", "NDJSON"]) {
     await page.keyboard.press("Tab");

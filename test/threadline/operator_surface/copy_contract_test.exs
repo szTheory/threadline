@@ -184,7 +184,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "current result set",
             "Open transaction",
             "Carry to Exports",
-            "Queue export"
+            "Export changes"
           ] do
         assert text =~ expected
       end
@@ -292,20 +292,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute denied_html =~ "Action Denied"
     end
 
-    test "Retention source locks Phase 186 destructive-flow labels and state copy" do
+    test "Retention source locks the current destructive-flow labels and state copy" do
       source = retention_source()
 
       for expected <- [
-            ~s(open_label: "Run retention prune"),
-            ~s(title: "Prune retention window permanently?"),
-            ~s(cancel_label: "Keep retention window"),
-            ~s(submit_label: "Prune records permanently"),
-            ~s(mismatch_flash: "Could not prune - confirmation did not match."),
+            ~s(open_label: "Prune now"),
+            ~s(title: "Prune retained audit data?"),
+            ~s(cancel_label: "Keep audit data"),
+            ~s(submit_label: "Prune now"),
             ~s|aria-label="Retention window health"|,
-            "Retention runtime is not started.",
-            "No retention runs yet",
-            "Configure a retention window",
-            "mix threadline.retention.purge --dry-run"
+            "Retention runtime is unavailable. Refresh and try again.",
+            "Retention history could not be loaded",
+            "Refresh retention history",
+            "No retention runs",
+            "A run will appear here after a confirmed prune or scheduled retention operation."
           ] do
         assert source =~ expected
       end
@@ -319,8 +319,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       source = retention_source()
       row_action_block = retention_table_action_block(source)
 
-      assert occurrences(source, ~s(open_label: "Run retention prune")) == 1
-      assert occurrences(source, ~s(submit_label: "Prune records permanently")) == 1
+      assert occurrences(source, ~s(open_label: "Prune now")) == 1
+      assert occurrences(source, ~s(submit_label: "Prune now")) == 1
       assert occurrences(source, ~s(phx-submit="prune_now")) == 1
 
       refute row_action_block =~ "open_prune_modal"
@@ -402,7 +402,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute redaction =~ forbidden
       end
 
-      assert retention =~ ~s(mismatch_flash: "Could not prune - confirmation did not match.")
+      refute retention =~ "mismatch_flash"
     end
 
     test "Phase 186 export source locks real completed downloads and non-ready status text" do

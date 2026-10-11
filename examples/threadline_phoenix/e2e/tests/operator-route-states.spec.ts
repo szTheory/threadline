@@ -438,7 +438,7 @@ test("Timeline export reaches protected download and returns to its committed se
   await expect(page.locator("#timeline-filters")).toBeVisible();
 
   await page.getByRole("button", { name: "Filters", exact: true }).click();
-  await page.getByRole("button", { name: "Queue export", exact: true }).click();
+  await page.getByRole("button", { name: "Export changes", exact: true }).click();
   await expect(page).toHaveURL(/\/audit\/exports(?:\?|$)/);
   await expect(page.getByText("Export queued. You can follow its status here.", { exact: true })).toBeVisible();
 
@@ -725,6 +725,11 @@ test("Retention confirmation focus and cancel preserve state; Chromium touch nav
   await expect(dialog).toHaveAttribute("aria-describedby", "prune-confirm-description");
   const confirmation = dialog.getByRole("textbox", { name: "Policy name to confirm" });
   await expect(confirmation).toBeFocused();
+  await expect(confirmation).toHaveAttribute("required", "");
+  await dialog.getByRole("button", { name: "Prune now", exact: true }).click();
+  await expect(dialog).toBeVisible();
+  await expect(confirmation).toBeFocused();
+  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
   for (let tab = 0; tab < 4; tab += 1) {
     await page.keyboard.press("Tab");
     await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);

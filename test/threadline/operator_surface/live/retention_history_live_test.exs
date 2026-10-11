@@ -126,7 +126,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "configured Threadline storage schema"
         assert html =~ "Prune now"
-        assert html =~ "tl-button--secondary tl-button--danger"
+        assert html =~ "tl-button--secondary"
+        refute html =~ "tl-button--secondary tl-button--danger"
 
         # The destructive prune is now a server-enforced T3 type-to-confirm flow
         # (D-21): the client-only data-confirm is gone, and the modal form is
@@ -211,7 +212,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|aria-label="Retention window health"|
         assert html =~ "Latest run"
         assert html =~ "Latest completed run"
-        assert html =~ "Rows deleted"
+        assert html =~ "Rows deleted in recent runs"
         assert html =~ "Failures"
         # Density (196-06): the banner restatement of the destructive warning is gone;
         # the type-to-confirm modal owns that copy at the point of action.
@@ -540,7 +541,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "a forged token must not produce a prune nor an audited destructive action"
       end
 
-      test "a forged confirmation token flashes the locked mismatch copy", %{conn: conn} do
+      test "a forged confirmation token stays in the dialog with corrective feedback", %{
+        conn: conn
+      } do
         {:ok, view, _html} = live_retention(conn)
 
         open_prune_modal(view)
@@ -550,7 +553,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             confirm: "not-the-policy-name"
           })
 
-        assert html =~ "Could not prune - confirmation did not match."
+        assert html =~ "id=\"prune-confirm\""
+        assert html =~ "The policy name did not match. Check the exact name and try again."
+      end
+
+      test "an empty confirmation stays in place and performs no prune", %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+
+        before_actions = count_audit_actions()
+        open_prune_modal(view)
+
+        html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: ""})
+
+        assert html =~ "id=\"prune-confirm\""
+        assert html =~ "required"
+        assert html =~ "The policy name did not match. Check the exact name and try again."
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+        assert count_audit_actions() == before_actions
       end
 
       test "a forged phx-value scope fails closed", %{conn: conn} do
@@ -610,8 +629,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
-        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+        html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
+        assert html =~
+                 "You are not authorized to start this retention prune. Refresh the history or contact your administrator."
+
+        refute html =~ "policy name did not match"
         assert count_audit_actions() == before_actions
         assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
       end

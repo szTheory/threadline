@@ -347,7 +347,7 @@
     max-width: 100%;
     align-items: baseline;
     gap: var(--tl-space-1);
-    padding: 3px var(--tl-space-2);
+    padding: var(--tl-space-1) var(--tl-space-2);
     border-radius: var(--tl-radius-md);
     background: var(--tl-color-surface);
     color: var(--tl-color-text);

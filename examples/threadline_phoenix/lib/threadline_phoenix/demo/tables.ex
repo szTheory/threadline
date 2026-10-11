@@ -13,6 +13,7 @@ defmodule ThreadlinePhoenix.Demo.Tables do
     "org_memberships",
     "organizations",
     "threadline.threadline_export_jobs",
+    "threadline.threadline_evidence_records",
     "threadline.audit_changes",
     "threadline.audit_transactions",
     "threadline.audit_actions",
