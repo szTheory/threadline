@@ -55,7 +55,7 @@ function localAssetHash(sourceRoot: string, localPath: string): string {
   return fileHash(sourceRoot, localPath);
 }
 
-function validateManifestBundle(bundle: Bundle, expected?: Operator243CandidateReceipt, expectedReceiptSha256?: string): Map<string, EvidenceCapture> {
+function validateManifestBundle(bundle: Bundle, expected?: Operator243CandidateReceipt, expectedReceiptSha256?: string, verifyLocalAssets = true): Map<string, EvidenceCapture> {
   const captures = new Map<string, EvidenceCapture>();
   for (const manifest of bundle.manifests) {
     if (manifest.schemaVersion !== 1 || !Array.isArray(manifest.captures) || !manifest.captures.length) throw new Error("Evidence manifest has no valid captures");
@@ -72,8 +72,8 @@ function validateManifestBundle(bundle: Bundle, expected?: Operator243CandidateR
       const kinds = new Set<string>();
       for (const asset of capture.assets) {
         if (asset.status !== 200 || !/^[a-f0-9]{64}$/.test(asset.servedSha256) || !/^[a-f0-9]{64}$/.test(asset.localSha256)) throw new Error(`Invalid served-asset identity: ${capture.id}`);
-        const localSha = localAssetHash(bundle.sourceRoot, asset.localPath);
-        if (localSha !== asset.localSha256 || asset.servedSha256 !== asset.localSha256) throw new Error(`Served/local asset hash mismatch: ${asset.url}`);
+        if (asset.servedSha256 !== asset.localSha256) throw new Error(`Served/local asset hash mismatch: ${asset.url}`);
+        if (verifyLocalAssets && localAssetHash(bundle.sourceRoot, asset.localPath) !== asset.localSha256) throw new Error(`Current local asset hash mismatch: ${asset.url}`);
         if (asset.contentType.includes("javascript")) kinds.add("javascript");
         if (asset.contentType.includes("css")) kinds.add("css");
       }
@@ -108,11 +108,15 @@ function compareConditions(baseline: EvidenceManifest, candidate: EvidenceManife
 
 export function reviewEvidenceBundles(baselineBundles: readonly Bundle[], candidateBundle: Bundle) {
   if (!baselineBundles.length) throw new Error("Approved baseline bundles are required");
-  const baselineCaptures = new Map<string, { manifest: EvidenceManifest; capture: EvidenceCapture }>();
+  const baselineCaptures = new Map<string, { manifest: EvidenceManifest; capture: EvidenceCapture; sourceRoot: string }>();
   for (const bundle of baselineBundles) {
-    const captures = validateManifestBundle(bundle);
+    // Phase 238's accepted manifests and outputs are immutable. Its localPath
+    // entries can point to ignored/generated dependency assets that later
+    // rebuilds replace; validate their captured served/local pair, not the
+    // current bytes at that historical path.
+    const captures = validateManifestBundle(bundle, undefined, undefined, false);
     for (const manifest of bundle.manifests) for (const capture of manifest.captures) {
-      if (!baselineCaptures.has(capture.id)) baselineCaptures.set(capture.id, { manifest, capture });
+      if (!baselineCaptures.has(capture.id)) baselineCaptures.set(capture.id, { manifest, capture, sourceRoot: bundle.sourceRoot });
     }
     if (captures.size === 0) throw new Error("Approved baseline bundle has no capture outputs");
   }
@@ -128,6 +132,17 @@ export function reviewEvidenceBundles(baselineBundles: readonly Bundle[], candid
     if (!baseline) differences.add(`capture ${capture.id}: absent from Phase 238 baseline`);
     else {
       if (capture.route !== baseline.capture.route || capture.state !== baseline.capture.state) differences.add(`capture ${capture.id}: route/state identity differs`);
+      const oldAssets = new Map(baseline.capture.assets.map((asset) => [asset.url, asset]));
+      for (const asset of capture.assets) {
+        const old = oldAssets.get(asset.url);
+        if (!old) differences.add(`capture ${capture.id}.asset ${asset.url}: absent from Phase 238 baseline`);
+        else if (old.servedSha256 !== asset.servedSha256 || old.localSha256 !== asset.localSha256) {
+          differences.add(`capture ${capture.id}.asset ${asset.url}: ${old.servedSha256} -> ${asset.servedSha256}`);
+        }
+        if (old && localAssetHash(baseline.sourceRoot, old.localPath) !== old.localSha256) {
+          differences.add(`capture ${capture.id}.asset ${asset.url}: retained Phase 238 generated source no longer matches captured hash ${old.localSha256}`);
+        }
+      }
       let oldCondition: Record<string, unknown> = {}, newCondition: Record<string, unknown> = {};
       try { oldCondition = JSON.parse(baseline.capture.condition); } catch { differences.add(`capture ${capture.id}: baseline render condition is not recorded JSON`); }
       try { newCondition = JSON.parse(capture.condition); } catch { differences.add(`capture ${capture.id}: candidate render condition is not recorded JSON`); }

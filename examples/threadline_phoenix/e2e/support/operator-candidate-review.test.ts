@@ -74,3 +74,14 @@ test("environment and fixture differences are disclosed and limit side-by-side c
   assert.ok(result.differences.some((difference: string) => difference.includes("browser.browser")));
   assert.ok(result.differences.some((difference: string) => difference.includes("fixture.semanticId")));
 });
+
+test("historical generated asset drift is disclosed without weakening candidate asset verification", (t) => {
+  const baseline = bundle(t, "baseline"), candidate = bundle(t, "candidate");
+  writeFileSync(join(baseline.sourceRoot, "assets/app.js"), "regenerated baseline dependency asset");
+  const result = reviewEvidenceBundles([baseline], candidate);
+  assert.equal(result.comparison, "limited");
+  assert.ok(result.differences.some((difference: string) => difference.includes("asset") && difference.includes("/assets/app.js")));
+
+  writeFileSync(join(candidate.sourceRoot, "assets/app.js"), "changed candidate served asset");
+  assert.throws(() => reviewEvidenceBundles([bundle(t, "baseline-check")], candidate), /asset|served|source/i);
+});
