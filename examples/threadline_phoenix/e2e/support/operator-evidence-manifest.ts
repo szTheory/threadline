@@ -146,7 +146,8 @@ export function semanticFixtureId(scenario: string, version: string, seedManifes
 }
 
 function relevant(path: string): boolean {
-  return /^(test\/fixtures\/operator_surface\/route-inventory\.json$|lib\/threadline\/|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
+  if (/^examples\/threadline_phoenix\/e2e\/(?:artifacts\/|node_modules\/|playwright-report\/|test-results\/|\.cache\/)/.test(path)) return false;
+  return /^(?:\.github\/workflows\/ci\.yml|bin\/(?:verify-example-browser(?:\.sh)?|e2e-preflight(?:\.sh)?)|test\/fixtures\/operator_surface\/route-inventory\.json|test\/threadline\/(?:[^/]*(?:browser|e2e|evidence|ci_workflow)[^/]*_test\.exs|support\/[^/]+\.exs)|lib\/threadline\/|examples\/threadline_phoenix\/(?:e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)|\.tool-versions)/.test(path);
 }
 
 export function candidateIdentity(root: string, baseSha: string) {
