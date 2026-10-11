@@ -2,7 +2,7 @@
 
 **Milestone:** v1.46 — Operator UI Refinement
 **Defined:** 2026-10-08
-**Status:** Approved by the maintainer on 2026-10-08; UIB-01/02 and UIV-01/02 are complete. Phase 243 is in progress with Plans 01–06 approved and Plan 05 next.
+**Status:** Approved by the maintainer on 2026-10-08; all 26 v1.46 requirements are complete. Phase 243 passed verification with 16/16 must-haves and all six plans complete.
 **Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
 ## v1.46 Requirements
@@ -151,8 +151,8 @@ Approved roadmap maps each requirement to one owning phase, starting at Phase 23
 | UIV-02 | Phase 243 | Complete |
 | UIV-03 | Phase 243 | Complete |
 
-**Coverage:** 26/26 approved requirements mapped once in the approved roadmap; 17 complete.
+**Coverage:** 26/26 approved requirements mapped once in the approved roadmap; 26 complete.
 
 ---
 *Requirements defined: 2026-10-08*
-*Last updated: 2026-10-10 to reconcile verified Phase 239 and Phase 240 requirements*
+*Last updated: 2026-10-11 to reconcile verified Phase 243 and all v1.46 requirements*

@@ -1,0 +1,215 @@
+{
+  "phase": 238,
+  "created_at": "2026-10-09T00:53:19.753090+00:00",
+  "original_checkout": "/Users/jon/projects/threadline",
+  "original_branch": "milestone/v1.44",
+  "original_dirty_file_sha256": {
+    ".planning/config.json": "e9cb90d969b16b15a7b15459e7e42b308b9f1efce962272d9bf3ce5d8f44e454",
+    ".tool-versions": "93778168cc536465aace1fa9566d4853b9e1436ba6d9c0d1c97db549f414a263",
+    "lib/threadline/not_found_error.ex": "ff72bbf8b67af082cfdad3f150cc925314420b90f65952e38f14a76be58160d7",
+    "test/threadline/public_surface_contract_test.exs": "2e09be41ee192269cbdc9af29dccb55522be13219851489d1b85ca100c95a96f",
+    "AGENTS.md": "a2faf8f68918078b6c9bac1cd0cb104c8ea4a8e5a51204abc2335226f824a0af"
+  },
+  "original_status": " M .planning/config.json\n M .tool-versions\n M lib/threadline/not_found_error.ex\n M test/threadline/public_surface_contract_test.exs\n?? .planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json\n?? AGENTS.md\n",
+  "base_sha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
+  "initial_head": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
+  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+  "branch": "worktree-agent-v146-operator-preview",
+  "worktree_manifest": "/Users/jon/projects/threadline/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
+  "copied_context_sha256": {
+    ".planning/PROJECT.md": "4007fb7fcbe8209538c2acf570de49e7e4c8a3dfba247365fea4b29bd07f1122",
+    ".planning/ROADMAP.md": "165fa6ebbf76be77d668d62123ce28346ea31e1bd1c25673f144ae7e21ff509b",
+    ".planning/REQUIREMENTS.md": "e50fc0dd9e663f9dda895fe6e38992e72dec698efe6f8b63b6cc115df8e296fd",
+    ".planning/STATE.md": "e6818b56d58651ab8e2895424a73d4677522e79dc95e30469137147bde53bc41",
+    ".planning/config.json": "e9cb90d969b16b15a7b15459e7e42b308b9f1efce962272d9bf3ce5d8f44e454",
+    ".planning/MILESTONE-GUIDE.txt": "3afecb431b07a8944360393d3ff797bbb25a2e537ef9f33fea339380093be134",
+    ".planning/MILESTONE-ARC.md": "f04e6c6df1fc297cfc894d844e627e1c4483c7f947efaa8d17cc3039a140e538",
+    ".planning/UI-MILESTONE-PREFLIGHT.md": "5e26db933b2708630879b9acf45f001373090dcc457d5dbdec0a3b53e9b14a5d",
+    ".planning/research/SUMMARY.md": "866e0cd07bac88c7d0ce1bd1876b7619fad19eda9a64a9015702cc074a587c89",
+    "PRODUCT.md": "b33fd1fd46c14bcd16ef2f57ab9d084cb5d6ecd4c98bedf8f07512cf6c04aba4",
+    "AGENTS.md": "a2faf8f68918078b6c9bac1cd0cb104c8ea4a8e5a51204abc2335226f824a0af",
+    ".impeccable/config.json": "e9b1179c839289e7f450760d8f3336f56de2ee02e8520f7236edd29495ca7ec4",
+    ".impeccable/live/config.json": "4268cbfed4815c42b102fa80032713b53daa2f313a40e0167721ca2d257ee30d",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-PLAN-CHECK.md": "e96ef7c23e0c1fbc52fe397eeb6feb996ee74ec734a06121cdc3c32da3835a15",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-PATTERNS.md": "6c2273c279e5d4109b2d20192d75033f15a022b1314d06a08377fe59b7fd1212",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-RESEARCH.md": "0f1e982971d502403247e4aac6b2b4bf7f3a9423233f9d957cdf5e45b06a2cf7",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-VALIDATION.md": "4fe27d8c3eebf6a2f6bb8bbe34a099935f060868f8d3f16e9df6bc516af17a4e",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-CONTEXT.md": "8a14ad31aea85aba79992b6eba846b9e9ad511204757596b1f027293cf2f935d",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-03-PLAN.md": "d432e0623bd397d131f26a2889d485bab803444d41bd2cf88b41c076668ec840",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-02-PLAN.md": "f03b96b4f3b1d59e64eafd16f0260d4d27e3a9d7838295867a929ab5e59d5f09",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-01-PLAN.md": "76eeb44c3f0a72e7a145c3de154e32afeccc8d155c1b1d71d12c0a69cedc245c",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json": "e3558116ce200eab10cbff30f13005315dca7d63b12c88e8bffc8c8252edaa2d",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-EXECUTION-POINTER.json": "f605c287c642d70ec5009b774187bca3ab7c5fb492f6ba0142bf5a2afbba0229",
+    ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-HANDOFF.md": "deac49b508a1e9a8f8a00723506d4a318058afb7b913a200c579b7259986a863"
+  },
+  "adapter": {
+    "runtime": "codex",
+    "isolation": "orchestrator-worktree",
+    "exec": {
+      "command": "codex",
+      "args": [
+        "exec",
+        "--cd",
+        "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+        "probe"
+      ],
+      "cwd": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview"
+    },
+    "harnessFlag": null
+  },
+  "custody": "Retain workspace and raw captures; never merge current-main code into the stale planning branch. Copy small evidence/planning receipts back explicitly.",
+  "execution_override": "Approved Phase238 D-01 requires current-main isolation. Use the supported GSD process adapter for sequential plans in this retained workspace; original use_worktrees=false config remains byte-identical.",
+  "isolated_config_override": {
+    "key": "workflow.use_worktrees",
+    "value": true,
+    "reason": "Approved current-main isolation; original config preserved, isolated copy never staged.",
+    "copied_sha256": "e9cb90d969b16b15a7b15459e7e42b308b9f1efce962272d9bf3ce5d8f44e454",
+    "active_sha256": "cca04876c81d2fa5025a99e74703d5e0165f79e645be50213ae4e9f884c9b1cd"
+  },
+  "active_adapter": {
+    "runtime": "codex",
+    "isolation": "orchestrator-worktree",
+    "exec": {
+      "command": "codex",
+      "args": [
+        "exec",
+        "--cd",
+        "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+        "Execute Phase 238 plan 01; the complete embedded GSD executor prompt follows on stdin."
+      ],
+      "cwd": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview"
+    },
+    "harnessFlag": null
+  },
+  "expected_task_commits": [
+    "19d6a45e7001ccd79eb7c9750a222d52e57dc094",
+    "55c99f1de84209182aaabd21b8f002f1c4966ee9",
+    "8b8e8d9b21b1767f5a0020b8072eae092642f2e1",
+    "486134b4283248cf521343c07684989061176bb4",
+    "137b0870cce78b78a0299e9405ba7a095a446f6d",
+    "cb76439b821761367df8b6571e88b04c5ff03eaa",
+    "1ab560f63a07299e1dd7c7226b7c76da24ebd3a1",
+    "322f84ee5fa4782e05d43ebb823763b461483289",
+    "aed99dfad3efdc536f06f0c2622b1344f01ef201",
+    "27c3b04391bd6dbdf80c8db24a76db294373d96c",
+    "4accedeab50ef52feb3e6be5e1a43b680a458e1c",
+    "e36bd1f84332e7fea1145714652f272b512fbf2f",
+    "636a8a7fd6b1811fcf70448c767f004e26163cf5",
+    "7172b71e97218a53fc22058d64d56b022b7565c2",
+    "a273df11727afa19590b6244a0233df703ff9ac1",
+    "d3ebcdb6489d3368c849c1cfcb0b9c4fe13dd821",
+    "efef51e40be4a36fffca18c1aafda6d29899479a",
+    "cb8b223da79b157181087808f87af0483d80f11e",
+    "2a1887e996177002f65125834b2e2f81602e4c10",
+    "a2b4f350d2f150ffadd4b8fa4b7f10e2ae20523d",
+    "223caa5575355061a7d8b7e5ae1e7ae21ca3d873",
+    "fcbf4bbafe3cdbddaae76f0fd514d5e56c0d8d48",
+    "9cbbd08c1ed1f64e15d6cce8907c7752476a9891",
+    "0b8afc697355ec877d78ff665707e42bdfeb3fdc",
+    "43c5bcfa960b1a10cb07ef997e2231e9615dca6f"
+  ],
+  "candidate_head": "43c5bcfa960b1a10cb07ef997e2231e9615dca6f",
+  "resume_status": "Phase238 complete14/14; next $gsd-discuss-phase239 using retained source worktree",
+  "reconciled_commits": [
+    {
+      "sha": "19d6a45e7001ccd79eb7c9750a222d52e57dc094",
+      "kind": "partial-task-1"
+    },
+    {
+      "sha": "55c99f1de84209182aaabd21b8f002f1c4966ee9",
+      "kind": "halted-summary"
+    }
+  ],
+  "accepted_plan_01_evidence": {
+    "bundle": "examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_baseline_1791514752_53330",
+    "manifest": "examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_baseline_1791514752_53330/manifest.json",
+    "capture_candidate_head": "486134b4283248cf521343c07684989061176bb4",
+    "effective_source_digest": "735b22d67de3cd76e0916bba9ec7dd7389635590a92a8da411932425f672c755",
+    "committed_source_recheck_head": "137b0870cce78b78a0299e9405ba7a095a446f6d",
+    "browser_tests_passed": 1,
+    "focused_contract_tests_passed": 16,
+    "legacy_browser_tests_passed": 1
+  },
+  "parent_plan01_context_reconciliation": {
+    "previous_sha256": {
+      ".planning/STATE.md": "57330ea1c8b74c5b857994ac872385ef569e4a684be6e11023681d50a7298195",
+      ".planning/ROADMAP.md": "28fdec4207a9367e2e8fbcf79a59c7e096abf5d8d637b43d68ccea7bff8c9a18"
+    },
+    "reason": "Parent-synced plan01 completion bytes independently matched original planning checkout before plan02; files themselves unchanged."
+  },
+  "wave2_integration_fix": {
+    "commit": "e36bd1f84332e7fea1145714652f272b512fbf2f",
+    "reason": "Generic source inventories are exact-filename exclusions from frozen 427-file rendered corpus; all existing reference bytes unchanged.",
+    "validation": "15 fixture/rendered contract tests passed, including unknown-reference negative control."
+  },
+  "parent_wave2_context_reconciliation": {
+    "previous_hashes": {
+      ".planning/STATE.md": "7575729bb4200961b33e12e67608f54c08cd03cc8cce735e398c845f6a5fd5e6",
+      ".planning/ROADMAP.md": "9665bbced1bf5c5bd31be80754d228992f92df1261fdb396aa2094829d979041"
+    },
+    "reason": "Authoritative parent progress updated after verified wave2 integration confirmation. Copies equal original planning bytes."
+  },
+  "accepted_plan_03_evidence": {
+    "summary": ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-03-SUMMARY.md",
+    "index": ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-EVIDENCE-INDEX.md",
+    "findings": ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-BASELINE-FINDINGS.md",
+    "preview_receipt": ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json",
+    "preview_receipt_sha256": "aed296d4759424f0977cc912261215f8b512eb6b363cbb85cf1ece53fbab5446",
+    "manifest": "examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644/manifest.json",
+    "source_digest": "36502f568b3e354a7859d654dafcd8ad443445f5605d447df9964611c4566a39",
+    "inventory_ids": 355,
+    "task_commits": [
+      "7172b71e97218a53fc22058d64d56b022b7565c2",
+      "a273df11727afa19590b6244a0233df703ff9ac1",
+      "d3ebcdb6489d3368c849c1cfcb0b9c4fe13dd821",
+      "efef51e40be4a36fffca18c1aafda6d29899479a",
+      "cb8b223da79b157181087808f87af0483d80f11e"
+    ]
+  },
+  "parent_context_reconciliations": [
+    {
+      "file": ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-VALIDATION.md",
+      "before": "452adcef37562ca344e795efb7538a0d569861f193a35de8c98642595b9f5771",
+      "after": "6f0e47b4ea6b8536d9b55358a46a319f7d272c0e16e868ce4b121d8ba16b55a1",
+      "reason": "Executed validation audit closes baseline tasks"
+    }
+  ],
+  "parent_phase_completion_context_reconciliation": {
+    "at": "2026-10-09T05:18:18.790292+00:00",
+    "reason": "Phase 238 verified; hand-checked GSD phase.complete trackers and next-command handoff",
+    "changes": [
+      {
+        "file": ".planning/PROJECT.md",
+        "before": "69609fd71032cfd06c151a49d3d1e52436e164d11cff03423d6339c051e75dd6",
+        "after": "4007fb7fcbe8209538c2acf570de49e7e4c8a3dfba247365fea4b29bd07f1122"
+      },
+      {
+        "file": ".planning/ROADMAP.md",
+        "before": "8630f0c1e05131a2a451ab04590ef0f50666336c87d888f2239f5be929b537b1",
+        "after": "165fa6ebbf76be77d668d62123ce28346ea31e1bd1c25673f144ae7e21ff509b"
+      },
+      {
+        "file": ".planning/REQUIREMENTS.md",
+        "before": "f21bd6314c6c6507a7d662948308754c0e11364d61c4b74a0b9faba43bf19c15",
+        "after": "e50fc0dd9e663f9dda895fe6e38992e72dec698efe6f8b63b6cc115df8e296fd"
+      },
+      {
+        "file": ".planning/STATE.md",
+        "before": "00306458bd8e96a309e497bcfd74046b9a7258706d77ec524a79533d0624792c",
+        "after": "ad26865a16c5423e8c287d85aa901b5b4e1a181d2e8dffee38fb73c583f15510"
+      },
+      {
+        "file": ".planning/MILESTONE-ARC.md",
+        "before": "577bee20a60dd41bb35eb284c0ced3dee0566ad83b0e96e127492bcba8effec8",
+        "after": "f04e6c6df1fc297cfc894d844e627e1c4483c7f947efaa8d17cc3039a140e538"
+      },
+      {
+        "file": ".planning/UI-MILESTONE-PREFLIGHT.md",
+        "before": "17847016b600b4e03e5f02519c8b8c266d1f40683d9fe426c6277e5dd447b7e4",
+        "after": "5e26db933b2708630879b9acf45f001373090dcc457d5dbdec0a3b53e9b14a5d"
+      }
+    ]
+  },
+  "completed_phase": "238",
+  "next_command": "$gsd-discuss-phase 239"
+}

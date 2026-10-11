@@ -13,6 +13,7 @@ test.beforeEach(async ({}, info) => {
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
     "Timeline export reaches protected download and returns to its committed search",
     "Timeline keeps populated query identity while an applied replacement is pending",
+    "Home correlation lookup keeps destination identity while navigation is pending",
     "real host denial under Acme support is distinct from busy and disabled",
     "saved searches keep canonical sharing, long summaries, and destructive actions reachable",
     "saved search actions stay in bounds at verified 200% browser zoom",
@@ -637,6 +638,42 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   const completedApply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
   await expect(completedApply).toBeVisible();
   await expect(completedApply.locator("svg")).toHaveCount(1);
+});
+
+test("Home correlation lookup keeps destination identity while navigation is pending", async ({ page }) => {
+  let hold = false;
+  let held: { server: WebSocketRoute; message: string | Buffer } | undefined;
+  await page.routeWebSocket(/\/live\/websocket/, (ws) => {
+    const server = ws.connectToServer();
+    ws.onMessage((message) => {
+      if (hold && String(message).includes('"event"')) held = { server, message };
+      else server.send(message);
+    });
+  });
+
+  await login(page);
+  await page.goto("/audit");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const form = page.locator("#tl-correlation-lookup");
+  const correlation = "walk-acme-4521-close";
+  const input = form.getByLabel("Correlation id");
+  await input.fill(correlation);
+  hold = true;
+  await form.getByRole("button", { name: "Open the timeline", exact: true }).click();
+  await expect.poll(() => Boolean(held)).toBe(true);
+
+  await expect(form).toHaveClass(/phx-submit-loading/);
+  await expect(input).toHaveValue(correlation);
+  await expect(form.getByRole("button", { name: "Open the timeline", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/audit\/?$/);
+  await expect(page.getByRole("alert")).toHaveCount(0);
+
+  hold = false;
+  held!.server.send(held!.message);
+  await expect(page).toHaveURL(/\/audit\/timeline\?/);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
+  await expect(page.locator(".tl-filter-summary")).toContainText(correlation);
 });
 
 for (const input of ["pointer", "Enter", "Space"] as const) {

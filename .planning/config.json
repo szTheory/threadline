@@ -53,22 +53,19 @@
     "nyquist_validation": true,
     "use_worktrees": true
   },
-  "model_profile": "adaptive",
   "granularity": "coarse",
-  "runtime": "claude",
-  "model_overrides": {
-    "gsd-research-synthesizer": "sonnet",
-    "gsd-codebase-mapper": "sonnet",
-    "gsd-plan-checker": "sonnet",
-    "gsd-integration-checker": "sonnet",
-    "gsd-nyquist-auditor": "sonnet",
-    "gsd-pattern-mapper": "sonnet",
-    "gsd-ui-checker": "sonnet",
-    "gsd-ui-auditor": "sonnet",
-    "gsd-doc-verifier": "sonnet",
-    "gsd-dom-verifier": "sonnet",
-    "gsd-doc-classifier": "sonnet",
-    "gsd-intel-updater": "sonnet",
-    "gsd-mempalace-curator": "sonnet"
-  }
+  "model_profile": "adaptive",
+  "model_profile_overrides": {
+    "codex": {
+      "opus": "gpt-6-sol",
+      "sonnet": "gpt-6-luna",
+      "haiku": "gpt-6-luna"
+    },
+    "claude": {
+      "opus": "claude-opus-5-5",
+      "sonnet": "claude-opus-5-5",
+      "haiku": "claude-sonnet-5-5"
+    }
+  },
+  "commit_docs": true
 }

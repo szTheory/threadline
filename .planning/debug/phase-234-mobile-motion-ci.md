@@ -1,8 +1,8 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "Diagnose the verify.example_browser failure at examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts:323: the mobile Show Drawer click times out because an open modal intercepts it during Plan 234-20's required mix ci.all gate."
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-11
 ---
 
 ## Symptoms
@@ -67,6 +67,7 @@ reasoning_checkpoint:
 ## Resolution
 
 root_cause: "The stress fixture mounts a persistent fixed toast that overlaps Show Drawer on the Pixel 5 mobile viewport; the motion test leaves that toast visible and attempts a pointer click. Playwright correctly refuses to click through it, so the toast's click-away handler never fires. The modal hide transition briefly intercepts first but is not the sustained blocker."
-fix: "Not applied in diagnose-only mode. Suggested direction: explicitly dismiss the toast after its motion assertions, wait for the modal to be hidden after confirmation, then click Show Drawer normally. Keep the browser assertion meaningful; do not force-click through the toast."
-verification: "Direct current-run call logs, retry screenshot, source, and historical matching failures support the diagnosis. No current-head controlled reproduction or code fix was run in this mode."
-files_changed: []
+fix: "The motion test now explicitly closes the persistent toast and waits for it to be hidden before clicking Show Drawer; it preserves normal Playwright actionability and does not force-click through the toast."
+verification: "The updated desktop/mobile motion, accessibility, and zoom browser suites passed 62 checks with two documented mobile zoom skips. Exact-candidate CI run 38158769462 passed all 16 jobs and 31 required browser journey identities."
+files_changed:
+  - examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts

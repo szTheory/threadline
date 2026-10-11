@@ -1,0 +1,131 @@
+{
+  "items": [
+    {
+      "requirement_id": "UIS-01",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Shared presentation roles keep empty, single-record and null-value states legible without collapsing labels, controls or content hierarchy; null, empty string and absent values remain distinct.",
+      "reason": null,
+      "probe": "What is the result for empty, single-element, or null input?"
+    },
+    {
+      "requirement_id": "UIS-01",
+      "category": "encoding",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Authorized Unicode identifiers and evidence values retain their exact content; wrapping or native disclosure makes long values selectable without normalization, destructive truncation or hover-only access.",
+      "reason": null,
+      "probe": "Whose definition of length/equality applies — bytes, code points, grapheme clusters, or normalized form?"
+    },
+    {
+      "requirement_id": "UIS-02",
+      "category": "domain-language",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "The Home, Timeline, Transaction, actor and correlation views use the canonical audit domain terms; `239-SOURCE-AUDIT.md` and the mounted Home/transaction checks verify labels and route destinations without conflating actions with row changes.",
+      "reason": null,
+      "probe": "Do the visible labels preserve the project's canonical entity names and distinguish AuditAction from AuditChange?"
+    },
+    {
+      "requirement_id": "UIS-03",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "The transaction evidence tests verify complete authorized identifiers/values and exact zoned timestamps; native disclosure and actual desktop 200% zoom retain access to the full text.",
+      "reason": null,
+      "probe": "At narrow width and actual 200% zoom, can an operator inspect the full authorized identifier, value and timezone-bearing timestamp?"
+    },
+    {
+      "requirement_id": "UII-01",
+      "category": "entry-point",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Home exposes supported Timeline, row-history and correlation entry points. The delayed correlation lookup test verifies the submitted value and controls stay truthful until the destination query is committed on desktop and mobile Chromium.",
+      "reason": null,
+      "probe": "Can an operator find each supported investigation entry point, and does a delayed correlation lookup preserve the submitted identity?"
+    },
+    {
+      "requirement_id": "UII-02",
+      "category": "query-navigation",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Named Timeline tests verify that applied filters, paging, saved/shared searches and browser navigation preserve the committed query and do not relabel prior rows as a new result.",
+      "reason": null,
+      "probe": "Do Apply, pagination, reload and browser navigation retain the committed query while draft edits remain unapplied?"
+    },
+    {
+      "requirement_id": "UII-03",
+      "category": "transaction-composition",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "The desktop/mobile transaction browser check verifies a committed transaction identity alongside separate semantic action and row-change evidence, including Before/After values; a transaction navigation is an ordinary full-page anchor, so there is no in-place pending state that can mix identities.",
+      "reason": null,
+      "probe": "Does the destination transaction show its own identity, action/actor/context summary and distinct row changes together?"
+    },
+    {
+      "requirement_id": "UIA-01",
+      "category": "responsive-overflow",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Current desktop/mobile browser checks cover narrow/intermediate/desktop layouts and the desktop same-tab actual 200% zoom proof; mobile actual tab zoom is explicitly unsupported and is not claimed.",
+      "reason": null,
+      "probe": "At 320/375/768/1280 CSS pixels and supported actual 200% zoom, are controls and evidence reachable without page overflow?"
+    },
+    {
+      "requirement_id": "UIA-02",
+      "category": "theme-state",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Accessibility and route-state tests verify Light/Dark/System preference, OS-derived appearance, reload and LiveView navigation; the current desktop/mobile theme checks passed.",
+      "reason": null,
+      "probe": "Does the saved theme remain selected across reload/navigation while System appearance follows the OS?"
+    },
+    {
+      "requirement_id": "UIA-03",
+      "category": "adjacency",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "When interactive layers overlap, the top layer owns pointer and keyboard interaction; covered controls cannot receive accidental activation, and dismissal works by keyboard and touch.",
+      "reason": null,
+      "probe": "When two things are exactly equal or just touch, do they merge, collide, or separate?"
+    },
+    {
+      "requirement_id": "UIA-03",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "A dismissible layer with no enabled child controls can still close and return focus to its invoking control or a documented surviving fallback after a LiveView patch; hidden or disabled controls do not trap focus.",
+      "reason": null,
+      "probe": "What is the result for empty, single-element, or null input?"
+    },
+    {
+      "requirement_id": "UIA-03",
+      "category": "ordering",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Tab order follows document and visual task order; Escape dismisses the topmost eligible layer once and restores focus deterministically after real LiveView patches.",
+      "reason": null,
+      "probe": "When elements compare equal, is output order specified and stable?"
+    },
+    {
+      "requirement_id": "UIA-04",
+      "category": "state-transition",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Mounted route-state tests separately verify pending, empty, failed, denied, unavailable and completed outcomes, including delayed Home lookup and Timeline query transitions, without announcing success before completion.",
+      "reason": null,
+      "probe": "Can the operator distinguish pending, empty, failed, denied, unavailable and completed states, including delayed submission?"
+    }
+  ],
+  "coverage": {
+    "applicable": 13,
+    "resolved": 13,
+    "unresolved": 0,
+    "unclassified": 0,
+    "byVerification": {
+      "explicit": 13,
+      "backstop": 0
+    }
+  }
+}

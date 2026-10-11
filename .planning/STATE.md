@@ -2,41 +2,37 @@
 gsd_state_version: "1.0"
 milestone: v1.46
 milestone_name: Operator UI Refinement
-current_phase: 243
-current_phase_name: Integrated verification and review preview
-current_plan: 5
-status: executing
-stopped_at: Completed 243-04-PLAN.md
-last_updated: "2026-10-11T13:11:32Z"
+status: Awaiting next milestone
+stopped_at: Phase 243 complete — all phases complete
+last_updated: "2026-10-11T20:04:58.574Z"
 last_activity: 2026-10-11
-last_activity_desc: Quick task 261011-cjk verified; Phase 243 Plan 05 verification resumed
-state_head: 7c266474345601214d25df1863d758dbce2ebff7
+last_activity_desc: Milestone v1.46 completed and archived
+state_head: 2f7560e97778d914a7639cbae308bb66fb7c528f
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 25
-  percent: 83
+  completed_plans: 27
+  percent: 100
+current_phase: 243
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
+See: `.planning/PROJECT.md` (updated 2026-10-11 after v1.46 closeout)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 243 — Integrated verification and review preview
+**Current focus:** No active milestone; re-derive the baseline before selecting the next scope.
 
 ## Current Position
 
-Phase: 243 (Integrated verification and review preview) — EXECUTING
-Current Plan: 5
-Total Plans in Phase: 6
-Status: Ready to execute Plan 05
-Last activity: 2026-10-11 — Quick task 261011-cjk verified; Phase 243 Plan 05 verification resumed
-
-Progress: 5/6 milestone phases complete ([████████░░] 83%); 26/26 requirements complete; 25/27 planned plans complete (93%). Phase 243 plans 01–04 are complete; plan 05 is ready to execute.
+Phase: Milestone v1.46 complete
+Plan: —
+Status: Awaiting next milestone
+Milestone audit: `tech_debt` (26/26 requirements, 5/5 flows; two visual-evidence limits and non-blocking polish findings disclosed).
+Last activity: 2026-10-11 — Milestone v1.46 completed and archived
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -65,7 +61,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.46 — Operator UI Refinement; scope, 26 requirements and roadmap approved; 6 phases, 5 complete, 26/26 requirements complete, 25/27 plans complete; Phase 243 plans 01–04 complete and plan 05 ready.
+- **Active Milestone**: v1.46 — Operator UI Refinement; all 6 phases and 27/27 plans complete, all 26 requirements complete; Phase 243 verification passed 16/16 must-haves.
 - **Last Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
 - **Prior Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
 - **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
@@ -1116,12 +1112,13 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | 261008-h8v | Validate release PR 82 for 1.0.1; changelog repaired via PR 83; candidate CI green; publication pending | 2026-10-08 | 9e84341a | Verified | [261008-h8v-review-and-validate-release-pr-82-for-1-](./quick/261008-h8v-review-and-validate-release-pr-82-for-1-/) |
 | 261008-ic2 | Publish Threadline 1.0.1 via PR 82; protected workflow green; sync PR 84 and main CI verified | 2026-10-08 | 9eefb75c | Verified | [261008-ic2-publish-threadline-1-0-1-via-pr-82-user-](./quick/261008-ic2-publish-threadline-1-0-1-via-pr-82-user-/) |
 | 261008-jh4 | Close out Flake Detection run 37820724537: record its classification and confirm issue #76’s automated resolution; no fix needed because the run passed. | 2026-10-08 | 6999bfa5 | Verified | [261008-jh4-close-out-flake-detection-run-3782072453](./quick/261008-jh4-close-out-flake-detection-run-3782072453/) |
+| 261011-bb8 | Make Phase 243 local evidence artifacts hygiene-safe while preserving receipts and the formatter correction | 2026-10-11 | 0ab853b9 | Verified | [261011-bb8-make-phase-243-local-evidence-artifacts-](./quick/261011-bb8-make-phase-243-local-evidence-artifacts-/) |
 | 261011-cjk | Regenerate Phase 243 CSS golden and align Redaction page copy contracts with live implementation | 2026-10-11 | 7c266474 | Verified | [261011-cjk-regenerate-the-phase-243-css-golden-and-](./quick/261011-cjk-regenerate-the-phase-243-css-golden-and-/) |
 
 ## Session Continuity
 
-**Last session:** 2026-10-11T08:14:42.946Z
-**Stopped at:** Completed 243-04-PLAN.md
+**Last session:** 2026-10-11T18:28:59Z
+**Stopped at:** Phase 243 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1150,9 +1147,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Operator Next Steps
 
-Run `$gsd-discuss-phase 239`. Phase 238 is complete and independently verified; Phase 239 has no context or plans yet. Read the handoff and use `.claude/worktrees/v146-operator-preview` for current source inspection and all implementation. Preserve the original checkout's five unrelated dirty paths. No additional authorization is needed for this next planning step. Previous publication grants do not authorize a new release.
-
-Current limitations are in 238-INTEGRATION-NOTES.md and 238-BASELINE-FINDINGS.md: actual browser 200% zoom and clipboard denial remain unverified; product Copy/reflow/disconnected controls belong to the approved later phases. Full repository verification uses Bash 5 because of an unchanged hygiene-script portability limitation; new capture tooling passes Bash 3 and 5. No pending Phase 238 blockers.
+- Start the next milestone with $gsd-new-milestone
 
 ## Restart Recovery (2026-10-10)
 

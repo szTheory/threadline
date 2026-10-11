@@ -1,7 +1,8 @@
 ---
 phase: 99-contract-lock-docs-and-final-verification
 verified: 2026-05-26T14:12:32Z
-status: verified_with_followup
+status: passed
+legacy_status: verified_with_followup
 score: 4/4 rerun bands reviewed
 authoritative_surface_drift: detected
 ---
