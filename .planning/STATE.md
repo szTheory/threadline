@@ -4,18 +4,18 @@ milestone: v1.46
 milestone_name: Operator UI Refinement
 current_phase: 243
 current_phase_name: Integrated verification and review preview
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 243-02-PLAN.md
-last_updated: "2026-10-11T03:34:20.556Z"
+stopped_at: Completed 243-03-PLAN.md
+last_updated: "2026-10-11T03:48:10.182Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 243 plan 02 complete; plan 03 ready to execute
-state_head: 3a704a08a753e2ae674c09b4c724ff39210e94bb
+state_head: 6fcaee6cd6fb3eae8b50df85b122b2484a85c3d4
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 23
+  completed_plans: 24
   percent: 83
 ---
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
 ## Current Position
 
 Phase: 243 (Integrated verification and review preview) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 6
 Status: Ready to execute
-Last activity: 2026-10-11 — Phase 243 plan 02 complete; plan 03 ready
+Last activity: 2026-10-11 — Phase 243 plan 03 complete; plan 04 ready
 
-Progress: 5/6 milestone phases complete ([████████░░] 83%); 25/26 requirements complete; 23/27 planned plans complete (85%). Phase 243 plans 01 and 02 are complete; plan 03 is ready to execute.
+Progress: 5/6 milestone phases complete ([████████░░] 83%); 26/26 requirements complete; 24/27 planned plans complete (89%). Phase 243 plans 01–03 are complete; plan 04 is ready to execute.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -305,6 +305,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 242 P03 | 33min | 3 tasks | 13 files |
 | Phase 243 P01 | 32m | 2 tasks | 6 files |
 | Phase 243 P02 | 30min | 3 tasks | 10 files |
+| Phase 243 P03 | 17min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1095,6 +1096,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 243]: Select the native JSON reporter only when PLAYWRIGHT_JSON_OUTPUT_FILE is configured, preserving the stable Mix command and GitHub annotations.
 - [Phase 243]: Candidate review keeps Phase 238 immutable, verifies fresh candidate assets against current bytes, and discloses historical generated-asset drift.
 - [Phase 243]: CI partition weights are verifier inputs and are included in candidate identity.
+- [Phase 243]: Preview receipt PID is the listener-owning beam.smp process; detach it with an owned log, and require cwd, loopback listener and PostgreSQL database ownership before stop.
+- [Phase 243]: Persist only the bounded candidate, fixture, route, process, database and asset identities; never persist credentials, cookies, storage state, response bodies or arbitrary environment.
 
 ### Blockers
 
@@ -1113,8 +1116,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-11T03:34:20.435Z
-**Stopped at:** Completed 243-02-PLAN.md
+**Last session:** 2026-10-11T03:48:10.077Z
+**Stopped at:** Completed 243-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

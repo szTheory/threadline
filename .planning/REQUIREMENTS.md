@@ -49,7 +49,7 @@
 
 - [x] **UIV-01**: Maintainers can run automated checks for the supported journeys and material failure cases and verify that the intended regression tests are discovered and executed by required CI.
 - [ ] **UIV-02**: Maintainers can compare trustworthy before/after rendered evidence and a bounded agent visual review, with normal verification leaving baselines unchanged and concrete findings fixed or explicitly dispositioned.
-- [ ] **UIV-03**: Maintainers can review the finished UI in a reproducible preview tied to the delivery candidate, accompanied by the verified coverage, remaining limitations and release-ready recommendation.
+- [x] **UIV-03**: Maintainers can review the finished UI in a reproducible preview tied to the delivery candidate, accompanied by the verified coverage, remaining limitations and release-ready recommendation.
 
 ## Acceptance interpretation
 
@@ -149,7 +149,7 @@ Approved roadmap maps each requirement to one owning phase, starting at Phase 23
 | UIA-07 | Phase 240 | Complete |
 | UIV-01 | Phase 243 | Complete |
 | UIV-02 | Phase 243 | Pending |
-| UIV-03 | Phase 243 | Pending |
+| UIV-03 | Phase 243 | Complete |
 
 **Coverage:** 26/26 approved requirements mapped once in the approved roadmap; 17 complete.
 
