@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "votingProjects": [
+    "desktop-chromium",
+    "mobile-chromium"
+  ],
+  "rows": [
+    {
+      "requirement": "UIV-01",
+      "journey": "Home to Timeline transaction investigation",
+      "failureClass": "missing-or-retry-only-journey",
+      "voting": "required",
+      "identity": {
+        "project": "desktop-chromium",
+        "file": "operator-timeline-investigation-flow.spec.ts",
+        "titlePath": [
+          "Timeline investigation flow browser proof",
+          "starts at Home, applies a Timeline query, and opens its transaction"
+        ]
+      }
+    },
+    {
+      "requirement": "UIV-01",
+      "journey": "Home to Timeline transaction investigation",
+      "failureClass": "missing-or-retry-only-journey",
+      "voting": "required",
+      "identity": {
+        "project": "mobile-chromium",
+        "file": "operator-timeline-investigation-flow.spec.ts",
+        "titlePath": [
+          "Timeline investigation flow browser proof",
+          "starts at Home, applies a Timeline query, and opens its transaction"
+        ]
+      }
+    }
+  ]
+}
