@@ -240,6 +240,7 @@ test("candidate identity covers workflow, verifier, config, inventory and contra
     "examples/threadline_phoenix/mix.lock",
     "examples/threadline_phoenix/e2e/playwright.config.ts",
     "test/fixtures/operator_surface/route-inventory.json",
+    "test/partition_weights.txt",
     "test/threadline/e2e_preflight_contract_test.exs",
     "lib/threadline/change_diff.ex",
   ];
