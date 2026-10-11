@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test, { type TestContext } from "node:test";
@@ -64,6 +64,13 @@ test("candidate receipt binds approved baseline, worktree, branch, dirty source 
   assert.equal((receipt as { branch: string }).branch, git("branch", "--show-current"));
   assert.equal((receipt as { baseSha: string }).baseSha, git("rev-parse", "HEAD~2"));
   assert.ok((receipt as { fixture: { semanticId: string } }).fixture.semanticId);
+
+  const seedRoot = "examples/threadline_phoenix/lib/threadline_phoenix/demo";
+  const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(root, seedRoot, "seed"), { recursive: true }).map((file) => `seed/${String(file)}`)].sort();
+  const seedHash = createHash("sha256");
+  for (const file of seedFiles) seedHash.update(file).update("\0").update(readFileSync(join(root, seedRoot, file)));
+  seedHash.update("examples/threadline_phoenix/config/test.exs\0").update(readFileSync(join(root, "examples/threadline_phoenix/config/test.exs")));
+  assert.equal((receipt as { fixture: { seedManifestSha256: string } }).fixture.seedManifestSha256, seedHash.digest("hex"), "candidate receipt and route manifests must hash the same fixture inputs");
 });
 
 test("refresh and validation reject stale bytes, forged identities and paths outside the owned receipt", (t) => {

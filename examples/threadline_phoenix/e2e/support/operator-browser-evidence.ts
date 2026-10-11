@@ -1,11 +1,11 @@
 import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { platform, release } from "node:os";
 import { join, relative, resolve } from "node:path";
 import { currentOperatorSurfacePaths, resolveContainedPath, atomicWriteFile } from "./operator-surface-paths.js";
-import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, semanticFixtureId, validateCaptureMetadata, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
+import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, seededFixtureIdentity, validateCaptureMetadata, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
 
 export const paths = currentOperatorSurfacePaths();
 const require = createRequire(import.meta.url);
@@ -87,13 +87,7 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
 }
 
 async function startBoundEvidence(page: Page, browser: Browser, info: TestInfo, identity: ReturnType<typeof candidateIdentity>, custody: OperatorEvidenceManifest["custody"], role: string) {
-  const seedRoot = join(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo");
-  const seedHash = createHash("sha256");
-  const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedRoot, "seed"), { recursive: true }).map((entry) => `seed/${entry}`)].sort();
-  for (const file of seedFiles) seedHash.update(file).update("\0").update(readFileSync(join(seedRoot, file)));
-  seedHash.update("config/test.exs\0").update(readFileSync(join(paths.repositoryRoot, "examples/threadline_phoenix/config/test.exs")));
-  const seedManifestSha256 = seedHash.digest("hex");
-  const fixture = { scenario: "threadline-demo-seed", version: "seed-pipeline-v1", seedManifestSha256, semanticId: semanticFixtureId("threadline-demo-seed", "seed-pipeline-v1", seedManifestSha256) };
+  const fixture = seededFixtureIdentity(paths.repositoryRoot);
   const assets = new Map<string, ServedAsset>();
   const errors: string[] = [];
   const pending: Promise<void>[] = [];

@@ -31,6 +31,16 @@ interface EvidenceManifest {
 interface Bundle { readonly runRoot: string; readonly sourceRoot: string; readonly manifests: readonly EvidenceManifest[] }
 interface AcceptedBundleRow { readonly lane: string; readonly path: string; readonly outputCount: number; readonly manifestSetSha256: string; readonly outputSetSha256: string }
 
+export function assertCandidateFixtureMatchesReceipt(
+  actual: EvidenceManifest["fixture"],
+  expected: Operator243CandidateReceipt["fixture"],
+): void {
+  if (actual.scenario !== expected.scenario || actual.version !== expected.version ||
+      actual.seedManifestSha256 !== expected.seedManifestSha256 || actual.semanticId !== expected.semanticId) {
+    throw new Error("Fresh manifest fixture identity does not match the candidate receipt");
+  }
+}
+
 function readJson(path: string): any {
   try { return JSON.parse(readFileSync(path, "utf8")); }
   catch { throw new Error(`Evidence manifest is missing or invalid JSON: ${path}`); }
@@ -62,6 +72,7 @@ function validateManifestBundle(bundle: Bundle, expected?: Operator243CandidateR
     if (expected && (manifest.baseSha !== expected.baseSha || manifest.candidateHead !== expected.candidateHead || manifest.candidateDiffDigest !== expected.candidateDiffDigest || manifest.custody?.receiptSha256 === undefined)) {
       throw new Error("Fresh manifest source identity does not match the validated candidate receipt");
     }
+    if (expected) assertCandidateFixtureMatchesReceipt(manifest.fixture, expected.fixture);
     if (expected && manifest.custody.receiptSha256 !== expectedReceiptSha256) throw new Error("Fresh manifest receipt custody does not match the current candidate receipt");
     for (const capture of manifest.captures) {
       if (!capture.id || !capture.outputPath || !/^[a-f0-9]{64}$/.test(capture.outputSha256)) throw new Error("Capture output identity is incomplete");

@@ -2,7 +2,9 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
+  lstatSync,
   readFileSync,
+  readdirSync,
   statSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -144,6 +146,24 @@ export function semanticFixtureId(scenario: string, version: string, seedManifes
     throw new Error("Fixture scenario, version, and SHA-256 seed manifest identity are required");
   }
   return sha256(`${scenario}\0${version}\0${seedManifestSha256}`);
+}
+
+export function seededFixtureIdentity(root: string) {
+  const seedRoot = "examples/threadline_phoenix/lib/threadline_phoenix/demo";
+  const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(root, seedRoot, "seed"), { recursive: true }).map((file) => `seed/${String(file)}`)].sort();
+  const hash = createHash("sha256");
+  for (const path of seedFiles) {
+    const absolute = resolveContainedPath(root, join(seedRoot, path));
+    if (!lstatSync(absolute).isFile()) throw new Error(`Fixture source must be a regular file: ${path}`);
+    hash.update(path).update("\0").update(readFileSync(absolute));
+  }
+  const configPath = "examples/threadline_phoenix/config/test.exs";
+  const configFile = resolveContainedPath(root, configPath);
+  if (!lstatSync(configFile).isFile()) throw new Error("Fixture test configuration must be a regular file");
+  const seedManifestSha256 = hash.update(configPath).update("\0").update(readFileSync(configFile)).digest("hex");
+  const scenario = "threadline-demo-seed";
+  const version = "seed-pipeline-v1";
+  return { scenario, version, seedManifestSha256, semanticId: semanticFixtureId(scenario, version, seedManifestSha256) };
 }
 
 function relevant(path: string): boolean {

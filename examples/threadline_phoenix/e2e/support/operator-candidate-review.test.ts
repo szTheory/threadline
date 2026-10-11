@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test, { type TestContext } from "node:test";
-import { reviewEvidenceBundles } from "./operator-candidate-review.js";
+import { assertCandidateFixtureMatchesReceipt, reviewEvidenceBundles } from "./operator-candidate-review.js";
 
 const sha = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 5, 0, 0, 0, 3, 132]);
@@ -73,6 +73,13 @@ test("environment and fixture differences are disclosed and limit side-by-side c
   assert.equal(result.comparison, "limited");
   assert.ok(result.differences.some((difference: string) => difference.includes("browser.browser")));
   assert.ok(result.differences.some((difference: string) => difference.includes("fixture.semanticId")));
+});
+
+test("fresh candidate manifest fixture must match its source receipt", (t) => {
+  const candidate = bundle(t, "candidate");
+  const fixture = candidate.manifests[0].fixture;
+  assert.doesNotThrow(() => assertCandidateFixtureMatchesReceipt(fixture, fixture));
+  assert.throws(() => assertCandidateFixtureMatchesReceipt({ ...fixture, seedManifestSha256: sha("different seed") }, fixture), /fixture identity.*candidate receipt/i);
 });
 
 test("historical generated asset drift is disclosed without weakening candidate asset verification", (t) => {

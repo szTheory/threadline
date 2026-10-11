@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { atomicWriteFile, resolveContainedPath } from "./operator-surface-paths.js";
-import { candidateIdentity, semanticFixtureId } from "./operator-evidence-manifest.js";
+import { candidateIdentity, seededFixtureIdentity } from "./operator-evidence-manifest.js";
 
 export const CANDIDATE_RECEIPT_PATH = ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json";
 const ACCEPTED_RECEIPT_PATH = ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json";
@@ -18,7 +18,6 @@ const APPROVED_MANIFEST_SETS = [
   "25744cfd3e4644a33600eba7ea3edcdfdb884cbff2d25f6877b0f86ba2b32a9b",
   "ad53c46d449804e6bde6b5f35b5643646535ecd3c58ecc57bea30a3d321673b3",
 ] as const;
-const SEED_ROOT = "examples/threadline_phoenix/lib/threadline_phoenix/demo";
 const sha = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 
 export interface Operator243CandidateReceipt {
@@ -42,23 +41,6 @@ export interface Operator243CandidateReceipt {
 
 function git(root: string, ...args: string[]): string {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
-}
-
-function fixtureIdentity(root: string): Operator243CandidateReceipt["fixture"] {
-  const seedDir = join(root, SEED_ROOT);
-  const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedDir, "seed"), { recursive: true }).map((file) => `seed/${String(file)}`)].sort();
-  const hash = createHash("sha256");
-  for (const path of seedFiles) {
-    const absolute = resolveContainedPath(root, join(SEED_ROOT, path));
-    if (!lstatSync(absolute).isFile()) throw new Error(`Fixture source must be a regular file: ${path}`);
-    hash.update(path).update("\0").update(readFileSync(absolute));
-  }
-  const configPath = "examples/threadline_phoenix/config/test.exs";
-  hash.update(configPath).update("\0").update(readFileSync(resolveContainedPath(root, configPath)));
-  const seedManifestSha256 = hash.digest("hex");
-  const scenario = "threadline-demo-seed";
-  const version = "seed-pipeline-v1";
-  return { scenario, version, seedManifestSha256, semanticId: semanticFixtureId(scenario, version, seedManifestSha256) };
 }
 
 function acceptedCustody(root: string, enforceApprovedBaseline: boolean) {
@@ -101,7 +83,7 @@ export function build243CandidateReceipt(root: string, enforceApprovedBaseline =
     acceptedEvidenceManifestSets: accepted.manifestSets,
     forwardTaskCommits: git(absoluteRoot, "rev-list", "--first-parent", "--reverse", `${accepted.acceptedHead}..HEAD`).split("\n").filter(Boolean),
     ...candidate,
-    fixture: fixtureIdentity(absoluteRoot),
+    fixture: seededFixtureIdentity(absoluteRoot),
   };
 }
 
