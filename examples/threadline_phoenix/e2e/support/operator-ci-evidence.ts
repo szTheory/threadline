@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, statSync, writeFileSync } from "node:fs";
 
 export interface OperatorJourneyIdentity {
   readonly file: string;
@@ -7,6 +7,7 @@ export interface OperatorJourneyIdentity {
 }
 
 interface InventoryRow {
+  readonly category: string;
   readonly requirement: string;
   readonly journey: string;
   readonly failureClass: string;
@@ -69,8 +70,9 @@ export function parseExecuted(value: unknown): ExecutedIdentity[] {
   const visit = (suiteValue: unknown, parentTitles: string[], inheritedFile: string) => {
     const suite = object(suiteValue, "executed suite");
     const title = typeof suite.title === "string" ? suite.title : "";
-    const titlePath = title ? [...parentTitles, title] : parentTitles;
     const file = typeof suite.file === "string" && suite.file ? suite.file.replaceAll("\\", "/") : inheritedFile;
+    const isFileSuite = title === file.split("/").at(-1);
+    const titlePath = title && !isFileSuite ? [...parentTitles, title] : parentTitles;
 
     if (Array.isArray(suite.specs)) {
       for (const specValue of suite.specs) {
@@ -112,6 +114,11 @@ export function parseExecuted(value: unknown): ExecutedIdentity[] {
   return identities;
 }
 
+export function parseExecutedJson(raw: string): ExecutedIdentity[] {
+  if (!raw || raw.length > MAX_REPORT_BYTES) throw new Error("missing or oversized executed report");
+  return parseExecuted(JSON.parse(raw));
+}
+
 function uniqueIndex<T extends OperatorJourneyIdentity>(items: readonly T[], label: string): Map<string, T> {
   const index = new Map<string, T>();
   for (const item of items) {
@@ -129,7 +136,8 @@ function parseInventory(value: unknown): Inventory {
   if (new Set(inventory.votingProjects).size !== inventory.votingProjects.length ||
       inventory.votingProjects.some((project) => !SAFE_NAME.test(project))) throw new Error("inventory voting projects are invalid");
   for (const row of inventory.rows) {
-    if (!row || !["required", "nonvoting"].includes(row.voting) || !row.requirement || !row.journey || !row.failureClass) {
+    if (!row || !row.category || !row.requirement || !row.journey || !row.failureClass ||
+        !["required", "nonvoting"].includes(row.voting)) {
       throw new Error("inventory row is malformed");
     }
     if (row.voting === "nonvoting" && !row.reason) throw new Error("nonvoting inventory row requires a reason");
@@ -188,11 +196,11 @@ function main(args: string[]) {
   }
   const [, inventoryPath, discoveredPath, executedPath, receiptPath] = args;
   for (const path of [inventoryPath, discoveredPath, executedPath]) {
-    if (Buffer.byteLength(readFileSync(path)) > MAX_REPORT_BYTES) throw new Error(`${path} exceeds the report size limit`);
+    if (statSync(path).size > MAX_REPORT_BYTES) throw new Error(`${path} exceeds the report size limit`);
   }
   const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
   const discovered = parseDiscovered(readFileSync(discoveredPath, "utf8"));
-  const executed = parseExecuted(JSON.parse(readFileSync(executedPath, "utf8")));
+  const executed = parseExecutedJson(readFileSync(executedPath, "utf8"));
   const receipt = validateEvidence(inventory, discovered, executed, {
     githubSha: process.env.GITHUB_SHA ?? "",
     githubRunId: process.env.GITHUB_RUN_ID ?? "",

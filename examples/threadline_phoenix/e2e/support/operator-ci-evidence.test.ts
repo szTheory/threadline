@@ -126,6 +126,17 @@ test("receipt rejects forged run identity and contains only allowlisted syntheti
   assert.equal(JSON.stringify(receipt).toLowerCase().includes("cookie"), false);
 });
 
+test("reporter-supplied run metadata cannot override the trusted workflow identity", () => {
+  const untrusted = { ...report(), GITHUB_SHA: "f".repeat(40), GITHUB_RUN_ID: "999", cookie: "synthetic-canary" };
+  const receipt = validateEvidence(inventory, projects.map(identity), parseExecuted(untrusted), {
+    githubSha: "a".repeat(40),
+    githubRunId: "123",
+  });
+  assert.equal(receipt.githubSha, "a".repeat(40));
+  assert.equal(receipt.githubRunId, "123");
+  assert.equal(JSON.stringify(receipt).includes("synthetic-canary"), false);
+});
+
 test("native Playwright list and executed JSON prove both voting projects", () => {
   const listed = projects.map((project) =>
     `  [${project}] › ${file}:660:3 › ${titlePath.join(" › ")}`,

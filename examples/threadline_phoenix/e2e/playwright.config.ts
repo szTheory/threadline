@@ -148,7 +148,11 @@ export default defineConfig({
   // traces are a diagnostic sample, one is an anecdote.
   maxFailures: process.env.CI ? 5 : 0,
   workers: 1,
-  reporter: process.env.CI ? [["github"], ["list"]] : [["list"]],
+  reporter: process.env.PLAYWRIGHT_JSON_OUTPUT_FILE
+    ? [["github"], ["json"]]
+    : process.env.CI
+      ? [["github"], ["list"]]
+      : [["list"]],
   use: {
     baseURL,
     trace: "retain-on-failure",

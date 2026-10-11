@@ -1076,7 +1076,7 @@ jobs:
         timeout-minutes: 14
         env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json
-        run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium --reporter=github,json
+        run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
 
       - name: Discover required operator journeys
         working-directory: examples/threadline_phoenix/e2e
