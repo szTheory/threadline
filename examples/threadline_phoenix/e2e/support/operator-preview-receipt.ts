@@ -165,7 +165,8 @@ export function guardedStopPreview(
   if (sourceReceiptBytes !== originalReceiptBytes) throw new Error("Preview receipt bytes changed during ownership check");
   const receipt = validatePreviewReceipt(value, expected);
   const url = new URL(receipt.url);
-  const matches = observed.pid === receipt.pid && observed.cwd === receipt.worktree && observed.host === url.hostname &&
+  const expectedCwd = resolve(receipt.worktree, "examples/threadline_phoenix");
+  const matches = observed.pid === receipt.pid && observed.cwd === expectedCwd && observed.host === url.hostname &&
     observed.port === Number(url.port) && observed.database === receipt.database;
   if (!matches) throw new Error("Preview process, port, worktree or database ownership mismatch");
   signal(receipt.pid);
@@ -227,7 +228,7 @@ async function provePreview(url: string, browser: Browser): Promise<OperatorPrev
   const pending: Promise<void>[] = [];
   const assetErrors: string[] = [];
   page.on("response", (response) => {
-    if (!["stylesheet", "script"].includes(response.request().resourceType())) return;
+    if (!["stylesheet", "script"].includes(response.request().resourceType()) || response.status() < 200 || response.status() >= 300) return;
     pending.push(response.body().then((body) => {
       const record = assetRecord(root, response.url(), response.status(), response.headers()["content-type"] ?? "", body);
       assets.set(record.url, record);
@@ -240,7 +241,7 @@ async function provePreview(url: string, browser: Browser): Promise<OperatorPrev
       "/audit", "/audit/timeline", seeded.transaction, seeded.row, seeded.drawer,
       "/audit/actors/service_account/zendesk-sync", "/audit/coverage", "/audit/evidence",
       "/audit/exports", "/audit/policy/redaction", "/audit/policy/retention",
-    ];
+    ].map((route) => new URL(route, url).pathname);
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await expect(page.locator(".threadline-ui")).toBeVisible();

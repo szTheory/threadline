@@ -80,7 +80,7 @@ test("preview receipt rejects forged identity, secrets, external URLs and change
 
 test("stop retains state and does not signal when process, port, database or source bytes differ", () => {
   assert.ok(previewModule, "preview receipt module must be implemented");
-  const observed = { pid: receipt.pid, cwd: receipt.worktree, host: "127.0.0.1", port: 4002, database: receipt.database };
+  const observed = { pid: receipt.pid, cwd: `${receipt.worktree}/examples/threadline_phoenix`, host: "127.0.0.1", port: 4002, database: receipt.database };
   let signals = 0;
   const stop = (value: unknown, bytes: string, originalBytes: string, process: unknown) =>
     previewModule.guardedStopPreview(value, expected, bytes, originalBytes, process, () => { signals += 1; });
@@ -164,6 +164,11 @@ test("live preview proves login, eleven deep links, served assets, guarded stop 
       sourceReceiptSha256: parsed.sourceReceiptSha256,
       fixture: parsed.fixture,
     }), parsed);
+    process.kill(parsed.pid, 0);
+    const listenerPid = execFileSync("lsof", ["-t", "-nP", `-iTCP:${port}`, "-sTCP:LISTEN"], { encoding: "utf8" }).trim();
+    assert.equal(listenerPid, String(parsed.pid), "receipt PID must be the live listener-owning process after the launcher exits");
+    const command = execFileSync("ps", ["-p", String(parsed.pid), "-o", "command="], { encoding: "utf8" }).trim();
+    assert.match(command, /beam\.smp/, "preview receipt must name the Elixir VM");
     return { env, receipt: parsed };
   }
 
@@ -179,8 +184,8 @@ test("live preview proves login, eleven deep links, served assets, guarded stop 
 
   const firstPartition = `operator_243prev_${nonce}_a`;
   const secondPartition = `operator_243prev_${nonce}_b`;
-  const firstState = join(tmpdir(), `${"threadline-e2e-preview-"}${firstPartition}.json`);
-  const secondState = join(tmpdir(), `${"threadline-e2e-preview-"}${secondPartition}.json`);
+  const firstState = join(tmpdir(), `threadline-e2e-preview-${firstPartition}.json`);
+  const secondState = join(tmpdir(), `threadline-e2e-preview-${secondPartition}.json`);
   const first = start(firstPartition, firstState, await freePort());
   try {
     assert.equal(first.receipt.probes.authenticatedRoutes.length, 11);

@@ -454,11 +454,10 @@ cleanup() {
 trap cleanup EXIT
 
 : >"$LOG_FILE"
-cd "$EXAMPLE"
-mix phx.server >>"$LOG_FILE" 2>&1 &
-PHX_PID=$!
+PHX_PID=$(python3 -c 'import os, subprocess, sys; log = open(sys.argv[1], "ab", buffering=0); child = subprocess.Popen(["mix", "phx.server"], cwd=sys.argv[2], env=os.environ, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True); print(child.pid)' "$LOG_FILE" "$EXAMPLE")
 
 ready=0
+LAUNCH_PID="$PHX_PID"
 for _ in $(seq 1 120); do
   if server_ready "${PORT}"; then
     ready=1
@@ -472,6 +471,18 @@ done
 
 if [[ "$ready" -ne 1 ]]; then
   fail_with_log "Timed out waiting for port ${PORT}; log follows:"
+fi
+
+listener_pids=$(lsof -t -nP -iTCP:"${PORT}" -sTCP:LISTEN 2>/dev/null | sort -u)
+if [[ "$(printf '%s\n' "$listener_pids" | sed '/^$/d' | wc -l | tr -d ' ')" != "1" ]]; then
+  fail_with_log "Expected exactly one listener process on port ${PORT}; log follows:"
+fi
+PHX_PID="$listener_pids"
+vm_command=$(ps -p "$PHX_PID" -o command= 2>/dev/null || true)
+vm_cwd=$(lsof -a -p "$PHX_PID" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -n 1)
+if [[ "$vm_command" != *beam.smp* || "$vm_cwd" != "$EXAMPLE" ]]; then
+  PHX_PID="$LAUNCH_PID"
+  fail_with_log "Listener on port ${PORT} is not the example app's Elixir VM; log follows:"
 fi
 
 if [[ "$PREVIEW_MODE" == "1" ]]; then
