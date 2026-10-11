@@ -27,6 +27,9 @@ key-decisions:
   - "Keep the drawer title clipping as a medium carry-forward: it also exists in the accepted baseline and is owned by overlay positioning."
   - "Do not change source, tests, or snapshots to force this evidence plan green; record failed required gates for remediation before release readiness."
 requirements-completed: []
+duration: 90min
+completed: 2026-10-11
+status: halted
 coverage:
   - id: D1
     description: "Fresh receipt-bound full-shell evidence and visual findings ledger"
