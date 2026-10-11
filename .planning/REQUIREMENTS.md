@@ -2,7 +2,7 @@
 
 **Milestone:** v1.46 — Operator UI Refinement
 **Defined:** 2026-10-08
-**Status:** Approved by the maintainer on 2026-10-08; UIB-01/02 and UIV-01 are complete. Phase 243 is in progress with Plans 01–06 approved and Plan 02 next.
+**Status:** Approved by the maintainer on 2026-10-08; UIB-01/02 and UIV-01/02 are complete. Phase 243 is in progress with Plans 01–06 approved and Plan 05 next.
 **Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
 ## v1.46 Requirements
@@ -48,7 +48,7 @@
 ### Verification and delivery readiness
 
 - [x] **UIV-01**: Maintainers can run automated checks for the supported journeys and material failure cases and verify that the intended regression tests are discovered and executed by required CI.
-- [ ] **UIV-02**: Maintainers can compare trustworthy before/after rendered evidence and a bounded agent visual review, with normal verification leaving baselines unchanged and concrete findings fixed or explicitly dispositioned.
+- [x] **UIV-02**: Maintainers can compare trustworthy before/after rendered evidence and a bounded agent visual review, with normal verification leaving baselines unchanged and concrete findings fixed or explicitly dispositioned.
 - [x] **UIV-03**: Maintainers can review the finished UI in a reproducible preview tied to the delivery candidate, accompanied by the verified coverage, remaining limitations and release-ready recommendation.
 
 ## Acceptance interpretation
@@ -148,7 +148,7 @@ Approved roadmap maps each requirement to one owning phase, starting at Phase 23
 | UIA-06 | Phase 240 | Complete |
 | UIA-07 | Phase 240 | Complete |
 | UIV-01 | Phase 243 | Complete |
-| UIV-02 | Phase 243 | Pending |
+| UIV-02 | Phase 243 | Complete |
 | UIV-03 | Phase 243 | Complete |
 
 **Coverage:** 26/26 approved requirements mapped once in the approved roadmap; 17 complete.
