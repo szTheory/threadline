@@ -150,8 +150,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       DateTime.diff(DateTime.utc_now(), ts, :second)
     end
 
-    defp seconds_ago(_), do: 0
-
     defp last_checked?(%{last_checked_at: %DateTime{}}), do: true
     defp last_checked?(_), do: false
   end
