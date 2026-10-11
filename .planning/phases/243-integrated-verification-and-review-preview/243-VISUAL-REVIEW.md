@@ -2,7 +2,7 @@
 
 ## Evidence and comparison limits
 
-The accepted before bundle is the immutable Phase 238 route set at `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924`. The fresh Phase 243 candidate bundle is `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_243_routes_1791690775_31234` in this worktree. The Plan 02 candidate validator passed (`comparison=limited`, 34 shell captures, 12 route IDs); the baseline byte digest remained `c744df9cd8e999109be2ac0956028288b4f4b1eb734354d8d22d0bcf3332f4aa`. The exact output hashes for every PNG are recorded in the two immutable `manifest.json` files.
+The accepted before bundle is the immutable Phase 238 route set indexed by `.planning/phases/238-current-main-preview-and-acceptance-baseline/238-EVIDENCE-INDEX.md`; its retained route bundle is `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924`. The fresh Phase 243 candidate bundle is `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_243_routes_1791690775_31234` in this worktree. The Plan 02 candidate validator passed (`comparison=limited`, 34 shell captures, 12 route IDs); the baseline byte digest remained `c744df9cd8e999109be2ac0956028288b4f4b1eb734354d8d22d0bcf3332f4aa`. The exact output hashes for every PNG are recorded in the two immutable `manifest.json` files.
 
 The candidate run is bound to HEAD `7f419344e6b9e31ff331a9bcec50476a2c21843d`, base `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`, receipt SHA-256 `40c67d9d0959c1b69ccdc32bfc9bc70ef10c78e4cbd474a1c54805cba4c2666f`, and candidate diff digest `255d3cf0d9e7df6f46768818c0a4b15bc59a1956ae354dc3f6b46e8955c1b9d7`. Run partition: `operator_243_routes_1791690775_31234`; isolated database: `threadline_phoenix_testoperator_243_routes_1791690775_31234`; mode: read-only evidence. Browser: Playwright 1.60.0 / Chromium 148.0.7778.96 on Darwin 25.6.0. Actor: seeded admin, scoped to the local synthetic demo database. Appearance: dark preference/effective theme. Viewports: 1280×900, 768×900, and 375×900 CSS pixels at DPR 1; reduced motion; browser tab zoom 1. The candidate route bundle captures all 11 named routes and the degraded timeline twin. No credentials, cookies, response bodies, or customer data were captured.
 
@@ -71,7 +71,7 @@ Final preview receipt: `.planning/phases/243-integrated-verification-and-review-
 Guarded stop command for this exact receipt:
 
 ```sh
-THREADLINE_E2E_PREVIEW_STATE=/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/threadline-e2e-preview-operator_243pf_1791717692_41076.json MIX_TEST_PARTITION=operator_243pf_1791717692_41076 THREADLINE_E2E_STOP_PREVIEW=1 bash examples/threadline_phoenix/e2e/run-e2e.sh --stop-preview
+THREADLINE_E2E_PREVIEW_STATE="${TMPDIR}/threadline-e2e-preview-operator_243pf_1791717692_41076.json" MIX_TEST_PARTITION=operator_243pf_1791717692_41076 THREADLINE_E2E_STOP_PREVIEW=1 bash examples/threadline_phoenix/e2e/run-e2e.sh --stop-preview
 ```
 
 Guarded reopen command template using a new partition and a free loopback port:

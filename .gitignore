@@ -53,6 +53,9 @@ tmp/
 /examples/threadline_phoenix/e2e/test-results/
 /examples/threadline_phoenix/e2e/playwright-report/
 /examples/threadline_phoenix/e2e/blob-report/
+# Phase 243 generated machine/process-local custody receipts stay available locally.
+/.planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json
+/.planning/phases/243-integrated-verification-and-review-preview/243-PREVIEW-RECEIPT.json
 # Playwright capture output is generated; reviewed tests/**-snapshots/ stay trackable.
 /examples/threadline_phoenix/e2e/artifacts/
 # Nondeterministic operator-surface output. Canonical fixtures under
