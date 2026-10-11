@@ -115,7 +115,11 @@ defmodule Threadline.E2ePreflightContractTest do
     assert source =~ "THREADLINE_E2E_PREVIEW"
 
     capture_at = :binary.match(source, "--capture") |> elem(0)
-    detach_at = :binary.match(source, "trap - EXIT", scope: {capture_at, byte_size(source) - capture_at}) |> elem(0)
+
+    detach_at =
+      :binary.match(source, "trap - EXIT", scope: {capture_at, byte_size(source) - capture_at})
+      |> elem(0)
+
     assert capture_at < capture_at + detach_at
   end
 
