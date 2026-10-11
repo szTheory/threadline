@@ -4,18 +4,19 @@ milestone: v1.46
 milestone_name: Operator UI Refinement
 current_phase: 243
 current_phase_name: Integrated verification and review preview
+current_plan: 3
 status: executing
-stopped_at: Completed 243-01-PLAN.md
-last_updated: "2026-10-11T02:56:34.672Z"
+stopped_at: Completed 243-02-PLAN.md
+last_updated: "2026-10-11T03:34:20.556Z"
 last_activity: 2026-10-11
-last_activity_desc: Phase 243 plan 01 complete; plan 02 ready to execute
-state_head: e580e9075697486a41fcbe327562fb77ea3da0c4
+last_activity_desc: Phase 243 plan 02 complete; plan 03 ready to execute
+state_head: 3a704a08a753e2ae674c09b4c724ff39210e94bb
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 22
-  percent: 81
+  completed_plans: 23
+  percent: 83
 ---
 
 # Project State: Threadline
@@ -30,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
 ## Current Position
 
 Phase: 243 (Integrated verification and review preview) — EXECUTING
-Current Plan: 2
+Current Plan: 3
 Total Plans in Phase: 6
-Status: In Progress
-Last activity: 2026-10-11 — Phase 243 plan 01 complete; plan 02 ready
+Status: Ready to execute
+Last activity: 2026-10-11 — Phase 243 plan 02 complete; plan 03 ready
 
-Progress: 5/6 milestone phases complete (83%); 25/26 requirements complete; 22/27 planned plans complete (81%). Phase 243 plan 01 is complete and plan 02 is ready to execute.
+Progress: 5/6 milestone phases complete ([████████░░] 83%); 25/26 requirements complete; 23/27 planned plans complete (85%). Phase 243 plans 01 and 02 are complete; plan 03 is ready to execute.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -303,6 +304,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 242 P02 | 19min | 3 tasks | 6 files |
 | Phase 242 P03 | 33min | 3 tasks | 13 files |
 | Phase 243 P01 | 32m | 2 tasks | 6 files |
+| Phase 243 P02 | 30min | 3 tasks | 10 files |
 
 ## Deferred Items
 
@@ -1091,6 +1093,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 242]: Use the existing private operator script and LiveView lifecycle without public API, route, dependency, or schema additions.
 - [Phase 243]: Use exact Playwright project/file/title identities and native discovery/execution reconciliation for required operator journey evidence.
 - [Phase 243]: Select the native JSON reporter only when PLAYWRIGHT_JSON_OUTPUT_FILE is configured, preserving the stable Mix command and GitHub annotations.
+- [Phase 243]: Candidate review keeps Phase 238 immutable, verifies fresh candidate assets against current bytes, and discloses historical generated-asset drift.
+- [Phase 243]: CI partition weights are verifier inputs and are included in candidate identity.
 
 ### Blockers
 
@@ -1109,8 +1113,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-11T02:56:34.327Z
-**Stopped at:** Completed 243-01-PLAN.md
+**Last session:** 2026-10-11T03:34:20.435Z
+**Stopped at:** Completed 243-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
