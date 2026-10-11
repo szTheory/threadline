@@ -230,6 +230,47 @@ test("candidate source identity includes changed root-level Threadline modules",
   assert.equal(identity.candidateChanges.find((change) => change.path === productionSource)?.sha256, hash("candidate production module"));
 });
 
+test("candidate identity covers workflow, verifier, config, inventory and contract inputs in every git state", (t) => {
+  const materialPaths = [
+    ".github/workflows/ci.yml",
+    "bin/verify-example-browser",
+    "mix.exs",
+    "mix.lock",
+    "examples/threadline_phoenix/config/test.exs",
+    "examples/threadline_phoenix/mix.lock",
+    "examples/threadline_phoenix/e2e/playwright.config.ts",
+    "test/fixtures/operator_surface/route-inventory.json",
+    "test/threadline/e2e_preflight_contract_test.exs",
+    "lib/threadline/change_diff.ex",
+  ];
+
+  for (const path of materialPaths) {
+    for (const state of ["unstaged", "staged", "untracked"] as const) {
+      const { root, git, base } = repository(t);
+      const baselinePath = state === "untracked" ? path : path;
+      mkdirSync(dirname(join(root, baselinePath)), { recursive: true });
+      if (state !== "untracked") {
+        writeFileSync(join(root, baselinePath), "baseline material bytes");
+        git("add", baselinePath);
+        git("commit", "-qm", "add material candidate input");
+      }
+      const before = candidateIdentity(root, base).candidateDiffDigest;
+      writeFileSync(join(root, path), "changed material bytes");
+      if (state === "staged") git("add", path);
+      assert.notEqual(candidateIdentity(root, base).candidateDiffDigest, before, `${path} (${state}) must alter the digest`);
+    }
+  }
+});
+
+test("unrelated generated E2E output does not affect candidate identity", (t) => {
+  const { root, base } = repository(t);
+  const before = candidateIdentity(root, base).candidateDiffDigest;
+  const generated = join(root, "examples/threadline_phoenix/e2e/artifacts/operator-evidence/test/screenshot.png");
+  mkdirSync(dirname(generated), { recursive: true });
+  writeFileSync(generated, "generated screenshot bytes");
+  assert.equal(candidateIdentity(root, base).candidateDiffDigest, before);
+});
+
 test("output proof rejects traversal, altered output bytes and reference fixture destinations", (t) => {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "operator-output-")));
   t.after(() => rmSync(root, { recursive: true, force: true }));
