@@ -30,6 +30,9 @@ for runner_arg in "$@"; do
   esac
 done
 set -- ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
+if [[ "$PREVIEW_MODE" == "1" ]]; then
+  LOG_FILE="${TMPDIR:-/tmp}/threadline_phoenix_e2e_${MIX_TEST_PARTITION:-preview}.log"
+fi
 
 port_listening() {
   local port="$1"
@@ -189,47 +192,7 @@ evidence_preflight() {
 stop_preview() {
   local state
   state="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION:-}.json}"
-  node - "$state" "$EXAMPLE" <<'NODE'
-const fs = require('node:fs');
-const {execFileSync} = require('node:child_process');
-const assert = require('node:assert/strict');
-try {
-  const [state, example] = process.argv.slice(2);
-  assert.ok(fs.lstatSync(state).isFile(), 'Preview state must be a regular file');
-  const original = fs.readFileSync(state, 'utf8'), r = JSON.parse(original);
-  assert.deepEqual(Object.keys(r).sort(), ['database', 'partition', 'pid', 'url']);
-  assert.ok(Number.isSafeInteger(r.pid) && r.pid > 1 && r.pid !== process.pid && r.pid !== process.ppid, 'Invalid preview PID');
-  assert.ok(typeof r.partition === 'string' && /^operator_[A-Za-z0-9_]+$/.test(r.partition), 'Invalid preview partition');
-  assert.equal(r.database, 'threadline_phoenix_test' + r.partition);
-  assert.ok(r.database.length <= 63, 'Invalid preview database');
-  const url = new URL(r.url), port = Number(url.port);
-  assert.ok(url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname) && port > 0 && port <= 65535 && url.origin === r.url, 'Invalid loopback preview URL');
-  const dbHost = process.env.DB_HOST || 'localhost', dbPort = process.env.DB_PORT || '5432';
-  assert.ok(['localhost', '127.0.0.1', '::1', '[::1]'].includes(dbHost), 'Invalid local database host');
-  assert.ok(/^\d+$/.test(dbPort) && Number(dbPort) > 0 && Number(dbPort) <= 65535, 'Invalid database port');
-  const run = (command, args) => execFileSync(command, args, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, PGPASSWORD: process.env.DB_PASSWORD || 'postgres'}});
-  const ownership = () => {
-    const cwd = run('lsof', ['-a', '-p', String(r.pid), '-d', 'cwd', '-Fn']);
-    assert.ok(cwd.split('\n').includes('n' + fs.realpathSync(example)), 'Preview cwd mismatch');
-    const listeners = run('lsof', ['-nP', '-a', '-p', String(r.pid), '-iTCP', '-sTCP:LISTEN', '-Fn']).split('\n').filter(line => line.startsWith('n'));
-    assert.ok(listeners.length > 0 && listeners.every(line => line === 'n127.0.0.1:' + port), 'Preview listener mismatch');
-  };
-  ownership();
-  const connections = run('lsof', ['-nP', '-a', '-p', String(r.pid), '-iTCP', '-sTCP:ESTABLISHED', '-Fn']);
-  const ports = [...connections.matchAll(/n127\.0\.0\.1:(\d+)->127\.0\.0\.1:(\d+)/g)].filter(m => Number(m[2]) === Number(dbPort)).map(m => Number(m[1]));
-  assert.ok(ports.length > 0, 'Preview has no local database connection');
-  const database = run('psql', ['-X', '-h', dbHost, '-p', dbPort, '-U', process.env.DB_USERNAME || 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-Atqc', 'SELECT DISTINCT datname FROM pg_stat_activity WHERE client_port IN (' + ports.join(',') + ')']).trim();
-  assert.equal(database, r.database, 'Preview database mismatch');
-  assert.equal(fs.readFileSync(state, 'utf8'), original, 'Preview state changed during ownership check');
-  ownership();
-  process.kill(r.pid, 'SIGTERM');
-  fs.unlinkSync(state);
-  process.stdout.write('Stopped owned loopback preview process ' + r.pid + '.\n');
-} catch {
-  process.stderr.write('Preview ownership verification failed; no unverified process was signalled and state was retained.\n');
-  process.exitCode = 1;
-}
-NODE
+  "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-preview-receipt.ts" --stop "$state"
 }
 
 if [[ "$STOP_PREVIEW" == "1" ]]; then
@@ -450,7 +413,7 @@ if [[ "${THREADLINE_E2E_ARGUMENTS_ONLY:-0}" == "1" ]]; then
   exit 0
 fi
 
-cleanup_exports
+if [[ "$PREVIEW_MODE" != "1" ]]; then cleanup_exports; fi
 
 cd "$EXAMPLE"
 mix deps.get --only test
@@ -471,12 +434,14 @@ mix demo.reset
 mix demo.seed
 
 cd "$E2E_DIR"
-if [[ -f package-lock.json ]]; then
-  npm ci
-else
-  npm install
+if [[ "$PREVIEW_MODE" != "1" ]]; then
+  if [[ -f package-lock.json ]]; then
+    npm ci
+  else
+    npm install
+  fi
+  npx playwright install chromium
 fi
-npx playwright install chromium
 
 PHX_PID=""
 cleanup() {
@@ -484,7 +449,7 @@ cleanup() {
     kill "$PHX_PID" 2>/dev/null || true
     wait "$PHX_PID" 2>/dev/null || true
   fi
-  cleanup_exports
+  if [[ "$PREVIEW_MODE" != "1" ]]; then cleanup_exports; fi
 }
 trap cleanup EXIT
 
@@ -511,8 +476,8 @@ fi
 
 if [[ "$PREVIEW_MODE" == "1" ]]; then
   PREVIEW_STATE="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION}.json}"
-  printf '{"pid":%s,"url":"%s","database":"%s","partition":"%s"}\n' \
-    "$PHX_PID" "$BASE_URL" "$EVIDENCE_DATABASE" "$MIX_TEST_PARTITION" > "$PREVIEW_STATE"
+  "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-preview-receipt.ts" --capture \
+    "$PREVIEW_STATE" "$PHX_PID" "$BASE_URL" "$EVIDENCE_DATABASE" "$MIX_TEST_PARTITION"
   trap - EXIT
   echo "Evidence preview running at $BASE_URL (pid $PHX_PID; database $EVIDENCE_DATABASE). Stop with THREADLINE_E2E_STOP_PREVIEW=1 and THREADLINE_E2E_PREVIEW_STATE=$PREVIEW_STATE."
   exit 0
