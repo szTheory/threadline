@@ -61,6 +61,10 @@ test("review rejects a missing shell, changed output bytes, and asset mismatch",
   const assetMismatch = bundle(t, "asset");
   assetMismatch.manifests[0].captures[0].assets[0].localSha256 = sha("forged");
   assert.throws(() => reviewEvidenceBundles([baseline], assetMismatch), /asset|served|source/i);
+
+  const changedBaseline = bundle(t, "changed-baseline");
+  writeFileSync(join(changedBaseline.runRoot, changedBaseline.manifests[0].captures[0].outputPath), "changed accepted reference");
+  assert.throws(() => reviewEvidenceBundles([changedBaseline], bundle(t, "baseline-check")), /output.*hash|hash.*output/i);
 });
 
 test("environment and fixture differences are disclosed and limit side-by-side comparison", (t) => {

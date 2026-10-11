@@ -55,6 +55,7 @@ export interface OperatorEvidenceManifest {
   readonly browser: { readonly playwright: string; readonly browser: string };
   readonly viewport: { readonly width: number; readonly height: number; readonly deviceScaleFactor: number };
   readonly input: { readonly motion: string; readonly zoom: number };
+  readonly environment?: { readonly os: string };
   readonly captures: readonly OperatorCapture[];
 }
 
@@ -279,7 +280,9 @@ export function validateServedAsset(asset: ServedAsset): void {
 
 export function serializeManifest(manifest: OperatorEvidenceManifest): string {
   rejectSecrets(manifest);
-  fields(manifest, ["schemaVersion", "baseSha", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "custody", "fixture", "route", "state", "actor", "appearance", "browser", "viewport", "input", "captures"], "source");
+  const manifestFields = ["schemaVersion", "baseSha", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "custody", "fixture", "route", "state", "actor", "appearance", "browser", "viewport", "input", "captures"];
+  if (manifest.environment !== undefined) manifestFields.push("environment");
+  fields(manifest, manifestFields, "source");
   if (manifest.schemaVersion !== 1 || !/^[a-f0-9]{40}$/.test(manifest.baseSha) || !/^[a-f0-9]{40}$/.test(manifest.candidateHead)) {
     throw new Error("Manifest source identity is incomplete");
   }
@@ -315,6 +318,10 @@ export function serializeManifest(manifest: OperatorEvidenceManifest): string {
   if (Object.values(manifest.viewport).some((v) => typeof v !== "number" || !Number.isFinite(v) || v <= 0)) throw new Error("Invalid viewport condition");
   fields(manifest.input, ["motion", "zoom"], "input");
   if (!nonempty(manifest.input.motion) || !Number.isFinite(manifest.input.zoom) || manifest.input.zoom <= 0) throw new Error("Invalid input condition");
+  if (manifest.environment !== undefined) {
+    fields(manifest.environment, ["os"], "environment");
+    if (!nonempty(manifest.environment.os)) throw new Error("Invalid operating system identity");
+  }
   if (!nonempty(manifest.route) || !manifest.route.startsWith("/") || !nonempty(manifest.state) || !Array.isArray(manifest.captures) || !manifest.captures.length) {
     throw new Error("Manifest source, fixture, route, state, and capture identity are required");
   }

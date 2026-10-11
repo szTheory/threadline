@@ -2,6 +2,7 @@ import { expect, type Browser, type Page, type TestInfo } from "@playwright/test
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
+import { platform, release } from "node:os";
 import { join, relative, resolve } from "node:path";
 import { currentOperatorSurfacePaths, resolveContainedPath, atomicWriteFile } from "./operator-surface-paths.js";
 import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, semanticFixtureId, validateCaptureMetadata, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
@@ -155,7 +156,7 @@ async function startBoundEvidence(page: Page, browser: Browser, info: TestInfo, 
     return observation;
   }
   function finish(id: string, route: string, state: string) {
-    const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, custody, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, captures };
+    const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, custody, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, environment: { os: `${platform()} ${release()}` }, captures };
     // zoom=1 is a neutral compatibility field, NOT proof of browser chrome zoom;
     // every capture's condition explicitly records browserZoom=unverified.
     assertNoCanaryLeak(redactionCanary, `${id}-manifest.json`, JSON.stringify(manifest));
