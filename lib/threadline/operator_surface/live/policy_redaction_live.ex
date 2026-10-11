@@ -18,7 +18,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @section_defs [
       {:drift_detected, "Drift detected"},
-      {:could_not_introspect, "Could not introspect"},
+      {:could_not_introspect, "Could not inspect"},
       {:config_matches_deployed, "Config matches deployed"}
     ]
 
@@ -209,7 +209,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp policy_refresh(assigns) do
       ~H"""
-      <div class="tl-cluster tl-cluster--start">
+      <div class="tl-cluster tl-cluster--start tl-policy__refresh">
         <button
           type="button"
           phx-click="refresh-policy-inspection"

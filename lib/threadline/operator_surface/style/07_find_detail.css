@@ -421,6 +421,10 @@
     border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
   }
 
+  .tl-policy__refresh {
+    margin-bottom: var(--tl-space-4);
+  }
+
   .tl-policy__section--introspect .tl-policy__section-header {
     border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
   }
