@@ -22,6 +22,7 @@ test.beforeEach(async ({}, info) => {
     "Clipboard failure shows manual recovery without claiming success",
     "Clipboard fallback confirms success and restores focus and selection",
     "Copy feedback fits long URLs and redacted values stay non-copyable",
+    "Exports seeded pending, failed, completed, unavailable and invalid context stay distinct",
     "Redaction policy comparison stays safe, keyboard-operable, and responsive",
     "Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment",
     "Retention confirmation focus and cancel preserve state; Chromium touch navigation works",
@@ -416,17 +417,23 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
 
 test("Exports seeded pending, failed, completed, unavailable and invalid context stay distinct", async ({ page, browser }, info) => {
   await login(page);
-  const e = await startEvidence(page, browser, info);
+  // Required CI exercises the seeded read-only states without writing evidence artifacts.
+  // The bounded evidence lane still captures the same states when explicitly enabled.
+  const evidence = process.env.THREADLINE_E2E_EVIDENCE === "1"
+    ? await startEvidence(page, browser, info)
+    : undefined;
   await page.goto("/audit/exports");
   const jobs = page.getByTestId("export-jobs");
   for (const heading of ["Ready to hand off", "Preparing", "Needs attention", "Unavailable"]) await expect(jobs.getByRole("heading", { name: heading, exact: true })).toBeVisible();
   await expect(jobs.getByText("Export failed.").first()).toBeVisible();
   await expect(jobs.getByRole("link", { name: "Download export" }).first()).toBeVisible();
-  await e.capture("state.exports.seeded", "/audit/exports", "seeded-pending-failed-completed-unavailable", { stateSource: "Demo.Seed.Exports synthetic jobs; not a newly completed mutation" });
+  if (evidence) await evidence.capture("state.exports.seeded", "/audit/exports", "seeded-pending-failed-completed-unavailable", { stateSource: "Demo.Seed.Exports synthetic jobs; not a newly completed mutation" });
   await page.goto("/audit/exports?subject_type=invalid&subject_ref_json=%7B");
   await expect(page.locator("#tl-main [role=alert]").first()).toBeVisible();
-  await e.capture("state.exports.invalid", "/audit/exports?subject_type=invalid&subject_ref_json=%7B", "invalid-context-alert");
-  e.finish("state.exports", "/audit/exports", "seeded-status-and-invalid-context");
+  if (evidence) {
+    await evidence.capture("state.exports.invalid", "/audit/exports?subject_type=invalid&subject_ref_json=%7B", "invalid-context-alert");
+    evidence.finish("state.exports", "/audit/exports", "seeded-status-and-invalid-context");
+  }
 });
 
 test("Timeline export reaches protected download and returns to its committed search", async ({ page }) => {
