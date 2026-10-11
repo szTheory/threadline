@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.46 Operator UI Refinement** — scope, all 26 requirements and six-phase roadmap approved 2026-10-08. Phases 238–240 are complete; Phases 241–243 are not started.
+- [ ] **v1.46 Operator UI Refinement** — scope, all 26 requirements and six-phase roadmap approved 2026-10-08. Phases 238–242 are complete; Phase 243 remains.
 
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07; closeout audit records `tech_debt` with no blockers. Archive: `.planning/milestones/v1.45-ROADMAP.md`
 - [x] **v1.44 Behavioral Depth: Properties, Twins, Telemetry** — Phases 224–230; shipped 2026-10-02 as 0.12.0. Archive: `.planning/milestones/v1.44-ROADMAP.md`
@@ -19,7 +19,7 @@
 
 ## v1.46 — Operator UI Refinement
 
-**Status:** Approved by the maintainer on 2026-10-08. Phase 238 is complete (3/3 plans, 14/14 verified must-haves); Phase 239 is complete (7/7 plans, five roadmap success criteria and 10/10 requirements verified on candidate `b97f0ab9`); Phase 240 is complete (4/4 plans, 49/49 verified truths on candidate `6aba225c`). Phase 241 is next to plan.
+**Status:** Approved by the maintainer on 2026-10-08. Phases 238–242 are complete. Phase 242 passed verification with 45/45 truths and all three mapped requirements satisfied. Phase 243 is in progress; Plan 01 is complete and Plan 02 is ready.
 
 **Delivery boundary:** Refine the eleven existing operator routes and their theme/export seams using the established Threadline identity and private Phoenix/HEEx primitives. Preserve host authentication, authorization, tenant scope, redaction, routes, public 1.x contracts and Phoenix optionality. Do not expand backend capabilities, introduce a framework or public component package, or revive paid visual judging.
 
@@ -33,7 +33,7 @@
 - [x] **Phase 239: Investigation entry and transaction composition** - Make home, timeline and transaction inspection readable and predictable while proving the shared presentation in one complete journey. (completed 2026-10-10; 7/7 plans; verification passed)
 - [x] **Phase 240: Connected investigation and recovery** - Preserve context through row history, actor/correlation pivots and saved searches, with reliable copy and motion behavior. (completed 2026-10-10)
 - [x] **Phase 241: Operational evidence and policy inspection** - Make capture coverage, evidence limits and redaction drift understandable without overstating certainty. (completed 2026-10-10)
-- [ ] **Phase 242: Export and retention operations** - Complete existing export and confirmed prune journeys with accurate asynchronous, permission and reconnect feedback.
+- [x] **Phase 242: Export and retention operations** - Complete existing export and confirmed prune journeys with accurate asynchronous, permission and reconnect feedback. (completed 2026-10-10)
 - [ ] **Phase 243: Integrated verification and review preview** - Prove the delivered journeys in required checks and provide source-bound review evidence and a release-ready recommendation.
 
 <details>
@@ -166,7 +166,7 @@ Plans:
 2. Authorized operators can inspect retention runs and complete the existing confirmed prune action with accurate scope, consequence, outcome and failure feedback.
 3. During disconnection and reconnection, operators see accurate availability; unavailable mutations cannot be triggered by keyboard or pointer or duplicated during recovery.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -174,7 +174,7 @@ Plans:
 - [x] 242-02-PLAN.md — Confirmed global prune with one persisted run and safe outcomes
 
 **Wave 2**
-- [ ] 242-03-PLAN.md — Native mutation gating and durable reconnect verification
+- [x] 242-03-PLAN.md — Native mutation gating and durable reconnect verification
 
 **UI hint**: yes
 
@@ -188,7 +188,27 @@ Plans:
 2. Maintainers can compare trustworthy before/after full-shell rendered evidence and a bounded agent visual review; normal verification leaves baselines unchanged and each concrete finding is fixed or explicitly dispositioned.
 3. Maintainers can open a reproducible preview tied to the delivery candidate and review verified coverage, remaining capability or browser limitations, and a release-ready recommendation.
 
-**Plans**: TBD
+**Plans**: 1/6 plans executed
+
+Plans:
+**Wave 1**
+- [x] 243-01-PLAN.md — Required journey discovery/execution receipt and CI contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 243-02-PLAN.md — Candidate-bound evidence and immutable full-shell capture
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 243-03-PLAN.md — Guarded Phoenix preview receipt and lifecycle proof
+
+**Wave 4** *(blocked on Waves 2–3 completion)*
+- [ ] 243-04-PLAN.md — Bounded visual review and concrete finding fixes
+
+**Wave 5** *(blocked on Waves 1–4 completion)*
+- [ ] 243-05-PLAN.md — Corrected-candidate confirmation and preview
+
+**Wave 6** *(blocked on Waves 1–5 completion; includes maintainer push/dispatch checkpoint)*
+- [ ] 243-06-PLAN.md — Final evidence index and exact-SHA required CI reconciliation
+
 **UI hint**: yes
 
 ## Progress
@@ -199,9 +219,9 @@ Plans:
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
 | 240. Connected investigation and recovery | 4/4 | Complete    | 2026-10-10 |
 | 241. Operational evidence and policy inspection | 4/4 | Complete    | 2026-10-10 |
-| 242. Export and retention operations | 2/3 | In Progress | - |
-| 243. Integrated verification and review preview | 0/TBD | Not started | - |
+| 242. Export and retention operations | 3/3 | Complete    | 2026-10-10 |
+| 243. Integrated verification and review preview | 1/6 | In Progress | - |
 
 ## Next
 
-Continue executing Phase 242 — Export and retention operations — from `.claude/worktrees/v146-phase241-orchestrator` (branch `agent-241-01`). Plans 242-01 and 242-02 are complete; run 242-03 next. Phase 243 remains the integrated candidate review.
+Continue Phase 243 — Integrated verification and review preview — from `.claude/worktrees/v146-phase241-orchestrator` (branch `agent-241-01`) with Plan 02, Candidate-bound evidence and immutable full-shell capture. Phase 243 has six checker-approved sequential plans and one maintainer push/dispatch checkpoint before exact-candidate required CI.

@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.46
 milestone_name: Operator UI Refinement
-current_phase: 242
-current_phase_name: Export and retention operations
+current_phase: 243
+current_phase_name: Integrated verification and review preview
 status: executing
-stopped_at: Completed 242-02-PLAN.md
-last_updated: "2026-10-10T21:30:02.366Z"
-last_activity: 2026-10-10
-last_activity_desc: Phase 242 plan 02 complete; plan 03 ready
-state_head: 961c4db49601dd5ea116e8c195c14f5f809af301
+stopped_at: Completed 243-01-PLAN.md
+last_updated: "2026-10-11T02:56:34.672Z"
+last_activity: 2026-10-11
+last_activity_desc: Phase 243 plan 01 complete; plan 02 ready to execute
+state_head: e580e9075697486a41fcbe327562fb77ea3da0c4
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 21
-  completed_plans: 20
-  percent: 67
+  completed_phases: 5
+  total_plans: 27
+  completed_plans: 22
+  percent: 81
 ---
 
 # Project State: Threadline
@@ -25,16 +25,17 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 242 — Export and retention operations
+**Current focus:** Phase 243 — Integrated verification and review preview
 
 ## Current Position
 
-Phase: 242 (Export and retention operations) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-10-10 — Phase 242 plan 02 complete; plan 03 ready
+Phase: 243 (Integrated verification and review preview) — EXECUTING
+Current Plan: 2
+Total Plans in Phase: 6
+Status: In Progress
+Last activity: 2026-10-11 — Phase 243 plan 01 complete; plan 02 ready
 
-Progress: [███████░░░] 67% of milestone phases — 4/6 phases complete; 20/21 currently planned plans complete; Phase 242 is executing (plans 01–02 of 3 complete); Phase 243 remains to execute
+Progress: 5/6 milestone phases complete (83%); 25/26 requirements complete; 22/27 planned plans complete (81%). Phase 243 plan 01 is complete and plan 02 is ready to execute.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -63,7 +64,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.46 — Operator UI Refinement; scope, 26 requirements and roadmap approved; 6 phases, 4 complete, 21/26 requirements complete, 19/21 currently planned plans complete; Phase 242 executing (plan 01 of 3 complete)
+- **Active Milestone**: v1.46 — Operator UI Refinement; scope, 26 requirements and roadmap approved; 6 phases, 5 complete, 25/26 requirements complete, 22/27 plans complete; Phase 243 plan 01 complete and plan 02 ready.
 - **Last Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
 - **Prior Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
 - **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
@@ -300,6 +301,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 241 P02 | 12 min | 2 tasks | 8 files |
 | Phase 242 P01 | 24min | 2 tasks | 5 files |
 | Phase 242 P02 | 19min | 3 tasks | 6 files |
+| Phase 242 P03 | 33min | 3 tasks | 13 files |
+| Phase 243 P01 | 32m | 2 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1084,6 +1087,10 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 242]: Persist queued retention acceptance before acknowledgement and coalesce active requests using the existing schema-keyed advisory locking boundary.
 - [Phase 242]: Preserve cumulative committed deletion batches and store only finite safe failure categories on the same accepted run.
 - [Phase 242]: Present global configured-schema consequences and persisted outcomes with exact server-derived confirmation and event-time authorization.
+- [Phase 242]: Keep mutation controls natively disabled until a fresh server-rendered persisted-state revision arrives after reconnect.
+- [Phase 242]: Use the existing private operator script and LiveView lifecycle without public API, route, dependency, or schema additions.
+- [Phase 243]: Use exact Playwright project/file/title identities and native discovery/execution reconciliation for required operator journey evidence.
+- [Phase 243]: Select the native JSON reporter only when PLAYWRIGHT_JSON_OUTPUT_FILE is configured, preserving the stable Mix command and GitHub annotations.
 
 ### Blockers
 
@@ -1102,8 +1109,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T21:30:02.239Z
-**Stopped at:** Completed 242-02-PLAN.md
+**Last session:** 2026-10-11T02:56:34.327Z
+**Stopped at:** Completed 243-01-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

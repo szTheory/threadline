@@ -1,183 +1,158 @@
-# Requirements: Threadline v1.45 1.0 API Contract
+# Requirements: Threadline
 
-**Defined:** 2026-10-02
-**Core Value:** Every row mutation that matters is captured durably and linked to who did it and why, without the developer having to remember to opt in.
-**Research:** `.planning/research/SUMMARY.md`, built on STACK, FEATURES, ARCHITECTURE, PITFALLS and CONTRACT. It reconciles five cross-file conflicts.
+**Milestone:** v1.46 — Operator UI Refinement
+**Defined:** 2026-10-08
+**Status:** Approved by the maintainer on 2026-10-08; UIB-01/02 and UIV-01 are complete. Phase 243 is in progress with Plans 01–06 approved and Plan 02 next.
+**Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
-**Maintainer decisions (2026-10-02, the one-way calls; all four research recommendations accepted):**
+## v1.46 Requirements
 
-1. `row_history` defaults to a 200-row cap. The return stays a bare list. The cursor path returning `Threadline.Page` is documented as the only read that proves completeness. `limit: :infinity` opts out, and a truncation telemetry event fires when the cap is hit.
-2. The PostgreSQL floor rises to 15 at the 1.0.0 cut, as a breaking change.
-3. The `AuditTransaction` ↔ `AuditAction` Ecto association is decoupled (Option C). The DB foreign key and the `.action` key shape that callers see are unchanged.
-4. `Threadline` becomes the single public read facade. `Threadline.Query` and `Threadline.Investigation` are hidden. `Threadline.Query.timeline_query/1` remains the one Ecto-composition escape hatch.
+### Baseline and acceptance
 
-**Settled by research without escalation:**
+- [x] **UIB-01**: Maintainers can open a reproducible, safely seeded preview of the current-main UI, with source and served-asset identity recorded for captures of all eleven operator routes.
+- [x] **UIB-02**: Maintainers can trace every route, shared primitive, unique control and material state to a ranked finding or explicit coverage disposition before implementation starts.
 
-- **Deprecation policy:** "Deprecated in 1.0.0. Kept as a functioning, fully-specced delegate for the rest of the 1.x line. Removed no earlier than 2.0.0, which is not currently planned."
-- **Return shapes:** collection reads return bare values. Single-subject lookups return `{:ok, _}` or `{:error, :not_found}` and have `!` siblings. Bad options raise `ArgumentError`. No NimbleOptions.
-- **Floors and support:** Elixir stays `~> 1.15` on OTP 26. 0.12.x gets a 6-month security and correctness backport window.
+### Shared presentation and language
 
-## v1.45 Requirements
+- [x] **UIS-01**: Operators can read page hierarchy, labels and evidence comfortably through a consistent shared typography, spacing and control system, including dense and long-content states.
+- [x] **UIS-02**: Operators encounter the same canonical domain terms for the same concepts across navigation, headings, controls, validation and feedback.
+- [x] **UIS-03**: Operators can access complete identifiers, field values and exact timestamps with timezone information wherever shortened presentation is used.
 
-### API: one public surface
+### Investigation journeys
 
-- [x] **API-01**: An adopter calls one function, `Threadline.row_history/3`, to read a row's changes, with filters passed as keyword opts.
-  - Without options it returns at most 200 changes, newest first, as a bare list.
-  - `limit: n` and `limit: :infinity` override the cap.
-  - `cursor:` with `page_size:` returns a `%Threadline.Page{}`. Walking it until `has_more: false` yields exactly the full history.
-  - Passing `:limit` together with `:cursor` raises `ArgumentError`.
-  - Hitting the cap emits `[:threadline, :row_history, :truncated]`, which carries no row values or actor ids and is added to the telemetry allowlist.
-  - Export and `as_of` stay unbounded, proven by a test.
-  - v1.44 properties that read history are updated explicitly to pass `limit: :infinity` or walk the cursor.
-- [x] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
-- [x] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
-- [x] **API-04**: The adopter's docs contain one read API.
-  - `Threadline.Query` and `Threadline.Investigation` are `@moduledoc false`.
-  - `Threadline.Query.timeline_query/1` is the one documented escape hatch, linked from the `Threadline` moduledoc.
-  - The three guides that call the hidden modules (`audit-indexing`, `how-threadline-works`, `code-walkthrough`) call `Threadline.*` instead.
-  - `public_surface_contract_test.exs` pins the hidden set.
-- [x] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
-- [x] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
-- [x] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
-  - `AuditTransaction` drops `belongs_to :action` and `AuditAction` drops `has_many :transactions`.
-  - An exploration-layer helper hydrates `transaction.action`, so every existing call-site assertion on `.action` passes unchanged.
-  - The `action_id` column and its foreign key are untouched.
-  - A test asserts that neither schema declares an association to the other.
-- [x] **API-08**: An adopter on a retired name gets a working call and one compiler warning naming the replacement.
-  - Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4`, and the filters-as-positional-argument shapes, on every module that exposed them) is a pure one-line `@deprecated` delegate.
-  - Each has a parity test against its replacement and a spec that matches the replacement's (not `term()`).
-  - `@doc since: "1.0.0"` marks the replacements.
-  - `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app, so nothing internal calls a deprecated name.
+- [x] **UII-01**: Operators can start an investigation from the home page through clear, visible entry points for the supported lookup and search jobs.
+- [x] **UII-02**: Operators can filter and page the timeline without losing the active query or scope, including reload and browser back/forward navigation.
+- [x] **UII-03**: Operators can inspect a transaction's changes and before/after values while distinguishing its action, actor and execution context.
+- [x] **UII-04**: Operators can inspect supported row history and as-of evidence through both direct entry and the transaction drawer without losing the originating investigation context.
+- [x] **UII-05**: Operators can follow existing actor and correlation pivots to related activity and return with the investigation context intact.
+- [x] **UII-06**: Operators can save, resume and share supported searches with coherent names and accurate restoration of the supported search state.
 
-### SPEC: typespecs and docs
+### Operations journeys
 
-- [x] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
-- [x] **SPEC-02**: The specs give adopters real information.
-  - No public spec uses bare `term()` or `any()` where a real shape exists.
-  - Option arguments use named `@type` option lists rather than bare `keyword()`.
-  - Reviewed in phase verification by agent review against a written rubric.
-  - Strict Dialyzer stays green with zero ignores.
-- [x] **SPEC-03**: The `Threadline` facade page in ExDoc groups functions by job using `@doc group:`: Capture & Transactions, Querying & Timelines, Actions & Context, Operations. A test asserts that every facade function has a group.
+- [x] **UIO-01**: Authorized operators can complete the existing export journey from its source search through queued/running/failed/completed states to a usable download and return to that search.
+- [x] **UIO-02**: Operators can identify capture coverage gaps in the correct schema and find the corresponding host-migration remediation without mistaking unknown status for healthy coverage.
+- [x] **UIO-03**: Operators can inspect evidence and subject proof history with explicit distinctions among host-recorded evidence, unavailable data and limited completeness.
+- [x] **UIO-04**: Operators can compare configured redaction policy with deployed trigger policy and understand discrepancies without exposing redacted values.
+- [x] **UIO-05**: Authorized operators can inspect retention runs and complete the existing confirmed prune action with accurate scope, outcome and failure feedback.
 
-### CONTRACT: the 1.x stability promise, enforced by tests
+### Responsive and interaction behavior
 
-- [x] **CONTRACT-01**: An adopter can read `guides/stability.md` to learn what 1.x promises.
-  - **Elixir API tier:** Hex semver, with the deprecation policy above.
-  - **Database Contract tier:** additive-only for tables, columns, indexes, the trigger-function naming scheme and the GUC name.
-  - **Named exception class:** only security- or correctness-critical fixes may require trigger regeneration in a 1.x minor.
-  - **Explicitly not API:** operator-surface HTML, CSS and LiveView internals. The router macro, its options and the documented mount routes are API.
-  - **0.12.x:** the 6-month backport window.
-  - A doc-contract test pins each of these statements.
-- [x] **CONTRACT-02**: A schema-snapshot test pins the column names, types and nullability of `audit_transactions`, `audit_changes` and `audit_actions`, plus the shipped indexes. Removing or renaming any of them fails CI.
-- [x] **CONTRACT-03**: A test pins the GUC name `threadline.actor_ref` and the trigger-function naming scheme as literals. A rename anywhere in `lib/` fails CI.
-- [x] **CONTRACT-04**: Additive-only allowlist tests, following the pattern of `telemetry_registry_contract_test.exs`, pin:
-  - the CSV and JSON export headers, with and without action metadata
-  - the `Health.Finding` code set
-  - each mix task's accepted flags
-  - the `threadline_operator_surface/2` option keys and documented mount routes
-- [x] **CONTRACT-05**: Each of `AuditChange`, `AuditTransaction` and `AuditAction` documents its stable field subset in its moduledoc. The `data_after`, `changed_fields` and `changed_from` jsonb columns carry an additive key/shape promise, not a byte-stable serialization promise. A test pins the stable field lists against the schema.
+- [x] **UIA-01**: Operators can complete the supported jobs at narrow, intermediate and desktop widths and actual 200% browser zoom without losing controls or evidence to accidental page overflow.
+- [x] **UIA-02**: Operators can select Light, Dark or System and see the chosen preference and effective appearance remain correct across reloads and LiveView navigation.
+- [x] **UIA-03**: Operators can use controls and overlays by keyboard and touch, with visible focus, predictable dismissal and focus return, including overlapping toast/menu/drawer states.
+- [x] **UIA-04**: Operators can distinguish pending, empty, failed, denied and completed states without stale data being labeled as the newly requested scope or an accepted operation being reported as completed.
+- [x] **UIA-05**: Operators receive accurate disconnected/reconnecting feedback, and unavailable mutations cannot be activated by either keyboard or pointer or duplicated during recovery.
+- [x] **UIA-06**: Operators can copy supported values on fresh direct entry and after repeated LiveView patches, with truthful clipboard failure feedback and no duplicate event handling.
+- [x] **UIA-07**: Operators receive purposeful, interruptible motion for meaningful state changes, while frequent actions remain immediate and reduced-motion preferences are respected.
 
-### DOCS: adopter guides
+### Verification and delivery readiness
 
-- [x] **DOCS-01**: A supported-table-shapes guide lets an adopter check, before installing, whether their tables are supported.
-  - Covers composite and non-`id` keys, the `primary_key:` override, cross-schema tables, long identifiers and `char(n)`.
-  - States explicitly what happens with partitioned tables, unlogged tables and views.
-  - A doc-contract test checks the option and table names it cites against the real code.
-- [x] **DOCS-02**: A redaction threat model tells a security reviewer exactly what redaction guarantees and what it does not.
-  - Every guarantee names the property test or health check that proves it.
-  - Generated trigger migrations fail before installing a trigger when any `mask:` or `exclude:` column name is absent from the selected table; tests cover both options and preserve a valid-column control. This closes the fail-open typo path for migrations that include the validation.
-  - The guide states that already-installed triggers and previously captured rows are not changed by this validation; adopters must regenerate and run the host-owned trigger migration for the affected table.
-  - It states where plaintext can still exist: WAL and logical decoding, replication slots, backups, superuser access, rows captured before a rule changed, and host logs.
-  - A doc-contract test rejects unscoped absolutes ("all", "never", "guarantees", "prevents" with no qualifier).
-- [x] **DOCS-03**: `guides/upgrading-to-1.0.md` takes a 0.11 or 0.12 adopter to 1.0, with one numbered step per breaking change in this milestone:
-  - the facade collapse
-  - the history default
-  - the `Page` struct
-  - lookup return shapes
-  - the association
-  - the PG floor
-  - deprecations
-  It follows the `upgrading-to-0.11.md` template and voice and says whether trigger regeneration is required. A doc-contract test cross-checks its steps against the CHANGELOG breaking-changes entries.
+- [x] **UIV-01**: Maintainers can run automated checks for the supported journeys and material failure cases and verify that the intended regression tests are discovered and executed by required CI.
+- [ ] **UIV-02**: Maintainers can compare trustworthy before/after rendered evidence and a bounded agent visual review, with normal verification leaving baselines unchanged and concrete findings fixed or explicitly dispositioned.
+- [ ] **UIV-03**: Maintainers can review the finished UI in a reproducible preview tied to the delivery candidate, accompanied by the verified coverage, remaining limitations and release-ready recommendation.
 
-### FLOOR: support floor
+## Acceptance interpretation
 
-- [x] **FLOOR-01**: PostgreSQL 15 is the supported minimum.
-  - The CI `min` lane runs on PG 15.
-  - The CHANGELOG records the change under breaking changes.
-  - The trigger SQL uses no feature newer than the floor, proven by the `min` lane passing.
-- [x] **FLOOR-02**: An adopter finds one support-policy table, the Elixir/OTP/PG floor plus the CI lanes, in `guides/upgrade-path.md`. A doc-contract test fails if it disagrees with `mix.exs` or the CI `min` lane values.
+These requirements refine existing jobs; they do not assert that absent backend
+features already exist or authorize inventing them. The current-main baseline
+confirms the supported controls and states before implementation. Every requirement
+will have one owning phase; shared requirements remain regression conditions for
+later journey work. Cross-cutting accessibility/state work belongs in each affected
+slice, rather than being postponed to the final review.
 
-### CI: carried housekeeping
+- Equal engineer/operator priority and code-first are settled product decisions.
+  Use `PRODUCT.md`, the Brand Book, Impeccable and Kowalski guidance within existing
+  Phoenix/HEEx patterns. Choose measurable visual floors from fresh renders in the
+  initial design contract; do not invent a new palette or blanket component rewrite.
+- Preserve server authorization, tenant scoping, host ownership, redaction, routes,
+  public 1.x APIs, optional Phoenix dependencies, and capture/semantics/exploration
+  boundaries throughout all journeys. UI affordances never replace server checks.
+- All eleven routes in `UI-MILESTONE-PREFLIGHT.md` are in scope. Theme submission
+  and export/download endpoints are journey seams. Storybook/stress routes are
+  verification surfaces. Use real supported states; justify N/A combinations.
+- Verify reflow at 320 CSS px where applicable and magnification at actual 200%
+  browser zoom as separate evidence. Legitimately two-dimensional diffs/tables may
+  scroll locally with full data access; the page and primary controls must remain
+  usable. Include long unbroken values and short/intermediate viewports.
+- Accessibility includes semantic names/relationships, usable contrast, visible
+  focus, readable validation, keyboard/touch reachability and reduced motion.
+  Required browser coverage is the actual configured engine; do not claim broader
+  browser or physical-device validation without evidence.
+- A lossless copy/access path must not bypass redaction or authorization. Preserve
+  absent/unknown/redacted/pruned distinctions. ActorRef is not synonymous with user;
+  an AuditAction, AuditTransaction and AuditChange remain different concepts.
+- Baseline and final evidence record source SHA and relevant diff, asset identity,
+  fixture scenario, route/state, role/scope, theme/preference, viewport/browser and
+  motion/clock settings as applicable. Include full-shell evidence, not only
+  `#tl-main`. Capture writes are explicit and separate from normal verification.
+- Use existing named `mix verify.*` and `mix ci.all` checks; retain stable job IDs.
+  Add lasting tests for meaningful failure classes, with local one-shot evidence
+  for checks that do not justify recurring CI cost. No screenshot-count target,
+  Cartesian state matrix, paid critic or retired pixel machinery by default.
+- Bound visual iteration per coherent slice: batch review, corrective batch and
+  confirmation. An unresolved defect needs reproduction, severity and disposition;
+  no unresolved correctness, security, accessibility or journey blocker may be
+  called complete. Taste feedback may follow; the maintainer is not the UAT runner.
+- Preserve unrelated local edits. Implementation starts from current main via the
+  configured isolation workflow with planning/product context carried over. Local
+  preparation and a release-ready recommendation are authorized; a later push or
+  package publication follows the applicable delivery authorization.
 
-- [x] **CI-01**: Run `bin/ci-test-partitions --write-weights` after this milestone's test churn. A check proves that no test file is missing from `test/partition_weights.txt`. The v1.44 debt is 10 unweighted property files.
+## Future Requirements
 
-### REL: declare 1.0.0
-
-- [x] **REL-01**: release-please proposes exactly 1.0.0.
-  - `bump-minor-pre-major` is flipped off in `release-please-config.json` in the landing change.
-  - A `Release-As: 1.0.0` footer goes on the squash commit.
-  - `verify.bump_rehearsal`, or an equivalent dry run, shows 1.0.0 and not 0.13.0 before merge.
-- [x] **REL-02**: The 1.0.0 CHANGELOG lists every breaking change and deprecation in the milestone. It is cross-checked against `git log --grep="BREAKING CHANGE"` for the milestone range, and the generated release notes are not trusted to carry the footers.
-- [ ] **REL-03**: The milestone lands on main as one squash with a conventional `feat!:` title and ships **1.0.0** to hex.pm through release-please. The pins on the `latest` lane are re-checked at landing. Push, merge and the production-hex publish each need an explicit maintainer grant.
-
-## Future Requirements (deferred)
-
-- **Opaque result structs replacing raw Ecto schemas**: a larger, separately one-way redesign. For 1.0, documenting the stable field subset (CONTRACT-05) is enough.
-- **Stateful (PropEr) model of capture → history**: carried from v1.44. A post-1.0 quality candidate.
-- **More table shapes in the adopter twin**: only when a concrete failure mode needs it.
-- **Async for pure-read `DataCase` tests**: needs a per-file audit. The only new async test here is SPEC-01's.
+No new backend capabilities are committed or automatically queued by this milestone.
+Known scalar-only row routing and unbounded row-history reads retain their existing
+limits. A reproduced incident or adopter need can justify a separately scoped
+composite-key route or bounded-history change. Later maintainer taste feedback may
+produce a small followup; a second redesign milestone is not presumed necessary.
 
 ## Out of Scope
 
 | Feature | Reason |
-|---------|--------|
-| Operator UI design and markup changes | Parked until after 1.0.0. Only call sites forced by API-04 or API-07 are touched. |
-| NimbleOptions | Options are flat and per-function, and the hand-rolled validators give more specific errors. It would add a dependency for no benefit. |
-| A hand-maintained API-reference guide | It would duplicate ExDoc and drift, and no doc-contract test could catch it. |
-| Raising the Elixir floor | Oban and LiveView keep 1.15/OTP 26, and raising it would strand adopters for no new capability. |
-| Removing deprecated functions in 1.x | That breaks semver. Removal waits for 2.0 at the earliest. |
-| Renaming `actor_history` / `actor_window` | The names reflect a real distinction (transactions vs changes). Docs fix the ambiguity. |
-| Rewriting trigger SQL or capture internals | They are stable and proven, and the 1.x DB contract freezes their names. |
-| `gen.backfill`, an `:invalid_config` finding, query telemetry, telemetry from mix tasks | Rejected in v1.44 research. Nothing here reopens them. |
-| GDPR erasure, per-table retention, partitioning/RLS, multiple repos, external pilot, compliance packs | Long horizon, gated on adopter demand. |
+| --- | --- |
+| Rebrand, framework migration or cross-project UI package | Refine the established identity and implementation; these do not follow from the approved operator jobs |
+| New public component API or mandatory Phoenix dependency | Preserve package boundaries and capture-only adopters |
+| New capture/semantics APIs, row-key routing or pagination capabilities | Separate backend scope and 1.x decisions; not incidental UI cleanup |
+| Compliance guarantees, new retention/redaction powers or host evidence auto-population | UI must report existing semantics honestly |
+| New paid model judging, image-generation spend or hosted services | Keep verification bounded; the paid critic remains parked |
+| CI topology redesign or unrelated dependency maintenance | Preserve existing regression lanes; require separate evidence for broader changes |
+| Automatic package publication from this approval | Delivery readiness is included; a publish action needs its own applicable authorization |
 
 ## Traceability
 
+Approved roadmap maps each requirement to one owning phase, starting at Phase 238. Cross-cutting requirements remain regression conditions for later affected journeys. Completed Phase 237 and the v1.45 archive stay closed.
+
 | Requirement | Phase | Status |
-|-------------|-------|--------|
-| API-01 | Phase 232 | Complete |
-| API-02 | Phase 232 | Complete |
-| API-03 | Phase 232 | Complete |
-| API-04 | Phase 231 | Complete |
-| API-05 | Phase 232 | Complete |
-| API-06 | Phase 233 | Complete |
-| API-07 | Phase 231 | Complete |
-| API-08 | Phase 232 | Complete |
-| SPEC-01 | Phase 234 | Complete |
-| SPEC-02 | Phase 234 | Complete |
-| SPEC-03 | Phase 234 | Complete |
-| CONTRACT-01 | Phase 235 | Complete |
-| CONTRACT-02 | Phase 235 | Complete |
-| CONTRACT-03 | Phase 235 | Complete |
-| CONTRACT-04 | Phase 235 | Complete |
-| CONTRACT-05 | Phase 235 | Complete |
-| DOCS-01 | Phase 235 | Complete |
-| DOCS-02 | Phase 235 | Complete |
-| DOCS-03 | Phase 237 | Complete |
-| FLOOR-01 | Phase 236 | Complete |
-| FLOOR-02 | Phase 236 | Complete |
-| CI-01 | Phase 236 | Complete |
-| REL-01 | Phase 237 | Complete |
-| REL-02 | Phase 237 | Complete |
-| REL-03 | Phase 237 | Pending |
+| --- | --- | --- |
+| UIB-01 | Phase 238 | Complete |
+| UIB-02 | Phase 238 | Complete |
+| UIS-01 | Phase 239 | Complete |
+| UIS-02 | Phase 239 | Complete |
+| UIS-03 | Phase 239 | Complete |
+| UII-01 | Phase 239 | Complete |
+| UII-02 | Phase 239 | Complete |
+| UII-03 | Phase 239 | Complete |
+| UII-04 | Phase 240 | Complete |
+| UII-05 | Phase 240 | Complete |
+| UII-06 | Phase 240 | Complete |
+| UIO-01 | Phase 242 | Complete |
+| UIO-02 | Phase 241 | Complete |
+| UIO-03 | Phase 241 | Complete |
+| UIO-04 | Phase 241 | Complete |
+| UIO-05 | Phase 242 | Complete |
+| UIA-01 | Phase 239 | Complete |
+| UIA-02 | Phase 239 | Complete |
+| UIA-03 | Phase 239 | Complete |
+| UIA-04 | Phase 239 | Complete |
+| UIA-05 | Phase 242 | Complete |
+| UIA-06 | Phase 240 | Complete |
+| UIA-07 | Phase 240 | Complete |
+| UIV-01 | Phase 243 | Complete |
+| UIV-02 | Phase 243 | Pending |
+| UIV-03 | Phase 243 | Pending |
 
-**Coverage:**
-
-- v1.45 requirements: 25 total
-- Mapped to phases: 25
-- Unmapped: 0
-- Per phase: 231 (2), 232 (5), 233 (1), 234 (3), 235 (7), 236 (3), 237 (4)
+**Coverage:** 26/26 approved requirements mapped once in the approved roadmap; 17 complete.
 
 ---
-*Requirements defined: 2026-10-02*
-*Last updated: 2026-10-03 after roadmap creation (phases 231-237, 25/25 mapped)*
+*Requirements defined: 2026-10-08*
+*Last updated: 2026-10-10 to reconcile verified Phase 239 and Phase 240 requirements*
