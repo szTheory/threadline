@@ -116,6 +116,7 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 | 0.10.x → 0.11.x | Yes | Regenerate triggers + add the row-history index | Optional — a `primary_key:` override, only for a table with no usable primary key | **Not** nothing required: regenerate every audited table's trigger, then add the row-history index. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md). |
 | 0.11.x → 0.12.x | Yes | None | Only if a capture table entry passes a bare atom to exclude:, mask: or except_columns: — wrap it in a list | **Not** nothing required: three adopter actions (telemetry handlers matching actor-ref keys, health-checked error metadata, non-list capture options). |
 | 0.12.x → 1.0.x | Yes | Upgrade PostgreSQL to 15+ if currently below it; no trigger regeneration | None | **Not** nothing required: follow [Upgrading to 1.0](upgrading-to-1.0.md) for the API changes, bounded history, lookup shapes, and deprecations. |
+| 1.0.x → 1.1.x | No | None | None | Nothing required — operator-surface refinements and durable retention run outcomes. |
 
 Current guidance by minor:
 
@@ -144,6 +145,7 @@ Current guidance by minor:
 
   See `CHANGELOG.md` `[0.12.0]`.
 - **0.12.x → 1.0.x**: The supported facade and query shapes are tightened, row history is bounded by default, and deprecations have replacements. Breaking changes: **Yes**. Required database upgrade: **Only if** the host is below PostgreSQL 15. Trigger regeneration: **No**. Config changes: **None**. Follow [Upgrading to 1.0](upgrading-to-1.0.md) for the seven-step procedure.
+- **1.0.x → 1.1.x**: Operator-surface investigation refinements and durable retention run outcomes. Breaking changes: **None**. Required migration: **None**. Config changes: **None**. For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[1.1.0]`.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 
