@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/szTheory/threadline/compare/v1.0.1...v1.1.0) (2026-10-23)
+
+
+### Features
+
+* operator UI refinement (v1.46) ([#85](https://github.com/szTheory/threadline/issues/85)) ([81c920e](https://github.com/szTheory/threadline/commit/81c920e44a996cb7310b639db99bd6c9de62dcba))
+
 ## [1.0.1](https://github.com/szTheory/threadline/compare/v1.0.0...v1.0.1) (2026-10-08)
 
 
