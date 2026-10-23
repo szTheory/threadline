@@ -4,31 +4,31 @@ reviewed: 2026-10-11T17:52:04Z
 depth: standard
 files_reviewed: 25
 files_reviewed_list:
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/.github/workflows/ci.yml
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/playwright.config.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/run-e2e.sh
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-receipt.test.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-receipt.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-review.test.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-review.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-preview-receipt.test.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-preview-receipt.ts
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/components/surface_header.ex
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/evidence_live.ex
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/policy_redaction_live.ex
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/09_responsive.css
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/test/partition_weights.txt
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/test/threadline/browser_journey_evidence_contract_test.exs
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/test/threadline/e2e_preflight_contract_test.exs
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/test/threadline/operator_surface/live/evidence_live_test.exs
-  - /Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/test/threadline/operator_surface/live/policy_redaction_live_test.exs
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/.github/workflows/ci.yml
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/playwright.config.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/run-e2e.sh
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-receipt.test.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-receipt.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-review.test.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-candidate-review.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-preview-receipt.test.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/examples/threadline_phoenix/e2e/support/operator-preview-receipt.ts
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/components/surface_header.ex
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/evidence_live.ex
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/policy_redaction_live.ex
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/09_responsive.css
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/test/partition_weights.txt
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/test/threadline/browser_journey_evidence_contract_test.exs
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/test/threadline/e2e_preflight_contract_test.exs
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/test/threadline/operator_surface/live/evidence_live_test.exs
+  - <project-root>/.claude/worktrees/v146-phase241-orchestrator/test/threadline/operator_surface/live/policy_redaction_live_test.exs
 findings:
   critical: 0
   warning: 0

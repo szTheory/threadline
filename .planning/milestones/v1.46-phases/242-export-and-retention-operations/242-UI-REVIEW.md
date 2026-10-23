@@ -11,12 +11,12 @@
 
 | Prior finding | Status | Evidence |
 |---------------|--------|----------|
-| Pre-confirmation prune launchers used danger styling | Closed | Launchers use neutral `tl-button--secondary`; danger styling remains on modal submit ([retention_history_live.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:250), line 440). |
-| Timeline export CTA and retention aggregate label diverged from contract | Closed | CTA reads `Export changes` ([filters.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/timeline_live/filters.ex:428)); metric reads `Rows deleted in recent runs` ([retention_history_live.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:325)). |
-| Empty confirmation was not blocked and authorization loss looked like mismatch | Closed | Input is required and mismatch stays inline; `:unauthorized` has separate access feedback ([retention_history_live.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:134), lines 144–151, 415–434). |
-| Scrim fallback bypassed theme token | Closed | Modal and drawer scrims use `var(--tl-color-backdrop)` ([08_overlays_motion.css](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/08_overlays_motion.css:153)). |
+| Pre-confirmation prune launchers used danger styling | Closed | Launchers use neutral `tl-button--secondary`; danger styling remains on modal submit ([retention_history_live.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:250), line 440). |
+| Timeline export CTA and retention aggregate label diverged from contract | Closed | CTA reads `Export changes` ([filters.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/timeline_live/filters.ex:428)); metric reads `Rows deleted in recent runs` ([retention_history_live.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:325)). |
+| Empty confirmation was not blocked and authorization loss looked like mismatch | Closed | Input is required and mismatch stays inline; `:unauthorized` has separate access feedback ([retention_history_live.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:134), lines 144–151, 415–434). |
+| Scrim fallback bypassed theme token | Closed | Modal and drawer scrims use `var(--tl-color-backdrop)` ([08_overlays_motion.css](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/08_overlays_motion.css:153)). |
 | 12px journey-step label was counted as a Phase 242 typography issue | Removed | `.tl-journey-step__label` occurs only in CSS and a test fixture; no production markup uses it. |
-| `.tl-param` had 3px vertical padding | Closed | It now uses `padding: var(--tl-space-1) var(--tl-space-2)`; the `No filters` state uses this style ([07_find_detail.css](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:344), [components.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/export_status_live/components.ex:100)). |
+| `.tl-param` had 3px vertical padding | Closed | It now uses `padding: var(--tl-space-1) var(--tl-space-2)`; the `No filters` state uses this style ([07_find_detail.css](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:344), [components.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/export_status_live/components.ex:100)). |
 
 ---
 
@@ -39,7 +39,7 @@
 
 ### Pillar 1: Copywriting (4/4)
 
-The Timeline CTA matches the design contract at [filters.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/timeline_live/filters.ex:428). Queue acceptance remains distinct from completion. Retention identifies the recent-run aggregate at [retention_history_live.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:325), and authorization denial has its own safe message at line 141. Required empty-state copy remains present.
+The Timeline CTA matches the design contract at [filters.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/timeline_live/filters.ex:428). Queue acceptance remains distinct from completion. Retention identifies the recent-run aggregate at [retention_history_live.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:325), and authorization denial has its own safe message at line 141. Required empty-state copy remains present.
 
 ### Pillar 2: Visuals (3/4)
 
@@ -51,15 +51,15 @@ The scrim uses the Light/Dark/System-aware `--tl-color-backdrop` token. Status a
 
 ### Pillar 4: Typography (4/4)
 
-Used Phase 242 metadata uses the 14px label role and body content uses the body role; export job metadata rules are in [07_find_detail.css](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:324). The previously flagged `.tl-journey-step__label` has no production markup use.
+Used Phase 242 metadata uses the 14px label role and body content uses the body role; export job metadata rules are in [07_find_detail.css](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:324). The previously flagged `.tl-journey-step__label` has no production markup use.
 
 ### Pillar 5: Spacing (4/4)
 
-The `No filters` chip now uses 4px and 8px spacing tokens ([07_find_detail.css](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:344), rendered by [components.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/export_status_live/components.ex:100)). Changed overlay spacing uses named tokens, compact controls retain 40px targets, and the 720px retention table is contained by its local horizontal-scroll wrapper.
+The `No filters` chip now uses 4px and 8px spacing tokens ([07_find_detail.css](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/style/07_find_detail.css:344), rendered by [components.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/export_status_live/components.ex:100)). Changed overlay spacing uses named tokens, compact controls retain 40px targets, and the 720px retention table is contained by its local horizontal-scroll wrapper.
 
 ### Pillar 6: Experience Design (4/4)
 
-Export and retention expose distinct loading, empty, error, populated, and partial/failure states. Confirmation requires the policy name and provides inline mismatch feedback; authorization denial is distinct ([retention_history_live.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:134)). Reconnect mutation controls wait for fresh persisted state ([script.ex](/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/script.ex:57)).
+Export and retention expose distinct loading, empty, error, populated, and partial/failure states. Confirmation requires the policy name and provides inline mismatch feedback; authorization denial is distinct ([retention_history_live.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/live/retention_history_live.ex:134)). Reconnect mutation controls wait for fresh persisted state ([script.ex](<project-root>/.claude/worktrees/v146-phase241-orchestrator/lib/threadline/operator_surface/script.ex:57)).
 
 ## Final Verification Evidence
 

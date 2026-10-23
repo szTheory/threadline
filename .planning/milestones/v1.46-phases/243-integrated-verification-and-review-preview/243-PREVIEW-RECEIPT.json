@@ -13,7 +13,7 @@
   "pid": 77236,
   "database": "threadline_phoenix_testoperator_243_preview_1791738310061_fix",
   "partition": "operator_243_preview_1791738310061_fix",
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator",
+  "worktree": "<project-root>/.claude/worktrees/v146-phase241-orchestrator",
   "branch": "agent-241-01",
   "probes": {
     "unauthenticatedLoginRedirect": true,

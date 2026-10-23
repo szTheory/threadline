@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "phase": 243,
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator",
+  "worktree": "<project-root>/.claude/worktrees/v146-phase241-orchestrator",
   "branch": "agent-241-01",
   "baseSha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
   "acceptedHead": "43c5bcfa960b1a10cb07ef997e2231e9615dca6f",

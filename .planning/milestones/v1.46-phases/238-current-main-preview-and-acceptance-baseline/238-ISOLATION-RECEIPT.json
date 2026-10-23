@@ -1,7 +1,7 @@
 {
   "phase": 238,
   "created_at": "2026-10-09T00:53:19.753090+00:00",
-  "original_checkout": "/Users/jon/projects/threadline",
+  "original_checkout": "<project-root>",
   "original_branch": "milestone/v1.44",
   "original_dirty_file_sha256": {
     ".planning/config.json": "e9cb90d969b16b15a7b15459e7e42b308b9f1efce962272d9bf3ce5d8f44e454",
@@ -13,9 +13,9 @@
   "original_status": " M .planning/config.json\n M .tool-versions\n M lib/threadline/not_found_error.ex\n M test/threadline/public_surface_contract_test.exs\n?? .planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json\n?? AGENTS.md\n",
   "base_sha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
   "initial_head": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+  "worktree": "<project-root>/.claude/worktrees/v146-operator-preview",
   "branch": "worktree-agent-v146-operator-preview",
-  "worktree_manifest": "/Users/jon/projects/threadline/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
+  "worktree_manifest": "<project-root>/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
   "copied_context_sha256": {
     ".planning/PROJECT.md": "4007fb7fcbe8209538c2acf570de49e7e4c8a3dfba247365fea4b29bd07f1122",
     ".planning/ROADMAP.md": "165fa6ebbf76be77d668d62123ce28346ea31e1bd1c25673f144ae7e21ff509b",
@@ -50,10 +50,10 @@
       "args": [
         "exec",
         "--cd",
-        "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+        "<project-root>/.claude/worktrees/v146-operator-preview",
         "probe"
       ],
-      "cwd": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview"
+      "cwd": "<project-root>/.claude/worktrees/v146-operator-preview"
     },
     "harnessFlag": null
   },
@@ -74,10 +74,10 @@
       "args": [
         "exec",
         "--cd",
-        "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+        "<project-root>/.claude/worktrees/v146-operator-preview",
         "Execute Phase 238 plan 01; the complete embedded GSD executor prompt follows on stdin."
       ],
-      "cwd": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview"
+      "cwd": "<project-root>/.claude/worktrees/v146-operator-preview"
     },
     "harnessFlag": null
   },

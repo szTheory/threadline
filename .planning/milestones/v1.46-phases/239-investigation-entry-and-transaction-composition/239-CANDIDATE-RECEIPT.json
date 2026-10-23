@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "phase": 239,
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+  "worktree": "<project-root>/.claude/worktrees/v146-operator-preview",
   "branch": "worktree-agent-v146-operator-preview",
   "baseSha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
   "acceptedHead": "43c5bcfa960b1a10cb07ef997e2231e9615dca6f",

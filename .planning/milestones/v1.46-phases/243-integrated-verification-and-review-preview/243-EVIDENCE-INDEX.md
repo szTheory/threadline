@@ -81,7 +81,7 @@ The candidate bundle has 34 full shells across eleven named routes and degraded 
 - Exact guarded stop command for this receipt:
 
   ```sh
-  THREADLINE_E2E_STOP_PREVIEW=1 THREADLINE_E2E_PREVIEW_STATE="/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/threadline-e2e-preview-operator_243_preview_1791738310061_fix.json" MIX_TEST_PARTITION=operator_243_preview_1791738310061_fix bash examples/threadline_phoenix/e2e/run-e2e.sh --stop-preview
+  THREADLINE_E2E_STOP_PREVIEW=1 THREADLINE_E2E_PREVIEW_STATE="<tmpdir>/threadline-e2e-preview-operator_243_preview_1791738310061_fix.json" MIX_TEST_PARTITION=operator_243_preview_1791738310061_fix bash examples/threadline_phoenix/e2e/run-e2e.sh --stop-preview
   ```
 
 - Fresh reopen template (use a free port and new unique partition):

@@ -4,10 +4,10 @@
   "url": "http://127.0.0.1:4109",
   "database": "threadline_phoenix_testoperator_preview_reopen_1791519872",
   "partition": "operator_preview_reopen_1791519872",
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview",
+  "worktree": "<project-root>/.claude/worktrees/v146-operator-preview",
   "branch": "worktree-agent-v146-operator-preview",
   "isolationManifest": {
-    "path": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
+    "path": "<project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
     "sha256": "e3558116ce200eab10cbff30f13005315dca7d63b12c88e8bffc8c8252edaa2d"
   },
   "identity": {
@@ -85,12 +85,12 @@
     }
   ],
   "capturedAt": "2026-10-09T05:03:12.583052+00:00",
-  "manifestPath": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924/manifest.json",
-  "inventoryPath": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/test/fixtures/operator_surface/route-inventory.json",
+  "manifestPath": "<project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924/manifest.json",
+  "inventoryPath": "<project-root>/.claude/worktrees/v146-operator-preview/test/fixtures/operator_surface/route-inventory.json",
   "lifecycle": {
-    "script": "/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py",
-    "stop": "python3 /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py stop /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json",
-    "reopen": "python3 /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py reopen /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json operator_preview_<fresh_unique_id> 4108",
+    "script": "<project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py",
+    "stop": "python3 <project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py stop <project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json",
+    "reopen": "python3 <project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py reopen <project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json operator_preview_<fresh_unique_id> 4108",
     "policy": "Fail closed on changed source/fixture/assets, branch/base, live PID/port/database mismatch. Reopen never reuses or resets an existing DB. Retain old synthetic database. No automatic worktree cleanup.",
     "sha256": "b88b953d9ceebe1b911708944104bf999ca707a2f579ed8b097c4eac6aaf8312"
   }

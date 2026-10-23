@@ -5,7 +5,7 @@
   "phase": null,
   "phase_name": "Post-v1.46 UI feedback",
   "phase_dir": null,
-  "worktree": "/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator",
+  "worktree": "<project-root>/.claude/worktrees/v146-phase241-orchestrator",
   "branch": "agent-241-01",
   "plan": null,
   "task": 4,
