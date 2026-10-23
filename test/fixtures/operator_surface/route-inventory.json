@@ -1225,6 +1225,11 @@
       "label": "Timeline keeps populated query identity while an applied replacement is pending"
     },
     {
+      "id": "state.operator-route-states.spec.243.c6e75f542ccf",
+      "kind": "state",
+      "label": "Home correlation lookup keeps destination identity while navigation is pending"
+    },
+    {
       "id": "state.operator-timeline-investigation-flow.spec.239.1cc6f878e92c",
       "kind": "state",
       "label": "starts at Home, applies a Timeline query, and opens its transaction"

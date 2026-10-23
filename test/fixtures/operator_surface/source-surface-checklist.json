@@ -3137,6 +3137,19 @@
       "exclusion": ""
     },
     {
+      "id": "state.operator-route-states.spec.243.c6e75f542ccf",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home correlation lookup keeps destination identity while navigation is pending\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "state.operator-timeline-investigation-flow.spec.239.1cc6f878e92c",
       "kind": "state",
       "anchors": [
