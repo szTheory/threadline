@@ -21,6 +21,41 @@
 
 _Nothing yet for the next release._
 
+## [1.1.0] - 2026-10-23
+
+Threadline 1.1.0 refines the optional operator surface for real
+investigations and makes retention runs record their outcome durably.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None. No migration, trigger regeneration or configuration change is needed.
+
+### Changed
+
+- Transaction details pair each database transaction with its own row changes
+  and distinguish absent data from `null` values and read failures.
+- Timeline keeps the applied query and its rows together while a replacement
+  search is pending, and separates a filtered empty result from a retryable
+  read error. Actor and correlation pivots, saved searches and share URLs keep
+  the applied query.
+- Timeline exports carry the committed filters through to a protected download
+  and return to the same search; export and retention actions stay blocked
+  after a socket loss until fresh persisted state is rendered.
+- Coverage, Evidence and Redaction pages separate confirmed-empty results from
+  unavailable reads and stale data.
+- Clipboard controls report success only after a confirmed write and offer a
+  selectable fallback when copying fails.
+
+### Fixed
+
+- `Threadline.Retention.purge/1` records a failed run when it stops early
+  (disabled or invalid policy, or an error mid-run) instead of leaving the run
+  marked as running, and keeps partial deletion counts.
+
 ## [1.0.1] - 2026-10-08
 
 Threadline 1.0.1 hardens actor-reference validation at the audit transaction
