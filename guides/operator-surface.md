@@ -425,7 +425,7 @@ The operator surface also ships a read-only redaction drift viewer at `/audit/po
 The page groups tables into three operator-safe states:
 
 - **Drift detected** — configured redaction does not match deployed trigger SQL. Rerun `mix threadline.gen.triggers` and apply the migration.
-- **Could not introspect** — Threadline could not safely parse the deployed trigger SQL. Treat this as unresolved drift; rerun `mix threadline.gen.triggers` and do not assume capture is aligned.
+- **Could not inspect** — Threadline could not safely parse the deployed trigger SQL. Treat this as unresolved drift; rerun `mix threadline.gen.triggers` and do not assume capture is aligned.
 - **Config matches deployed** — configured redaction matches deployed trigger redaction.
 
 Tables are shown alphabetically within each section. Expanding a row shows the exact configured and deployed `exclude`, `mask`, and `mask placeholder` facts for that table.

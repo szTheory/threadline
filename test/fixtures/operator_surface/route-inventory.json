@@ -1,0 +1,2118 @@
+{
+  "schemaVersion": 1,
+  "mount": "/audit",
+  "source": "lib/threadline/operator_surface/router.ex",
+  "routes": [
+    {
+      "id": "route.home",
+      "pattern": "/",
+      "path": "/audit",
+      "seedResolution": "Manifest admin persona",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.timeline",
+      "pattern": "/timeline",
+      "path": "/audit/timeline",
+      "seedResolution": "Manifest synthetic activity",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.transaction",
+      "pattern": "/transactions/:id",
+      "seedResolution": "Manifest correlation_id(:acme_4521_close), timeline transaction link",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.row",
+      "pattern": "/rows/:table/:record_id",
+      "seedResolution": "AuditChange tickets row in acme_4521_close AuditTransaction, row-history link scalar PK",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.drawer",
+      "pattern": "/transactions/:id/history/:table/:record_id",
+      "seedResolution": "Same AuditTransaction and AuditChange as direct row, transaction row-history link",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.actor",
+      "pattern": "/actors/:kind/:id",
+      "path": "/audit/actors/service_account/zendesk-sync",
+      "seedResolution": "Manifest.actor_id(:zendesk_sync), ActorRef service_account",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.coverage",
+      "pattern": "/coverage",
+      "path": "/audit/coverage",
+      "seedResolution": "Demo seed trigger registration",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.evidence",
+      "pattern": "/evidence",
+      "path": "/audit/evidence",
+      "seedResolution": "Manifest evidence_subject_ref synthetic snapshots",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.exports",
+      "pattern": "/exports",
+      "path": "/audit/exports",
+      "seedResolution": "Demo.Seed.Exports completed/pending/failed/expired jobs",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.redaction",
+      "pattern": "/policy/redaction",
+      "path": "/audit/policy/redaction",
+      "seedResolution": "Demo seed redaction policy",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    },
+    {
+      "id": "route.retention",
+      "pattern": "/policy/retention",
+      "path": "/audit/policy/retention",
+      "seedResolution": "Manifest.evidence_run_id(:offboarded_retention)",
+      "role": "seeded-admin",
+      "scope": "isolated-local-demo-database"
+    }
+  ],
+  "extraStates": [
+    {
+      "id": "route.timeline.degraded",
+      "routeId": "route.timeline",
+      "pattern": "/timeline",
+      "state": "degraded-ranking-twin",
+      "countsAsRoute": false
+    }
+  ],
+  "items": [
+    {
+      "id": "control.actions.href.4f84792665",
+      "kind": "control",
+      "label": "actions href={@href}"
+    },
+    {
+      "id": "control.actions.navigate.6017f908cf",
+      "kind": "control",
+      "label": "actions navigate={@navigate}"
+    },
+    {
+      "id": "control.actions.patch.e0a14117b9",
+      "kind": "control",
+      "label": "actions patch={@patch}"
+    },
+    {
+      "id": "control.actor.href.1165b08259",
+      "kind": "control",
+      "label": "actor href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--compact tl-butto"
+    },
+    {
+      "id": "control.actor.href.823bc480cb",
+      "kind": "control",
+      "label": "actor href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.actor.href.95c861860b",
+      "kind": "control",
+      "label": "actor href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--ghost\">"
+    },
+    {
+      "id": "control.actor.href.9bc92b48d2",
+      "kind": "control",
+      "label": "actor href={\"#{@base_path}/transactions/#{tx.id}\"} class=\"tl-button tl-button--compact tl-button--sec"
+    },
+    {
+      "id": "control.actor.navigate.93b3f91828",
+      "kind": "control",
+      "label": "actor navigate={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.actor.phx-click.2fa3cabd79",
+      "kind": "control",
+      "label": "actor phx-click=\"set-window\""
+    },
+    {
+      "id": "control.actor.phx-click.3fed9323a5",
+      "kind": "control",
+      "label": "actor phx-click=\"set-window\""
+    },
+    {
+      "id": "control.actor.phx-click.5ed0fd00a3",
+      "kind": "control",
+      "label": "actor phx-click=\"set-window\""
+    },
+    {
+      "id": "control.actor.phx-click.b73faddd5e",
+      "kind": "control",
+      "label": "actor phx-click=\"set-window\""
+    },
+    {
+      "id": "control.actor.phx-click.fe19d1f984",
+      "kind": "control",
+      "label": "actor phx-click=\"set-window\""
+    },
+    {
+      "id": "control.actor.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "label": "actor phx-viewport-bottom=\"next-page\""
+    },
+    {
+      "id": "control.actor.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "label": "actor phx-viewport-top=\"prev-page\""
+    },
+    {
+      "id": "control.components.href.1129bb6fe4",
+      "kind": "control",
+      "label": "components href={path} class=\"tl-link tl-link--deep\" title=\"Open actor activity\">"
+    },
+    {
+      "id": "control.components.href.fe8fee9337",
+      "kind": "control",
+      "label": "components href={timeline_search_path(@base_path, query_params)} class=\"tl-button tl-button--compact tl-button--secondary\">"
+    },
+    {
+      "id": "control.copy.value",
+      "kind": "control",
+      "label": "Copy complete authorized values"
+    },
+    {
+      "id": "control.coverage.data-tl-copy.4453682638",
+      "kind": "control",
+      "label": "coverage data-tl-copy={remediation.command} aria-label={\"Copy #{@schema_param}.#{table} capture command\"}>"
+    },
+    {
+      "id": "control.coverage.navigate.5be8e5d6cf",
+      "kind": "control",
+      "label": "coverage navigate={coverage_path(@base_path, \"public\")} class=\"tl-button tl-button--quiet-primary\">"
+    },
+    {
+      "id": "control.coverage.navigate.f8d8d9e358",
+      "kind": "control",
+      "label": "coverage navigate={timeline_table_path(@base_path, table, @schema_param)} class=\"tl-button tl-button--co"
+    },
+    {
+      "id": "control.coverage.phx-click.f1a6f3f868",
+      "kind": "control",
+      "label": "coverage phx-click=\"refresh\""
+    },
+    {
+      "id": "control.coverage.phx-submit.3b3e7b3381",
+      "kind": "control",
+      "label": "coverage phx-submit=\"select-schema\""
+    },
+    {
+      "id": "control.data.phx-mounted.c1734f2f05",
+      "kind": "control",
+      "label": "data phx-mounted={@focus_heading && JS.focus(to: \"##{@resolved_heading_id}\")}"
+    },
+    {
+      "id": "control.display.data-tl-copy.6bc9f4aaf0",
+      "kind": "control",
+      "label": "display data-tl-copy={@r.full}"
+    },
+    {
+      "id": "control.display.data-tl-copy.d71869c60b",
+      "kind": "control",
+      "label": "display data-tl-copy={@r.full}><%= if Script.enabled?(), do: @r.visible, else: @r.full %></code>"
+    },
+    {
+      "id": "control.evidence.href.8420c3628d",
+      "kind": "control",
+      "label": "evidence href={action.path} class=\"tl-link tl-link--deep\"><%= action.label %></a>"
+    },
+    {
+      "id": "control.evidence.phx-click.retry",
+      "kind": "control",
+      "label": "evidence phx-click=\"retry\""
+    },
+    {
+      "id": "control.evidence.navigate.9b6303e2b4",
+      "kind": "control",
+      "label": "evidence navigate={@carry_path}"
+    },
+    {
+      "id": "control.evidence.patch.68ccdeb6b5",
+      "kind": "control",
+      "label": "evidence patch={subject_path(@base_path, group.title)}"
+    },
+    {
+      "id": "control.evidence.patch.77cca95277",
+      "kind": "control",
+      "label": "evidence patch={history_path(@base_path, row.subject, row.subject_ref_json)}"
+    },
+    {
+      "id": "control.evidence.patch.956ca2b941",
+      "kind": "control",
+      "label": "evidence patch={subject_path(@base_path, @request.subject)}"
+    },
+    {
+      "id": "control.export-status.navigate.81c4385aef",
+      "kind": "control",
+      "label": "export-status navigate={@evidence_export_context.evidence_path}"
+    },
+    {
+      "id": "control.export-status.navigate.93b3f91828",
+      "kind": "control",
+      "label": "export-status navigate={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.export-status.navigate.9bc87f46f7",
+      "kind": "control",
+      "label": "export-status navigate={\"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query"
+    },
+    {
+      "id": "control.export-status.phx-click.b40cbe9307",
+      "kind": "control",
+      "label": "export-status phx-click=\"queue_timeline_export_context\""
+    },
+    {
+      "id": "control.filters.239.be344aac56f3",
+      "kind": "control",
+      "label": "filters phx-disable-with=\"Applying filters…\""
+    },
+    {
+      "id": "control.filters.239.c363f049d6e7",
+      "kind": "control",
+      "label": "filters phx-disable-with=\"Applying filters…\""
+    },
+    {
+      "id": "control.filters.href.1f60da21e9",
+      "kind": "control",
+      "label": "filters href={\"#{@base_path}/exports/changes.csv?#{@filter_query}\"}"
+    },
+    {
+      "id": "control.filters.href.7ab974c902",
+      "kind": "control",
+      "label": "filters href={\"#{@base_path}/evidence\"}"
+    },
+    {
+      "id": "control.filters.href.96661c06a0",
+      "kind": "control",
+      "label": "filters href={\"#{@base_path}/exports/changes.ndjson?#{@filter_query}\"}"
+    },
+    {
+      "id": "control.filters.href.db5c7a6aa5",
+      "kind": "control",
+      "label": "filters href={\"#{@base_path}/exports/changes.json?#{@filter_query}\"}"
+    },
+    {
+      "id": "control.filters.href.fe5854f229",
+      "kind": "control",
+      "label": "filters href={\"#{@base_path}/coverage\"}"
+    },
+    {
+      "id": "control.filters.navigate.7250f72902",
+      "kind": "control",
+      "label": "filters navigate={\"#{@base_path}/exports?#{@filter_query}\"}"
+    },
+    {
+      "id": "control.filters.patch.d7aaa17cc0",
+      "kind": "control",
+      "label": "filters patch={@timeline_path} class=\"tl-button tl-button--ghost\">"
+    },
+    {
+      "id": "control.filters.phx-click.36684b05f0",
+      "kind": "control",
+      "label": "filters phx-click={JS.push_focus() |> UI.Overlay.show_drawer(\"timeline-filters-drawer\")}"
+    },
+    {
+      "id": "control.filters.phx-click.91ff08e109",
+      "kind": "control",
+      "label": "filters phx-click=\"request_background_export\""
+    },
+    {
+      "id": "control.filters.phx-click.ae1b023ada",
+      "kind": "control",
+      "label": "filters phx-click={UI.Overlay.hide_drawer(\"timeline-filters-drawer\")}"
+    },
+    {
+      "id": "control.filters.phx-click.d71e2a4880",
+      "kind": "control",
+      "label": "filters phx-click=\"delete-view\""
+    },
+    {
+      "id": "control.filters.phx-click.eacdef6b2e",
+      "kind": "control",
+      "label": "filters phx-click=\"apply-view\""
+    },
+    {
+      "id": "control.filters.phx-submit.3c17fd6489",
+      "kind": "control",
+      "label": "filters phx-submit=\"apply\""
+    },
+    {
+      "id": "control.filters.phx-submit.8f477d0ad2",
+      "kind": "control",
+      "label": "filters phx-submit=\"save-view\""
+    },
+    {
+      "id": "control.form.href.4792e163b2",
+      "kind": "control",
+      "label": "form href={\"##{field_id}\"}><%= message %></a>"
+    },
+    {
+      "id": "control.form.phx-click-away.7470920894",
+      "kind": "control",
+      "label": "form phx-click-away={"
+    },
+    {
+      "id": "control.form.phx-click.7d109889d1",
+      "kind": "control",
+      "label": "form phx-click={"
+    },
+    {
+      "id": "control.form.phx-mounted.f190da2f72",
+      "kind": "control",
+      "label": "form phx-mounted={JS.focus(to: \"##{@id}\")}"
+    },
+    {
+      "id": "control.overlay.239.0d6129dd3631",
+      "kind": "control",
+      "label": "overlay phx-focus={JS.focus_first(to: \"##{@id}-content\")}"
+    },
+    {
+      "id": "control.overlay.239.27ed11aa535b",
+      "kind": "control",
+      "label": "overlay phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}"
+    },
+    {
+      "id": "control.overlay.239.2baf1313506a",
+      "kind": "control",
+      "label": "overlay phx-window-keydown={JS.exec(\"data-tl-dismiss\", to: \"##{@id}.tl-overlay-visible:focus-within\")}"
+    },
+    {
+      "id": "control.overlay.239.4fb0fe26cebd",
+      "kind": "control",
+      "label": "overlay phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}"
+    },
+    {
+      "id": "control.overlay.239.bdaa036eaf17",
+      "kind": "control",
+      "label": "overlay phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}"
+    },
+    {
+      "id": "control.overlay.239.e681d54e77e5",
+      "kind": "control",
+      "label": "overlay phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}"
+    },
+    {
+      "id": "control.overlay.239.f02edb6ea6bf",
+      "kind": "control",
+      "label": "overlay phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}"
+    },
+    {
+      "id": "control.overlay.239.f53dec5b4136",
+      "kind": "control",
+      "label": "overlay phx-focus={JS.focus_first(to: \"##{@id}-content\")}"
+    },
+    {
+      "id": "control.overlay.239.f5dd28ae4e43",
+      "kind": "control",
+      "label": "overlay phx-window-keydown={JS.exec(\"data-tl-close\", to: \"##{@id}-menu:focus-within\")}"
+    },
+    {
+      "id": "control.overlay.239.fb1edc61fc0e",
+      "kind": "control",
+      "label": "overlay phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}"
+    },
+    {
+      "id": "control.overlay.href.a007f9c03c",
+      "kind": "control",
+      "label": "overlay href={~p\"/...\"} data-tl-mutating aria-disabled=\"true\" tabindex=\"-1\">Re-run</a>"
+    },
+    {
+      "id": "control.overlay.phx-click-away.211a2bc905",
+      "kind": "control",
+      "label": "overlay phx-click-away={"
+    },
+    {
+      "id": "control.overlay.phx-click-away.7470920894",
+      "kind": "control",
+      "label": "overlay phx-click-away={"
+    },
+    {
+      "id": "control.overlay.phx-click.6cf717f3ca",
+      "kind": "control",
+      "label": "overlay phx-click={hide_toast(@id)}>"
+    },
+    {
+      "id": "control.overlay.phx-click.7d109889d1",
+      "kind": "control",
+      "label": "overlay phx-click={"
+    },
+    {
+      "id": "control.overlay.phx-click.88a513aed0",
+      "kind": "control",
+      "label": "overlay phx-click={"
+    },
+    {
+      "id": "control.overlay.phx-click.dc303db529",
+      "kind": "control",
+      "label": "overlay phx-click={"
+    },
+    {
+      "id": "control.overlay.phx-mounted.9bc301445d",
+      "kind": "control",
+      "label": "overlay phx-mounted={show_toast(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-mounted.e9e1466ec6",
+      "kind": "control",
+      "label": "overlay phx-mounted={@show && show_modal(@id)}"
+    },
+    {
+      "id": "control.page.href.df5c01aa06",
+      "kind": "control",
+      "label": "page href={crumb[:href]} class=\"tl-link tl-link--back\"><%= crumb[:label] %></a>"
+    },
+    {
+      "id": "control.page.phx-click.4e46cc0ad7",
+      "kind": "control",
+      "label": "page phx-click={seg[:\"phx-click\"]}"
+    },
+    {
+      "id": "control.page.phx-click.ded21c9e6a",
+      "kind": "control",
+      "label": "page phx-click={@older_event}"
+    },
+    {
+      "id": "control.page.phx-click.ff7f7c9882",
+      "kind": "control",
+      "label": "page phx-click={@newer_event}"
+    },
+    {
+      "id": "control.policy-redaction.navigate.10e4bba29a",
+      "kind": "control",
+      "label": "policy-redaction navigate={coverage_path(@base_path, @schema_param)} class=\"tl-button tl-button--compact tl-butt"
+    },
+    {
+      "id": "control.policy-redaction.navigate.1d33caff8f",
+      "kind": "control",
+      "label": "policy-redaction navigate={timeline_table_path(@base_path, row.table_name, row.table_schema)} class=\"tl-button t"
+    },
+    {
+      "id": "control.policy-redaction.navigate.62a5caa535",
+      "kind": "control",
+      "label": "policy-redaction navigate={action.path}"
+    },
+    {
+      "id": "control.policy-redaction.navigate.7a66b5c7b9",
+      "kind": "control",
+      "label": "policy-redaction navigate={policy_path(@base_path, \"public\")} class=\"tl-button tl-button--quiet-primary\">"
+    },
+    {
+      "id": "control.policy-redaction.phx-submit.3b3e7b3381",
+      "kind": "control",
+      "label": "policy-redaction phx-submit=\"select-schema\""
+    },
+    {
+      "id": "control.retention-history.href.417a3da4b4",
+      "kind": "control",
+      "label": "retention-history href={\"##{@retention_summary.first_failed_dom_id}\"} class=\"tl-link tl-link--deep\"><%= @retentio"
+    },
+    {
+      "id": "control.retention-history.navigate.def6ea1f42",
+      "kind": "control",
+      "label": "retention-history navigate={@retention_actions.evidence_path} class=\"tl-button tl-button--compact tl-button--seco"
+    },
+    {
+      "id": "control.retention-history.navigate.e42a97ca6c",
+      "kind": "control",
+      "label": "retention-history navigate={@retention_actions.evidence_path} class=\"tl-button tl-button--compact tl-button--seco"
+    },
+    {
+      "id": "control.retention-history.phx-click.39327fd8b0",
+      "kind": "control",
+      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}"
+    },
+    {
+      "id": "control.retention-history.phx-click.b1923ff2d5",
+      "kind": "control",
+      "label": "retention-history phx-click={JS.push(\"close_prune_modal\")}>"
+    },
+    {
+      "id": "control.retention-history.phx-click.f5976720b6",
+      "kind": "control",
+      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}"
+    },
+    {
+      "id": "control.retention-history.phx-submit.e4adfa4855",
+      "kind": "control",
+      "label": "retention-history phx-submit=\"prune_now\""
+    },
+    {
+      "id": "control.row-history.patch.6c7e1061bc",
+      "kind": "control",
+      "label": "row-history patch={@close_path} class=\"tl-button tl-button--secondary\" data-tl-initial-focus>"
+    },
+    {
+      "id": "control.row-history.phx-change.8eb999e27a",
+      "kind": "control",
+      "label": "row-history phx-change=\"update-as-of\""
+    },
+    {
+      "id": "control.sections.239.0167427e6e86",
+      "kind": "control",
+      "label": "sections patch={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}"
+    },
+    {
+      "id": "control.sections.239.30ce520cf8d0",
+      "kind": "control",
+      "label": "sections phx-click=\"overlay-fixture\""
+    },
+    {
+      "id": "control.sections.239.66dfd3818072",
+      "kind": "control",
+      "label": "sections phx-click=\"overlay-fixture\""
+    },
+    {
+      "id": "control.sections.239.b65785e711ee",
+      "kind": "control",
+      "label": "sections phx-mounted={JS.focus(to: \"#stress-edge-content\")} data-tl-patch-focus>"
+    },
+    {
+      "id": "control.sections.239.c5332f34e1c5",
+      "kind": "control",
+      "label": "sections phx-click=\"overlay-fixture\""
+    },
+    {
+      "id": "control.sections.239.edd1de874752",
+      "kind": "control",
+      "label": "sections phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer(\"stress-edge\")}"
+    },
+    {
+      "id": "control.sections.href.2783eac4e8",
+      "kind": "control",
+      "label": "sections href=\"#\""
+    },
+    {
+      "id": "control.sections.href.3a6db0b52e",
+      "kind": "control",
+      "label": "sections href={Paths.clear_path(@stress_path)}>"
+    },
+    {
+      "id": "control.sections.href.4445b182ff",
+      "kind": "control",
+      "label": "sections href=\"#\""
+    },
+    {
+      "id": "control.sections.href.51dc606cae",
+      "kind": "control",
+      "label": "sections href=\"#\""
+    },
+    {
+      "id": "control.sections.href.62a5f59eb4",
+      "kind": "control",
+      "label": "sections href={Paths.filter_path(@stress_path, @filter_category, status)}"
+    },
+    {
+      "id": "control.sections.href.8052dd6e35",
+      "kind": "control",
+      "label": "sections href={Paths.filter_path(@stress_path, category, @filter_status)}"
+    },
+    {
+      "id": "control.sections.href.84117cae97",
+      "kind": "control",
+      "label": "sections href={Paths.filter_path(@stress_path, nil, @filter_status)}>"
+    },
+    {
+      "id": "control.sections.href.c8f5d68691",
+      "kind": "control",
+      "label": "sections href=\"#\""
+    },
+    {
+      "id": "control.sections.href.ed27286fa1",
+      "kind": "control",
+      "label": "sections href={@clear_path}>"
+    },
+    {
+      "id": "control.sections.phx-click.1bf64656f7",
+      "kind": "control",
+      "label": "sections phx-click={Threadline.OperatorSurface.UI.Overlay.hide_modal(\"stress-modal\")}"
+    },
+    {
+      "id": "control.sections.phx-click.2ee8bd9b36",
+      "kind": "control",
+      "label": "sections phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_modal(\"stress-modal\")}"
+    },
+    {
+      "id": "control.sections.phx-click.a9931db6fc",
+      "kind": "control",
+      "label": "sections phx-click={Threadline.OperatorSurface.UI.Overlay.hide_drawer(\"stress-drawer\")}"
+    },
+    {
+      "id": "control.sections.phx-click.e34e281c65",
+      "kind": "control",
+      "label": "sections phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer(\"stress-drawer\""
+    },
+    {
+      "id": "control.start.href.2c5cabf485",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/exports\"} class=\"tl-button tl-button--secondary tl-button--compact\">"
+    },
+    {
+      "id": "control.start.href.64c1018de5",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--primary\">"
+    },
+    {
+      "id": "control.start.href.a0aad145b5",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/policy/redaction\"} class=\"tl-button tl-button--secondary tl-button--compac"
+    },
+    {
+      "id": "control.start.href.ac1ce752f8",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/policy/retention\"} class=\"tl-button tl-button--secondary tl-button--compac"
+    },
+    {
+      "id": "control.start.href.bd952cdf26",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/evidence\"} class=\"tl-button tl-button--secondary tl-button--compact\">"
+    },
+    {
+      "id": "control.start.href.c5355b10ab",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}#{signal.path}\"}"
+    },
+    {
+      "id": "control.start.href.ddcd26052c",
+      "kind": "control",
+      "label": "start href={\"#{@base_path}/coverage\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.start.navigate.5392f6725c",
+      "kind": "control",
+      "label": "start navigate={saved_view_path(@base_path, view)} class=\"tl-chip tl-chip--accent tl-home__view\">"
+    },
+    {
+      "id": "control.start.phx-submit.a477226343",
+      "kind": "control",
+      "label": "start phx-submit=\"open-row-history\""
+    },
+    {
+      "id": "control.start.phx-submit.f0b4076cf3",
+      "kind": "control",
+      "label": "start phx-submit=\"open-correlation\""
+    },
+    {
+      "id": "control.surface-header.action.964445b83e",
+      "kind": "control",
+      "label": "surface-header action={\"#{@base_path}/theme\"} method=\"post\" class=\"tl-theme-picker__form\">"
+    },
+    {
+      "id": "control.surface-header.href.01a6380c49",
+      "kind": "control",
+      "label": "surface-header href=\"#tl-main\""
+    },
+    {
+      "id": "control.surface-header.href.049141eabd",
+      "kind": "control",
+      "label": "surface-header href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>"
+    },
+    {
+      "id": "control.surface-header.href.251f47a90c",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/coverage\"}>"
+    },
+    {
+      "id": "control.surface-header.href.coverage-warning-second",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/coverage\"}> (second warning link)"
+    },
+    {
+      "id": "control.surface-header.href.2a0fd7ea66",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/policy/retention\"} current={@current} page={:retention}>Retention</.nav_li"
+    },
+    {
+      "id": "control.surface-header.href.2d904ff45b",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/coverage\"} current={@current} page={:coverage}>Coverage</.nav_link>"
+    },
+    {
+      "id": "control.surface-header.href.3ebf1799a1",
+      "kind": "control",
+      "label": "surface-header href={@base_path || \"#\"} aria-label=\"Threadline operator home\">"
+    },
+    {
+      "id": "control.surface-header.href.53d2981aed",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/exports\"} current={@current} page={:exports}>Exports</.nav_link>"
+    },
+    {
+      "id": "control.surface-header.href.557ec0bdee",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/coverage\"}>All tables captured</a>"
+    },
+    {
+      "id": "control.surface-header.href.57e421191d",
+      "kind": "control",
+      "label": "surface-header href={home_path(@base_path)}"
+    },
+    {
+      "id": "control.surface-header.href.79afd09204",
+      "kind": "control",
+      "label": "surface-header href={@href || \"#\"}"
+    },
+    {
+      "id": "control.surface-header.href.82ce3f310c",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/policy/redaction\"} current={@current} page={:policy}>Redaction</.nav_link>"
+    },
+    {
+      "id": "control.surface-header.href.d74235e5a6",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/evidence\"} current={@current} page={:evidence}>Evidence</.nav_link>"
+    },
+    {
+      "id": "control.timeline-live.239.51cd35c57127",
+      "kind": "control",
+      "label": "timeline-live href={\"#{@timeline_path}?#{@filter_query}\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.timeline.data-tl-copy.321f7208cf",
+      "kind": "control",
+      "label": "timeline data-tl-copy={Helpers.table_ref(change).title}"
+    },
+    {
+      "id": "control.timeline.href.72926ef11b",
+      "kind": "control",
+      "label": "timeline href={\"#{@base_path}/transactions/#{change.transaction_id}\"} class=\"tl-button tl-button--compac"
+    },
+    {
+      "id": "control.timeline.href.959957c72c",
+      "kind": "control",
+      "label": "timeline href={Helpers.correlation_path(@timeline_path, Helpers.correlation_id(change))} class=\"tl-link "
+    },
+    {
+      "id": "control.timeline.href.ecc81993ef",
+      "kind": "control",
+      "label": "timeline href={row_history_path}"
+    },
+    {
+      "id": "control.timeline.href.ed4141ea7c",
+      "kind": "control",
+      "label": "timeline href={path}"
+    },
+    {
+      "id": "control.timeline.patch.8e6b384b71",
+      "kind": "control",
+      "label": "timeline patch={@timeline_path} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.timeline.phx-viewport-bottom.472e0e89e3",
+      "kind": "control",
+      "label": "timeline phx-viewport-bottom={@cursor && \"next-page\"}"
+    },
+    {
+      "id": "control.transaction-live.239.3607e2964f19",
+      "kind": "control",
+      "label": "transaction-live href={\"#{surface_root(@base_path)}/transactions/#{@failed_id}\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.transaction-live.239.982077b9d054",
+      "kind": "control",
+      "label": "transaction-live navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.transaction.data-tl-copy.31eb3e6f5e",
+      "kind": "control",
+      "label": "transaction data-tl-copy={diff_full(after_token)} aria-label={\"Copy #{field[\"name\"]} after value\"}>"
+    },
+    {
+      "id": "control.transaction.data-tl-copy.621e2b883e",
+      "kind": "control",
+      "label": "transaction data-tl-copy={diff_full(before)} aria-label={\"Copy #{field[\"name\"]} before value\"}>"
+    },
+    {
+      "id": "control.transaction.href.480cb2b8e5",
+      "kind": "control",
+      "label": "transaction href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class=\"tl-link tl-li"
+    },
+    {
+      "id": "control.transaction.href.95c771c4db",
+      "kind": "control",
+      "label": "transaction href={path} class=\"tl-link tl-link--deep\"><%= transaction_actor_label(@bundle.transaction) %></"
+    },
+    {
+      "id": "control.transaction.navigate.1d9cac62dd",
+      "kind": "control",
+      "label": "transaction navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.transaction.navigate.e54ea0cac2",
+      "kind": "control",
+      "label": "transaction navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "control.transaction.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "label": "transaction phx-viewport-bottom=\"next-page\""
+    },
+    {
+      "id": "control.transaction.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "label": "transaction phx-viewport-top=\"prev-page\""
+    },
+    {
+      "id": "control.unsupported-view.href.f5cf19b6bb",
+      "kind": "control",
+      "label": "unsupported-view href={@base_path} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "primitive.actions.button",
+      "kind": "primitive",
+      "label": "actions.button"
+    },
+    {
+      "id": "primitive.actions.icon_button",
+      "kind": "primitive",
+      "label": "actions.icon_button"
+    },
+    {
+      "id": "primitive.actions.link",
+      "kind": "primitive",
+      "label": "actions.link"
+    },
+    {
+      "id": "primitive.data.data_panel",
+      "kind": "primitive",
+      "label": "data.data_panel"
+    },
+    {
+      "id": "primitive.data.data_state",
+      "kind": "primitive",
+      "label": "data.data_state"
+    },
+    {
+      "id": "primitive.data.data_table",
+      "kind": "primitive",
+      "label": "data.data_table"
+    },
+    {
+      "id": "primitive.data.empty_state",
+      "kind": "primitive",
+      "label": "data.empty_state"
+    },
+    {
+      "id": "primitive.data.error_state",
+      "kind": "primitive",
+      "label": "data.error_state"
+    },
+    {
+      "id": "primitive.data.loading_state",
+      "kind": "primitive",
+      "label": "data.loading_state"
+    },
+    {
+      "id": "primitive.data.stale_banner",
+      "kind": "primitive",
+      "label": "data.stale_banner"
+    },
+    {
+      "id": "primitive.display.239.9fad0b44bf6b",
+      "kind": "primitive",
+      "label": "full_value(assigns)"
+    },
+    {
+      "id": "primitive.display.239.b05346395a1c",
+      "kind": "primitive",
+      "label": "value(assigns)"
+    },
+    {
+      "id": "primitive.display.alert",
+      "kind": "primitive",
+      "label": "display.alert"
+    },
+    {
+      "id": "primitive.display.avatar",
+      "kind": "primitive",
+      "label": "display.avatar"
+    },
+    {
+      "id": "primitive.display.badge",
+      "kind": "primitive",
+      "label": "display.badge"
+    },
+    {
+      "id": "primitive.display.card",
+      "kind": "primitive",
+      "label": "display.card"
+    },
+    {
+      "id": "primitive.display.cluster",
+      "kind": "primitive",
+      "label": "display.cluster"
+    },
+    {
+      "id": "primitive.display.code_block",
+      "kind": "primitive",
+      "label": "display.code_block"
+    },
+    {
+      "id": "primitive.display.divider",
+      "kind": "primitive",
+      "label": "display.divider"
+    },
+    {
+      "id": "primitive.display.kv",
+      "kind": "primitive",
+      "label": "display.kv"
+    },
+    {
+      "id": "primitive.display.ref",
+      "kind": "primitive",
+      "label": "display.ref"
+    },
+    {
+      "id": "primitive.display.spinner",
+      "kind": "primitive",
+      "label": "display.spinner"
+    },
+    {
+      "id": "primitive.display.stack",
+      "kind": "primitive",
+      "label": "display.stack"
+    },
+    {
+      "id": "primitive.display.stat_tile",
+      "kind": "primitive",
+      "label": "display.stat_tile"
+    },
+    {
+      "id": "primitive.form.combobox",
+      "kind": "primitive",
+      "label": "form.combobox"
+    },
+    {
+      "id": "primitive.form.error",
+      "kind": "primitive",
+      "label": "form.error"
+    },
+    {
+      "id": "primitive.form.error_summary",
+      "kind": "primitive",
+      "label": "form.error_summary"
+    },
+    {
+      "id": "primitive.form.field",
+      "kind": "primitive",
+      "label": "form.field"
+    },
+    {
+      "id": "primitive.form.field_group",
+      "kind": "primitive",
+      "label": "form.field_group"
+    },
+    {
+      "id": "primitive.form.help",
+      "kind": "primitive",
+      "label": "form.help"
+    },
+    {
+      "id": "primitive.form.input",
+      "kind": "primitive",
+      "label": "form.input"
+    },
+    {
+      "id": "primitive.form.label",
+      "kind": "primitive",
+      "label": "form.label"
+    },
+    {
+      "id": "primitive.form.radio",
+      "kind": "primitive",
+      "label": "form.radio"
+    },
+    {
+      "id": "primitive.form.switch",
+      "kind": "primitive",
+      "label": "form.switch"
+    },
+    {
+      "id": "primitive.overlay.accordion",
+      "kind": "primitive",
+      "label": "overlay.accordion"
+    },
+    {
+      "id": "primitive.overlay.drawer",
+      "kind": "primitive",
+      "label": "overlay.drawer"
+    },
+    {
+      "id": "primitive.overlay.dropdown",
+      "kind": "primitive",
+      "label": "overlay.dropdown"
+    },
+    {
+      "id": "primitive.overlay.hide_drawer",
+      "kind": "primitive",
+      "label": "overlay.hide_drawer"
+    },
+    {
+      "id": "primitive.overlay.hide_modal",
+      "kind": "primitive",
+      "label": "overlay.hide_modal"
+    },
+    {
+      "id": "primitive.overlay.hide_toast",
+      "kind": "primitive",
+      "label": "overlay.hide_toast"
+    },
+    {
+      "id": "primitive.overlay.modal",
+      "kind": "primitive",
+      "label": "overlay.modal"
+    },
+    {
+      "id": "primitive.overlay.popover",
+      "kind": "primitive",
+      "label": "overlay.popover"
+    },
+    {
+      "id": "primitive.overlay.reconnect_banner",
+      "kind": "primitive",
+      "label": "overlay.reconnect_banner"
+    },
+    {
+      "id": "primitive.overlay.show_drawer",
+      "kind": "primitive",
+      "label": "overlay.show_drawer"
+    },
+    {
+      "id": "primitive.overlay.show_modal",
+      "kind": "primitive",
+      "label": "overlay.show_modal"
+    },
+    {
+      "id": "primitive.overlay.show_toast",
+      "kind": "primitive",
+      "label": "overlay.show_toast"
+    },
+    {
+      "id": "primitive.overlay.toast",
+      "kind": "primitive",
+      "label": "overlay.toast"
+    },
+    {
+      "id": "primitive.overlay.tooltip",
+      "kind": "primitive",
+      "label": "overlay.tooltip"
+    },
+    {
+      "id": "primitive.page.detail_header",
+      "kind": "primitive",
+      "label": "page.detail_header"
+    },
+    {
+      "id": "primitive.page.page_header",
+      "kind": "primitive",
+      "label": "page.page_header"
+    },
+    {
+      "id": "primitive.page.pager",
+      "kind": "primitive",
+      "label": "page.pager"
+    },
+    {
+      "id": "primitive.page.segmented_control",
+      "kind": "primitive",
+      "label": "page.segmented_control"
+    },
+    {
+      "id": "primitive.page.shell",
+      "kind": "primitive",
+      "label": "page.shell"
+    },
+    {
+      "id": "primitive.page.tabs",
+      "kind": "primitive",
+      "label": "page.tabs"
+    },
+    {
+      "id": "primitive.page.toolbar",
+      "kind": "primitive",
+      "label": "page.toolbar"
+    },
+    {
+      "id": "primitive.shell.navigation",
+      "kind": "primitive",
+      "label": "Shared navigation and header"
+    },
+    {
+      "id": "seam.exports.changes-csv",
+      "kind": "seam",
+      "label": "GET /changes.csv"
+    },
+    {
+      "id": "seam.exports.changes-json",
+      "kind": "seam",
+      "label": "GET /changes.json"
+    },
+    {
+      "id": "seam.exports.changes-ndjson",
+      "kind": "seam",
+      "label": "GET /changes.ndjson"
+    },
+    {
+      "id": "seam.exports.download-job_id",
+      "kind": "seam",
+      "label": "GET /download/:job_id"
+    },
+    {
+      "id": "seam.theme",
+      "kind": "seam",
+      "label": "POST /theme"
+    },
+    {
+      "id": "state.history.scalar-key",
+      "kind": "state",
+      "label": "Scalar primary-key row navigation"
+    },
+    {
+      "id": "state.history.unbounded",
+      "kind": "state",
+      "label": "History read capability boundary"
+    },
+    {
+      "id": "state.language.labels",
+      "kind": "state",
+      "label": "Canonical investigation and operation wording"
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.0fea5b5641bc",
+      "kind": "state",
+      "label": "keeps System selection while served colors follow OS through investigation navigation"
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.4341203b8c36",
+      "kind": "state",
+      "label": "preserves modal and drawer Escape focus through repeated LiveView patches"
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.d9ce68147284",
+      "kind": "state",
+      "label": "closes the focused menu before its drawer and recovers from removed or disabled controls"
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.e93a9847e7bd",
+      "kind": "state",
+      "label": "keeps drawer focus stable while the toast is layered above it"
+    },
+    {
+      "id": "state.operator-component-contracts.spec.239.09df22e28860",
+      "kind": "state",
+      "label": "long toast and drawer content stay locally readable without page overflow"
+    },
+    {
+      "id": "state.operator-route-states.spec.239.008386555a22",
+      "kind": "state",
+      "label": "Timeline keeps populated query identity while an applied replacement is pending"
+    },
+    {
+      "id": "state.operator-route-states.spec.243.c6e75f542ccf",
+      "kind": "state",
+      "label": "Home correlation lookup keeps destination identity while navigation is pending"
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.1cc6f878e92c",
+      "kind": "state",
+      "label": "starts at Home, applies a Timeline query, and opens its transaction"
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.a5e8a2b4ec68",
+      "kind": "state",
+      "label": "keeps draft edits unapplied and drops unsupported URL parameters"
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.b40c24c965c5",
+      "kind": "state",
+      "label": "keeps the complete 232-character query and its exact result within the page"
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.0433b948ddfb",
+      "kind": "state",
+      "label": "reflows Home and complete transaction evidence at ${viewport.name}"
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.560c2df20d4c",
+      "kind": "state",
+      "label": "opens an authorized transaction with separate action and row evidence"
+    },
+    {
+      "id": "state.operator-zoom-proof.spec.239.e6ac5a52d9bc",
+      "kind": "state",
+      "label": "isolated Chromium tab reports real 200% zoom on the operator investigation journey"
+    },
+    {
+      "id": "state.probe.00bcfb637b35",
+      "kind": "state",
+      "label": "transaction mobile opens from Timeline with semantic values and copy controls"
+    },
+    {
+      "id": "state.probe.01f898dbb288",
+      "kind": "state",
+      "label": "keeps public covered-row Timeline links scoped by table without table_schema"
+    },
+    {
+      "id": "state.probe.0292717b3613",
+      "kind": "state",
+      "label": "evidence overview shows all three verdicts"
+    },
+    {
+      "id": "state.probe.02a3b7f54f0d",
+      "kind": "state",
+      "label": "pager hides entirely at zero matches (hide-at-zero, D-16)"
+    },
+    {
+      "id": "state.probe.043e8ac4176c",
+      "kind": "state",
+      "label": "keeps every operator route usable without root horizontal overflow"
+    },
+    {
+      "id": "state.probe.04abb504d97f",
+      "kind": "state",
+      "label": "home header nav activates every enabled destination"
+    },
+    {
+      "id": "state.probe.05d99f8826b1",
+      "kind": "state",
+      "label": "Esc dismisses the modal (#4 keyboard half)"
+    },
+    {
+      "id": "state.probe.082cefb4594a",
+      "kind": "state",
+      "label": "Exports readiness hierarchy stays stable"
+    },
+    {
+      "id": "state.probe.08b45250618f",
+      "kind": "state",
+      "label": "keyboard-only: Tab reaches an actionable control without a mouse"
+    },
+    {
+      "id": "state.probe.0970b3a7e515",
+      "kind": "state",
+      "label": "retention history shows the full run lifecycle"
+    },
+    {
+      "id": "state.probe.0a0641539f24",
+      "kind": "state",
+      "label": "interactive vs non-interactive elements carry honest cursors"
+    },
+    {
+      "id": "state.probe.0b9215bd10fc",
+      "kind": "state",
+      "label": "keeps filter-scan-open-export workflow reachable without overflow"
+    },
+    {
+      "id": "state.probe.0d03d03b74b5",
+      "kind": "state",
+      "label": "theme is server-decided and the picker is wired to switch it (form contract)"
+    },
+    {
+      "id": "state.probe.111115840031",
+      "kind": "state",
+      "label": "empty and denied states"
+    },
+    {
+      "id": "state.probe.131c042f6888",
+      "kind": "state",
+      "label": "home login link and credentials behave without a redirect loop"
+    },
+    {
+      "id": "state.probe.1372f40c8d84",
+      "kind": "state",
+      "label": "admin investigation and governance surfaces"
+    },
+    {
+      "id": "state.probe.148e460d0b28",
+      "kind": "state",
+      "label": "emits the real operator-page evidence bundle"
+    },
+    {
+      "id": "state.probe.1811058fcc0b",
+      "kind": "state",
+      "label": "exports dense state keeps readiness hierarchy and ready-only primary action"
+    },
+    {
+      "id": "state.probe.182d4b3863b3",
+      "kind": "state",
+      "label": "keeps Timeline filters, Actor segments, and Retention danger action named and stateful"
+    },
+    {
+      "id": "state.probe.18a1fa7149a3",
+      "kind": "state",
+      "label": "keeps readable typography and intentional page gutters"
+    },
+    {
+      "id": "state.probe.1a4c32daf5fb",
+      "kind": "state",
+      "label": "keeps Home task hierarchy, theme, active state, and launcher validation explicit"
+    },
+    {
+      "id": "state.probe.204b6707b4ed",
+      "kind": "state",
+      "label": "evidence and redaction dense states keep evidence/status owners readable"
+    },
+    {
+      "id": "state.probe.219fee11aad3",
+      "kind": "state",
+      "label": "timeline dense mobile keeps filters and rows visible without a journey legend"
+    },
+    {
+      "id": "state.probe.23b68185229d",
+      "kind": "state",
+      "label": "scrim click-outside dismisses the modal (#4 click-outside half)"
+    },
+    {
+      "id": "state.probe.27e56b85dcae",
+      "kind": "state",
+      "label": "transaction .tl-container is centered within column 2 at ${width}px (D-09)"
+    },
+    {
+      "id": "state.probe.28be066c5828",
+      "kind": "state",
+      "label": "Timeline delayed query exposes pending then real empty result with a long unbroken filter"
+    },
+    {
+      "id": "state.probe.294e5bd72e3e",
+      "kind": "state",
+      "label": "support user sees a scoped-view chip"
+    },
+    {
+      "id": "state.probe.2bff6841258d",
+      "kind": "state",
+      "label": "keeps Exports queue and download states named and keyboard reachable"
+    },
+    {
+      "id": "state.probe.2d9f1b000df3",
+      "kind": "state",
+      "label": "Timeline degraded ranking twin remains a separate state"
+    },
+    {
+      "id": "state.probe.2fe19d525dbc",
+      "kind": "state",
+      "label": "Home .tl-home is centered within column 2 at ${width}px (latent twin)"
+    },
+    {
+      "id": "state.probe.34b6571a4ebf",
+      "kind": "state",
+      "label": "keeps adjacent routes constrained to shell invariants"
+    },
+    {
+      "id": "state.probe.36721eaa934b",
+      "kind": "state",
+      "label": "real modal (retention prune): opens as a dialog, Escape + outside-click dismiss"
+    },
+    {
+      "id": "state.probe.37ffc2eb8df0",
+      "kind": "state",
+      "label": "row-history drawer keeps as-of evidence stable"
+    },
+    {
+      "id": "state.probe.396f82295a58",
+      "kind": "state",
+      "label": "theme preference, effective cascade and reduced motion are distinct observed facts"
+    },
+    {
+      "id": "state.probe.3a3bea964666",
+      "kind": "state",
+      "label": "Coverage is role-discriminating: support gets the unavailable lane, admin gets the table"
+    },
+    {
+      "id": "state.probe.3feaab10e39a",
+      "kind": "state",
+      "label": "direct ${route.id} ${route.pattern}: shell and content at 1280/768/375"
+    },
+    {
+      "id": "state.probe.41778b9a4f7e",
+      "kind": "state",
+      "label": "bound Timeline Copy observes exact completion and real denied permission separately"
+    },
+    {
+      "id": "state.probe.463b77476361",
+      "kind": "state",
+      "label": "folds bad params to an empty or default story state without crashing"
+    },
+    {
+      "id": "state.probe.46a1d4d8a696",
+      "kind": "state",
+      "label": "keeps keyboard-only filters, rows, pagination, drawer, and route transitions operable"
+    },
+    {
+      "id": "state.probe.4929f3db268f",
+      "kind": "state",
+      "label": "keeps the selected-schema verdict, picker, row actions, and table readable"
+    },
+    {
+      "id": "state.probe.4947b6201e33",
+      "kind": "state",
+      "label": "drawer enters with a real (non-collapsed) transition duration"
+    },
+    {
+      "id": "state.probe.4a1b61caf387",
+      "kind": "state",
+      "label": "header destinations stay reachable from representative screens"
+    },
+    {
+      "id": "state.probe.4bd91efc46e0",
+      "kind": "state",
+      "label": "authenticated home topbar does not expose the login link"
+    },
+    {
+      "id": "state.probe.4dd2c4daae05",
+      "kind": "state",
+      "label": "offboarded support user gets an honest empty scoped Timeline"
+    },
+    {
+      "id": "state.probe.4efde5a58850",
+      "kind": "state",
+      "label": "coverage mobile shows Add capture remediation without horizontal overflow"
+    },
+    {
+      "id": "state.probe.50189caa820c",
+      "kind": "state",
+      "label": "modal transition collapses to ~instant"
+    },
+    {
+      "id": "state.probe.5136eda2b62f",
+      "kind": "state",
+      "label": "Home record lookup reaches first-class row history"
+    },
+    {
+      "id": "state.probe.51839db14f08",
+      "kind": "state",
+      "label": "global chrome and Home workflow launchers stay stable"
+    },
+    {
+      "id": "state.probe.51a6497cd7d5",
+      "kind": "state",
+      "label": "disabled controls carry not-allowed cursor + real disabled (#5/#7)"
+    },
+    {
+      "id": "state.probe.52472d3c8632",
+      "kind": "state",
+      "label": "reduced-motion: overlay transition collapses to ~instant"
+    },
+    {
+      "id": "state.probe.53b00c227a00",
+      "kind": "state",
+      "label": "re-emits the 10 refute pole PNGs clipped to the twin content"
+    },
+    {
+      "id": "state.probe.5494394b6f26",
+      "kind": "state",
+      "label": "fresh direct-entry Copy on ${name}: completion or binding failure is observed"
+    },
+    {
+      "id": "state.probe.54c4da9ec9f0",
+      "kind": "state",
+      "label": "timeline pager renders an honest range caption + disable-reflecting control (#9)"
+    },
+    {
+      "id": "state.probe.571bb7ea0d8b",
+      "kind": "state",
+      "label": "stress overlay, popover, accordion, and toast motion collapses but remains visible"
+    },
+    {
+      "id": "state.probe.5cf84e12a0b5",
+      "kind": "state",
+      "label": "renders folded reserved cases with exact cohort copy"
+    },
+    {
+      "id": "state.probe.620e48d02474",
+      "kind": "state",
+      "label": "${route} stays within viewport at 320 + 1440 (#6)"
+    },
+    {
+      "id": "state.probe.69a9d7f345d0",
+      "kind": "state",
+      "label": "page.timeline.empty states its emptiness instead of a bare placeholder"
+    },
+    {
+      "id": "state.probe.6bb572f664ff",
+      "kind": "state",
+      "label": "documents every D-04 rendered-state category as covered or explicitly bounded"
+    },
+    {
+      "id": "state.probe.6bd30a66f46b",
+      "kind": "state",
+      "label": "every registered group story stays within every viewport without horizontal scroll"
+    },
+    {
+      "id": "state.probe.6c215aa688d6",
+      "kind": "state",
+      "label": "modal enters with a real (non-collapsed) transition duration"
+    },
+    {
+      "id": "state.probe.6eb7395f81fe",
+      "kind": "state",
+      "label": "disabled button reads as disabled (not-allowed cursor) and is functionally inert"
+    },
+    {
+      "id": "state.probe.732b488dde45",
+      "kind": "state",
+      "label": "renders the representative ${story.category} story"
+    },
+    {
+      "id": "state.probe.750b772f6c68",
+      "kind": "state",
+      "label": "keeps mobile shell navigation keyboard reachable without obscured focus"
+    },
+    {
+      "id": "state.probe.7554f20830e6",
+      "kind": "state",
+      "label": "ledger CI stress allowlist is bounded, structurally backed, and pixel-free"
+    },
+    {
+      "id": "state.probe.757e622375e5",
+      "kind": "state",
+      "label": "keeps representative stories within the ${width}px viewport"
+    },
+    {
+      "id": "state.probe.767de114ded3",
+      "kind": "state",
+      "label": "opens stress rendered widgets with names, keyboard state, and focus entry"
+    },
+    {
+      "id": "state.probe.7702538967bf",
+      "kind": "state",
+      "label": "renders the Storybook index with local assets and Threadline framing"
+    },
+    {
+      "id": "state.probe.7871ba423526",
+      "kind": "state",
+      "label": "desktop scroll container reserves the sticky topbar height (no occlusion, #1)"
+    },
+    {
+      "id": "state.probe.788b98f2762d",
+      "kind": "state",
+      "label": "sticky topbar stays above content without covering it at rest"
+    },
+    {
+      "id": "state.probe.7956bf8ae936",
+      "kind": "state",
+      "label": "default Timeline renders in-window op variety and non-human actor labels"
+    },
+    {
+      "id": "state.probe.7966121c8575",
+      "kind": "state",
+      "label": "coverage shows the uncovered audit_events row + header badge"
+    },
+    {
+      "id": "state.probe.79e6c9a3701a",
+      "kind": "state",
+      "label": "Exports seeded pending, failed, completed, unavailable and invalid context stay distinct"
+    },
+    {
+      "id": "state.probe.7b1889a9a425",
+      "kind": "state",
+      "label": "active actor default 24h view is non-empty"
+    },
+    {
+      "id": "state.probe.7c6b5f9b24ca",
+      "kind": "state",
+      "label": "navigates the primary Home launchers to stable routes"
+    },
+    {
+      "id": "state.probe.7d6f57cb9a4c",
+      "kind": "state",
+      "label": "light/system Playwright lane includes the stress route spec"
+    },
+    {
+      "id": "state.probe.8170966f99ea",
+      "kind": "state",
+      "label": "keeps focus visible and command/copy controls separated"
+    },
+    {
+      "id": "state.probe.82b89e8b77f8",
+      "kind": "state",
+      "label": "binds full-value copy metadata and real direct export anchors to the current query"
+    },
+    {
+      "id": "state.probe.88d88621290d",
+      "kind": "state",
+      "label": "marks the active category with current-state semantics"
+    },
+    {
+      "id": "state.probe.8bdc5671729f",
+      "kind": "state",
+      "label": "renders the real operator shell, theme scope, story metadata, and preview"
+    },
+    {
+      "id": "state.probe.8d5bd8951dfa",
+      "kind": "state",
+      "label": "modal sits above its scrim (z-order hit-test, #2) and is keyboard-reachable (#3)"
+    },
+    {
+      "id": "state.probe.918404089c15",
+      "kind": "state",
+      "label": "keeps non-audit demo pages in the host shell"
+    },
+    {
+      "id": "state.probe.93226e0621bc",
+      "kind": "state",
+      "label": "Home correlation lookup lands on Timeline correlation filter"
+    },
+    {
+      "id": "state.probe.9cbc0a1dd247",
+      "kind": "state",
+      "label": "emits the Storybook real-UI evidence bundle"
+    },
+    {
+      "id": "state.probe.9cd8622fd0ba",
+      "kind": "state",
+      "label": "shell nav is a native <details> that toggles open and closed"
+    },
+    {
+      "id": "state.probe.a0b4a0824840",
+      "kind": "state",
+      "label": "restores URL-backed filters and proves Timeline route handoffs"
+    },
+    {
+      "id": "state.probe.a14e57a6c843",
+      "kind": "state",
+      "label": "exposes keyboard focus, skip link, nav state, and Home form names"
+    },
+    {
+      "id": "state.probe.a2c12b48943e",
+      "kind": "state",
+      "label": "reply-edit transaction renders before/after diff with redacted internal note"
+    },
+    {
+      "id": "state.probe.a4b85c162389",
+      "kind": "state",
+      "label": "dropdown: opens and exposes aria-expanded state"
+    },
+    {
+      "id": "state.probe.a8828cf25e06",
+      "kind": "state",
+      "label": "drawer transition collapses to ~instant"
+    },
+    {
+      "id": "state.probe.a9370ecfbef0",
+      "kind": "state",
+      "label": "Retention confirmation focus and cancel preserve state; Chromium touch navigation works"
+    },
+    {
+      "id": "state.probe.ab1fb39e5d14",
+      "kind": "state",
+      "label": "enabled controls press with transform feedback while disabled controls stay still"
+    },
+    {
+      "id": "state.probe.ac50d30eb4af",
+      "kind": "state",
+      "label": "phx-error reveals the banner and dims [data-tl-mutating]; connected hides/enables"
+    },
+    {
+      "id": "state.probe.acb655f75a99",
+      "kind": "state",
+      "label": "a real dropped live socket reveals the banner and dims mutating controls (D-13)"
+    },
+    {
+      "id": "state.probe.aee6afc773f8",
+      "kind": "state",
+      "label": "retention dense state keeps context before destructive prune and targetable failures"
+    },
+    {
+      "id": "state.probe.b23a07de3010",
+      "kind": "state",
+      "label": "${item.story_id} ${item.theme} ${item.viewport}px holds its ledger-declared structure and geometry"
+    },
+    {
+      "id": "state.probe.b34957d24cf0",
+      "kind": "state",
+      "label": "real host denial under Acme support is distinct from busy and disabled"
+    },
+    {
+      "id": "state.probe.b447c4fe554f",
+      "kind": "state",
+      "label": "modal: open overlay stacks above page chrome (topmost at its center)"
+    },
+    {
+      "id": "state.probe.b4ab3f00e2ca",
+      "kind": "state",
+      "label": "row-history mobile opens from a Transaction row with formatted values"
+    },
+    {
+      "id": "state.probe.b5d99623898a",
+      "kind": "state",
+      "label": "keeps Coverage readiness, schema recovery, and theme picker controls keyboard reachable"
+    },
+    {
+      "id": "state.probe.b76167c071b7",
+      "kind": "state",
+      "label": "Home motion collapses animation durations and signature thread delay"
+    },
+    {
+      "id": "state.probe.b7714d148a40",
+      "kind": "state",
+      "label": "dense Timeline keeps row-first evidence stable"
+    },
+    {
+      "id": "state.probe.bc20c0fe64c4",
+      "kind": "state",
+      "label": "filtered Evidence context carries into Exports"
+    },
+    {
+      "id": "state.probe.bc801efe3c20",
+      "kind": "state",
+      "label": "demo login credentials copy independently with visible feedback"
+    },
+    {
+      "id": "state.probe.bca26e193f74",
+      "kind": "state",
+      "label": "support user sees governance and export surfaces as unavailable without enabled controls"
+    },
+    {
+      "id": "state.probe.bcc3db85f182",
+      "kind": "state",
+      "label": "light/system Playwright lane includes only the bounded Storybook smoke"
+    },
+    {
+      "id": "state.probe.be96fcfd4771",
+      "kind": "state",
+      "label": "keeps the stress route within the ${width}px viewport"
+    },
+    {
+      "id": "state.probe.c4f8586ffdcc",
+      "kind": "state",
+      "label": "stress overlays, popovers, details, and toasts compute tokenized compositor motion"
+    },
+    {
+      "id": "state.probe.c8b7c2c2b74c",
+      "kind": "state",
+      "label": "emits the Tier A evidence bundle for this theme project"
+    },
+    {
+      "id": "state.probe.ce8fcd7a8343",
+      "kind": "state",
+      "label": "keeps rows and row actions visible below filters on short desktop viewports"
+    },
+    {
+      "id": "state.probe.d49eb5a55c50",
+      "kind": "state",
+      "label": "the left-push footgun's real invariant is still asserted in the spec"
+    },
+    {
+      "id": "state.probe.d93f0dbd225c",
+      "kind": "state",
+      "label": "keeps Timeline rows static with reduced motion"
+    },
+    {
+      "id": "state.probe.d98e6e994fdc",
+      "kind": "state",
+      "label": "pager renders the timeline's next-only control when there is data"
+    },
+    {
+      "id": "state.probe.dc31c97bf183",
+      "kind": "state",
+      "label": "offline Exports blocks ${input} activation until fresh persisted state returns"
+    },
+    {
+      "id": "state.probe.de2e6831ec4d",
+      "kind": "state",
+      "label": "copy button copies the full visible reference and confirms"
+    },
+    {
+      "id": "state.probe.e17eb573d4f3",
+      "kind": "state",
+      "label": "keeps shell navigation perceivable at ${width}px"
+    },
+    {
+      "id": "state.probe.e4194dffbe26",
+      "kind": "state",
+      "label": "renders copy-state evidence on existing stress stories"
+    },
+    {
+      "id": "state.probe.e5369399c294",
+      "kind": "state",
+      "label": "redaction shows a deployed-matches-config row for posts"
+    },
+    {
+      "id": "state.probe.e53d29107682",
+      "kind": "state",
+      "label": "home exposes orientation cards, health, resume, and workflow launchers"
+    },
+    {
+      "id": "state.probe.e7fa1781c317",
+      "kind": "state",
+      "label": "emits the graded twin evidence bundle (synthetic oracle)"
+    },
+    {
+      "id": "state.probe.eb3133cb6f25",
+      "kind": "state",
+      "label": "Retention safety hierarchy stays stable"
+    },
+    {
+      "id": "state.probe.eca098c592f4",
+      "kind": "state",
+      "label": "direct first-class row-history route opens without a transaction first"
+    },
+    {
+      "id": "state.probe.edf78329d2fd",
+      "kind": "state",
+      "label": "renders status and verdict chips with text labels and non-color shape"
+    },
+    {
+      "id": "state.probe.f0e456ad213c",
+      "kind": "state",
+      "label": "keeps row-history drawer dialog semantics and visible focus"
+    },
+    {
+      "id": "state.probe.f2347ad069f2",
+      "kind": "state",
+      "label": "actor mobile exposes selected window state and transaction pivots"
+    },
+    {
+      "id": "state.probe.f3c26d832634",
+      "kind": "state",
+      "label": "policy details content transition durations collapse"
+    },
+    {
+      "id": "state.probe.f4dbe45afc7e",
+      "kind": "state",
+      "label": "nav active item carries aria-current + a non-color cue (#8)"
+    },
+    {
+      "id": "state.probe.f57fb86d046c",
+      "kind": "state",
+      "label": "filtered Timeline context carries into Exports"
+    },
+    {
+      "id": "state.probe.f707c305d03b",
+      "kind": "state",
+      "label": "captures selected Tier C stress state packet"
+    },
+    {
+      "id": "state.probe.f7906eed93d1",
+      "kind": "state",
+      "label": "captures accessibility-tree evidence for screen-reader-ready structure"
+    },
+    {
+      "id": "state.probe.fa21db90b340",
+      "kind": "state",
+      "label": "requires authentication before rendering the stress lab"
+    },
+    {
+      "id": "state.probe.fca3b6893779",
+      "kind": "state",
+      "label": "Home card and signature thread use named keyframes and locked durations"
+    },
+    {
+      "id": "state.token.paper",
+      "kind": "state",
+      "label": "Light surface uses the paper token"
+    },
+    {
+      "id": "state.zoom.browser",
+      "kind": "state",
+      "label": "Actual browser-chrome magnification"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.dc882cbc86",
+      "kind": "state",
+      "label": "Timeline-origin row history preserves committed filters and safe return"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.00bf05efd2",
+      "kind": "state",
+      "label": "Timeline-origin row history stays reachable at actual 200% zoom"
+    },
+    {
+      "id": "state.generated.operator_earned_flows.768d9c32dd",
+      "kind": "state",
+      "label": "transaction-origin row history returns to the same transaction"
+    },
+    {
+      "id": "state.generated.operator_motion.d8a3197e44",
+      "kind": "state",
+      "label": "evidence cards and actor investigation rows do not animate on entry"
+    },
+    {
+      "id": "state.generated.operator_motion.6e25bfe50a",
+      "kind": "state",
+      "label": "reduced motion preserves keyboard row-history route, dialog, and focus"
+    },
+    {
+      "id": "state.generated.operator_motion.a2e77d459a",
+      "kind": "state",
+      "label": "row-history drawer and evidence stay immediate with reduced motion"
+    },
+    {
+      "id": "state.generated.operator_motion.06ccfc4380",
+      "kind": "state",
+      "label": "row-history evidence stays immediate across as-of LiveView patches"
+    },
+    {
+      "id": "state.generated.operator_route_states.b299bd1b21",
+      "kind": "state",
+      "label": "actor and correlation pivots re-enter Timeline with only their supported filters"
+    },
+    {
+      "id": "state.generated.operator_route_states.f8d8b4b3e4",
+      "kind": "state",
+      "label": "saved search actions stay in bounds at verified 200% browser zoom"
+    },
+    {
+      "id": "state.generated.operator_route_states.77dc216b51",
+      "kind": "state",
+      "label": "saved searches keep canonical sharing, long summaries, and destructive actions reachable"
+    },
+    {
+      "id": "state.generated.operator_route_states.fa57a9f772",
+      "kind": "state",
+      "label": "Timeline pagination appends the next page without changing the applied search URL"
+    },
+    {
+      "id": "control.generated.row_history_component.70f3fafdec",
+      "kind": "control",
+      "label": "row_history_component patch={as_of_path(@history_path, change.captured_at)}>"
+    },
+    {
+      "id": "control.generated.row_history_component.704aeee295",
+      "kind": "control",
+      "label": "row_history_component phx-click=\"retry\""
+    },
+    {
+      "id": "control.generated.timeline_live.f53f1af5d9",
+      "kind": "control",
+      "label": "timeline_live phx-click=\"close-delete-view\""
+    },
+    {
+      "id": "control.generated.timeline_live.d6ba1cec46",
+      "kind": "control",
+      "label": "timeline_live phx-click=\"confirm-delete-view\""
+    },
+    {
+      "id": "control.generated.filters.383d0060f7",
+      "kind": "control",
+      "label": "filters data-tl-copy={@search_url}"
+    },
+    {
+      "id": "control.generated.transaction_live.cb4ff57980",
+      "kind": "control",
+      "label": "transaction_live href={row_history_path}"
+    },
+    {
+      "id": "control.generated.transaction_live.f60668a09f",
+      "kind": "control",
+      "label": "transaction_live phx-click={JS.push_focus() |> JS.patch(row_history_path)}"
+    },
+    {
+      "id": "control.generated.transaction_live.23102906f6",
+      "kind": "control",
+      "label": "transaction_live phx-mounted={JS.focus(to: \"##{@history_focus_return_id}\") |> JS.push(\"clear_history_focus_return\")}"
+    },
+    {
+      "id": "control.generated.overlay.d7969d79ea",
+      "kind": "control",
+      "label": "overlay phx-mounted={@show && show_drawer_for_motion(@id, @motion)}"
+    },
+    {
+      "id": "state.generated.operator_route_states.056362cb4f",
+      "kind": "state",
+      "label": "Clipboard failure shows manual recovery without claiming success"
+    },
+    {
+      "id": "state.generated.operator_route_states.a163a87d6c",
+      "kind": "state",
+      "label": "Clipboard fallback confirms success and restores focus and selection"
+    },
+    {
+      "id": "state.generated.operator_route_states.a80c892492",
+      "kind": "state",
+      "label": "Clipboard success waits for confirmation on direct entry and after patches"
+    },
+    {
+      "id": "state.generated.operator_route_states.453854b3e6",
+      "kind": "state",
+      "label": "Copy feedback fits long URLs and redacted values stay non-copyable"
+    },
+    {
+      "id": "state.evidence.history-navigation",
+      "kind": "state",
+      "label": "Evidence keeps selected subject/reference through latest and proof-history navigation"
+    },
+    {
+      "id": "control.generated.phase241.b25038b380",
+      "kind": "control",
+      "label": "phx-click=\"refresh-policy-inspection\""
+    },
+    {
+      "id": "control.generated.phase241.c05c91e406",
+      "kind": "control",
+      "label": "phx-disable-with=\"Inspecting policy…\""
+    },
+    {
+      "id": "state.generated.phase241.d0edf01594",
+      "kind": "state",
+      "label": "test(\"inspection refresh and native disclosure preserve their outcomes with reduced motion\""
+    },
+    {
+      "id": "state.generated.phase241.4f5bf72ba0",
+      "kind": "state",
+      "label": "test(\"Redaction policy comparison stays safe, keyboard-operable, and responsive\""
+    },
+    {
+      "id": "state.generated.phase241.66ab54c1a0",
+      "kind": "state",
+      "label": "test(\"Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment\""
+    },
+    {
+      "id": "state.generated.phase241.62aeeb3b13",
+      "kind": "state",
+      "label": "test(`inspection routes retain context and reachable controls in ${theme} at 320, 768, and 1280 CSS px`"
+    },
+    {
+      "id": "state.generated.phase241.0b14f1f8f1",
+      "kind": "state",
+      "label": "test(\"inspection routes preserve exact scope and controls at verified real 200% tab zoom\""
+    },
+    {
+      "id": "state.phase242.export-retention-accessibility",
+      "kind": "state",
+      "label": "keeps export and retention journeys readable across themes, widths, and a live reconnect"
+    },
+    {
+      "id": "state.phase242.retention-reduced-motion",
+      "kind": "state",
+      "label": "retention confirmation remains immediate and usable with reduced motion"
+    },
+    {
+      "id": "state.phase242.timeline-export-journey",
+      "kind": "state",
+      "label": "Timeline export reaches protected download and returns to its committed search"
+    },
+    {
+      "id": "control.phase242.export-status.refresh",
+      "kind": "control",
+      "label": "export-status phx-click=\"refresh_jobs\""
+    },
+    {
+      "id": "control.phase242.retention.refresh",
+      "kind": "control",
+      "label": "retention-history phx-click=\"refresh_runs\""
+    },
+    {
+      "id": "control.phase242.retention.submit",
+      "kind": "control",
+      "label": "retention-history phx-disable-with=\"Starting prune…\""
+    }
+  ]
+}

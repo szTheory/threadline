@@ -16,6 +16,24 @@ export DB_PORT="${DB_PORT:-5432}"
 export MIX_ENV=test
 export THREADLINE_E2E=1
 
+EVIDENCE_MODE="${THREADLINE_E2E_EVIDENCE:-0}"
+PREVIEW_MODE="${THREADLINE_E2E_PREVIEW:-0}"
+STOP_PREVIEW="${THREADLINE_E2E_STOP_PREVIEW:-0}"
+EVIDENCE_ROOT=""
+EVIDENCE_DATABASE=""
+FORWARDED_ARGS=()
+for runner_arg in "$@"; do
+  case "$runner_arg" in
+    --preview) PREVIEW_MODE=1 ;;
+    --stop-preview) STOP_PREVIEW=1 ;;
+    *) FORWARDED_ARGS+=("$runner_arg") ;;
+  esac
+done
+set -- ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
+if [[ "$PREVIEW_MODE" == "1" ]]; then
+  LOG_FILE="${TMPDIR:-/tmp}/threadline_phoenix_e2e_${MIX_TEST_PARTITION:-preview}.log"
+fi
+
 port_listening() {
   local port="$1"
 
@@ -51,6 +69,146 @@ fail_with_log() {
   tail -80 "$LOG_FILE" >&2 || true
   exit 1
 }
+
+loopback_host() {
+  case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+    localhost|127.0.0.1|::1|\[::1\]) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+evidence_preflight() {
+  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits forward_receipt candidate_receipt
+  [[ "$EVIDENCE_MODE" == "1" ]] || return 0
+  [[ -n "$partition" && "$partition" =~ ^operator_[A-Za-z0-9_]+$ ]] || {
+    echo "Evidence mode requires a fresh MIX_TEST_PARTITION matching operator_<unique-id>." >&2
+    return 1
+  }
+  loopback_host "$DB_HOST" || { echo "Evidence mode refuses non-loopback DB_HOST='$DB_HOST'." >&2; return 1; }
+  [[ "$DB_PORT" =~ ^[0-9]+$ && "$DB_PORT" -ge 1 && "$DB_PORT" -le 65535 ]] || {
+    echo "Evidence mode requires a valid local DB_PORT." >&2; return 1;
+  }
+  [[ "$HOST" == "127.0.0.1" ]] || { echo "Evidence mode binds only to 127.0.0.1; got HOST='$HOST'." >&2; return 1; }
+  [[ "$PORT" =~ ^[0-9]+$ && "$PORT" -ge 1 && "$PORT" -le 65535 ]] || {
+    echo "Evidence mode requires a valid local HTTP port." >&2; return 1;
+  }
+  [[ -z "$BASE_URL" || "$BASE_URL" == "http://127.0.0.1:${PORT}" || "$BASE_URL" == "http://localhost:${PORT}" ]] || {
+    echo "Evidence mode refuses non-loopback or mismatched E2E_BASE_URL='$BASE_URL'." >&2; return 1;
+  }
+  [[ -z "${DATABASE_URL:-}" && -z "${DEMO_ALLOW_RESET:-}" ]] || {
+    echo "Evidence mode refuses DATABASE_URL and DEMO_ALLOW_RESET overrides." >&2; return 1;
+  }
+  grep -Fq 'database: "threadline_phoenix_test#{System.get_env("MIX_TEST_PARTITION")}"' "$EXAMPLE/config/test.exs" || {
+    echo "Evidence mode could not verify the exact test database derivation in config/test.exs." >&2; return 1;
+  }
+  forward_receipt="${THREADLINE_E2E_FORWARD_RECEIPT:-}"
+  candidate_receipt="${THREADLINE_E2E_CANDIDATE_RECEIPT:-}"
+  receipt="$ROOT/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json"
+  [[ -f "$receipt" ]] || { echo "Evidence mode requires the immutable Phase 238 isolation receipt." >&2; return 1; }
+  if [[ -n "$candidate_receipt" && -n "$forward_receipt" ]]; then
+    echo "Evidence mode accepts one candidate receipt authority at a time." >&2; return 1;
+  fi
+  if [[ -n "$candidate_receipt" ]]; then
+    [[ "$candidate_receipt" == ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json" ]] || {
+      echo "Phase 243 evidence mode requires the exact owned candidate receipt path." >&2; return 1;
+    }
+    [[ -f "$ROOT/$candidate_receipt" ]] || { echo "Phase 243 evidence mode requires a refreshed candidate receipt." >&2; return 1; }
+    "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-candidate-receipt.ts" --validate "$candidate_receipt" || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).baseSha || "")' "$ROOT/$candidate_receipt")"
+    export THREADLINE_E2E_CANDIDATE_RECEIPT="$ROOT/$candidate_receipt"
+    export THREADLINE_E2E_CANDIDATE_RECEIPT_SHA256="$(shasum -a 256 "$ROOT/$candidate_receipt" | awk '{print $1}')"
+  elif [[ -n "$forward_receipt" ]]; then
+    [[ "$forward_receipt" == "$ROOT/.planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json" ]] || {
+      echo "Forward evidence mode requires the Phase 239 candidate receipt at its owned path." >&2; return 1;
+    }
+    [[ -f "$forward_receipt" ]] || { echo "Forward evidence mode requires a refreshed Phase 239 candidate receipt." >&2; return 1; }
+    "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-evidence-manifest.ts" --validate-239-receipt \
+      .planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).baseSha || "")' "$forward_receipt")"
+    export THREADLINE_E2E_FORWARD_RECEIPT="$forward_receipt"
+    export THREADLINE_E2E_FORWARD_RECEIPT_SHA256="$(shasum -a 256 "$forward_receipt" | awk '{print $1}')"
+  else
+    node -e '
+      const fs = require("node:fs"), crypto = require("node:crypto");
+      const [path, root, branch] = process.argv.slice(1), r = JSON.parse(fs.readFileSync(path, "utf8"));
+      if (r.worktree !== root || r.branch !== branch || !r.copied_context_sha256) throw new Error("Isolation receipt root, branch or copied context does not match candidate");
+      for (const [file, copied] of Object.entries(r.copied_context_sha256)) {
+        const expected = file === ".planning/config.json" && r.isolated_config_override ? r.isolated_config_override.active_sha256 : copied;
+        const actual = crypto.createHash("sha256").update(fs.readFileSync(root + "/" + file)).digest("hex");
+        if (actual !== expected) throw new Error("Copied isolation context changed: " + file);
+      }
+    ' "$receipt" "$ROOT" "$(git -C "$ROOT" branch --show-current)" || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).base_sha || "")' "$receipt")"
+  fi
+  [[ "$THREADLINE_E2E_BASE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Isolation receipt has no valid immutable base SHA." >&2; return 1; }
+  [[ "$(git -C "$ROOT" rev-parse --show-toplevel)" == "$ROOT" ]] || { echo "Evidence runner cwd is not the isolated repository root." >&2; return 1; }
+  git -C "$ROOT" merge-base --is-ancestor "$THREADLINE_E2E_BASE_SHA" HEAD || {
+    echo "Evidence candidate HEAD is not descended from the isolation receipt base." >&2; return 1;
+  }
+  if [[ -z "$forward_receipt" && -z "$candidate_receipt" ]]; then
+    expected_commits="$(node -e 'const r=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); process.stdout.write((r.expected_task_commits || []).join("\n"))' "$receipt")"
+    actual_commits="$(git -C "$ROOT" rev-list --first-parent --reverse "$THREADLINE_E2E_BASE_SHA..HEAD")"
+    [[ "$actual_commits" == "$expected_commits" ]] || {
+      echo "Evidence candidate ancestry differs from the task commit sequence in the isolation receipt." >&2
+      echo "Expected: ${expected_commits:-<none>}" >&2; echo "Actual: ${actual_commits:-<none>}" >&2; return 1;
+    }
+  fi
+  export THREADLINE_E2E_BASE_SHA
+  EVIDENCE_DATABASE="threadline_phoenix_test${partition}"
+  [[ ${#EVIDENCE_DATABASE} -le 63 ]] || { echo "Evidence database name exceeds PostgreSQL's 63-byte identifier limit." >&2; return 1; }
+  [[ "${DB_USERNAME:-postgres}" == "postgres" && "${DB_PASSWORD:-postgres}" == "postgres" ]] || {
+    echo "Evidence target credentials must match config/test.exs." >&2; return 1;
+  }
+  command -v psql >/dev/null 2>&1 || { echo "Evidence mode requires psql to prove target ownership before reset." >&2; return 1; }
+  db_check=$(PGPASSWORD="${DB_PASSWORD:-postgres}" psql -X -h "$DB_HOST" -p "$DB_PORT" -U "${DB_USERNAME:-postgres}" -d postgres -v ON_ERROR_STOP=1 -Atqc "SELECT 1 FROM pg_database WHERE datname = '${EVIDENCE_DATABASE}'" 2>&1) || {
+    echo "Evidence mode could not inspect the local PostgreSQL target; refusing reset: $db_check" >&2; return 1;
+  }
+  [[ -z "$db_check" ]] || { echo "Evidence mode refuses existing database '$EVIDENCE_DATABASE'; target is not owned by this run." >&2; return 1; }
+
+  marker_dir="${THREADLINE_E2E_PARTITION_REGISTRY:-${TMPDIR:-/tmp}/threadline-e2e-evidence-partitions}"
+  mkdir -p "$marker_dir"
+  marker="$marker_dir/${EVIDENCE_DATABASE}.used"
+  ( set -o noclobber; : > "$marker" ) 2>/dev/null || {
+    echo "Evidence mode refuses reused partition '$partition' (registry: $marker_dir)." >&2; return 1;
+  }
+
+  EVIDENCE_ROOT="$E2E_DIR/artifacts/operator-evidence/$partition"
+  output_parent="$(dirname "$EVIDENCE_ROOT")"
+  mkdir -p "$output_parent"
+  [[ ! -e "$EVIDENCE_ROOT" ]] || { echo "Evidence output already exists for '$partition': $EVIDENCE_ROOT" >&2; return 1; }
+  export THREADLINE_E2E_EVIDENCE_ROOT="$EVIDENCE_ROOT"
+  export npm_config_cache="${TMPDIR:-/tmp}/threadline-npm-cache-$partition"
+  export HEX_HOME="${TMPDIR:-/tmp}/threadline-hex-cache-$partition"
+  export PLAYWRIGHT_BROWSERS_PATH="${THREADLINE_E2E_PLAYWRIGHT_CACHE:-${TMPDIR:-/tmp}/threadline-playwright-cache}"
+  mkdir -p "$npm_config_cache" "$HEX_HOME" "$PLAYWRIGHT_BROWSERS_PATH"
+  [[ -w "$npm_config_cache" ]] || { echo "Evidence mode npm cache is not writable: $npm_config_cache" >&2; return 1; }
+  [[ -w "$HEX_HOME" ]] || { echo "Evidence mode Hex cache is not writable: $HEX_HOME" >&2; return 1; }
+  [[ -w "$PLAYWRIGHT_BROWSERS_PATH" ]] || { echo "Evidence mode browser cache is not writable: $PLAYWRIGHT_BROWSERS_PATH" >&2; return 1; }
+  mkdir -p "$EVIDENCE_ROOT"
+  printf '{"partition":"%s","database":"%s","host":"%s","port":%s,"mode":"evidence","base_sha":"%s","candidate_head":"%s"}\n' \
+    "$partition" "$EVIDENCE_DATABASE" "$DB_HOST" "$DB_PORT" "$THREADLINE_E2E_BASE_SHA" "$(git -C "$ROOT" rev-parse HEAD)" > "$EVIDENCE_ROOT/run.json"
+}
+
+stop_preview() {
+  local state
+  state="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION:-}.json}"
+  "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-preview-receipt.ts" --stop "$state"
+}
+
+if [[ "$STOP_PREVIEW" == "1" ]]; then
+  stop_preview
+  exit $?
+fi
+
+if [[ "$PREVIEW_MODE" == "1" && "$EVIDENCE_MODE" != "1" ]]; then
+  echo "THREADLINE_E2E_PREVIEW=1 requires THREADLINE_E2E_EVIDENCE=1." >&2
+  exit 1
+fi
+
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  evidence_preflight || exit 1
+  if [[ "${THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY:-0}" == "1" ]]; then exit 0; fi
+fi
 
 # Operator-surface mount preflight (Phase 198, D-18). /audit sits behind the
 # example app's :operator_auth pipeline, so an unauthenticated request is
@@ -129,15 +287,15 @@ url_origin() {
   [[ "$url" != *'\\'* && "$url" != *$'\r'* && "$url" != *$'\n'* && "$url" != *$'\t'* && "$url" != *' '* ]] || return 1
   [[ "$url" =~ ^(https?)://([^/?#]+) ]] || return 1
 
-  scheme="${BASH_REMATCH[1],,}"
+  scheme="${BASH_REMATCH[1]}"
   authority="${BASH_REMATCH[2]}"
   [[ "$authority" != *'@'* ]] || return 1
 
   if [[ "$authority" =~ ^([A-Za-z0-9.-]+):([0-9]+)$ ]]; then
-    host="${BASH_REMATCH[1],,}"
+    host="$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')"
     port="${BASH_REMATCH[2]}"
   elif [[ "$authority" =~ ^[A-Za-z0-9.-]+$ ]]; then
-    host="${authority,,}"
+    host="$(printf '%s' "$authority" | tr '[:upper:]' '[:lower:]')"
     [[ "$scheme" == "https" ]] && port=443 || port=80
   else
     return 1
@@ -219,8 +377,11 @@ choose_free_port() {
 }
 
 cleanup_exports() {
+  local generated_file
   if command -v git >/dev/null 2>&1 && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git -C "$ROOT" clean -fX -- priv/threadline_exports examples/threadline_phoenix/priv/threadline_exports >/dev/null 2>&1 || true
+    while IFS= read -r -d '' generated_file; do
+      rm -f -- "$ROOT/$generated_file"
+    done < <(git -C "$ROOT" ls-files --others --ignored --exclude-standard -z -- priv/threadline_exports examples/threadline_phoenix/priv/threadline_exports)
   else
     rm -rf "$EXAMPLE/priv/threadline_exports"
   fi
@@ -228,10 +389,31 @@ cleanup_exports() {
 
 PORT="$(choose_free_port)"
 BASE_URL="${E2E_BASE_URL:-http://${HOST}:${PORT}}"
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  [[ "$BASE_URL" == "http://127.0.0.1:${PORT}" || "$BASE_URL" == "http://localhost:${PORT}" ]] || {
+    echo "Evidence mode refuses non-loopback or mismatched E2E_BASE_URL='$BASE_URL'." >&2; exit 1;
+  }
+fi
 export PORT
 export E2E_BASE_URL="$BASE_URL"
 
-cleanup_exports
+PROJECT_ARGS=()
+EXPLICIT_PROJECT=0
+for runner_arg in "$@"; do
+  case "$runner_arg" in --project|--project=*) EXPLICIT_PROJECT=1 ;; esac
+done
+if [[ "${THREADLINE_E2E_THEME:-}" == "system" && "$EXPLICIT_PROJECT" == "0" ]]; then
+  PROJECT_ARGS+=(--project=desktop-chromium-light)
+fi
+
+if [[ "${THREADLINE_E2E_ARGUMENTS_ONLY:-0}" == "1" ]]; then
+  printf 'npm test --'
+  for runner_arg in ${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"} "$@"; do printf ' %q' "$runner_arg"; done
+  printf '\n'
+  exit 0
+fi
+
+if [[ "$PREVIEW_MODE" != "1" ]]; then cleanup_exports; fi
 
 cd "$EXAMPLE"
 mix deps.get --only test
@@ -242,18 +424,24 @@ mix deps.get --only test
 # reuse a stale compiled router. (Phase 168, A11Y-02 part 2.)
 touch lib/threadline_phoenix_web/router.ex
 mix compile --force
-mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  mix ecto.create --quiet -r ThreadlinePhoenix.Repo
+else
+  mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
+fi
 mix ecto.migrate --quiet
 mix demo.reset
 mix demo.seed
 
 cd "$E2E_DIR"
-if [[ -f package-lock.json ]]; then
-  npm ci
-else
-  npm install
+if [[ "$PREVIEW_MODE" != "1" ]]; then
+  if [[ -f package-lock.json ]]; then
+    npm ci
+  else
+    npm install
+  fi
+  npx playwright install chromium
 fi
-npx playwright install chromium
 
 PHX_PID=""
 cleanup() {
@@ -261,16 +449,15 @@ cleanup() {
     kill "$PHX_PID" 2>/dev/null || true
     wait "$PHX_PID" 2>/dev/null || true
   fi
-  cleanup_exports
+  if [[ "$PREVIEW_MODE" != "1" ]]; then cleanup_exports; fi
 }
 trap cleanup EXIT
 
 : >"$LOG_FILE"
-cd "$EXAMPLE"
-mix phx.server >>"$LOG_FILE" 2>&1 &
-PHX_PID=$!
+PHX_PID=$(python3 -c 'import os, subprocess, sys; log = open(sys.argv[1], "ab", buffering=0); child = subprocess.Popen(["mix", "phx.server"], cwd=sys.argv[2], env=os.environ, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True); print(child.pid)' "$LOG_FILE" "$EXAMPLE")
 
 ready=0
+LAUNCH_PID="$PHX_PID"
 for _ in $(seq 1 120); do
   if server_ready "${PORT}"; then
     ready=1
@@ -286,6 +473,27 @@ if [[ "$ready" -ne 1 ]]; then
   fail_with_log "Timed out waiting for port ${PORT}; log follows:"
 fi
 
+listener_pids=$(lsof -t -nP -iTCP:"${PORT}" -sTCP:LISTEN 2>/dev/null | sort -u)
+if [[ "$(printf '%s\n' "$listener_pids" | sed '/^$/d' | wc -l | tr -d ' ')" != "1" ]]; then
+  fail_with_log "Expected exactly one listener process on port ${PORT}; log follows:"
+fi
+PHX_PID="$listener_pids"
+vm_command=$(ps -p "$PHX_PID" -o command= 2>/dev/null || true)
+vm_cwd=$(lsof -a -p "$PHX_PID" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -n 1)
+if [[ "$vm_command" != *beam.smp* || "$vm_cwd" != "$EXAMPLE" ]]; then
+  PHX_PID="$LAUNCH_PID"
+  fail_with_log "Listener on port ${PORT} is not the example app's Elixir VM; log follows:"
+fi
+
+if [[ "$PREVIEW_MODE" == "1" ]]; then
+  PREVIEW_STATE="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION}.json}"
+  "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-preview-receipt.ts" --capture \
+    "$PREVIEW_STATE" "$PHX_PID" "$BASE_URL" "$EVIDENCE_DATABASE" "$MIX_TEST_PARTITION"
+  trap - EXIT
+  echo "Evidence preview running at $BASE_URL (pid $PHX_PID; database $EVIDENCE_DATABASE). Stop with THREADLINE_E2E_STOP_PREVIEW=1 and THREADLINE_E2E_PREVIEW_STATE=$PREVIEW_STATE."
+  exit 0
+fi
+
 sleep 2
 curl --max-time 60 -fsS "${BASE_URL}/users/log_in" >/dev/null
 
@@ -297,11 +505,4 @@ if ! operator_surface_ready; then
 fi
 
 cd "$E2E_DIR"
-if [ "${THREADLINE_E2E_THEME:-}" = "system" ]; then
-  # Light lane: only the light project should run — the dark projects would
-  # otherwise hit the :system mount. It is scoped to the affordance spec via
-  # testMatch in playwright.config.ts. (Phase 168, A11Y-02 part 2.)
-  npm test -- --project=desktop-chromium-light "$@"
-else
-  npm test -- "$@"
-fi
+npm test -- ${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"} "$@"

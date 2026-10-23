@@ -60,6 +60,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       router: Threadline.OperatorSurface.TransactionLiveTest.Router
   end
 
+  defmodule Threadline.OperatorSurface.TransactionLiveTest.FailedRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_failed",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.fail_scope/3,
+        schemas: %{"users" => Threadline.OperatorSurface.TransactionLiveTest.FakeUser}
+      )
+    end
+
+    def auth(_socket), do: {:ok, %{source: "test"}}
+
+    def fail_scope(_query, _scope, context) do
+      if pid = Process.whereis(:threadline_scope_probe),
+        do: send(pid, {:scope_called, context.surface})
+
+      raise DBConnection.ConnectionError, "synthetic transaction read failure"
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TransactionLiveTest.FailedEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TransactionLiveTest.FailedRouter
+  end
+
   defmodule Threadline.OperatorSurface.TransactionLiveTest.ScopedEndpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.TransactionLiveTest.ScopedRouter
@@ -102,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Transaction not found"
 
       assert html =~
-               "This database transaction may not exist, or it may have been pruned by the retention policy."
+               "No transaction is available at this ID. It may not exist or may be outside the records available to your current scope."
 
       assert html =~ "Return to Timeline and check the transaction id."
       assert html =~ ~s|href="/audit/timeline"|
@@ -141,6 +169,83 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
     end
 
+    test "keeps transaction and linked action actors and recorded context distinct", %{conn: conn} do
+      transaction_actor = %{"type" => "admin", "id" => "transaction-admin-42"}
+      action_actor = %{"type" => "user", "id" => "action-user-19"}
+
+      action =
+        Repo.insert!(
+          AuditAction.changeset(%{
+            name: "ticket.status_changed",
+            actor_ref: action_actor,
+            status: :ok,
+            request_id: "request-context-239",
+            job_id: "job-context-239"
+          }),
+          repo_opts()
+        )
+
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            actor_ref: transaction_actor,
+            action_id: action.id
+          }),
+          repo_opts()
+        )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~ "Actor"
+      assert html =~ "admin/transaction-admin-42"
+      assert html =~ "Action"
+      assert html =~ "ticket.status_changed"
+      assert html =~ "Action actor"
+      assert html =~ "user/action-user-19"
+      assert html =~ "Request ID"
+      assert html =~ "request-context-239"
+      assert html =~ "Job ID"
+      assert html =~ "job-context-239"
+      refute html =~ "admin/action-user-19"
+      refute html =~ "user/transaction-admin-42"
+    end
+
+    test "labels the before and after sides of each field change", %{conn: conn} do
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+
+      Repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "labelled-row"},
+          op: "update",
+          data_after: %{"email" => "new@example.com"},
+          changed_fields: ["email"],
+          changed_from: %{"email" => "old@example.com"},
+          captured_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+      assert html =~ "Before"
+      assert html =~ "After"
+      assert html =~ "old@example.com"
+      assert html =~ "new@example.com"
+      assert html =~ "users"
+      assert html =~ "labelled-row"
+    end
+
     test "Case 3: renders no-row-change state when bundle.changes is empty", %{
       conn: conn
     } do
@@ -160,11 +265,102 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|class="tl-detail-header|
       assert html =~ "Transaction #{String.slice(txn.id, 0, 12)}"
       assert html =~ "No row-level changes captured"
+      assert html =~ "0 changes"
 
       assert html =~
                "A database transaction was found, but row-level changes were not captured."
 
       assert html =~ "Check audit readiness for this table, then return to Timeline."
+    end
+
+    test "reports shared actions while keeping each transaction's changes separate", %{conn: conn} do
+      action =
+        Repo.insert!(
+          AuditAction.changeset(%{
+            name: "member.role_changed",
+            actor_ref: %{"type" => "admin", "id" => "shared-action-admin"},
+            status: :ok,
+            request_id: "shared-action-request"
+          }),
+          repo_opts()
+        )
+
+      first =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            action_id: action.id
+          }),
+          repo_opts()
+        )
+
+      second =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            action_id: action.id
+          }),
+          repo_opts()
+        )
+
+      for {transaction, row_id, name, before} <- [
+            {first, "member-one", "First member", "Before first"},
+            {second, "member-two", "Second member", "Before second"}
+          ] do
+        Repo.insert!(
+          AuditChange.changeset(%{
+            transaction_id: transaction.id,
+            table_schema: "public",
+            table_name: "members",
+            table_pk: %{"id" => row_id},
+            op: "update",
+            data_after: %{"name" => name},
+            changed_fields: ["name"],
+            changed_from: %{"name" => before},
+            captured_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+      end
+
+      Repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: first.id,
+          table_schema: "public",
+          table_name: "members",
+          table_pk: %{"id" => "member-three"},
+          op: "update",
+          data_after: %{"name" => "Another first member"},
+          changed_fields: ["name"],
+          changed_from: %{"name" => "Before another first"},
+          captured_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+      assert {:ok, _first_lv, first_html} = live(conn, "/audit/transactions/#{first.id}")
+      assert first_html =~ "member.role_changed"
+      assert first_html =~ "admin/shared-action-admin"
+      assert first_html =~ "shared-action-request"
+      assert first_html =~ "2 changes"
+      assert first_html =~ "member-one"
+      assert first_html =~ "First member"
+      assert first_html =~ "member-three"
+      assert first_html =~ "Another first member"
+      refute first_html =~ "member-two"
+      refute first_html =~ "Second member"
+
+      assert {:ok, _second_lv, second_html} = live(conn, "/audit/transactions/#{second.id}")
+      assert second_html =~ "member.role_changed"
+      assert second_html =~ "admin/shared-action-admin"
+      assert second_html =~ "shared-action-request"
+      assert second_html =~ "1 change"
+      assert second_html =~ "member-two"
+      assert second_html =~ "Second member"
+      refute second_html =~ "member-one"
+      refute second_html =~ "First member"
     end
 
     test "Case 4: Renders change row with DOM virtualization", %{conn: conn} do
@@ -348,13 +544,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "id" => "user-update-1",
             "closed_at" => nil,
             "email" => "[REDACTED]",
-            "updated_at" => "2026-06-04T12:30:00Z"
+            "updated_at" => "2026-06-04T12:30:00Z",
+            "after_only" => "now present"
           },
-          changed_fields: ["closed_at", "email", "updated_at"],
+          changed_fields: ["closed_at", "email", "updated_at", "before_only", "after_only"],
           changed_from: %{
             "closed_at" => "2026-06-03T12:30:00Z",
             "email" => "person@example.com",
-            "updated_at" => "2026-06-03T12:30:00Z"
+            "updated_at" => "2026-06-03T12:30:00Z",
+            "before_only" => "was present"
           },
           captured_at: captured_at
         }),
@@ -369,6 +567,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "null"
       assert html =~ ~s|class="tl-value tl-value--redacted"|
       assert html =~ "[REDACTED]"
+      refute html =~ ~s|data-tl-copy="[REDACTED]"|
+      assert html =~ "(omitted)"
+      assert html =~ "(absent)"
       assert html =~ ~s|title="2026-06-04T12:30:00Z"|
       assert html =~ "12:30 PM UTC"
       refute html =~ ">nil<"
@@ -467,6 +668,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ txn_visible
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
       assert html =~ ~s|class="tl-copy tl-button tl-button--compact tl-button--secondary"|
+      assert html =~ "data-tl-copy-status"
+      assert html =~ ~s|role="status" aria-live="polite" aria-atomic="true"|
       assert html =~ ~s|title="#{correlation_id}"|
       assert html =~ correlation_visible
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
@@ -568,6 +771,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert before_token.text != long_before
       assert html =~ before_token.text
       assert html =~ after_token.text
+      assert html =~ "<summary>Show full token before value</summary>"
+      assert html =~ "<summary>Show full token after value</summary>"
+      assert html =~ ~s|<code class="tl-value__full">#{long_before}</code>|
+      assert html =~ ~s|<code class="tl-value__full">#{long_after}</code>|
 
       # The diff cell exposes a gated copy affordance bound to the FULL value.
       assert_copy_equals_full(html, full: long_before)
@@ -596,6 +803,73 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ ~s|class="tl-topbar"|
         refute html =~ ~s|href="/audit/coverage"|
+      end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TransactionLiveFailureTest do
+    use ExUnit.Case, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TransactionLiveTest.FailedEndpoint
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    test "renders a recoverable unavailable state when transaction reads fail" do
+      uuid = Ecto.UUID.generate()
+      conn = Phoenix.ConnTest.build_conn()
+
+      assert {:ok, _lv, html} = live(conn, "/audit_failed/transactions/#{uuid}")
+      assert html =~ "Transaction details unavailable"
+      assert html =~ "The transaction could not be loaded. Retry or return to Timeline."
+      assert html =~ ~s|href="/audit_failed/transactions/#{uuid}"|
+      assert html =~ ~s|href="/audit_failed/timeline"|
+      refute html =~ "Transaction not found"
+      refute html =~ "pruned by the retention policy"
+    end
+
+    test "unavailable transaction parent does not read or render child row history" do
+      uuid = Ecto.UUID.generate()
+      Process.register(self(), :threadline_scope_probe)
+
+      try do
+        assert {:ok, _lv, html} =
+                 live(
+                   Phoenix.ConnTest.build_conn(),
+                   "/audit_failed/transactions/#{uuid}/history/users/row-1"
+                 )
+
+        assert html =~ "Transaction details unavailable"
+        refute html =~ ~s|data-testid="row-history-drawer"|
+        refute html =~ "Row history is unavailable"
+        refute_receive {:scope_called, :row_history}, 100
+      after
+        Process.unregister(:threadline_scope_probe)
+      end
+    end
+
+    test "direct row-history connection failure offers retry and a safe Timeline return" do
+      Process.register(self(), :threadline_scope_probe)
+
+      try do
+        assert {:ok, lv, html} =
+                 live(
+                   Phoenix.ConnTest.build_conn(),
+                   "/audit_failed/rows/users/row-outage"
+                 )
+
+        assert html =~ "Row history is unavailable. Retry row history or return to Timeline."
+        assert html =~ ~s|href="/audit_failed/timeline"|
+        assert html =~ ~s|phx-click="retry"|
+        refute html =~ "synthetic transaction read failure"
+
+        assert render_click(element(lv, "button[phx-click='retry']")) =~
+                 "Row history is unavailable. Retry row history or return to Timeline."
+      after
+        Process.unregister(:threadline_scope_probe)
       end
     end
   end

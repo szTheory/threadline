@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-10",
+  "command": "MIX_ENV=test mix run .planning/phases/241-operational-evidence-and-policy-inspection/241-policy-cardinality-probe.exs",
+  "exitCode": 0,
+  "tests": 3,
+  "failures": 0,
+  "cases": [
+    "zero tables have no match assurance",
+    "one 63-character identifier and normalized long policy value remain complete in disclosure",
+    "multiple missing deployments remain drift"
+  ],
+  "probeSha256": "ca4528b9232baf55cd81a040a7a44ce94b9a8e1d6006948db7398ac40a1b9286",
+  "logSha256": "e19947db905ee37542e30920aea9aa8f9b1568ea6230828e0bc8a3b7e4e6e34e",
+  "output": "Running ExUnit with seed: 26056, max_cases: 36\n\n...\nFinished in 0.03 seconds (0.03s async, 0.00s sync)\n3 tests, 0 failures\n"
+}

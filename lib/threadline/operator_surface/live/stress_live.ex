@@ -38,7 +38,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:selected_theme, "dark")
        |> assign(:selected_viewport, "1024")
        |> assign(:filter_category, nil)
-       |> assign(:filter_status, nil)}
+       |> assign(:filter_status, nil)
+       |> assign(:overlay_fixture_state, "ready")}
     end
 
     defp validate_ledger_entries!(%{"threadline_stress_ledger_entries" => entries})
@@ -104,6 +105,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:filter_status, filter_status)}
     end
 
+    # Dev/test-only mounted patch cases for shared overlay focus recovery.
+    def handle_event("overlay-fixture", %{"state" => state}, socket)
+        when state in ~w(ready empty disabled removed) do
+      {:noreply, assign(socket, :overlay_fixture_state, state)}
+    end
+
     def render(assigns) do
       ~H"""
       <Threadline.OperatorSurface.UI.Page.shell
@@ -154,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 <Sections.refute_matrix :if={show_refute_matrix?(@selected_story)} selected_story={@selected_story} />
 
-                <Sections.ui_matrix :if={show_ui_matrix?(@selected_story)} />
+                <Sections.ui_matrix :if={show_ui_matrix?(@selected_story)} overlay_fixture_state={@overlay_fixture_state} />
               <% else %>
                 <div class="tl-empty tl-empty--unsupported" data-testid="stress-empty-state" role="status">
                   <h2 class="tl-empty__title">No stress stories registered</h2>

@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -131,6 +132,33 @@ test.describe("operator Home orientation mobile UAT", () => {
   test("home exposes orientation cards, health, resume, and workflow launchers", async ({
     page,
   }) => {
+    const savedSearches = [
+      { name: `Recent deletes ${randomUUID()}`, query: "table=ticket_replies" },
+      {
+        name: `Closed this week ${randomUUID()}`,
+        query: "correlation_id=walk-acme-4521-close",
+      },
+    ];
+
+    for (const savedSearch of savedSearches) {
+      await page.goto(`/audit/timeline?${savedSearch.query}`);
+      await expectLiveViewConnected(page);
+      await page.getByRole("button", { name: "Filters", exact: true }).click();
+      const filters = page.getByRole("dialog", { name: "Filters and handoff" });
+      await expect(filters).toBeVisible();
+      await filters
+        .locator("#save-view-form")
+        .getByLabel("Saved search name")
+        .fill(savedSearch.name);
+      await filters.getByRole("button", { name: "Save search", exact: true }).click();
+      await expect(
+        filters.getByRole("button", {
+          name: `Apply saved search ${savedSearch.name}`,
+          exact: true,
+        }),
+      ).toBeVisible();
+    }
+
     await page.goto("/audit");
     await expectLiveViewConnected(page);
     await expect(page.getByTestId("operator-nav-overview")).toHaveAttribute(
@@ -183,10 +211,10 @@ test.describe("operator Home orientation mobile UAT", () => {
       main.getByRole("heading", { name: "Pick up where you left off" }),
     ).toBeVisible();
     await expect(
-      main.getByRole("link", { name: "Recent deletes" }),
+      main.getByRole("link", { name: savedSearches[0].name, exact: true }),
     ).toBeVisible();
     await expect(
-      main.getByRole("link", { name: "Closed this week" }),
+      main.getByRole("link", { name: savedSearches[1].name, exact: true }),
     ).toBeVisible();
 
     await expect(
@@ -207,7 +235,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     await expect(
       main
         .locator("#tl-correlation-lookup")
-        .getByRole("button", { name: "Open Timeline" }),
+        .getByRole("button", { name: "Open the timeline" }),
     ).toBeVisible();
 
     await expectMobileLayoutViewport(page);

@@ -1,0 +1,87 @@
+{
+  "createdAt": "2026-10-10T19:52:45.816Z",
+  "candidateHead": "40c3d30307099b6ef1a384dfbd8e0da565b37968",
+  "source": {
+    "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts": "75f42db007a0b2d99eb758a392f88e63a81a893acdbd36d484d2443d39dc0109",
+    "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts": "3a29410d98978d19de1be711fcde04735f4a1caa670620431fdf44c4aecb7efc",
+    "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts": "88a8a0ea9d0da79264be611a5d82bc594c3699083ee99c5b95ce8a5f95dc7b18",
+    "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts": "868776279dd5881b4a5af7b533014c1a84c40c05c79501eea366eefe2576d8c8",
+    "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts": "adb0848e6e90311342aff76e3c408fbea5d8647d9c5db964a7b01025ab8300c3",
+    "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts": "f660a40c39d1bb4f1b92b11c7ae6d9722f9a86192cfb4ea099d87ec3ccff2b9a",
+    "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts": "15ce9eb75503faf23df1e90eb1c4f7aecfeab7b54c743fd16c6168f6232524c9",
+    "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts": "b34ca34760ebd5ca5ac5b21de5c69265143c012abff47e7515d3b2ca611e3719",
+    "lib/threadline/operator_surface/components/surface_header.ex": "69312d24690551948e85718b1669c7d8664a33fabe4865d5a5a3e7c60cfe8e9c",
+    "lib/threadline/operator_surface/coverage/on_mount.ex": "cffc5121340a4d275a03e3633da1542065a3b5236ac3b3eefe1502371367817e",
+    "lib/threadline/operator_surface/live/coverage_live.ex": "9ce4eb843c6cdbeac8b273d26f9e236d70d59c60a98b52169865e2d4ea4a6b16",
+    "lib/threadline/operator_surface/live/evidence_live.ex": "fbb986b777a506fe37fa75c4b4e7d70e9e7a1aae15f489687ee7397f16cf6c37",
+    "lib/threadline/operator_surface/live/policy_redaction_live.ex": "356d8c527c98a80ddb2738a096b5c64b84d51ca9ba4f853f1da3b73208ec09f2",
+    "lib/threadline/operator_surface/presentation.ex": "2b4d9c4f50c26db5707cc06f7f8b084b326f3e056fdd0a72d34f145b89863829",
+    "lib/threadline/policy/redaction_presenter.ex": "cdcec4c57d79798e569dc1f90c4f07c4dd6ee04129de0a694faab4c50ef7db6a",
+    "test/fixtures/operator_surface/route-inventory.json": "d7a5e4d59cc34fe57b98849106fa883a2a4af4cdca5212c3b7d24a2ceca150af",
+    "test/fixtures/operator_surface/source-surface-checklist.json": "431c5867378c2b0aa41057644e83fd484c5c80ecad575868dd04d554a321f5ba",
+    "test/threadline/operator_surface/copy_contract_test.exs": "de5fea6aca775e108c72295de0e8155d915d6e3ef697b56413de277fd15a7948",
+    "test/threadline/operator_surface/live/coverage_live_test.exs": "2e4d526946c5a0064bb00cd36af7b02c31b8227bcae0fb965be4cd5cdb1d0541",
+    "test/threadline/operator_surface/live/evidence_live_test.exs": "aaf758ec6ec1080d8fb27167433905234767ea155559ed4513152abb9a8f77ab",
+    "test/threadline/operator_surface/live/policy_redaction_live_test.exs": "094d08c9900c3b5419a78a57ceac5e57638e4a8665d60b6ffa9a914d62180c81",
+    "test/threadline/operator_surface/presentation_test.exs": "fe9783cd03bc860b560c593263a50fb33e6400b187e7fb3c1170cc3447ecda2f",
+    "test/threadline/policy/redaction_presenter_test.exs": "dd8375af9223ac9ee0961336da4c64b68105b3899a6092a2bf9fdaedb60d714a"
+  },
+  "fixture": "demo.seed synthetic local test partition 24111",
+  "browser": "148.0.7778.96",
+  "shots": [
+    {
+      "route": "/audit/coverage?schema=public",
+      "width": 1280,
+      "file": "coverage-1280.png",
+      "sha256": "40593e7bbfad92a1f696e29d21255751148f14367a067f54996a8a208bd78931",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    },
+    {
+      "route": "/audit/evidence",
+      "width": 1280,
+      "file": "evidence-1280.png",
+      "sha256": "c10987ba630f7c2859bc3d00419b2393c28ec6ca2b33a567f4b7a81836c175a6",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    },
+    {
+      "route": "/audit/policy/redaction?schema=public",
+      "width": 1280,
+      "file": "redaction-1280.png",
+      "sha256": "4ed25489ef060ab0e738ee661e0f078475fb01a81b4768597859b8bd4766069e",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    },
+    {
+      "route": "/audit/coverage?schema=public",
+      "width": 320,
+      "file": "coverage-320.png",
+      "sha256": "e1d1f74857337cc153ad704cc5c921575bd508e68b6d787dcecc56a1d854ee1b",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    },
+    {
+      "route": "/audit/evidence",
+      "width": 320,
+      "file": "evidence-320.png",
+      "sha256": "09aae0a8f07e82be5229641f5829041803eb9ea101416a1a49c4d72e555163ee",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    },
+    {
+      "route": "/audit/policy/redaction?schema=public",
+      "width": 320,
+      "file": "redaction-320.png",
+      "sha256": "4bf9d3002c04ab87d2b6cb3b63f20271659772b92a8865a2502d50e94f7358aa",
+      "overflow": 0,
+      "scrollY": 0,
+      "inlineStyleSha256": "9f0539737cc1a1e191f012d391b6eea05e2e47d8393994e4f4644a623292c263"
+    }
+  ]
+}

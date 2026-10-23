@@ -75,7 +75,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       assert html =~ ~s|href="/audit/timeline"|
-      assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12:30:00|
+      assert html =~ ~s|href="/audit/rows/users/row-path-component?as_of=2026-06-04T12%3A30%3A00|
       assert html =~ ~s|class="tl-drawer-container|
       assert html =~ ~s|class="tl-drawer|
       assert html =~ ~s|data-testid="row-history-drawer"|
@@ -109,7 +109,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
 
       assert html =~
-               ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-component?as_of=2026-06-04T12:30:00|
+               ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-component?as_of=2026-06-04T12%3A30%3A00|
 
       refute html =~ "/history/users/tenant/row-component"
     end

@@ -1,10 +1,41 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-09-30 (v1.43 closed; 0.11.1 and 0.11.2 released)
-**Active milestone:** v1.44 Behavioral Depth: Properties, Twins, Telemetry (phases 224-230, opened 2026-09-30)
-**Posture:** base-library ratchet to diminishing returns, marked by **1.0.0**; operator UI parked until then
+**Updated:** 2026-10-11 (v1.46 archived and locally tagged)
+**Active milestone:** none. v1.46 — Operator UI Refinement is complete: six phases, 27 plans, 49 tasks, 26/26 requirements and 5/5 flows. Its audit is `tech_debt`, with UIV-02/03 visual-evidence limits and non-blocking polish findings disclosed. The planning tag is local; package 1.0.1 remains the published release. No successor is selected.
+**Posture:** Refine existing investigation and operations jobs using the confirmed product context and completed sibling research. Preserve public 1.x and host contracts; use code-first implementation, equal engineer/operator priority, fresh current-main evidence and bounded automated review. Keep routine patch work on the release train and the paid critic parked.
 
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and near/mid/long horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
+
+## Current position after v1.46 (2026-10-11)
+
+The six approved phases delivered the existing operator investigation and
+operations refinement scope. The milestone audit reports no unsatisfied
+requirements or broken flows; 24/26 integration paths are fully wired, with the
+remaining two satisfying their requirements under explicit visual-evidence
+limits. Carry forward the baseline-existing History drawer/header overlap,
+dense-typography contract drift, and Redaction empty-category copy for explicit
+future disposition. Do not start another broad UI pass by default. Re-derive the
+adopter, operator, security, and release baseline using Guide §6 before choosing
+the next milestone. No successor is selected.
+
+## Approved UI milestone (2026-10-08)
+
+The maintainer supplied concrete feedback about readable hierarchy, consistent
+components/tokens/domain copy, conventional controls, responsive behavior and
+bounded automated visual review. Read-only research covered current Threadline
+main and Scrypath's post-completion fixes, plus Accrue/Mailglass's ongoing work.
+The proposal is refinement of existing operator jobs, with source-bound rendered
+evidence and no new paid critic loop. See the preflight record for provenance,
+candidate defects, evidence limitations, the adapted prompt and next commands.
+
+GitHub main was verified at 9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2 (1.0.1
+distribution sync). The earlier 1.0.0 baseline below predates that patch and this
+UI feedback; retain it as history, not a veto on evaluating the requested work.
+Preserve the dirty planning checkout; later implementation starts from current
+main with the planning and product context carried over. The maintainer approved
+v1.46, the proposed scope and reuse of the completed research. Milestone setup is complete: all 26 requirements
+and the six-phase roadmap are approved. At setup, the next command was `$gsd-execute-phase 239`. Phase 238 completed with source-bound evidence; retain the existing implementation worktree and read its handoff. Impeccable init is complete; equal engineer/operator
+priority and code-first are settled. v1.45 and Phase 237 remain complete.
 
 ## Strategic thesis
 
@@ -20,7 +51,9 @@ The 2026-05-29 claim of "~92–95% done, default hold" measured the **adopter-fa
 
 These are quality defects, not new scope. Under the guide §5 they justify milestones without adopter signal. New product scope still needs signal.
 
-## Ladder to 1.0.0 (estimated 2026-09-25: 6–9 weeks, mid-Nov → early Dec 2026; re-estimated 2026-09-30)
+## Ladder to 1.0.0 (complete; original estimate was 6–9 weeks)
+
+Actual at v1.45 close (2026-10-07, America/New_York): 1.0.0 shipped to Hex.pm; the milestone took five calendar days, with 7 phases, 47 plans, and 116 planned tasks. The milestone audit passed with disclosed review debt and no blockers. This finished the ladder ahead of the prior mid-to-late October estimate.
 
 Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took 4 days (10 phases). v1.44 and v1.45 carry more product-code work, so we budget about 1–2 weeks each. That puts 1.0.0 around mid-to-late October 2026, and mid-November is now the conservative upper bound.
 
@@ -28,12 +61,22 @@ Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took
 |------|---------|-------|---------|--------|
 | 1 | v1.42 | Capture Correctness for Real Table Shapes | 0.11.0 | shipped 2026-09-26 |
 | 2 | v1.43 | Supply Chain, CI Economy and Repo Hygiene | 0.11.1, 0.11.2 | shipped 2026-09-30 |
-| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | active |
-| 4 | v1.45 | 1.0 API Contract | 1.0.0 | queued |
+| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | shipped 2026-10-02 |
+| 4 | v1.45 | 1.0 API Contract | 1.0.0 | shipped; closeout passed 2026-10-07 |
 
 Scope per rung: `.planning/MILESTONE-GUIDE.txt` §7 (canonical; don't duplicate it here).
 
-After 1.0.0: operator UI returns (maintainer UI/UX feedback; paid critic stays parked unless un-parked).
+## Re-derived baseline (2026-10-08)
+
+**Earlier recommendation, before the UI feedback: narrow sustainment; no new milestone cleared the evidence bar.** On `origin/main` at `edb5138f350f7719778b01a9a85fba49391df32f`, required CI and the minimum/current/latest, browser, dependency-audit, and repo-protection checks pass. Hex, `mix.exs`, and CHANGELOG agree on 1.0.0. There are no open PRs. Open issue #76 refers to an earlier scheduled red SHA (`0d6f36f1`); #61 reports no retired or security-advisory packages, only routine update candidates. Keep both on release-train monitoring, not in milestone scope.
+
+The v1.45 closeout audit has no blockers or open high/critical threats. Its remaining API error-contract findings are narrow patch candidates; re-triage each against current `main` before acting. The operator reconnect seed shipped in Phase 178, and its old open status is corrected in the seed record. The export-queue reconnect control remains a possible small UI follow-up, but no operator incident or maintainer feedback supports a milestone. Existing Sigra integration is shipped, and no current adopter issue identifies a new integration gap.
+
+GSD cross-phase audit on 2026-10-08 found 61 items in 22 archived UAT/deferred files (59 deferred items and two optional Phase 104 editorial checks), zero current-milestone items, and zero parse gaps after normalizing the legacy Phase 06 UAT file. The Windows ledger has 59 open entries, all from archived Phases 198–202; `workflow.windows_enforce` is false. The Phase 235 documentation-routing deviation was waived after checking it on `origin/main`, and both Phase 221 advisories were verified resolved there. Keep this historic audit debt visible; it does not create a new milestone candidate.
+
+The local `milestone/v1.44` checkout is not a current implementation base: its `mix.exs` still reports 0.11.2, while `origin/main` is at 1.0.0. Preserve it and its unrelated local edits; if code work becomes justified, start from a clean branch or worktree at current `origin/main`.
+
+Reopen milestone selection when a reproduced adopter blocker, material operator incident, new security advisory/high-severity finding, or sustained measurable CI/correctness regression clears the guide's bar. Until then, maintain the 1.0.0 release train and take patch-sized fixes individually. At the 2026-10-08 pre-feedback baseline, Phase 237 was the final v1.45 phase and no successor had been selected; subsequent maintainer feedback authorized v1.46 (Phases 238–243), now complete. For the next cycle, start `$gsd-new-milestone` only after a new evidence-backed trigger; further operator UI and wider integrations are not default scope. The paid critic remains parked.
 
 Signal-gated long horizon:
 - GDPR erasure of captured rows
@@ -45,11 +88,11 @@ Signal-gated long horizon:
 
 ## Activation rules
 
-- At `/gsd-new-milestone`, recommend the next unshipped ladder rung after re-deriving its evidence (guide §6). Skip or merge a rung if its evidence has evaporated.
+- At `/gsd-new-milestone`, re-derive the baseline and recommend the next evidence-backed outcome (guide §6). The 1.0.0 ladder is complete; do not infer a next milestone from the old rung order.
 - At each close, mark the rung shipped, re-estimate the 1.0.0 date, and refresh this table and guide §7.
 - **Do not** open compliance-pack / legal-hold / immutable-archive milestones without procurement pressure.
 - **Do not** open Pow/bearer auth lane or second reference app without explicit demand.
-- **Do not** start operator-UI design work before 1.0.0 unless the maintainer explicitly un-parks it.
+- **Do not** make operator-UI design the next milestone by default; first re-derive the baseline and confirm the maintainer feedback that would justify it.
 
 ## History (condensed)
 

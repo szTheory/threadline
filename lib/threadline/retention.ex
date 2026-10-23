@@ -21,6 +21,8 @@ defmodule Threadline.Retention do
   alias Threadline.Retention.Policy
   alias Threadline.StorageSchema
 
+  @accepted_run_id_key {__MODULE__, :accepted_run_id}
+
   @typedoc "Accumulator returned by `purge/1` on success (counts are cumulative)."
   @type purge_result :: %{
           deleted_changes: non_neg_integer(),
@@ -82,13 +84,30 @@ defmodule Threadline.Retention do
     storage_opts = StorageSchema.repo_opts(opts)
 
     retention_kw = Application.get_env(:threadline, :retention) || []
-    policy = Policy.resolve!(retention_kw)
+
+    policy =
+      try do
+        Policy.resolve!(retention_kw)
+      rescue
+        exception ->
+          mark_accepted_run_failed(repo, storage_opts, "invalid_policy")
+          reraise exception, __STACKTRACE__
+      end
 
     if policy.enabled != true do
+      mark_accepted_run_failed(repo, storage_opts, "disabled")
       {:error, :disabled}
     else
       policy_cutoff = Policy.cutoff_utc_datetime_usec!()
-      cutoff = resolve_cutoff(Keyword.get(opts, :cutoff), policy_cutoff)
+
+      cutoff =
+        try do
+          resolve_cutoff(Keyword.get(opts, :cutoff), policy_cutoff)
+        rescue
+          exception ->
+            mark_accepted_run_failed(repo, storage_opts, "invalid_policy")
+            reraise exception, __STACKTRACE__
+        end
 
       span_dry_run? = dry_run? not in [false, nil]
 
@@ -125,33 +144,112 @@ defmodule Threadline.Retention do
        ) do
     started_at = DateTime.utc_now(:microsecond)
 
-    run_record =
-      repo.insert!(
-        RetentionRun.changeset(%RetentionRun{}, %{
-          status: "running",
-          started_at: started_at
+    run_record = accepted_run(repo, storage_opts, started_at)
+    previous_run_id = Process.put(@accepted_run_id_key, run_record.id)
+
+    try do
+      result =
+        purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts)
+
+      completed_at = DateTime.utc_now(:microsecond)
+      duration_ms = DateTime.diff(completed_at, started_at, :millisecond)
+
+      repo.update!(
+        RetentionRun.changeset(run_record, %{
+          status: "completed",
+          deleted_count: result.deleted_changes + result.deleted_transactions,
+          duration_ms: duration_ms,
+          completed_at: completed_at
         }),
         storage_opts
       )
 
-    result =
-      purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts)
+      result
+    rescue
+      exception ->
+        persist_failed_run(repo, storage_opts, run_record.id, started_at, exception)
+        reraise exception, __STACKTRACE__
+    catch
+      kind, reason ->
+        persist_failed_run(repo, storage_opts, run_record.id, started_at, reason)
+        :erlang.raise(kind, reason, __STACKTRACE__)
+    after
+      restore_run_id(previous_run_id)
+    end
+  end
 
+  defp accepted_run(repo, storage_opts, started_at) do
+    case Process.get(@accepted_run_id_key) do
+      nil ->
+        repo.insert!(
+          RetentionRun.changeset(%RetentionRun{}, %{
+            status: "running",
+            started_at: started_at,
+            deleted_count: 0
+          }),
+          storage_opts
+        )
+
+      run_id ->
+        run = repo.get!(RetentionRun, run_id, storage_opts)
+
+        repo.update!(
+          RetentionRun.changeset(run, %{
+            status: "running",
+            started_at: started_at,
+            deleted_count: 0,
+            error_message: nil
+          }),
+          storage_opts
+        )
+    end
+  end
+
+  defp mark_accepted_run_failed(repo, storage_opts, category) do
+    case Process.get(@accepted_run_id_key) do
+      nil ->
+        :ok
+
+      run_id ->
+        completed_at = DateTime.utc_now(:microsecond)
+        run = repo.get!(RetentionRun, run_id, storage_opts)
+
+        repo.update!(
+          RetentionRun.changeset(run, %{
+            status: "failed",
+            deleted_count: 0,
+            duration_ms: 0,
+            error_message: category,
+            completed_at: completed_at
+          }),
+          storage_opts
+        )
+    end
+  end
+
+  defp persist_failed_run(repo, storage_opts, run_id, started_at, _failure) do
     completed_at = DateTime.utc_now(:microsecond)
     duration_ms = DateTime.diff(completed_at, started_at, :millisecond)
+    run = repo.get!(RetentionRun, run_id, storage_opts)
 
     repo.update!(
-      RetentionRun.changeset(run_record, %{
-        status: "completed",
-        deleted_count: result.deleted_changes + result.deleted_transactions,
+      RetentionRun.changeset(run, %{
+        status: "failed",
         duration_ms: duration_ms,
+        error_message: "prune_error",
         completed_at: completed_at
       }),
       storage_opts
     )
-
-    result
+  rescue
+    tracking_error ->
+      Logger.error("threadline retention failure could not be persisted",
+        reason: inspect(tracking_error.__struct__)
+      )
   end
+
+  defp restore_run_id(nil), do: Process.delete(@accepted_run_id_key)
+  defp restore_run_id(value), do: Process.put(@accepted_run_id_key, value)
 
   defp resolve_cutoff(nil, policy_cutoff), do: policy_cutoff
 
@@ -206,17 +304,18 @@ defmodule Threadline.Retention do
       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
         step_started_at = System.monotonic_time()
         n1 = delete_change_batch(repo, cutoff, batch_size, storage_opts)
+        tc = tc + n1
+        checkpoint_progress(repo, storage_opts, tc + tt)
 
         n2 =
           if delete_empty? do
-            drain_orphan_batches(repo, batch_size, storage_opts)
+            drain_orphan_batches(repo, batch_size, storage_opts, tc + tt)
           else
             0
           end
 
         Threadline.Telemetry.emit_batch_purged(n1, n2, step_started_at)
 
-        tc = tc + n1
         tt = tt + n2
 
         Logger.info("threadline retention purge batch",
@@ -267,11 +366,11 @@ defmodule Threadline.Retention do
     n
   end
 
-  defp drain_orphan_batches(repo, batch_size, storage_opts) do
-    drain_orphans(0, repo, batch_size, storage_opts)
+  defp drain_orphan_batches(repo, batch_size, storage_opts, completed_count) do
+    drain_orphans(0, repo, batch_size, storage_opts, completed_count)
   end
 
-  defp drain_orphans(acc, repo, batch_size, storage_opts) do
+  defp drain_orphans(acc, repo, batch_size, storage_opts, completed_count) do
     subq =
       from(at in AuditTransaction,
         as: :audit_transaction,
@@ -290,8 +389,30 @@ defmodule Threadline.Retention do
            from(at in AuditTransaction, where: at.id in subquery(subq)),
            storage_opts
          ) do
-      {0, _} -> acc
-      {n, _} -> drain_orphans(acc + n, repo, batch_size, storage_opts)
+      {0, _} ->
+        acc
+
+      {n, _} ->
+        checkpoint_progress(repo, storage_opts, completed_count + acc + n)
+        drain_orphans(acc + n, repo, batch_size, storage_opts, completed_count)
+    end
+  end
+
+  defp checkpoint_progress(repo, storage_opts, deleted_count) do
+    case Process.get(@accepted_run_id_key) do
+      nil ->
+        :ok
+
+      run_id ->
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        repo.update_all(
+          from(r in RetentionRun, where: r.id == ^run_id and r.status == "running"),
+          [set: [deleted_count: deleted_count, updated_at: now]],
+          storage_opts
+        )
+
+        :ok
     end
   end
 end

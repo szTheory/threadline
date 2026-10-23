@@ -1,0 +1,8 @@
+{
+  "files": [
+    "examples/threadline_phoenix/lib/threadline_phoenix_web/components/layouts/app.html.heex"
+  ],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

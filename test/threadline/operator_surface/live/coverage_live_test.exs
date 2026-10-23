@@ -3,9 +3,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def authorize(_), do: Application.get_env(:threadline, :test_allow_coverage, true)
   end
 
-  defmodule Threadline.OperatorSurface.CoverageLiveTest.BrokenRepo do
-  end
-
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Router do
     use Threadline.OperatorSurfaceTest.Router
 
@@ -141,9 +138,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|<details class="tl-row-action tl-row-action--capture">|
         assert html =~ ~s|<summary class="tl-row-action__summary">|
         assert html =~ ~s|class="tl-command-copy"|
-        assert html =~ "mix threadline.gen.triggers --tables"
-        assert html =~ "Run mix threadline.verify_coverage after applying the migration."
-        assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables|
+        assert html =~ "mix threadline.gen.triggers --tables public."
+
+        assert html =~
+                 "Run mix threadline.verify_coverage --schema=public after applying the migration."
+
+        assert html =~ ~s|data-tl-copy="mix threadline.gen.triggers --tables public.|
+        assert html =~ ~s|aria-label="Copy public.|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
         assert html =~ "Fix rows marked Needs capture"
@@ -203,10 +204,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ ~r/Coverage: \d+ covered, \d+ need capture/
       end
 
-      test "shows 'Refresh' link with phx-click=refresh", %{conn: conn} do
+      test "shows the explicit Refresh coverage action", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage")
 
-        assert html =~ "Refresh"
+        assert html =~ "Refresh coverage"
         assert html =~ ~s|phx-click="refresh"|
       end
 
@@ -296,6 +297,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "selected-schema stale/error behavior" do
+      test "first read failure is unavailable rather than confirmed empty", %{conn: conn} do
+        force_coverage_read_failure!()
+
+        {:ok, view, html} = live(conn, "/audit/coverage?schema=public")
+
+        assert html =~ "Schema: public"
+
+        assert html =~
+                 "Coverage could not be read for schema public. Retry the inspection. No coverage result is confirmed."
+
+        assert html =~ "Coverage unavailable"
+        assert html =~ "Refresh coverage"
+        refute html =~ "No audited tables found"
+        refute html =~ "All tables captured"
+        refute html =~ ~s|data-testid="coverage-table"|
+        refute html =~ "Enum.uniq"
+
+        assert render(view) =~ "No coverage result is confirmed."
+      end
+
       test "same-schema refresh failure preserves last-good rows and checked_at", %{conn: conn} do
         {:ok, view, html} = live(conn, "/audit/coverage?schema=public")
 
@@ -304,37 +325,114 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "schema_migrations"
         assert html =~ ~s|data-testid="coverage-table"|
 
-        force_broken_repo!()
+        force_coverage_read_failure!()
 
         failed_html = render_click(view, "refresh")
 
         assert failed_html =~ "Schema: public"
         assert failed_html =~ "Checked"
-        assert failed_html =~ "Could not refresh coverage for public"
-        assert failed_html =~ "showing last known results"
-        assert failed_html =~ "Retry refresh"
+        assert failed_html =~ "Showing last successful inspection from "
+        assert failed_html =~ "The current refresh failed; these rows may be stale."
+        assert failed_html =~ "Coverage refresh failed"
         assert failed_html =~ "schema_migrations"
         assert failed_html =~ ~s|data-testid="coverage-table"|
+        refute failed_html =~ "No audited tables found"
+        refute failed_html =~ "All tables captured"
         refute failed_html =~ ~s|class="tl-alert tl-alert--error"|
       end
 
-      test "cross-schema catalog failure does not render prior selected-schema rows", %{
+      test "changed-schema read failure keeps the validated schema and offers retry", %{
         conn: conn
       } do
+        SQL.query!(Threadline.Test.Repo, "CREATE SCHEMA coverage_failed_tenant", [])
+
+        SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE coverage_failed_tenant.orders (id integer)",
+          []
+        )
+
+        on_exit(fn ->
+          SQL.query!(Threadline.Test.Repo, "DROP SCHEMA coverage_failed_tenant CASCADE", [])
+        end)
+
         {:ok, view, html} = live(conn, "/audit/coverage?schema=public")
 
         assert html =~ "Schema: public"
         assert html =~ "schema_migrations"
 
-        force_broken_repo!()
+        force_coverage_read_failure!()
 
-        failed_html = render_patch(view, "/audit/coverage?schema=tenant_demo")
+        failed_html = render_patch(view, "/audit/coverage?schema=coverage_failed_tenant")
 
-        assert failed_html =~ "Schema: tenant_demo"
-        assert failed_html =~ ~s|class="tl-alert tl-alert--error"|
+        assert failed_html =~ "Schema: coverage_failed_tenant"
+        assert failed_html =~ "Coverage unavailable"
+
+        assert failed_html =~
+                 "Coverage could not be read for schema coverage_failed_tenant. Retry the inspection. No coverage result is confirmed."
+
+        assert failed_html =~ ~s|id="coverage-schema"|
+
+        assert Regex.match?(
+                 ~r/<option[^>]*value="coverage_failed_tenant"[^>]*selected/,
+                 failed_html
+               )
+
+        assert failed_html =~ "Refresh coverage"
+        refute failed_html =~ "All tables captured"
+        refute failed_html =~ "Enum.uniq"
         refute failed_html =~ "schema_migrations"
         refute failed_html =~ ~s|data-testid="coverage-table"|
-        refute failed_html =~ ~s|aria-label="Selected schema readiness"|
+
+        assert render_click(view, "refresh") =~
+                 "Coverage could not be read for schema coverage_failed_tenant."
+      end
+
+      test "successful empty, one-table, and multi-table reads remain distinct", %{conn: conn} do
+        for schema <- ~w(coverage_empty_state coverage_one_state coverage_many_state) do
+          SQL.query!(Threadline.Test.Repo, "CREATE SCHEMA #{schema}", [])
+        end
+
+        SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE coverage_one_state.orders (id integer)",
+          []
+        )
+
+        SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE coverage_many_state.orders (id integer)",
+          []
+        )
+
+        SQL.query!(
+          Threadline.Test.Repo,
+          "CREATE TABLE coverage_many_state.members (id integer)",
+          []
+        )
+
+        on_exit(fn ->
+          for schema <- ~w(coverage_empty_state coverage_one_state coverage_many_state) do
+            SQL.query!(Threadline.Test.Repo, "DROP SCHEMA #{schema} CASCADE", [])
+          end
+        end)
+
+        {:ok, view, empty_html} = live(conn, "/audit/coverage?schema=coverage_empty_state")
+        assert empty_html =~ "No audited tables found"
+
+        assert empty_html =~
+                 "No tables were found in schema coverage_empty_state during this inspection."
+
+        refute empty_html =~ "Coverage unavailable"
+
+        one_html = render_patch(view, "/audit/coverage?schema=coverage_one_state")
+        assert one_html =~ "Not ready for coverage_one_state: 1 table needs capture."
+        assert one_html =~ "coverage_one_state.orders"
+
+        many_html = render_patch(view, "/audit/coverage?schema=coverage_many_state")
+        assert many_html =~ "Not ready for coverage_many_state: 2 tables need capture."
+        assert many_html =~ "coverage_many_state.members"
+        assert many_html =~ "coverage_many_state.orders"
       end
     end
 
@@ -403,7 +501,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=public")
 
         assert html =~ "Selected schema readiness"
-        assert html =~ "Refresh"
+        assert html =~ "Refresh coverage"
         assert html =~ "Add capture"
         assert html =~ "Excluded from readiness"
         assert html =~ "View activity"
@@ -426,10 +524,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         SQL.query!(
           Threadline.Test.Repo,
+          "CREATE TABLE IF NOT EXISTS tenant_demo.coverage_link_uncovered (id bigint PRIMARY KEY)",
+          []
+        )
+
+        SQL.query!(
+          Threadline.Test.Repo,
           TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
         )
 
         on_exit(fn ->
+          SQL.query!(
+            Threadline.Test.Repo,
+            "DROP TABLE IF EXISTS tenant_demo.coverage_link_uncovered CASCADE",
+            []
+          )
+
           SQL.query!(
             Threadline.Test.Repo,
             "DROP TABLE IF EXISTS tenant_demo.coverage_link_target CASCADE",
@@ -443,23 +553,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Schema: tenant_demo"
         assert html =~ "coverage_link_target"
+        assert html =~ "coverage_link_uncovered"
         assert html =~ "table_schema=tenant_demo"
         assert html =~ "table=coverage_link_target"
+        assert html =~ "mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"
+
+        assert html =~
+                 "Run mix threadline.verify_coverage --schema=tenant_demo after applying the migration."
+
+        assert html =~
+                 ~s|data-tl-copy="mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"|
       end
     end
 
-    defp force_broken_repo! do
-      original_repos = Application.get_env(:threadline, :ecto_repos)
+    defp force_coverage_read_failure! do
+      original_health = Application.get_env(:threadline, :health)
+      current_health = original_health || []
 
-      Application.put_env(:threadline, :ecto_repos, [
-        Threadline.OperatorSurface.CoverageLiveTest.BrokenRepo
-      ])
+      Application.put_env(
+        :threadline,
+        :health,
+        Keyword.put(current_health, :expected_uncovered_tables, nil)
+      )
 
       on_exit(fn ->
-        if original_repos do
-          Application.put_env(:threadline, :ecto_repos, original_repos)
+        if is_nil(original_health) do
+          Application.delete_env(:threadline, :health)
         else
-          Application.delete_env(:threadline, :ecto_repos)
+          Application.put_env(:threadline, :health, original_health)
         end
       end)
     end

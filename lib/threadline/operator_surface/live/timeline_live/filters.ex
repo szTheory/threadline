@@ -9,9 +9,57 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.UI
     alias Threadline.Semantics.ActorRef
 
+    attr(:form_error, :any, required: true)
+    attr(:query_error, :boolean, required: true)
+    attr(:timeline_path, :string, required: true)
+    attr(:filter_query, :string, required: true)
+    attr(:empty_changes, :boolean, required: true)
+    attr(:unknown_table_attempted, :boolean, required: true)
     attr(:filters_raw, :map, required: true)
     attr(:audited_tables, :list, required: true)
-    attr(:match_count, :integer, required: true)
+    attr(:match_count, :any, required: true)
+
+    def query_feedback(assigns) do
+      ~H"""
+      <%= if @form_error do %>
+        <div class="tl-alert tl-alert--error" role="alert">
+          <%= Helpers.invalid_filter_message(@form_error) %>
+        </div>
+      <% end %>
+
+      <UI.Data.error_state :if={@query_error}>
+        <:title>Timeline could not be loaded</:title>
+        Timeline could not be loaded. Check the applied filters and try again.
+        <:actions>
+          <a href={"#{@timeline_path}?#{@filter_query}"} class="tl-button tl-button--secondary">
+            Retry applied filters
+          </a>
+        </:actions>
+      </UI.Data.error_state>
+
+      <%= if @empty_changes and @unknown_table_attempted do %>
+        <div class="tl-alert tl-alert--info" role="status">
+          <%= Helpers.unknown_table_message(@filters_raw["table"], @audited_tables) %>
+        </div>
+      <% end %>
+
+      <%= if not is_nil(@match_count) and @match_count > 5_000 and @match_count < 10_001 do %>
+        <div class="tl-alert tl-alert--info" role="status">
+          Large export — will stream in chunks.
+        </div>
+      <% end %>
+
+      <%= if not is_nil(@match_count) and @match_count >= 10_001 do %>
+        <div class="tl-alert tl-alert--warning" role="alert">
+          Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
+        </div>
+      <% end %>
+      """
+    end
+
+    attr(:filters_raw, :map, required: true)
+    attr(:audited_tables, :list, required: true)
+    attr(:match_count, :any, required: true)
     attr(:coverage, :map, default: nil)
     attr(:timeline_path, :string, required: true)
 
@@ -100,7 +148,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
                   Reset to last 24h
                 </.link>
-                <button type="submit" class="tl-button tl-button--primary">
+                <button type="submit" class="tl-button tl-button--primary" phx-disable-with="Applying filters…">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                   Apply
                 </button>
@@ -121,6 +169,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:exports_enabled, :boolean, required: true)
     attr(:actor_ref, :any, default: nil)
     attr(:saved_views, :list, required: true)
+    attr(:search_url, :string, required: true)
+    attr(:form_error, :any, required: true)
     attr(:base_path, :string, required: true)
     attr(:filter_query, :string, required: true)
     attr(:export_ready, :boolean, required: true)
@@ -131,8 +181,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <UI.Overlay.drawer
         id="timeline-filters-drawer"
         class="tl-timeline-drawer"
-        phx-window-keydown={UI.Overlay.hide_drawer("timeline-filters-drawer")}
-        phx-key="Escape"
       >
         <div class="tl-timeline-drawer__header">
           <div class="tl-timeline-drawer__heading">
@@ -140,7 +188,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Filters and handoff
             </h2>
             <p id="timeline-filters-drawer-description" class="tl-modal__body">
-              Refine the current Timeline query, save reusable views, or package this result set for a handoff.
+              Refine the current Timeline query, save a reusable search, or package this result set for a handoff.
             </p>
           </div>
           <button
@@ -170,6 +218,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             background_export_ready={@background_export_ready}
           />
 
+          <section class="tl-utility-group tl-utility-group--share" aria-label="Share search">
+            <span class="tl-utility-group__label">Share</span>
+            <button
+              type="button"
+              class="tl-button tl-button--secondary"
+              data-tl-copy={@search_url}
+              disabled={not is_nil(@form_error)}
+              aria-describedby="timeline-share-hint"
+              aria-label="Copy search URL"
+            >
+              <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+              Copy search URL
+            </button>
+            <span
+              :if={Threadline.OperatorSurface.Script.enabled?()}
+              class="tl-copy-status"
+              data-tl-copy-status
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></span>
+            <p id="timeline-share-hint" class="tl-toolbar__hint">
+              <%= if @form_error do %>
+                Fix the Timeline filters before sharing this search.
+              <% else %>
+                This URL shares the applied filters. Results and access are determined by the receiving host.
+              <% end %>
+            </p>
+          </section>
+
           <.saved_views_group actor_ref={@actor_ref} saved_views={@saved_views} />
         </div>
       </UI.Overlay.drawer>
@@ -177,7 +255,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     attr(:window, :map, required: true)
-    attr(:match_count, :integer, required: true)
+    attr(:match_count, :any, required: true)
     attr(:coverage, :map, default: nil)
 
     defp command_facts(assigns) do
@@ -192,8 +270,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
         <div class="tl-status tl-timeline-fact">
           <span class="tl-timeline-fact__label">Matching changes</span>
-          <strong class="tl-timeline-fact__value"><%= Helpers.format_count(@match_count) %></strong>
-          <span class="tl-timeline-fact__detail">current result set</span>
+          <strong class="tl-timeline-fact__value"><%= if is_nil(@match_count), do: "Unknown", else: Helpers.format_count(@match_count) %></strong>
+          <span class="tl-timeline-fact__detail"><%= if is_nil(@match_count), do: "query did not complete", else: "current result set" %></span>
         </div>
         <div
           class="tl-timeline-fact"
@@ -216,7 +294,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <strong>Active filters</strong>
         <span class="tl-chip tl-chip--info" title={@window.title}>Window: <%= @window.label %></span>
         <span class="tl-filter-summary__window"><%= @window.detail %></span>
-        <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral">
+        <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral tl-filter-summary__filter">
           <%= label %>: <%= value %>
         </span>
         <span :if={@active_filters == []} class="tl-filter-summary__empty">
@@ -281,7 +359,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         </div>
         <div class="tl-toolbar__actions tl-timeline-drawer__actions">
-          <button type="submit" form="timeline-filters" class="tl-button tl-button--primary">
+          <button type="submit" form="timeline-filters" class="tl-button tl-button--primary" phx-disable-with="Applying filters…">
             <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
             Apply filters
           </button>
@@ -344,9 +422,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           phx-click="request_background_export"
           type="button"
           class="tl-button tl-button--quiet-primary"
+          data-tl-mutating
         >
           <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-          Queue export
+          Export changes
         </button>
         <.link
           :if={@export_ready}
@@ -387,33 +466,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <section
         :if={ActorRef.identifiable?(@actor_ref)}
         class="tl-utility-group tl-utility-group--views"
-        aria-label="Saved views"
+        aria-label="Saved searches"
       >
-        <span class="tl-utility-group__label">Views</span>
+        <span class="tl-utility-group__label">Saved searches</span>
         <form id="save-view-form" phx-submit="save-view" class="tl-saved-view-form">
           <input
             type="text"
             name="name"
-            placeholder="Name this view..."
-            aria-label="View name"
+            placeholder="Name this search…"
+            aria-label="Saved search name"
             required
             class="tl-control"
           />
           <button type="submit" class="tl-button tl-button--secondary" data-tl-mutating>
             <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-            Save view
+            Save search
           </button>
         </form>
-        <ul :if={@saved_views != []} class="tl-toolbar__saved-list" aria-label="Saved views">
+        <div :if={@saved_views == []} class="tl-alert tl-alert--info tl-saved-search-empty" role="status">
+          <h3 class="tl-saved-search-empty__title">No saved searches</h3>
+          <p>Save the applied Timeline filters to return to this search.</p>
+        </div>
+        <ul :if={@saved_views != []} class="tl-toolbar__saved-list" aria-label="Saved searches">
           <li :for={view <- @saved_views} class="tl-toolbar__saved-item">
             <button
               phx-click="apply-view"
               phx-value-id={view.id}
               type="button"
-              class="tl-button tl-button--secondary"
+              class="tl-button tl-button--secondary tl-saved-search__apply"
+              aria-label={"Apply saved search " <> view.name}
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-              <%= view.name %>
+              <span class="tl-saved-search__content">
+                <strong class="tl-saved-search__name"><%= view.name %></strong>
+                <span class="tl-saved-search__summary"><%= Helpers.saved_search_summary(view.filters) %></span>
+              </span>
             </button>
             <button
               phx-click="delete-view"

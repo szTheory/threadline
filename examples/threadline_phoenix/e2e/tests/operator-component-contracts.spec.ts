@@ -36,6 +36,7 @@ const REQUIRED_GROUP_STORY_IDS = [
 // round 4 dropped (REVIEW.md CR-04, WR-07) while keeping the runtime lookup.
 async function resolveGroupStories(page: Page): Promise<string[]> {
   await page.goto("/audit/__stress?category=group");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const ids = (
     await page
       .locator('[data-testid="stress-story-list"] .tl-stress__story-id')
@@ -185,6 +186,7 @@ test.describe("Phase 177 UAT #1 — group catalog holds together at every viewpo
             await test.step(`${width}px`, async () => {
               await page.setViewportSize({ width, height: 900 });
               await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
+              await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
 
               const preview = page.getByTestId("stress-preview");
               await expect(preview).toBeVisible();
@@ -319,6 +321,68 @@ test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motio
       (part) => part === "0.001s",
       "drawer motion should collapse to 0.001s under reduced motion",
     );
+  });
+});
+
+test.describe("shared overlays at a short narrow viewport", () => {
+  test.use({ hasTouch: true });
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.setViewportSize({ width: 320, height: 420 });
+  });
+
+  test("long toast and drawer content stay locally readable without page overflow", async ({
+    page,
+  }) => {
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const toast = page.locator("#stress-toast");
+    await expect(toast).toBeVisible();
+    await toast.locator(".tl-toast__body").evaluate((element) => {
+      element.textContent = "Repeated confirmation details ".repeat(24);
+    });
+    await expect(toast.getByRole("button", { name: "Close" })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    await expectBoxWithinViewport(toast, 320);
+    await toast.getByRole("button", { name: "Close" }).tap();
+    await expect(toast).toBeHidden();
+
+    const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await drawerTrigger.tap();
+    const drawer = page.getByRole("dialog", { name: "Stress drawer" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Close stress drawer" })).toBeVisible();
+    await drawer.evaluate((element) => {
+      const content = element.querySelector(".tl-modal__body");
+      if (content) content.textContent = "Recorded context ".repeat(36);
+    });
+    await expectNoHorizontalOverflow(page);
+    await expectBoxWithinViewport(drawer, 320);
+    const drawerClose = drawer.getByRole("button", { name: "Close stress drawer" });
+    await drawerClose.tap();
+    await expect(drawer).toBeHidden();
+    await expect(drawerTrigger).toBeFocused();
+
+    const modalTrigger = page.getByRole("button", { name: "Show Modal", exact: true });
+    await modalTrigger.tap();
+    const modal = page.locator("#stress-modal-focus");
+    await expect(modal).toHaveAccessibleName("Stress modal");
+    await modal.locator(".tl-modal__title").evaluate((element) => {
+      element.textContent = "LongUnbrokenOverlayLabel".repeat(8);
+    });
+    await modal.locator(".tl-modal__body").evaluate((element) => {
+      element.textContent = "Recorded context ".repeat(180);
+    });
+    const panel = page.locator("#stress-modal-content");
+    await expectBoxWithinViewport(panel, 320);
+    const dimensions = await panel.evaluate((element) => ({ height: element.getBoundingClientRect().height, scroll: element.scrollHeight, client: element.clientHeight }));
+    expect(dimensions.height).toBeLessThanOrEqual(420);
+    expect(dimensions.scroll).toBeGreaterThan(dimensions.client);
+    await expectNoHorizontalOverflow(page);
+    const confirm = page.getByRole("button", { name: "Confirm stress modal" });
+    await confirm.tap();
+    await expect(modal).toBeHidden();
+    await expect(modalTrigger).toBeFocused();
   });
 });
 

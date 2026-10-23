@@ -14,6 +14,15 @@ const viewports = [
   { name: "desktop-1024", width: 1024, height: 900, isMobile: false },
   { name: "desktop-1440", width: 1440, height: 960, isMobile: false },
 ];
+const acceptanceViewports = [320, 375, 768, 1280].map(
+  (width) =>
+    viewports.find((viewport) => viewport.width === width) ?? {
+      name: `viewport-${width}`,
+      width,
+      height: 900,
+      isMobile: false,
+    },
+);
 
 type TimelineParams = {
   correlation?: string;
@@ -82,12 +91,26 @@ async function expectLiveViewConnected(page: Page) {
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
-  const overflow = await page.evaluate(() => {
+  const { overflow, offenders } = await page.evaluate(() => {
     const root = document.documentElement;
-    return root.scrollWidth - root.clientWidth;
+    return {
+      overflow: root.scrollWidth - root.clientWidth,
+      offenders: Array.from(document.querySelectorAll("body *"))
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${typeof element.className === "string" && element.className ? `.${element.className.trim().replace(/\s+/g, ".")}` : ""}`,
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          };
+        })
+        .filter((element) => element.right > root.clientWidth + 1)
+        .slice(0, 8),
+    };
   });
 
-  expect(overflow).toBeLessThanOrEqual(1);
+  expect(overflow, `horizontal overflow offenders: ${JSON.stringify(offenders)}`).toBeLessThanOrEqual(1);
 }
 
 async function expectBoxWithinViewport(locator: Locator, viewportWidth: number) {
@@ -176,6 +199,23 @@ async function expectTimelineWorkflow(page: Page, viewportWidth: number) {
   await expect(firstRow).toBeVisible();
   await expect(transaction).toBeVisible();
 
+  const factsLayout = await page.locator(".tl-timeline-command__facts").evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      display: styles.display,
+      columns: styles.gridTemplateColumns.split(" ").length,
+    };
+  });
+  if (viewportWidth <= 480) {
+    expect(factsLayout.display).toBe("none");
+  } else if (viewportWidth < 768) {
+    expect(factsLayout.columns).toBe(1);
+  } else if (viewportWidth < 1280) {
+    expect(factsLayout.columns).toBe(2);
+  } else {
+    expect(factsLayout.columns).toBe(3);
+  }
+
   const rowMetrics = await page.evaluate(() => {
     const command = document.querySelector(".tl-timeline-command");
     const firstRow = document.querySelector('[data-testid="timeline-row"]');
@@ -240,7 +280,7 @@ async function expectDrawerFocusReturn(page: Page, viewportWidth: number) {
   await expect(drawer.getByLabel("Actor id")).toBeVisible();
   await expect(drawer.getByRole("button", { name: "Apply filters" })).toBeVisible();
   await expect(drawer.getByRole("link", { name: "Carry to Exports" })).toBeVisible();
-  await expect(drawer.getByRole("button", { name: "Queue export" })).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Export changes" })).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
@@ -313,7 +353,7 @@ async function expectExportAnchorsUseCurrentQuery(page: Page, proof: CorrelatedP
 
   await carry.focus();
   await page.keyboard.press("Tab");
-  await expect(drawer.getByRole("button", { name: "Queue export" })).toBeFocused();
+  await expect(drawer.getByRole("button", { name: "Export changes" })).toBeFocused();
 
   for (const format of ["CSV", "JSON", "NDJSON"]) {
     await page.keyboard.press("Tab");
@@ -553,6 +593,174 @@ async function expectReducedMotionStableRows(page: Page) {
 }
 
 test.describe("Timeline investigation flow browser proof", () => {
+  for (const viewport of acceptanceViewports) {
+    test.describe(`long applied correlation at ${viewport.width}px`, () => {
+      test.use({
+        viewport: { width: viewport.width, height: viewport.height },
+        isMobile: viewport.isMobile,
+      });
+
+      test("keeps the complete 232-character query and its exact result within the page", async ({ page }) => {
+        await login(page);
+        const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const prefix = `tl239-long-${suffix}-`;
+        const correlation = `${prefix}${"x".repeat(232 - prefix.length)}`;
+        expect(correlation).toHaveLength(232);
+
+        const response = await page.request.post("/api/posts", {
+          data: { post: { title: "Long correlation proof", slug: `long-correlation-${suffix}` } },
+          headers: {
+            "content-type": "application/json",
+            "x-correlation-id": correlation,
+            "x-request-id": `long-request-${suffix}`,
+          },
+        });
+        expect(response.status()).toBe(201);
+
+        await page.goto(timelineUrl({ table: "posts" }));
+        await expectLiveViewConnected(page);
+        const filters = page.locator("#timeline-filters");
+        const correlationInput = filters.getByLabel("Correlation id", { exact: true });
+        await correlationInput.fill(correlation);
+        await expect(correlationInput).toHaveValue(correlation);
+        await filters.getByRole("button", { name: "Apply", exact: true }).click();
+
+        await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);
+        await expect(correlationInput).toHaveValue(correlation);
+        const activeFilter = page
+          .locator(".tl-filter-summary__filter")
+          .filter({ hasText: correlation });
+        await expect(activeFilter).toBeVisible();
+        await expect(activeFilter).toContainText(correlation);
+        const filterCornerRadius = await activeFilter.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element).borderTopLeftRadius),
+        );
+        expect(filterCornerRadius).toBeLessThanOrEqual(4);
+        const matchingRows = page.getByTestId("timeline-row").filter({
+          has: page.locator(`[aria-label="Copy correlation id"][data-tl-copy="${correlation}"]`),
+        });
+        await expect(matchingRows).toHaveCount(1);
+        await expect(matchingRows.first()).toBeVisible();
+        await expect(page.locator(".tl-pager__range")).toContainText("Showing 1 of 1 matching changes");
+        await expectNoHorizontalOverflow(page);
+
+        for (const control of [
+          filters.getByLabel("From", { exact: true }),
+          filters.getByLabel("To", { exact: true }),
+          correlationInput,
+          filters.getByRole("button", { name: "Apply", exact: true }),
+          matchingRows.first().getByTestId("transaction-link"),
+        ]) {
+          await expectBoxWithinViewport(control, viewport.width);
+        }
+      });
+    });
+  }
+
+  test("starts at Home, applies a Timeline query, and opens its transaction", async ({
+    page,
+  }) => {
+    await login(page);
+    const proof = await createCorrelatedPost(page);
+
+    await page.goto("/audit");
+    await expect(
+      page.getByText(
+        "Search captured changes by time, table, actor, or correlation. Open a transaction to inspect its row changes and any recorded action or context.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Open the timeline" }).click();
+    await expect(page).toHaveURL(/\/audit\/timeline(?:\?|$)/);
+
+    const filters = page.locator("#timeline-filters");
+    await filters.getByLabel("From", { exact: true }).fill("2020-01-01T00:00");
+    await filters.getByLabel("To", { exact: true }).fill("2099-01-01T00:00");
+    await filters.getByLabel("Table", { exact: true }).fill(proof.table);
+    await filters
+      .getByLabel("Correlation id", { exact: true })
+      .fill(proof.correlation);
+    await filters.getByRole("button", { name: "Apply", exact: true }).click();
+
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("table"))
+      .toBe(proof.table);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("correlation_id"))
+      .toBe(proof.correlation);
+    await page.reload();
+    await expect(filters.getByLabel("Table", { exact: true })).toHaveValue(
+      proof.table,
+    );
+
+    const matchingRow = page
+      .getByTestId("timeline-row")
+      .filter({
+        has: page.locator(
+          `[aria-label="Copy correlation id"][data-tl-copy="${proof.correlation}"]`,
+        ),
+      })
+      .first();
+    await expect(matchingRow).toBeVisible();
+    await matchingRow.getByTestId("transaction-link").click();
+
+    await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
+    await expect(
+      page.getByRole("heading", { name: "Transaction", exact: true }),
+    ).toBeVisible();
+    const changes = page.getByTestId("transaction-change-row");
+    await expect(changes).toHaveCount(1);
+    await expect(changes.first()).toContainText("INSERT");
+    await expect(changes.first()).toContainText(proof.table);
+  });
+
+  test("keeps draft edits unapplied and drops unsupported URL parameters", async ({
+    page,
+  }) => {
+    await login(page);
+    const proof = await createCorrelatedPost(page);
+    const appliedUrl = `${timelineUrl({ table: proof.table, correlation: proof.correlation })}&scope=forged`;
+    await page.goto(appliedUrl);
+
+    const table = page.locator("#filter-table");
+    const matchingRow = page
+      .getByTestId("timeline-row")
+      .filter({
+        has: page.locator(
+          `[aria-label="Copy correlation id"][data-tl-copy="${proof.correlation}"]`,
+        ),
+      })
+      .first();
+    await expect(matchingRow).toBeVisible();
+    await expect(page.locator(".tl-pager__range")).toContainText(
+      "Showing 1 of 1 matching changes",
+    );
+
+    await table.fill("draft_without_apply");
+    await expect(page).toHaveURL(appliedUrl);
+    await expect(matchingRow).toBeVisible();
+    await expect(page.locator(".tl-pager__range")).toContainText(
+      "Showing 1 of 1 matching changes",
+    );
+
+    await page
+      .locator("#timeline-filters")
+      .getByRole("button", { name: "Apply", exact: true })
+      .click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("table")).toBe(
+      "draft_without_apply",
+    );
+    expect(new URL(page.url()).searchParams.has("scope")).toBe(false);
+    await expect(matchingRow).toHaveCount(0);
+    await expect(page.locator(".tl-pager__range")).toHaveCount(0);
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: "No changes match these filters" }),
+    ).toBeVisible();
+  });
+
   for (const viewport of viewports) {
     test.describe(`${viewport.name}`, () => {
       test.use({

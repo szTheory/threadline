@@ -105,15 +105,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     Add a fixture-backed story to the stress registry so this category can be audited.
                   </p>
                 </div>
-                <a
+                <.link
                   :for={story <- @stories}
                   class={story_link_class(story, @selected_story)}
-                  href={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
+                  patch={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
                 >
                   <span class="tl-stress__story-id"><%= story.id %></span>
                   <span class="tl-stress__story-meta"><%= story.category %> / <%= story.status %></span>
                   <span class="tl-stress__story-fixture"><%= story.fixture_key %></span>
-                </a>
+                </.link>
               </div>
             </aside>
       """
@@ -355,6 +355,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    attr(:overlay_fixture_state, :string, default: "ready")
+
     def ui_matrix(assigns) do
       ~H"""
                 <div class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
@@ -368,7 +370,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                   <.ui_matrix_forms />
 
-                  <.ui_matrix_overlays />
+                  <.ui_matrix_overlays overlay_fixture_state={@overlay_fixture_state} />
                 </div>
       """
     end
@@ -568,6 +570,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    attr(:overlay_fixture_state, :string, default: "ready")
+
     defp ui_matrix_overlays(assigns) do
       ~H"""
                   <div class="tl-space-y-4">
@@ -645,6 +649,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </Threadline.OperatorSurface.UI.Actions.button>
                       </Threadline.OperatorSurface.UI.Overlay.drawer>
                       
+                      <Threadline.OperatorSurface.UI.Actions.button
+                        :if={@overlay_fixture_state != "removed"}
+                        id="stress-edge-opener"
+                        phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer("stress-edge")}
+                      >Open overlay edge cases</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Overlay.drawer id="stress-edge">
+                        <h2 id="stress-edge-title">Overlay edge cases</h2>
+                        <p id="stress-edge-description">Mounted patch state: <span id="stress-edge-state">{@overlay_fixture_state}</span></p>
+                        <div :if={@overlay_fixture_state == "ready"}>
+                          <Threadline.OperatorSurface.UI.Actions.button data-tl-initial-focus phx-click="overlay-fixture" phx-value-state="empty">Remove dialog controls</Threadline.OperatorSurface.UI.Actions.button>
+                          <Threadline.OperatorSurface.UI.Actions.button phx-click="overlay-fixture" phx-value-state="disabled">Disable dialog controls</Threadline.OperatorSurface.UI.Actions.button>
+                          <Threadline.OperatorSurface.UI.Actions.button phx-click="overlay-fixture" phx-value-state="removed">Remove opener</Threadline.OperatorSurface.UI.Actions.button>
+                          <Threadline.OperatorSurface.UI.Overlay.dropdown id="stress-nested">
+                            <:trigger>Drawer actions</:trigger>
+                            <button type="button" role="menuitem">Inspect evidence</button>
+                          </Threadline.OperatorSurface.UI.Overlay.dropdown>
+                        </div>
+                        <button :if={@overlay_fixture_state == "disabled"} disabled>Unavailable action</button>
+                        <p :if={@overlay_fixture_state != "ready"} phx-mounted={JS.focus(to: "#stress-edge-content")} data-tl-patch-focus>
+                          Dialog updated; press Escape to close.
+                        </p>
+                      </Threadline.OperatorSurface.UI.Overlay.drawer>
+
                       <Threadline.OperatorSurface.UI.Overlay.toast id="stress-toast" kind="info" title="Toast Title">
                         Toast message body
                       </Threadline.OperatorSurface.UI.Overlay.toast>

@@ -237,6 +237,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit/rows/users/row-path-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
 
+    test "timeline origin keeps only canonical filters through as-of and safe return", %{
+      conn: conn
+    } do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-context"},
+        data_after: %{"id" => "row-context", "name" => "Context Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      path =
+        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&private_scope=secret"
+
+      assert {:ok, lv, html} = live(conn, path)
+
+      assert html =~
+               ~s|href="/audit/timeline?table=users&amp;actor_kind=service&amp;correlation_id=rel-42"|
+
+      assert html =~
+               ~s|href="/audit/rows/users/row-context?origin=timeline&amp;table=users&amp;actor_kind=service&amp;correlation_id=rel-42&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+
+      refute html =~ "private_scope"
+
+      render_change(element(lv, "form[phx-change='update-as-of']"), %{
+        "as_of" => "2026-10-03T12:00"
+      })
+
+      assert_patch(
+        lv,
+        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&as_of=2026-10-03T12%3A00%3A00Z"
+      )
+    end
+
+    test "unknown row-history origin discards supplied return state", %{conn: conn} do
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/rows/users/row-unknown?origin=https%3A%2F%2Fevil.example&table=users&private_scope=secret"
+               )
+
+      assert html =~ ~s|href="/audit/timeline"|
+      refute html =~ "evil.example"
+      refute html =~ "private_scope"
+    end
+
     test "first-class row-history path preserves slash-containing record ids", %{conn: conn} do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
@@ -251,7 +300,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, lv, html} = live(conn, "/audit/rows/users/tenant%2Frow-1")
       assert html =~ "Segment Value"
-      assert html =~ ~s|href="/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12:00:00|
+      assert html =~ ~s|href="/audit/rows/users/tenant%2Frow-1?as_of=2026-10-03T12%3A00%3A00|
 
       render_change(element(lv, "form[phx-change='update-as-of']"), %{
         "as_of" => "2026-10-03T12:00"

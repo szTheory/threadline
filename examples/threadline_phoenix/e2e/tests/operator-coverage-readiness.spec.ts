@@ -125,7 +125,7 @@ for (const viewport of viewports) {
         name: "Selected schema readiness",
       });
       const schemaSelect = page.locator("#coverage-schema");
-      const table = page.getByTestId("coverage-table");
+      const table = page.getByRole("table", { name: "Coverage for schema public" });
       const firstUncovered = page.locator(".tl-table__row--uncovered").first();
       const firstCoveredLink = page
         .locator(".tl-table__row--covered")
@@ -147,10 +147,33 @@ for (const viewport of viewports) {
           Array.from(select.options).map((option) => option.value),
       );
       expect(optionValues).toContain("public");
-      await expect(page.getByRole("button", { name: "Refresh" })).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Refresh coverage" }),
+      ).toBeVisible();
       await expect(table).toBeVisible();
       await expect(firstUncovered.getByText("Add capture")).toBeVisible();
       await expect(firstCoveredLink).toBeVisible();
+
+      const uncoveredTable = (
+        await firstUncovered.locator('td[data-label="TABLE"] code').textContent()
+      )?.trim();
+      expect(uncoveredTable).toBeTruthy();
+      await firstUncovered.locator(".tl-row-action__summary").click();
+      const command = firstUncovered.locator(".tl-remediation__command");
+      await expect(command).toHaveText(
+        `mix threadline.gen.triggers --tables public.${uncoveredTable}`,
+      );
+      await expect(
+        firstUncovered.getByRole("button", {
+          name: `Copy public.${uncoveredTable} capture command`,
+        }),
+      ).toHaveAttribute(
+        "data-tl-copy",
+        `mix threadline.gen.triggers --tables public.${uncoveredTable}`,
+      );
+      await expect(firstUncovered).toContainText(
+        "Run mix threadline.verify_coverage --schema=public after applying the migration.",
+      );
 
       await expectBoxWithinViewport(verdict, viewport.width);
       await expectBoxWithinViewport(schemaSelect, viewport.width);
@@ -169,7 +192,7 @@ test.describe("Coverage readiness keyboard and row-action proof", () => {
     await openCoverage(page);
 
     const schemaSelect = page.locator("#coverage-schema");
-    const refresh = page.getByRole("button", { name: "Refresh" });
+    const refresh = page.getByRole("button", { name: "Refresh coverage" });
     const firstAction = page.locator(".tl-row-action").first();
     const summary = firstAction.locator(".tl-row-action__summary");
 

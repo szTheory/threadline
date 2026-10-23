@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Phoenix.LiveView.JS
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Query.FilterParams
 
     def update(assigns, socket) do
       schemas = assigns[:threadline_schemas] || %{}
@@ -19,6 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:table, table)
         |> assign(:record_id, record_id)
         |> assign_new(:close_path, fn -> assigns[:base_path] end)
+        |> assign_new(:return_label, fn -> "Timeline" end)
         |> assign_new(:history_path, fn ->
           "#{assigns[:base_path]}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
         end)
@@ -53,17 +55,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:ok,
            socket
            |> assign(:error, nil)
+           |> assign(:retryable, false)
            |> assign(:history, history)
            |> assign(:snapshot_result, snapshot_result)
            |> assign(:as_of_dt, as_of_dt)}
         rescue
+          _error in DBConnection.ConnectionError ->
+            {:ok,
+             socket
+             |> assign(:error, unavailable_message(socket.assigns.return_label))
+             |> assign(:retryable, true)
+             |> assign(:history, [])
+             |> assign(:snapshot_result, nil)}
+
           e in ArgumentError ->
             {:ok,
              assign(
                socket,
                :error,
                "Row history could not be loaded for this key: " <> Exception.message(e)
-             )}
+             )
+             |> assign(:retryable, false)}
         end
       else
         {:ok,
@@ -71,8 +83,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            socket,
            :error,
            "Table '#{assigns.table}' is not mapped to an Ecto schema. Configure :schemas in the auth plug."
-         )}
+         )
+         |> assign(:retryable, false)}
       end
+    end
+
+    def handle_event("retry", _params, socket) do
+      retry_assigns =
+        Map.take(socket.assigns, [
+          :id,
+          :table,
+          :record_id,
+          :as_of,
+          :base_path,
+          :close_path,
+          :return_label,
+          :history_path,
+          :threadline_schemas,
+          :repo,
+          :scope,
+          :scope_query_fn
+        ])
+
+      {:ok, socket} = update(retry_assigns, socket)
+      {:noreply, socket}
     end
 
     def handle_event("update-as-of", %{"as_of" => as_of_str}, socket) do
@@ -94,6 +128,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <UI.Overlay.drawer
           id={@id}
           show
+          motion={:immediate}
           on_cancel={JS.patch(@close_path)}
           class="tl-row-history-drawer"
           data-testid="row-history-drawer"
@@ -114,7 +149,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
 
           <%= if @error do %>
-            <div class="tl-empty tl-empty--error"><%= @error %></div>
+            <div class="tl-empty tl-empty--error" role="alert">
+              <p class="tl-empty__body"><%= @error %></p>
+              <button :if={@retryable} type="button" phx-click="retry" phx-target={@myself} class="tl-button tl-button--secondary">
+                Retry row history
+              </button>
+            </div>
           <% else %>
             <div class="tl-subview__content">
               <div class="tl-subview__panel">
@@ -132,7 +172,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <ul class="tl-subview__timeline">
                   <%= for change <- @history do %>
                     <li>
-                      <.link patch={"#{@history_path}?as_of=#{DateTime.to_iso8601(change.captured_at)}"}>
+                      <.link patch={as_of_path(@history_path, change.captured_at)}>
                         <span class="tl-change__op"><%= change.op %></span>
                         <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
                           <%= Presentation.human_time(change.captured_at) %>
@@ -181,8 +221,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp schema_for_atom_key(_entry, _table), do: nil
 
     defp as_of_path(history_path, %DateTime{} = as_of) do
-      "#{history_path}?#{URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})}"
+      uri = URI.parse(history_path)
+      params = if uri.query, do: URI.decode_query(uri.query), else: %{}
+      origin_query = timeline_origin_query(params)
+      as_of_query = URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})
+      query = Enum.reject([origin_query, as_of_query], &(&1 == "")) |> Enum.join("&")
+      path = uri.path || history_path
+
+      if query == "", do: path, else: path <> "?" <> query
     end
+
+    defp timeline_origin_query(%{"origin" => "timeline"} = params) do
+      filter_query =
+        params |> FilterParams.filters_raw_from_params() |> FilterParams.canonical_query()
+
+      Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
+    end
+
+    defp timeline_origin_query(_params), do: ""
+
+    defp unavailable_message("Timeline"),
+      do: "Row history is unavailable. Retry row history or return to Timeline."
+
+    defp unavailable_message(_return_label),
+      do: "Row history is unavailable. Retry row history or return to the transaction."
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 

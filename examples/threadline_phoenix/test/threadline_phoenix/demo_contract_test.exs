@@ -101,7 +101,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         encoded = Jason.encode!(reply_change.data_after)
         assert encoded =~ "[REDACTED]"
-        refute encoded =~ "WALKTHROUGH-INTERNAL-SECRET-4521"
+        refute encoded =~ "synthetic-secret-canary-239-6f71"
       end)
     end
   end
@@ -192,6 +192,19 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     test "double demo.reset keeps heroes and semantic fingerprint stable" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         first = semantic_fingerprint()
+        run_id = Manifest.evidence_run_id(:offboarded_retention)
+
+        subject_ref = %{
+          "run_id" => run_id,
+          "org_slug" => Manifest.org_slug(:offboarded_co),
+          "organization_id" => Manifest.org_id(:offboarded_co)
+        }
+
+        assert length(
+                 Threadline.Evidence.list_subject_ref_history("retention_run", subject_ref,
+                   repo: Repo
+                 )
+               ) == 3
 
         assert first.org_count == 3
         assert first.acme_ticket_count >= 45
@@ -205,6 +218,12 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert second.acme_slug == first.acme_slug
         assert second.org_count == first.org_count
         assert second.acme_ticket_count == first.acme_ticket_count
+
+        assert length(
+                 Threadline.Evidence.list_subject_ref_history("retention_run", subject_ref,
+                   repo: Repo
+                 )
+               ) == 3
 
         acme = Repo.get_by!(Organization, slug: "acme")
         assert Repo.get_by!(Ticket, organization_id: acme.id, number: 4521).status == "closed"

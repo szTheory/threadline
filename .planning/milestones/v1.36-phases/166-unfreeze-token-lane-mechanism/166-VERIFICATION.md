@@ -2,7 +2,8 @@
 phase: 166-unfreeze-token-lane-mechanism
 verified: 2026-06-13T05:43:15Z
 updated: 2026-06-13T05:43:15Z
-status: complete
+status: passed
+legacy_status: complete
 verification_mode: automated
 manual_uat: not_required
 score: 7/7 must-haves verified

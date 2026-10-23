@@ -77,8 +77,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:job, ~r/(?<![A-Za-z0-9])J\d+(?![A-Za-z0-9])/i}
     ]
 
-    # Sealed before the rendered-output edits begin. Plan 201-02 consumes these
-    # structure-only receipts instead of accepting a replayed visual baseline.
+    # Historical Phase 238 receipts stay immutable while the current candidate
+    # gets its own reviewed receipt set after intentional Phase 239 edits.
     @pre_edit_receipts %{
       "start.record_lookup" => %{
         elements: 20,
@@ -103,6 +103,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "row_history.shell" => %{
         elements: 114,
         sha256: "4994a628aaeb94eeb33ba105015bdfa05a36994316787f40a6d7f27dc838ebbf"
+      },
+      "timeline.carry_to_exports" => %{
+        elements: 4,
+        sha256: "eb676f68c6ff8f1073d2974ca829b9997a4695ad5734cc8ac2027dd676833c2a"
+      }
+    }
+
+    @phase_240_receipts %{
+      "start.record_lookup" => %{
+        elements: 20,
+        sha256: "c2df4557e8cd230da5fbd64275b9753c339527ad681dd81810701d2d4e6287ce"
+      },
+      "start.correlation_lookup" => %{
+        elements: 12,
+        sha256: "eb8c3a7ea07c63c3b386244c4f356d1820bbdd15eea970d678a2c5dbe8a4f9b8"
+      },
+      "exports.timeline_context" => %{
+        elements: 49,
+        sha256: "e172d6b5460e42f716101671b48cbfbb197a683bc7d07b52ddc5d1a9f7bda313"
+      },
+      "exports.evidence_context" => %{
+        elements: 45,
+        sha256: "896fb7295a14dcdb6a12f04ad9ea2def3e5005cc3d0bac94e2b6ced3900f7252"
+      },
+      "evidence.carry_to_exports" => %{
+        elements: 1,
+        sha256: "16250bb948aa1f2dcb3d36d78418c9b151fcf49fa5cb438c710588f2f8859810"
+      },
+      "row_history.shell" => %{
+        elements: 118,
+        sha256: "baf2ca11fb3c1a3d0a91a9238bad66472bf7453b30f4a8f50b44c864fb80bac0"
       },
       "timeline.carry_to_exports" => %{
         elements: 4,
@@ -265,16 +296,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                scan_planning_vocabulary("host-data-control", "Customer note for Phase 201")
     end
 
-    test "seven pre-edit structures have stable non-empty receipts", %{conn: conn} do
+    test "seven current structures match the reviewed Phase 240 receipts", %{conn: conn} do
       receipts =
         conn
         |> representative_render_inventory()
         |> Map.new(fn {node_id, html} -> {node_id, structure_receipt(node_id, html)} end)
 
-      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@pre_edit_receipts) |> Enum.sort()
+      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_240_receipts) |> Enum.sort()
       assert Enum.all?(receipts, fn {_id, receipt} -> receipt.elements > 0 end)
 
-      assert receipts == @pre_edit_receipts
+      assert receipts == @phase_240_receipts
     end
 
     test "canonical structure ignores copy and provenance but detects meaningful mutations" do
@@ -478,7 +509,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.map(&to_string/1)
       |> Enum.map(&Path.relative_to(&1, @reference_corpus_root))
       |> Enum.map(&normalize_path/1)
-      |> Enum.reject(&(&1 in ["README.md", "manifest.sha256"]))
+      |> Enum.reject(
+        &(&1 in [
+            "README.md",
+            "manifest.sha256",
+            "route-inventory.json",
+            "source-surface-checklist.json"
+          ])
+      )
       |> Enum.sort()
       |> Enum.map(fn path ->
         bytes = File.read!(Path.join(@reference_corpus_root, path))

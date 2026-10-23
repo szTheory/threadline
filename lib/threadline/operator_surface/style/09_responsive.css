@@ -108,6 +108,18 @@
   }
 
   @media (max-width: 480px) {
+    .tl-evidence__group-footer {
+      gap: var(--tl-space-2);
+      margin-top: var(--tl-space-2);
+    }
+
+    .tl-evidence__group-footer > .tl-link--deep {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--tl-hit-area);
+      padding: 0 var(--tl-space-2);
+    }
+
     .tl-shell-nav__panel {
       gap: var(--tl-space-2);
       padding: 0 var(--tl-space-2) var(--tl-space-2);
@@ -147,11 +159,29 @@
 
     .tl-filter-grid {
       gap: var(--tl-space-2);
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+  }
+
+  @media (max-width: 767px) {
+    .tl-shell-nav:has(.tl-shell-nav__disclosure[open]) {
+      position: static;
+      top: auto;
     }
   }
 
   /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
   @media (min-width: 768px) {
+    .tl-diff__row:has(> .tl-diff__arrow) {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .tl-diff__row:has(> .tl-diff__arrow) > .tl-change__field-name {
+      grid-column: 1 / -1;
+    }
+
     .threadline-ui {
       display: grid;
       grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);
@@ -211,16 +241,12 @@
       min-width: 0;
     }
 
-    .tl-home__headline {
-      font-size: var(--tl-font-size-display);
-    }
-
     .threadline-ui .tl-shell-nav__item {
       min-height: var(--tl-control-height-compact);
     }
 
     .tl-timeline-command__facts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tl-filter-grid--primary {
@@ -234,6 +260,10 @@
 
   /* Desktop dense/operator layer starts at 1280px: full multi-column layout and sticky chrome. */
   @media (min-width: 1280px) {
+    .tl-timeline-command__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .tl-page {
       padding: var(--tl-space-4);
     }
@@ -506,6 +536,13 @@
 
     .tl-subview {
       animation: none !important;
+      transform: none !important;
+    }
+
+    .tl-row-history-drawer,
+    .tl-row-history-drawer * {
+      animation: none !important;
+      transition: none !important;
       transform: none !important;
     }
   }

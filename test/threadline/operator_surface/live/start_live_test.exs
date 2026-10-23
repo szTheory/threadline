@@ -26,6 +26,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.UnavailableRepo do
+    def query!(_query, _params, _opts), do: raise("health source unavailable")
+    def all(_query, _opts), do: raise("health source unavailable")
+    def aggregate(_query, _field, _aggregate, _opts), do: raise("health source unavailable")
+    def one(_query, _opts), do: raise("health source unavailable")
+  end
+
   defmodule Threadline.OperatorSurface.StartLiveTest.Router do
     use Threadline.OperatorSurfaceTest.Router
 
@@ -94,6 +101,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.StartLiveTest.UnavailableRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_unavailable",
+        repo: Threadline.OperatorSurface.StartLiveTest.UnavailableRepo,
+        schemas: %{
+          "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
+          "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
+        },
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
+      )
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StartLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.StartLiveTest.Router
@@ -107,6 +136,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.StartLiveTest.SystemEndpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.StartLiveTest.SystemRouter
+  end
+
+  defmodule Threadline.OperatorSurface.StartLiveTest.UnavailableEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.StartLiveTest.UnavailableRouter
   end
 
   defmodule Threadline.OperatorSurface.Live.StartLiveTest do
@@ -166,16 +200,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "renders Home as an orientation hub with existing destinations", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/audit")
+      normalized_html = Regex.replace(~r/\s+/, html, " ")
 
       assert html =~ "Follow what happened."
-      assert html =~ "Every change is connected to the action, context, and story around it."
-      assert html =~ "Pick where you want to start."
+
+      assert normalized_html =~
+               "Search captured changes by time, table, actor, or correlation. Open a transaction to inspect its row changes and any recorded action or context."
+
+      refute html =~ "Every change is connected to the action, context, and story around it."
+      refute html =~ "Pick where you want to start."
 
       refute html =~ ~s|class="tl-home__eyebrow">Threadline</p>|
       assert html =~ ~s|class="tl-home__health" role="status" aria-label="System health"|
 
       assert html =~ "Timeline"
       assert html =~ "Find what changed"
+      assert html =~ "Start with Timeline, or jump to a known row or correlation below."
+      assert html =~ "Open the timeline"
       assert html =~ ~s|href="/audit/timeline"|
 
       assert html =~ "Coverage"
@@ -359,7 +400,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(view, "#tl-record-lookup", "Open row history")
       assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[table]"]|)
       assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[record_id]"]|)
-      assert has_element?(view, "#tl-correlation-lookup", "Open Timeline")
+      assert has_element?(view, "#tl-correlation-lookup", "Open the timeline")
 
       assert has_element?(
                view,
@@ -426,6 +467,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              })
              |> render_submit()
              |> alert_contains?("Enter a record id for row history.")
+
+      assert has_element?(
+               view,
+               ~s|select[name="record_lookup[table]"] option[selected][value="ticket_replies"]|
+             )
     end
 
     test "correlation lookup navigates with canonical query", %{conn: conn} do
@@ -458,6 +504,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              })
              |> render_submit()
              |> alert_contains?("Correlation id must be 256 bytes or fewer.")
+
+      assert has_element?(view, ~s|#tl-correlation-lookup input[value="#{too_long}"]|)
     end
 
     test "renders honest resume empty state when the actor has no saved views", %{conn: conn} do
@@ -637,6 +685,70 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert redirected_to(posted_conn) == "/audit_system"
         assert posted_conn.resp_cookies["tl_theme"].value == "light"
       end
+    end
+
+    test "invalid runtime theme does not persist or report a saved preference", %{conn: conn} do
+      posted_conn =
+        conn
+        |> Plug.Conn.put_req_header("referer", "/audit_system/timeline")
+        |> post("/audit_system/theme", %{"theme" => "sepia"})
+
+      redirect = redirected_to(posted_conn)
+      assert redirect == "/audit_system/timeline"
+      refute Map.has_key?(posted_conn.resp_cookies, "tl_theme")
+
+      {:error, {:live_redirect, %{to: live_path}}} =
+        posted_conn |> recycle() |> live(redirect)
+
+      {:ok, _view, html} = live(posted_conn |> recycle(), live_path)
+
+      assert html =~ ~s|data-tl-theme="system"|
+      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
+      refute html =~ ~r/name="theme" value="sepia"/
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.StartLiveUnavailableHealthTest do
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.StartLiveTest.UnavailableEndpoint
+
+    alias Threadline.Semantics.ActorRef
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      original = Application.get_env(:threadline, :test_start_live_coverage)
+      Application.put_env(:threadline, :test_start_live_coverage, true)
+
+      on_exit(fn ->
+        if is_nil(original) do
+          Application.delete_env(:threadline, :test_start_live_coverage)
+        else
+          Application.put_env(:threadline, :test_start_live_coverage, original)
+        end
+      end)
+
+      {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
+
+      conn =
+        build_conn()
+        |> Plug.Test.init_test_session(
+          threadline_actor_ref: Jason.encode!(ActorRef.to_map(actor_ref))
+        )
+
+      {:ok, conn: conn}
+    end
+
+    test "reports health as unavailable when enabled health sources fail", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/audit_unavailable")
+
+      assert html =~ "Health status unavailable"
+      refute html =~ "All systems healthy"
     end
   end
 end

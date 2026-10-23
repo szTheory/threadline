@@ -27,7 +27,7 @@
 
   .tl-home__headline {
     margin: 0;
-    font-size: var(--tl-font-size-title);
+    font-size: var(--tl-font-size-display);
     line-height: var(--tl-line-display);
     font-weight: var(--tl-weight-medium);
     letter-spacing: var(--tl-tracking-tight);
@@ -116,13 +116,13 @@
     align-items: center;
     min-height: var(--tl-control-height-compact);
     padding: 0 var(--tl-space-2);
-    border: 1px solid var(--tl-color-accent-border);
+    border: 1px solid var(--tl-color-border);
     border-radius: var(--tl-radius-md);
-    background: var(--tl-color-accent-soft);
+    background: var(--tl-color-surface-hover);
     font-size: var(--tl-font-size-xs);
     font-weight: var(--tl-weight-strong);
     line-height: var(--tl-line-label);
-    color: var(--tl-color-accent-strong);
+    color: var(--tl-color-muted);
   }
 
   .tl-home__card-title {

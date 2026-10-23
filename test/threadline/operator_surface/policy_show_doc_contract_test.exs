@@ -31,7 +31,7 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
       src = File.read!(@live_view_path)
 
       assert String.contains?(src, ~s|{:drift_detected, "Drift detected"}|)
-      assert String.contains?(src, ~s|{:could_not_introspect, "Could not introspect"}|)
+      assert String.contains?(src, ~s|{:could_not_introspect, "Could not inspect"}|)
       assert String.contains?(src, ~s|{:config_matches_deployed, "Config matches deployed"}|)
     end
 
@@ -121,7 +121,7 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
       presenter_src = File.read!(@presenter_path)
 
       drift_index = byte_index(live_src, ~s|{:drift_detected, "Drift detected"}|)
-      introspect_index = byte_index(live_src, ~s|{:could_not_introspect, "Could not introspect"}|)
+      introspect_index = byte_index(live_src, ~s|{:could_not_introspect, "Could not inspect"}|)
 
       match_index =
         byte_index(live_src, ~s|{:config_matches_deployed, "Config matches deployed"}|)

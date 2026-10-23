@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "phase": 243,
+  "candidate": {
+    "headSha": "2f7560e97778d914a7639cbae308bb66fb7c528f",
+    "branch": "agent-241-01",
+    "candidateDiffDigest": "ed3fb5bdb56e1ac12cfeb5ef26ed713e2532cfc5530d487513523053398c0238",
+    "candidateReceiptSha256": "4950eea98e92468408b95cf4ce504c3a9386d2799bbc72c62b41838757c1f503"
+  },
+  "workflow": {
+    "name": "CI",
+    "event": "workflow_dispatch",
+    "runId": "38158769462",
+    "runUrl": "https://github.com/szTheory/threadline/actions/runs/38158769462",
+    "headBranch": "agent-241-01",
+    "headSha": "2f7560e97778d914a7639cbae308bb66fb7c528f",
+    "createdAt": "2026-10-11T17:13:55Z",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "jobs": [
+    {
+      "id": 114527114786,
+      "name": "Next-minor release rehearsal (docs + contracts)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114786"
+    },
+    {
+      "id": 114527114862,
+      "name": "Formatting",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114862"
+    },
+    {
+      "id": 114527114880,
+      "name": "Tests through PgBouncer (transaction mode)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114880"
+    },
+    {
+      "id": 114527114917,
+      "name": "Dependency audit (Mix lockfiles)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114917"
+    },
+    {
+      "id": 114527114921,
+      "name": "Build and test (min)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114921"
+    },
+    {
+      "id": 114527114926,
+      "name": "Example app browser E2E (2 projects)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114926"
+    },
+    {
+      "id": 114527114946,
+      "name": "Credo (strict)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114946"
+    },
+    {
+      "id": 114527114961,
+      "name": "CHANGELOG matches version",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114961"
+    },
+    {
+      "id": 114527114979,
+      "name": "Dialyzer (full optional build)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114979"
+    },
+    {
+      "id": 114527114993,
+      "name": "Compile without optional deps",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114993"
+    },
+    {
+      "id": 114527115009,
+      "name": "Hex package install (rehearsal registry)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527115009"
+    },
+    {
+      "id": 114527115017,
+      "name": "Build and test (current)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527115017"
+    },
+    {
+      "id": 114527115033,
+      "name": "Repo hygiene (no machine-local paths)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527115033"
+    },
+    {
+      "id": 114527115111,
+      "name": "Build and test (latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527115111"
+    },
+    {
+      "id": 114527117406,
+      "name": "Capture evidence byte-stable",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527117406"
+    },
+    {
+      "id": 114529879475,
+      "name": "CI required",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114529879475"
+    }
+  ],
+  "requiredJobs": {
+    "ci-required": {
+      "id": 114529879475,
+      "name": "CI required",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114529879475"
+    },
+    "verify-example-browser": {
+      "id": 114527114926,
+      "name": "Example app browser E2E (2 projects)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/szTheory/threadline/actions/runs/38158769462/job/114527114926"
+    }
+  },
+  "browserArtifact": {
+    "artifactId": 11708764393,
+    "artifactName": "operator-ci-evidence-38158769462",
+    "archiveSizeBytes": 1382,
+    "githubArchiveDigest": "sha256:ddd64cb1962add632a46b41632ebc4e217e68c83b1b2d0831784fa88176fadcb",
+    "receiptFileName": "operator-ci-receipt-38158769462.json",
+    "receiptBytes": 10235,
+    "receiptSha256": "777ab981f2068b692a2c42925ad037a18c49386057a84b6f2f60d9489f48a99d",
+    "receipt": {
+      "schemaVersion": 1,
+      "githubSha": "2f7560e97778d914a7639cbae308bb66fb7c528f",
+      "githubRunId": "38158769462",
+      "jobId": "verify-example-browser",
+      "projects": [
+        "desktop-chromium",
+        "mobile-chromium"
+      ],
+      "counts": {
+        "expected": 31,
+        "discovered": 31,
+        "executed": 31,
+        "passed": 31
+      },
+      "identities": [
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline investigation flow browser proof",
+              "starts at Home, applies a Timeline query, and opens its transaction"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline investigation flow browser proof",
+              "starts at Home, applies a Timeline query, and opens its transaction"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "actor and correlation pivots re-enter Timeline with only their supported filters"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "actor and correlation pivots re-enter Timeline with only their supported filters"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "saved searches keep canonical sharing, long summaries, and destructive actions reachable"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "saved searches keep canonical sharing, long summaries, and destructive actions reachable"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Evidence keeps selected subject/reference through latest and proof-history navigation"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Evidence keeps selected subject/reference through latest and proof-history navigation"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-coverage-readiness.spec.ts",
+            "titlePath": [
+              "Coverage readiness link behavior",
+              "keeps public covered-row Timeline links scoped by table without table_schema"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-coverage-readiness.spec.ts",
+            "titlePath": [
+              "Coverage readiness link behavior",
+              "keeps public covered-row Timeline links scoped by table without table_schema"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Redaction policy comparison stays safe, keyboard-operable, and responsive"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Redaction policy comparison stays safe, keyboard-operable, and responsive"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Timeline export reaches protected download and returns to its committed search"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Timeline export reaches protected download and returns to its committed search"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Exports seeded pending, failed, completed, unavailable and invalid context stay distinct"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Exports seeded pending, failed, completed, unavailable and invalid context stay distinct"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Retention confirmation focus and cancel preserve state; Chromium touch navigation works"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "Retention confirmation focus and cancel preserve state; Chromium touch navigation works"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "real host denial under Acme support is distinct from busy and disabled"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "real host denial under Acme support is distinct from busy and disabled"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "offline Exports blocks pointer activation until fresh persisted state returns"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-route-states.spec.ts",
+            "titlePath": [
+              "offline Exports blocks pointer activation until fresh persisted state returns"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline investigation flow browser proof",
+              "keeps keyboard-only filters, rows, pagination, drawer, and route transitions operable"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline investigation flow browser proof",
+              "keeps keyboard-only filters, rows, pagination, drawer, and route transitions operable"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-responsive-mobile-first.spec.ts",
+            "titlePath": [
+              "operator responsive matrix: phone",
+              "keeps every operator route usable without root horizontal overflow"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-responsive-mobile-first.spec.ts",
+            "titlePath": [
+              "operator responsive matrix: phone",
+              "keeps every operator route usable without root horizontal overflow"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline reduced-motion browser proof",
+              "keeps Timeline rows static with reduced motion"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "mobile-chromium",
+            "file": "operator-timeline-investigation-flow.spec.ts",
+            "titlePath": [
+              "Timeline reduced-motion browser proof",
+              "keeps Timeline rows static with reduced motion"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        },
+        {
+          "identity": {
+            "project": "desktop-chromium",
+            "file": "operator-zoom-proof.spec.ts",
+            "titlePath": [
+              "inspection routes preserve exact scope and controls at verified real 200% tab zoom"
+            ]
+          },
+          "status": "passed",
+          "attempts": 1
+        }
+      ]
+    }
+  },
+  "verifiedAt": "2026-10-11T17:30:14.335455Z"
+}

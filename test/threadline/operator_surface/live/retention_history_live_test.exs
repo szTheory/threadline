@@ -19,6 +19,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_policy, true)
   end
 
+  defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.FailingReadRepo do
+    def all(_query, _opts), do: raise("private storage detail")
+  end
+
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.RetentionHistoryLiveTest.Router
@@ -37,6 +41,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Live.RetentionHistoryLive
     alias Threadline.Retention.Pruner
     alias Threadline.Semantics.AuditAction
+
+    defp live_retention(conn) do
+      {:ok, view, _initial_html} = live(conn, "/audit/policy/retention")
+      {:ok, view, render(view)}
+    end
 
     defp start_application_supervisor! do
       retention = Application.get_env(:threadline, :retention, [])
@@ -99,28 +108,63 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
         assert html =~ "Retention history unavailable"
         assert html =~ "Retention history is unavailable in this support lane"
         assert html =~ "This is not a permissions issue."
         assert html =~ "mix threadline.retention.purge --dry-run"
-        refute html =~ "Run retention prune"
+        refute html =~ "Prune now"
       end
 
       test "shows empty state when no runs exist", %{conn: conn} do
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
         assert html =~ "Retention window"
-        assert html =~ "No retention runs yet"
-        assert html =~ "Configure a retention window"
-        assert html =~ "mix threadline.retention.purge --dry-run"
-        assert html =~ "Run retention prune"
-        assert html =~ "tl-button--secondary tl-button--danger"
+        assert html =~ "No retention runs"
+
+        assert html =~
+                 "A run will appear here after a confirmed prune or scheduled retention operation."
+
+        assert html =~ "configured Threadline storage schema"
+        assert html =~ "Prune now"
+        assert html =~ "tl-button--secondary"
+        refute html =~ "tl-button--secondary tl-button--danger"
 
         # The destructive prune is now a server-enforced T3 type-to-confirm flow
         # (D-21): the client-only data-confirm is gone, and the modal form is
         # mounted only after the operator opens the destructive action.
         refute html =~ "data-confirm"
         refute html =~ "phx-submit=\"prune_now\""
+      end
+
+      test "a successful persisted read advances the mutation freshness marker", %{conn: conn} do
+        {:ok, view, initial_html} = live_retention(conn)
+        initial_revision = mutation_revision(initial_html)
+
+        send(view.pid, :refresh)
+
+        assert_eventually(fn ->
+          revision = mutation_revision(render(view))
+          is_binary(revision) and revision != initial_revision
+        end)
+      end
+
+      test "a failed history read stays distinct from empty and offers refresh", %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+
+        :sys.replace_state(view.pid, fn state ->
+          update_in(state.socket.assigns, fn assigns ->
+            Map.put(assigns, :threadline_repo, FailingReadRepo)
+          end)
+        end)
+
+        send(view.pid, :refresh)
+
+        assert_eventually(fn ->
+          html = render(view)
+
+          html =~ "Retention history could not be loaded" and
+            html =~ "Refresh retention history" and not (html =~ "No retention runs")
+        end)
       end
 
       test "displays existing retention runs in a table", %{conn: conn} do
@@ -137,7 +181,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         refute html =~ "No Retention History"
         assert html =~ "completed"
@@ -163,12 +207,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         assert html =~ ~s|aria-label="Retention window health"|
         assert html =~ "Latest run"
         assert html =~ "Latest completed run"
-        assert html =~ "Rows deleted"
+        assert html =~ "Rows deleted in recent runs"
         assert html =~ "Failures"
         # Density (196-06): the banner restatement of the destructive warning is gone;
         # the type-to-confirm modal owns that copy at the point of action.
@@ -193,7 +237,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         assert html =~ "Retention window health"
         assert html =~ "Failures"
@@ -213,7 +257,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         assert html =~ ~s(data-status="danger")
         refute html =~ "Review the latest status and failure count"
@@ -221,12 +265,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "Retention window destructive action"
       end
 
-      test "Run retention prune CTA triggers the supervised runtime path", %{conn: conn} do
-        {:ok, view, html} = live(conn, "/audit/policy/retention")
+      test "shows partial deletion with a safe category and never renders raw failure detail", %{
+        conn: conn
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %RetentionRun{}
+        |> RetentionRun.changeset(%{
+          status: "failed",
+          deleted_count: 1,
+          duration_ms: 250,
+          error_message: "injected database detail: secret host and query",
+          started_at: DateTime.add(now, -5, :second),
+          completed_at: now
+        })
+        |> Repo.insert!(repo_opts())
+
+        {:ok, _view, html} = live_retention(conn)
+
+        assert html =~
+                 "Retention prune failed (prune error). 1 row was deleted before the failure."
+
+        assert html =~
+                 "Review this run and resolve the reported category before starting another prune."
+
+        refute html =~ "secret host"
+        refute html =~ "injected database detail"
+      end
+
+      test "Prune now CTA triggers the supervised runtime path", %{conn: conn} do
+        {:ok, view, html} = live_retention(conn)
 
         # The CTA opens the T3 confirm modal; the actual prune is the type-to-confirm
         # form submission (server-enforced, D-21).
-        assert html =~ "Run retention prune"
+        assert html =~ "Prune now"
 
         # ensure no active runs initially
         assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
@@ -234,8 +306,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # Type the canonical policy name and submit the server-enforced form.
         modal_html = open_prune_modal(view)
-        assert modal_html =~ "older than the retention window for policy"
+        assert modal_html =~ "configured Threadline storage schema"
+        assert modal_html =~ "strictly older than the policy cutoff"
+        assert modal_html =~ "current operator or tenant scope does not limit this prune"
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+
+        assert render(view) =~ "Prune request accepted. Follow its persisted status here."
 
         assert_eventually(fn ->
           Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
@@ -245,22 +321,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "locks destructive flow labels, consequence copy, and modal focus affordances", %{
         conn: conn
       } do
-        {:ok, view, html} = live(conn, "/audit/policy/retention")
+        {:ok, view, html} = live_retention(conn)
 
         assert html =~ "Retention window"
-        assert html =~ "Run retention prune"
+        assert html =~ "Prune now"
 
         modal_html = open_prune_modal(view)
 
-        assert modal_html =~ "Prune retention window permanently?"
+        assert modal_html =~ "Prune retained audit data?"
 
         assert modal_html =~
-                 "This permanently deletes audit records older than the retention window"
+                 "At execution, it removes AuditChange rows strictly older than the policy cutoff"
 
-        assert modal_html =~ "it cannot be undone"
-        assert modal_html =~ "Type the policy name <code>default</code> to confirm"
-        assert modal_html =~ "Keep retention window"
-        assert modal_html =~ "Prune records permanently"
+        assert modal_html =~ "This action cannot be undone."
+        assert modal_html =~ "Type the policy name “<code>default</code>” to confirm"
+        assert modal_html =~ "Keep audit data"
+        assert modal_html =~ "Prune now"
         assert modal_html =~ ~s|role="dialog"|
         assert modal_html =~ ~s|aria-modal="true"|
         assert modal_html =~ "data-tl-initial-focus"
@@ -280,10 +356,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
-        assert occurrences(html, "Run retention prune") == 1
-        refute html =~ "Prune records permanently"
+        assert occurrences(html, "Prune now") == 1
       end
 
       test "no bulk multi-select / select-all-over-destructive control exists (D-19)", %{
@@ -301,7 +376,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
         |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         refute html =~ ~s(type="checkbox"),
                "no per-row/select-all checkbox over the destructive prune (D-19)"
@@ -311,7 +386,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
 
         mounted_socket = :sys.get_state(view.pid).socket
         mounted_ref = mounted_socket.assigns.threadline_retention_timer_ref
@@ -327,7 +402,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Process.read_timer(mounted_ref) == false
         assert is_integer(Process.read_timer(refreshed_ref))
 
-        assert render(view) =~ "Run retention prune"
+        assert render(view) =~ "Prune now"
 
         assert :ok =
                  RetentionHistoryLive.terminate(
@@ -360,7 +435,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           })
           |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         assert html =~ "Latest run"
         assert html =~ "Failed"
@@ -376,7 +451,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         source = File.read!("lib/threadline/operator_surface/live/retention_history_live.ex")
 
         assert source =~ "|> repo.all(storage_opts(socket))"
-        assert source =~ "repo.exists?(from(r in RetentionRun), storage_opts(socket))"
+        assert source =~ "order_by: [desc: r.inserted_at]"
         assert source =~ "storage_schema: StorageSchema.get()"
       end
 
@@ -409,7 +484,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             })
             |> Repo.insert!(repo_opts("threadline"))
 
-          {:ok, _view, html} = live(conn, "/audit/policy/retention")
+          {:ok, _view, html} = live_retention(conn)
 
           assert html =~ "retention_run/#{audit_run.id}"
           refute html =~ "retention_run/#{threadline_run.id}"
@@ -430,7 +505,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "the canonical confirmation token is never shipped to the client", %{conn: conn} do
-        {:ok, view, html} = live(conn, "/audit/policy/retention")
+        {:ok, view, html} = live_retention(conn)
 
         # The client-only data-confirm string is the footgun this plan removes:
         # a real T3 modal types the policy NAME and the canonical token stays
@@ -446,11 +521,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert modal_html =~ "phx-submit",
                "T3 prune must be a <form phx-submit> type-to-confirm, not a bare phx-click"
 
-        assert modal_html =~ "Prune records permanently"
+        assert modal_html =~ "Prune now"
       end
 
       test "a forged confirmation token fails closed and performs no prune", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
 
         before = count_audit_actions()
         open_prune_modal(view)
@@ -466,8 +541,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "a forged token must not produce a prune nor an audited destructive action"
       end
 
-      test "a forged confirmation token flashes the locked mismatch copy", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+      test "a forged confirmation token stays in the dialog with corrective feedback", %{
+        conn: conn
+      } do
+        {:ok, view, _html} = live_retention(conn)
 
         open_prune_modal(view)
 
@@ -476,11 +553,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             confirm: "not-the-policy-name"
           })
 
-        assert html =~ "Could not prune - confirmation did not match."
+        assert html =~ "id=\"prune-confirm\""
+        assert html =~ "The policy name did not match. Check the exact name and try again."
+      end
+
+      test "an empty confirmation stays in place and performs no prune", %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+
+        before_actions = count_audit_actions()
+        open_prune_modal(view)
+
+        html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: ""})
+
+        assert html =~ "id=\"prune-confirm\""
+        assert html =~ "required"
+        assert html =~ "The policy name did not match. Check the exact name and try again."
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+        assert count_audit_actions() == before_actions
       end
 
       test "a forged phx-value scope fails closed", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
         open_prune_modal(view)
 
         # phx-value-id is an untrusted client claim; a forged scope must be
@@ -494,20 +587,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "a forged scope must fail closed"
       end
 
+      test "an active persisted run disables and rejects a repeated prune event", %{conn: conn} do
+        now = DateTime.utc_now()
+        run = Repo.insert!(%RetentionRun{status: "running", started_at: now}, repo_opts())
+
+        {:ok, view, _html} = live_retention(conn)
+
+        assert_eventually(fn -> render(view) =~ run.id end)
+        render_click(view, "open_prune_modal", %{})
+        assert has_element?(view, "button[data-tl-mutating][disabled]", "Prune now")
+
+        before_actions = count_audit_actions()
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+
+        assert render(view) =~
+                 "A retention prune is already in progress. Follow its persisted status here."
+
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 1
+        assert count_audit_actions() == before_actions
+      end
+
       test "prune is refused when policy authorization is absent", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
         # With authz absent the page renders the unsupported view and exposes no
         # prune affordance at all — the default path is refusal (fail closed).
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
         refute html =~ "phx-submit=\"prune_now\""
-        refute html =~ "Run retention prune"
+        refute html =~ "Prune now"
       end
 
       test "event-time authorization revocation prevents audit and prune", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, true)
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
 
         before_actions = count_audit_actions()
         policy_name = view |> open_prune_modal() |> canonical_policy_name()
@@ -515,14 +629,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
 
-        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+        html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
+        assert html =~
+                 "You are not authorized to start this retention prune. Refresh the history or contact your administrator."
+
+        refute html =~ "policy name did not match"
         assert count_audit_actions() == before_actions
         assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
       end
 
       test "missing accountable actor prevents audit and prune", %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
         before_actions = count_audit_actions()
         policy_name = view |> open_prune_modal() |> canonical_policy_name()
 
@@ -536,9 +654,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
       end
 
+      test "audit persistence failure prevents the prune and returns safe feedback", %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+        before_actions = count_audit_actions()
+
+        :sys.replace_state(view.pid, fn state ->
+          update_in(state.socket.assigns, fn assigns ->
+            Map.put(assigns, :threadline_actor_ref, %Threadline.Semantics.ActorRef{
+              type: :user,
+              id: ""
+            })
+          end)
+        end)
+
+        open_prune_modal(view)
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+
+        assert_eventually(fn ->
+          render(view) =~ "Prune could not start because its audit record could not be saved."
+        end)
+
+        assert count_audit_actions() == before_actions
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+      end
+
       test "a valid type-to-confirm prune records an AuditAction for the destructive action",
            %{conn: conn} do
-        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        {:ok, view, _html} = live_retention(conn)
 
         before = count_audit_actions()
 
@@ -579,9 +722,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       defp open_prune_modal(view) do
-        html = render_click(element(view, "button", "Run retention prune"))
+        html = render_click(element(view, "button", "Prune now"))
 
-        assert html =~ "Prune retention window permanently?"
+        assert html =~ "Prune retained audit data?"
         assert html =~ "phx-submit=\"prune_now\""
 
         html
@@ -615,12 +758,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           })
           |> Repo.insert!(repo_opts())
 
-        {:ok, _view, html} = live(conn, "/audit/policy/retention")
+        {:ok, _view, html} = live_retention(conn)
 
         full = "retention_run/#{run.id}"
 
         assert_copy_equals_full(html, full: full)
         refute_copy_truncated(html, full: full)
+      end
+    end
+
+    defp mutation_revision(html) do
+      case Regex.run(~r/data-tl-mutation-revision="([^"]+)"/, html) do
+        [_, revision] -> revision
+        _ -> nil
       end
     end
   end

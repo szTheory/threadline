@@ -1,0 +1,5461 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "control.actions.href.4f84792665",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "control",
+          "anchor": "href={@href}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actions.navigate.6017f908cf",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "control",
+          "anchor": "navigate={@navigate}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actions.patch.e0a14117b9",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "control",
+          "anchor": "patch={@patch}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.href.1165b08259",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.href.823bc480cb",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.href.95c861860b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "href={timeline_actor_path(@base_path, @actor_ref)} class=\"tl-button tl-button--ghost\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.href.9bc92b48d2",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/transactions/#{tx.id}\"} class=\"tl-button tl-button--compact tl-button--secondary\" data-testid=\"transaction-link\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.navigate.93b3f91828",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-click.2fa3cabd79",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"set-window\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-click.3fed9323a5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"set-window\"",
+          "occurrence": 4
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-click.5ed0fd00a3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"set-window\"",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-click.b73faddd5e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"set-window\"",
+          "occurrence": 5
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-click.fe19d1f984",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"set-window\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom=\"next-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-top=\"prev-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.components.href.1129bb6fe4",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live/components.ex",
+          "kind": "control",
+          "anchor": "href={path} class=\"tl-link tl-link--deep\" title=\"Open actor activity\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.components.href.fe8fee9337",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live/components.ex",
+          "kind": "control",
+          "anchor": "href={timeline_search_path(@base_path, query_params)} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.copy.value",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "anchor",
+          "anchor": "data-tl-copy={@r.full}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.coverage.data-tl-copy.4453682638",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={remediation.command} aria-label={\"Copy #{@schema_param}.#{table} capture command\"}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.coverage.navigate.5be8e5d6cf",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+          "kind": "control",
+          "anchor": "navigate={coverage_path(@base_path, \"public\")} class=\"tl-button tl-button--quiet-primary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.coverage.navigate.f8d8d9e358",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+          "kind": "control",
+          "anchor": "navigate={timeline_table_path(@base_path, table, @schema_param)} class=\"tl-button tl-button--compact tl-button--quiet-primary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.coverage.phx-click.f1a6f3f868",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"refresh\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.coverage.phx-submit.3b3e7b3381",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"select-schema\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.data.phx-mounted.c1734f2f05",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={@focus_heading && JS.focus(to: \"##{@resolved_heading_id}\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.display.data-tl-copy.6bc9f4aaf0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={@r.full}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.display.data-tl-copy.d71869c60b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={@r.full}><%= if Script.enabled?(), do: @r.visible, else: @r.full %></code>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.href.8420c3628d",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "href={action.path} class=\"tl-link tl-link--deep\"><%= action.label %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.phx-click.retry",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"retry\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.navigate.9b6303e2b4",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "navigate={@carry_path}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.patch.68ccdeb6b5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "patch={subject_path(@base_path, group.title)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.patch.77cca95277",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "patch={history_path(@base_path, row.subject, row.subject_ref_json)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.patch.956ca2b941",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "patch={subject_path(@base_path, @request.subject)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.export-status.navigate.81c4385aef",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "navigate={@evidence_export_context.evidence_path}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.export-status.navigate.93b3f91828",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.export-status.navigate.9bc87f46f7",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query_params)}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.export-status.phx-click.b40cbe9307",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"queue_timeline_export_context\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.239.be344aac56f3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Applying filters…\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.239.c363f049d6e7",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Applying filters…\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.href.1f60da21e9",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/exports/changes.csv?#{@filter_query}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.href.7ab974c902",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/evidence\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.href.96661c06a0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/exports/changes.ndjson?#{@filter_query}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.href.db5c7a6aa5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/exports/changes.json?#{@filter_query}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.href.fe5854f229",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.navigate.7250f72902",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{@base_path}/exports?#{@filter_query}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.patch.d7aaa17cc0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "patch={@timeline_path} class=\"tl-button tl-button--ghost\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-click.36684b05f0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> UI.Overlay.show_drawer(\"timeline-filters-drawer\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-click.91ff08e109",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"request_background_export\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-click.ae1b023ada",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-click={UI.Overlay.hide_drawer(\"timeline-filters-drawer\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-click.d71e2a4880",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"delete-view\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-click.eacdef6b2e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"apply-view\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-submit.3c17fd6489",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"apply\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.phx-submit.8f477d0ad2",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"save-view\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.form.href.4792e163b2",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "control",
+          "anchor": "href={\"##{field_id}\"}><%= message %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.form.phx-click-away.7470920894",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "control",
+          "anchor": "phx-click-away={",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.form.phx-click.7d109889d1",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "control",
+          "anchor": "phx-click={",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.form.phx-mounted.f190da2f72",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={JS.focus(to: \"##{@id}\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.0d6129dd3631",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-focus={JS.focus_first(to: \"##{@id}-content\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.27ed11aa535b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.2baf1313506a",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-dismiss\", to: \"##{@id}.tl-overlay-visible:focus-within\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.4fb0fe26cebd",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.bdaa036eaf17",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.e681d54e77e5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f02edb6ea6bf",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f53dec5b4136",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-focus={JS.focus_first(to: \"##{@id}-content\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f5dd28ae4e43",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-close\", to: \"##{@id}-menu:focus-within\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.fb1edc61fc0e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.href.a007f9c03c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "href={~p\"/...\"} data-tl-mutating aria-disabled=\"true\" tabindex=\"-1\">Re-run</a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click-away.211a2bc905",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click-away={",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click-away.7470920894",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click-away={",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click.6cf717f3ca",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={hide_toast(@id)}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click.7d109889d1",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click.88a513aed0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-click.dc303db529",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-mounted.9bc301445d",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={show_toast(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-mounted.e9e1466ec6",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={@show && show_modal(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.page.href.df5c01aa06",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "control",
+          "anchor": "href={crumb[:href]} class=\"tl-link tl-link--back\"><%= crumb[:label] %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.page.phx-click.4e46cc0ad7",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "control",
+          "anchor": "phx-click={seg[:\"phx-click\"]}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.page.phx-click.ded21c9e6a",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "control",
+          "anchor": "phx-click={@older_event}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.page.phx-click.ff7f7c9882",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "control",
+          "anchor": "phx-click={@newer_event}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.policy-redaction.navigate.10e4bba29a",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={coverage_path(@base_path, @schema_param)} class=\"tl-button tl-button--compact tl-button--ghost\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.policy-redaction.navigate.1d33caff8f",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={timeline_table_path(@base_path, row.table_name, row.table_schema)} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.policy-redaction.navigate.62a5caa535",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={action.path}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.policy-redaction.navigate.7a66b5c7b9",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={policy_path(@base_path, \"public\")} class=\"tl-button tl-button--quiet-primary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.policy-redaction.phx-submit.3b3e7b3381",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"select-schema\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.href.417a3da4b4",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "href={\"##{@retention_summary.first_failed_dom_id}\"} class=\"tl-link tl-link--deep\"><%= @retention_summary.failure_count %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.navigate.def6ea1f42",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "navigate={@retention_actions.evidence_path} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.navigate.e42a97ca6c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "navigate={@retention_actions.evidence_path} class=\"tl-button tl-button--compact tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.phx-click.39327fd8b0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.phx-click.b1923ff2d5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push(\"close_prune_modal\")}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.phx-click.f5976720b6",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.retention-history.phx-submit.e4adfa4855",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"prune_now\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.row-history.patch.6c7e1061bc",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+          "kind": "control",
+          "anchor": "patch={@close_path} class=\"tl-button tl-button--secondary\" data-tl-initial-focus>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.row-history.phx-change.8eb999e27a",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+          "kind": "control",
+          "anchor": "phx-change=\"update-as-of\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.0167427e6e86",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "patch={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.30ce520cf8d0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.66dfd3818072",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.b65785e711ee",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={JS.focus(to: \"#stress-edge-content\")} data-tl-patch-focus>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.c5332f34e1c5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.edd1de874752",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer(\"stress-edge\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.2783eac4e8",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href=\"#\"",
+          "occurrence": 4
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.3a6db0b52e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href={Paths.clear_path(@stress_path)}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.4445b182ff",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href=\"#\"",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.51dc606cae",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href=\"#\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.62a5f59eb4",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href={Paths.filter_path(@stress_path, @filter_category, status)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.8052dd6e35",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href={Paths.filter_path(@stress_path, category, @filter_status)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.84117cae97",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href={Paths.filter_path(@stress_path, nil, @filter_status)}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.c8f5d68691",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href=\"#\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.href.ed27286fa1",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "href={@clear_path}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.phx-click.1bf64656f7",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={Threadline.OperatorSurface.UI.Overlay.hide_modal(\"stress-modal\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.phx-click.2ee8bd9b36",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_modal(\"stress-modal\")}>Show Modal</Threadline.OperatorSurface.UI.Actions.button>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.phx-click.a9931db6fc",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={Threadline.OperatorSurface.UI.Overlay.hide_drawer(\"stress-drawer\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.phx-click.e34e281c65",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer(\"stress-drawer\")}>Show Drawer</Threadline.OperatorSurface.UI.Actions.button>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.2c5cabf485",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/exports\"} class=\"tl-button tl-button--secondary tl-button--compact\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.64c1018de5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/timeline\"} class=\"tl-button tl-button--primary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.a0aad145b5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/policy/redaction\"} class=\"tl-button tl-button--secondary tl-button--compact\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.ac1ce752f8",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/policy/retention\"} class=\"tl-button tl-button--secondary tl-button--compact\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.bd952cdf26",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/evidence\"} class=\"tl-button tl-button--secondary tl-button--compact\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.c5355b10ab",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}#{signal.path}\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.href.ddcd26052c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.navigate.5392f6725c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "navigate={saved_view_path(@base_path, view)} class=\"tl-chip tl-chip--accent tl-home__view\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.phx-submit.a477226343",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"open-row-history\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.start.phx-submit.f0b4076cf3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/start_live.ex",
+          "kind": "control",
+          "anchor": "phx-submit=\"open-correlation\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.action.964445b83e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "action={\"#{@base_path}/theme\"} method=\"post\" class=\"tl-theme-picker__form\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.01a6380c49",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href=\"#tl-main\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.049141eabd",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={timeline_path(@base_path)} current={@current} page={:timeline}>Timeline</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.251f47a90c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.coverage-warning-second",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"}>",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.2a0fd7ea66",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/policy/retention\"} current={@current} page={:retention}>Retention</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.2d904ff45b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"} current={@current} page={:coverage}>Coverage</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.3ebf1799a1",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={@base_path || \"#\"} aria-label=\"Threadline operator home\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.53d2981aed",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/exports\"} current={@current} page={:exports}>Exports</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.557ec0bdee",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"}>All tables captured</a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.57e421191d",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={home_path(@base_path)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.79afd09204",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={@href || \"#\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.82ce3f310c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/policy/redaction\"} current={@current} page={:policy}>Redaction</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.d74235e5a6",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/evidence\"} current={@current} page={:evidence}>Evidence</.nav_link>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline-live.239.51cd35c57127",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@timeline_path}?#{@filter_query}\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.data-tl-copy.321f7208cf",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={Helpers.table_ref(change).title}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.href.72926ef11b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/transactions/#{change.transaction_id}\"} class=\"tl-button tl-button--compact tl-button--secondary\" data-testid=\"transaction-link\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.href.959957c72c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "href={Helpers.correlation_path(@timeline_path, Helpers.correlation_id(change))} class=\"tl-link tl-link--deep\" title=\"View correlated changes in Timeline\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.href.ecc81993ef",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "href={row_history_path}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.href.ed4141ea7c",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "href={path}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.patch.8e6b384b71",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "kind": "control",
+          "anchor": "patch={@timeline_path} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.timeline.phx-viewport-bottom.472e0e89e3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom={@cursor && \"next-page\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction-live.239.3607e2964f19",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{surface_root(@base_path)}/transactions/#{@failed_id}\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction-live.239.982077b9d054",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.data-tl-copy.31eb3e6f5e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={diff_full(after_token)} aria-label={\"Copy #{field[\"name\"]} after value\"}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.data-tl-copy.621e2b883e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "data-tl-copy={diff_full(before)} aria-label={\"Copy #{field[\"name\"]} before value\"}>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.href.480cb2b8e5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class=\"tl-link tl-link--deep\" title=\"View correlated changes in Timeline\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.href.95c771c4db",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "href={path} class=\"tl-link tl-link--deep\"><%= transaction_actor_label(@bundle.transaction) %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.navigate.1d9cac62dd",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.navigate.e54ea0cac2",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom=\"next-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-top=\"prev-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.unsupported-view.href.f5cf19b6bb",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/unsupported_view.ex",
+          "kind": "control",
+          "anchor": "href={@base_path} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.actions.button",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "primitive",
+          "anchor": "def button(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.actions.icon_button",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "primitive",
+          "anchor": "def icon_button(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.actions.link",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/actions.ex",
+          "kind": "primitive",
+          "anchor": "def link(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.data_panel",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_panel(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.data_state",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :loading} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :no_data} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :unauthorized} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :source_down} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :redacted} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(%{reason: :pruned} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_state(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.data_table",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def data_table(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.empty_state",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def empty_state(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.error_state",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def error_state(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.loading_state",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def loading_state(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.data.stale_banner",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "primitive",
+          "anchor": "def stale_banner(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.239.9fad0b44bf6b",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def full_value(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.239.b05346395a1c",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def value(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.alert",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def alert(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.avatar",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def avatar(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.badge",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def badge(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.card",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def card(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.cluster",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def cluster(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.code_block",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def code_block(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.divider",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def divider(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.kv",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def kv(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.ref",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def ref(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.spinner",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def spinner(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.stack",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def stack(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.stat_tile",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def stat_tile(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.combobox",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def combobox(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.error",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def error(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.error_summary",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def error_summary(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.field",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def field(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.field_group",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def field_group(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.help",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def help(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.input",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def input(%{type: \"checkbox\"} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def input(%{type: \"select\"} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def input(%{type: \"textarea\"} = assigns) do",
+          "occurrence": 1
+        },
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def input(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.label",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def label(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.radio",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def radio(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.form.switch",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "primitive",
+          "anchor": "def switch(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.accordion",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def accordion(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.drawer",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def drawer(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.dropdown",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def dropdown(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.hide_drawer",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def hide_drawer(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.hide_modal",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def hide_modal(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.hide_toast",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def hide_toast(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.modal",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def modal(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.popover",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def popover(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.reconnect_banner",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def reconnect_banner(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.show_drawer",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def show_drawer(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.show_modal",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def show_modal(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.show_toast",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def show_toast(js \\\\ %JS{}, id) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.toast",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def toast(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.overlay.tooltip",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "primitive",
+          "anchor": "def tooltip(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.detail_header",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def detail_header(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.page_header",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def page_header(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.pager",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def pager(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.segmented_control",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def segmented_control(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.shell",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def shell(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.tabs",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def tabs(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.page.toolbar",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/page.ex",
+          "kind": "primitive",
+          "anchor": "def toolbar(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.shell.navigation",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "anchor",
+          "anchor": "def surface_header(assigns)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.actor",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/actors/:kind/:id\", ActorLive, :show)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.coverage",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/coverage\", CoverageLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.drawer",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/transactions/:id/history/:table/:record_id\", TransactionLive, :history)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.evidence",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/evidence\", EvidenceLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.exports",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/exports\", ExportStatusLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.home",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/\", StartLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.redaction",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/policy/redaction\", PolicyRedactionLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.retention",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/policy/retention\", RetentionHistoryLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.row",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/rows/:table/:record_id\", RowHistoryLive, :show)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.timeline",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/timeline\", TimelineLive, :index)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.timeline.degraded",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+          "kind": "anchor",
+          "anchor": "Timeline degraded ranking twin remains a separate state",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "route.transaction",
+      "kind": "route",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "route",
+          "anchor": "live(\"/transactions/:id\", TransactionLive, :show)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "seam.exports.changes-csv",
+      "kind": "seam",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "seam",
+          "anchor": "get(\"/changes.csv\", ExportController, :csv)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "seam.exports.changes-json",
+      "kind": "seam",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "seam",
+          "anchor": "get(\"/changes.json\", ExportController, :json)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "seam.exports.changes-ndjson",
+      "kind": "seam",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "seam",
+          "anchor": "get(\"/changes.ndjson\", ExportController, :ndjson)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "seam.exports.download-job_id",
+      "kind": "seam",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "seam",
+          "anchor": "get(\"/download/:job_id\", ExportController, :download)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "seam.theme",
+      "kind": "seam",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/router.ex",
+          "kind": "seam",
+          "anchor": "post(\"/theme\", Threadline.OperatorSurface.Controllers.ThemeController, :update)",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.history.scalar-key",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+          "kind": "anchor",
+          "anchor": "def update(",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.history.unbounded",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+          "kind": "anchor",
+          "anchor": "Threadline.row_history",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.language.labels",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "kind": "anchor",
+          "anchor": "export status, then try again from Timeline.",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.0fea5b5641bc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps System selection while served colors follow OS through investigation navigation\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.4341203b8c36",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"preserves modal and drawer Escape focus through repeated LiveView patches\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.d9ce68147284",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"closes the focused menu before its drawer and recovers from removed or disabled controls\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.e93a9847e7bd",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps drawer focus stable while the toast is layered above it\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-component-contracts.spec.239.09df22e28860",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"long toast and drawer content stay locally readable without page overflow\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-route-states.spec.239.008386555a22",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline keeps populated query identity while an applied replacement is pending\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-route-states.spec.243.c6e75f542ccf",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home correlation lookup keeps destination identity while navigation is pending\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.1cc6f878e92c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"starts at Home, applies a Timeline query, and opens its transaction\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.a5e8a2b4ec68",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps draft edits unapplied and drops unsupported URL parameters\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.b40c24c965c5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps the complete 232-character query and its exact result within the page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.0433b948ddfb",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+          "kind": "state",
+          "anchor": "test(`reflows Home and complete transaction evidence at ${viewport.name}`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.560c2df20d4c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"opens an authorized transaction with separate action and row evidence\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-zoom-proof.spec.239.e6ac5a52d9bc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"isolated Chromium tab reports real 200% zoom on the operator investigation journey\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.00bcfb637b35",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"transaction mobile opens from Timeline with semantic values and copy controls\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.01f898dbb288",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps public covered-row Timeline links scoped by table without table_schema\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.0292717b3613",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"evidence overview shows all three verdicts\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.02a3b7f54f0d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"pager hides entirely at zero matches (hide-at-zero, D-16)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.043e8ac4176c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps every operator route usable without root horizontal overflow\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.04abb504d97f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"home header nav activates every enabled destination\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.05d99f8826b1",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Esc dismisses the modal (#4 keyboard half)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.082cefb4594a",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Exports readiness hierarchy stays stable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.08b45250618f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keyboard-only: Tab reaches an actionable control without a mouse\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.0970b3a7e515",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"retention history shows the full run lifecycle\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.0a0641539f24",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"interactive vs non-interactive elements carry honest cursors\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.0b9215bd10fc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps filter-scan-open-export workflow reachable without overflow\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.0d03d03b74b5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"theme is server-decided and the picker is wired to switch it (form contract)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.111115840031",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"empty and denied states\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.131c042f6888",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"home login link and credentials behave without a redirect loop\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.1372f40c8d84",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"admin investigation and governance surfaces\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.148e460d0b28",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"emits the real operator-page evidence bundle\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.1811058fcc0b",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"exports dense state keeps readiness hierarchy and ready-only primary action\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.182d4b3863b3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps Timeline filters, Actor segments, and Retention danger action named and stateful\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.18a1fa7149a3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps readable typography and intentional page gutters\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.1a4c32daf5fb",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps Home task hierarchy, theme, active state, and launcher validation explicit\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.204b6707b4ed",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"evidence and redaction dense states keep evidence/status owners readable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.219fee11aad3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"timeline dense mobile keeps filters and rows visible without a journey legend\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.23b68185229d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"scrim click-outside dismisses the modal (#4 click-outside half)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.27e56b85dcae",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(`transaction .tl-container is centered within column 2 at ${width}px (D-09)`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.28be066c5828",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline delayed query exposes pending then real empty result with a long unbroken filter\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.294e5bd72e3e",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"support user sees a scoped-view chip\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.2bff6841258d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps Exports queue and download states named and keyboard reachable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.2d9f1b000df3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline degraded ranking twin remains a separate state\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.2fe19d525dbc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(`Home .tl-home is centered within column 2 at ${width}px (latent twin)`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.34b6571a4ebf",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps adjacent routes constrained to shell invariants\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.36721eaa934b",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"real modal (retention prune): opens as a dialog, Escape + outside-click dismiss\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.37ffc2eb8df0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"row-history drawer keeps as-of evidence stable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.396f82295a58",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"theme preference, effective cascade and reduced motion are distinct observed facts\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.3a3bea964666",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Coverage is role-discriminating: support gets the unavailable lane, admin gets the table\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.3feaab10e39a",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(`direct ${route.id} ${route.pattern}: shell and content at 1280/768/375`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.41778b9a4f7e",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"bound Timeline Copy observes exact completion and real denied permission separately\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.463b77476361",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"folds bad params to an empty or default story state without crashing\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.46a1d4d8a696",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps keyboard-only filters, rows, pagination, drawer, and route transitions operable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4929f3db268f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps the selected-schema verdict, picker, row actions, and table readable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4947b6201e33",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"drawer enters with a real (non-collapsed) transition duration\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4a1b61caf387",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"header destinations stay reachable from representative screens\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4bd91efc46e0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"authenticated home topbar does not expose the login link\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4dd2c4daae05",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"offboarded support user gets an honest empty scoped Timeline\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.4efde5a58850",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"coverage mobile shows Add capture remediation without horizontal overflow\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.50189caa820c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"modal transition collapses to ~instant\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.5136eda2b62f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home record lookup reaches first-class row history\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.51839db14f08",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"global chrome and Home workflow launchers stay stable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.51a6497cd7d5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"disabled controls carry not-allowed cursor + real disabled (#5/#7)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.52472d3c8632",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"reduced-motion: overlay transition collapses to ~instant\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.53b00c227a00",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-refute-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"re-emits the 10 refute pole PNGs clipped to the twin content\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.5494394b6f26",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(`fresh direct-entry Copy on ${name}: completion or binding failure is observed`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.54c4da9ec9f0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"timeline pager renders an honest range caption + disable-reflecting control (#9)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.571bb7ea0d8b",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"stress overlay, popover, accordion, and toast motion collapses but remains visible\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.5cf84e12a0b5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"renders folded reserved cases with exact cohort copy\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.620e48d02474",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(`${route} stays within viewport at 320 + 1440 (#6)`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.69a9d7f345d0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"page.timeline.empty states its emptiness instead of a bare placeholder\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.6bb572f664ff",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"documents every D-04 rendered-state category as covered or explicitly bounded\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.6bd30a66f46b",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"every registered group story stays within every viewport without horizontal scroll\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.6c215aa688d6",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"modal enters with a real (non-collapsed) transition duration\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.6eb7395f81fe",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"disabled button reads as disabled (not-allowed cursor) and is functionally inert\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.732b488dde45",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts",
+          "kind": "state",
+          "anchor": "test(`renders the representative ${story.category} story`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.750b772f6c68",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps mobile shell navigation keyboard reachable without obscured focus\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7554f20830e6",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"ledger CI stress allowlist is bounded, structurally backed, and pixel-free\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.757e622375e5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts",
+          "kind": "state",
+          "anchor": "test(`keeps representative stories within the ${width}px viewport`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.767de114ded3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"opens stress rendered widgets with names, keyboard state, and focus entry\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7702538967bf",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"renders the Storybook index with local assets and Threadline framing\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7871ba423526",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"desktop scroll container reserves the sticky topbar height (no occlusion, #1)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.788b98f2762d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"sticky topbar stays above content without covering it at rest\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7956bf8ae936",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"default Timeline renders in-window op variety and non-human actor labels\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7966121c8575",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"coverage shows the uncovered audit_events row + header badge\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.79e6c9a3701a",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7b1889a9a425",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"active actor default 24h view is non-empty\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7c6b5f9b24ca",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"navigates the primary Home launchers to stable routes\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.7d6f57cb9a4c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"light/system Playwright lane includes the stress route spec\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.8170966f99ea",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps focus visible and command/copy controls separated\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.82b89e8b77f8",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"binds full-value copy metadata and real direct export anchors to the current query\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.88d88621290d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"marks the active category with current-state semantics\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.8bdc5671729f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"renders the real operator shell, theme scope, story metadata, and preview\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.8d5bd8951dfa",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"modal sits above its scrim (z-order hit-test, #2) and is keyboard-reachable (#3)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.918404089c15",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps non-audit demo pages in the host shell\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.93226e0621bc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home correlation lookup lands on Timeline correlation filter\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.9cbc0a1dd247",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-storybook-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"emits the Storybook real-UI evidence bundle\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.9cd8622fd0ba",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"shell nav is a native <details> that toggles open and closed\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a0b4a0824840",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"restores URL-backed filters and proves Timeline route handoffs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a14e57a6c843",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"exposes keyboard focus, skip link, nav state, and Home form names\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a2c12b48943e",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"reply-edit transaction renders before/after diff with redacted internal note\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a4b85c162389",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"dropdown: opens and exposes aria-expanded state\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a8828cf25e06",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"drawer transition collapses to ~instant\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.a9370ecfbef0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Retention confirmation focus and cancel preserve state; Chromium touch navigation works\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.ab1fb39e5d14",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"enabled controls press with transform feedback while disabled controls stay still\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.ac50d30eb4af",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"phx-error reveals the banner and dims [data-tl-mutating]; connected hides/enables\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.acb655f75a99",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"a real dropped live socket reveals the banner and dims mutating controls (D-13)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.aee6afc773f8",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"retention dense state keeps context before destructive prune and targetable failures\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b23a07de3010",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(`${item.story_id} ${item.theme} ${item.viewport}px holds its ledger-declared structure and geometry`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b34957d24cf0",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"real host denial under Acme support is distinct from busy and disabled\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b447c4fe554f",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"modal: open overlay stacks above page chrome (topmost at its center)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b4ab3f00e2ca",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"row-history mobile opens from a Transaction row with formatted values\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b5d99623898a",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps Coverage readiness, schema recovery, and theme picker controls keyboard reachable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b76167c071b7",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home motion collapses animation durations and signature thread delay\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.b7714d148a40",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"dense Timeline keeps row-first evidence stable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.bc20c0fe64c4",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"filtered Evidence context carries into Exports\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.bc801efe3c20",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"demo login credentials copy independently with visible feedback\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.bca26e193f74",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"support user sees governance and export surfaces as unavailable without enabled controls\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.bcc3db85f182",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"light/system Playwright lane includes only the bounded Storybook smoke\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.be96fcfd4771",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(`keeps the stress route within the ${width}px viewport`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.c4f8586ffdcc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"stress overlays, popovers, details, and toasts compute tokenized compositor motion\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.c8b7c2c2b74c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"emits the Tier A evidence bundle for this theme project\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.ce8fcd7a8343",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps rows and row actions visible below filters on short desktop viewports\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.d49eb5a55c50",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"the left-push footgun's real invariant is still asserted in the Phase 178 spec\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.d93f0dbd225c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps Timeline rows static with reduced motion\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.d98e6e994fdc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"pager renders the timeline's next-only control when there is data\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.dc31c97bf183",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(`offline Exports blocks ${input} activation until fresh persisted state returns`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.de2e6831ec4d",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"copy button copies the full visible reference and confirms\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.e17eb573d4f3",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+          "kind": "state",
+          "anchor": "test(`keeps shell navigation perceivable at ${width}px`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.e4194dffbe26",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"renders Phase 179 copy-state evidence on existing stress stories\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.e5369399c294",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"redaction shows a deployed-matches-config row for posts\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.e53d29107682",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"home exposes orientation cards, health, resume, and workflow launchers\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.e7fa1781c317",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-graded-capture.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"emits the graded twin evidence bundle (synthetic oracle)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.eb3133cb6f25",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Retention safety hierarchy stays stable\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.eca098c592f4",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"direct first-class row-history route opens without a transaction first\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.edf78329d2fd",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"renders status and verdict chips with text labels and non-color shape\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f0e456ad213c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps row-history drawer dialog semantics and visible focus\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f2347ad069f2",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-find-mobile.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"actor mobile exposes selected window state and transaction pivots\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f3c26d832634",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"policy details content transition durations collapse\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f4dbe45afc7e",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"nav active item carries aria-current + a non-color cue (#8)\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f57fb86d046c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"filtered Timeline context carries into Exports\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f707c305d03b",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"captures selected Tier C stress state packet\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.f7906eed93d1",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"captures accessibility-tree evidence for screen-reader-ready structure\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.fa21db90b340",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"requires authentication before rendering the stress lab\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.probe.fca3b6893779",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Home card and signature thread use named keyframes and locked durations\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.token.paper",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/style/01_tokens.css",
+          "kind": "anchor",
+          "anchor": "--tl-color-paper: #F7F9FC;",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.zoom.browser",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts",
+          "kind": "anchor",
+          "anchor": "browserZoom",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.dc882cbc86",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline-origin row history preserves committed filters and safe return\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.00bf05efd2",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline-origin row history stays reachable at actual 200% zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_earned_flows.768d9c32dd",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"transaction-origin row history returns to the same transaction\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.d8a3197e44",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"evidence cards and actor investigation rows do not animate on entry\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.6e25bfe50a",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"reduced motion preserves keyboard row-history route, dialog, and focus\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.a2e77d459a",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"row-history drawer and evidence stay immediate with reduced motion\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_motion.06ccfc4380",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"row-history evidence stays immediate across as-of LiveView patches\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.b299bd1b21",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"actor and correlation pivots re-enter Timeline with only their supported filters\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.f8d8b4b3e4",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"saved search actions stay in bounds at verified 200% browser zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.77dc216b51",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"saved searches keep canonical sharing, long summaries, and destructive actions reachable\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.fa57a9f772",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Timeline pagination appends the next page without changing the applied search URL\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.row_history_component.70f3fafdec",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "patch={as_of_path(@history_path, change.captured_at)}>",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.row_history_component.704aeee295",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"retry\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/row_history_component.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.timeline_live.f53f1af5d9",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"close-delete-view\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.timeline_live.d6ba1cec46",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"confirm-delete-view\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.filters.383d0060f7",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "data-tl-copy={@search_url}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.cb4ff57980",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "href={row_history_path}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.f60668a09f",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click={JS.push_focus() |> JS.patch(row_history_path)}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.transaction_live.23102906f6",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-mounted={JS.focus(to: \"##{@history_focus_return_id}\") |> JS.push(\"clear_history_focus_return\")}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.overlay.d7969d79ea",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-mounted={@show && show_drawer_for_motion(@id, @motion)}",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/ui/overlay.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.056362cb4f",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard failure shows manual recovery without claiming success\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.a163a87d6c",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard fallback confirms success and restores focus and selection\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.a80c892492",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard success waits for confirmation on direct entry and after patches\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.453854b3e6",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Copy feedback fits long URLs and redacted values stay non-copyable\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.evidence.history-navigation",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Evidence keeps selected subject/reference through latest and proof-history navigation\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.phase241.b25038b380",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"refresh-policy-inspection\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.phase241.c05c91e406",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-disable-with=\"Inspecting policy…\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.d0edf01594",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"inspection refresh and native disclosure preserve their outcomes with reduced motion\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.4f5bf72ba0",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Redaction policy comparison stays safe, keyboard-operable, and responsive\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.66ab54c1a0",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.62aeeb3b13",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(`inspection routes retain context and reachable controls in ${theme} at 320, 768, and 1280 CSS px`",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.0b14f1f8f1",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"inspection routes preserve exact scope and controls at verified real 200% tab zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.export-retention-accessibility",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps export and retention journeys readable across themes, widths, and a live reconnect\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.retention-reduced-motion",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"retention confirmation remains immediate and usable with reduced motion\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase242.timeline-export-journey",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline export reaches protected download and returns to its committed search\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.export-status.refresh",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"refresh_jobs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.retention.refresh",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"refresh_runs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.phase242.retention.submit",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Starting prune…\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    }
+  ],
+  "excludedAttributeFamilies": {
+    "phx-debounce": "Timing parameter, not an event declaration",
+    "phx-key": "Key qualifier for an independently inventoried event",
+    "phx-target": "Event destination, not an independent action",
+    "phx-update": "DOM patch strategy, not an independent action",
+    "phx-value-*": "Event payload metadata, not an independent action"
+  }
+}

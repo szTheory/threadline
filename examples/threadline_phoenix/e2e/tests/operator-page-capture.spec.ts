@@ -1,10 +1,13 @@
 import { expect, Page, test } from "@playwright/test";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { inventory, widths, startEvidence, seedPaths, runRoot } from "../support/operator-browser-evidence.js";
 import {
   atomicWriteFile,
   currentOperatorSurfacePaths,
   resolveContainedPath,
 } from "../support/operator-surface-paths.js";
+import { writeRouteBundle } from "../support/operator-evidence-manifest.js";
 
 // Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
 //
@@ -29,8 +32,8 @@ const paths = currentOperatorSurfacePaths();
 const routeScorecardsDir = paths.routeScorecardsDir;
 const artifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts/routes");
 
-// Pinned for cross-machine byte-stability — never `new Date()` / installed version.
-const PLAYWRIGHT_VERSION = "1.61.1";
+const require = createRequire(import.meta.url);
+const PLAYWRIGHT_VERSION: string = require("@playwright/test/package.json").version;
 const CAPTURE_SOURCE = "route";
 const SCHEMA_VERSION = 1;
 // Single desktop hero view for the Phase-196 proof; widen later if it proves out.
@@ -47,6 +50,8 @@ const CONTENT = "#tl-main";
 // Auth (reused from operator-screenshots.spec.ts): the seeded demo admin.
 const ADMIN_EMAIL = "admin@example.com";
 const ADMIN_PASSWORD = process.env.DEMO_SEED_PASSWORD ?? "password123456";
+// Evidence runs save allowlisted screenshots/metadata, never session-bearing traces.
+test.use({ trace: process.env.THREADLINE_E2E_EVIDENCE === "1" ? "off" : "retain-on-failure" });
 
 // Ranking trust-test (Phase 196): a deliberately-DEGRADED twin of the same page,
 // same data — off-brand generic font, garish clashing recolor of every accent,
@@ -376,11 +381,62 @@ async function captureCell(
 }
 
 test.describe("operator real-route deterministic capture", () => {
+  const selectedEvidence = new Set<string>();
+  for (const route of inventory.routes) {
+    test(`direct ${route.id} ${route.pattern}: shell and content at 1280/768/375`, async ({ page, browser }, info) => {
+      test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Source-bound expansion requires evidence route lane");
+      selectedEvidence.add(route.id);
+      await login(page);
+      // Resolve DB-generated IDs through the deterministic Manifest correlation;
+      // navigation resolves identity only, then every width direct-enters the URL.
+      const seeds = route.path ? undefined : await seedPaths(page);
+      const path = route.path ?? seeds![route.id.slice(6) as keyof typeof seeds];
+      expect(path).toBeTruthy();
+      const evidence = await startEvidence(page, browser, info);
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 900 });
+        const response = await page.goto(path, { waitUntil: "networkidle" });
+        expect(response?.status()).toBe(200);
+        await expect(page.locator("#tl-main h1").first()).toBeVisible();
+        if (route.id === "route.drawer" || route.id === "route.row") await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+        if (route.id === "route.transaction") {
+          await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+          await expect(page.locator("#tl-main")).toContainText("[REDACTED]");
+          await expect(page.locator('#tl-main button[data-tl-copy="[REDACTED]"]')).toHaveCount(0);
+        }
+        const id = `${route.id}__dark-${width}`;
+        const observation = await evidence.capture(id, path, "direct-entry", { pattern: route.pattern, seedResolution: route.seedResolution, httpStatus: response!.status() });
+        const raw = await rawInputs(page, CARD_SELECTOR);
+        const file = resolveContainedPath(runRoot(), `${id}-scorecard.json`);
+        writeJson(file, { schema_version: SCHEMA_VERSION, cell_id: id, ledger_id: route.id, theme: observation.effectiveTheme, breakpoint: width, capture_source: CAPTURE_SOURCE, band: 1, meta: { playwright_version: PLAYWRIGHT_VERSION, device_scale_factor: observation.dpr, viewport: { width, height: 900 }, route_path: path }, tokens: await resolvedTokens(page), ...raw, artifacts: { screenshot: `${id}-content.png`, shell: `${id}-shell.png` } });
+        evidence.recordFile(`${id}-scorecard`, path, "direct-entry", `width=${width}`, file);
+      }
+      evidence.finish(route.id, path, "direct-entry");
+    });
+  }
+
+  test("Timeline degraded ranking twin remains a separate state", async ({ page, browser }, info) => {
+    test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Evidence route lane only");
+    selectedEvidence.add("route.timeline.degraded");
+    await login(page);
+    const evidence = await startEvidence(page, browser, info);
+    await page.goto("/audit/timeline", { waitUntil: "networkidle" });
+    await page.addStyleTag({ content: DEGRADE_CSS });
+    await evidence.capture("route.timeline.degraded__dark-1280", "/audit/timeline", "degraded-ranking-twin", { injectedRankingStyles: true });
+    evidence.finish("route.timeline.degraded", "/audit/timeline", "degraded-ranking-twin");
+  });
+
+  test.afterAll(() => {
+    if (process.env.THREADLINE_E2E_EVIDENCE !== "1") return;
+    writeRouteBundle(runRoot(), [...selectedEvidence], [...inventory.routes.map(r => r.id), "route.timeline.degraded"]);
+  });
+
   test("emits the real operator-page evidence bundle", async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== "route-capture",
       "Route capture runs only under the route-capture project",
     );
+    test.skip(process.env.THREADLINE_E2E_EVIDENCE === "1", "Legacy reference capture is read-only in evidence mode");
     test.setTimeout(900_000);
 
     await login(page);

@@ -197,7 +197,7 @@ async function expectHomeTaskHierarchy(page: Page) {
   ).toBeVisible();
   await expect(
     main.getByText(
-      "Every change is connected to the action, context, and story around it. Pick where you want to start.",
+      "Search captured changes by time, table, actor, or correlation. Open a transaction to inspect its row changes and any recorded action or context.",
     ),
   ).toBeVisible();
   await expect(main.getByRole("status", { name: "System health" })).toBeVisible();
@@ -222,7 +222,7 @@ async function expectHomeTaskHierarchy(page: Page) {
   const correlationLookup = main.locator("#tl-correlation-lookup");
   await expect(correlationLookup).toBeVisible();
   await expect(correlationLookup.getByLabel("Correlation id")).toBeVisible();
-  await expect(correlationLookup.getByRole("button", { name: "Open Timeline" })).toBeVisible();
+  await expect(correlationLookup.getByRole("button", { name: "Open the timeline" })).toBeVisible();
   await expect(
     main.getByRole("heading", { name: "Pick up where you left off" }),
   ).toBeVisible();
@@ -307,7 +307,7 @@ async function expectLauncherValidation(page: Page) {
   ).toBeVisible();
 
   const correlationLookup = page.locator("#tl-correlation-lookup");
-  await correlationLookup.getByRole("button", { name: "Open Timeline" }).click();
+  await correlationLookup.getByRole("button", { name: "Open the timeline" }).click();
   await expectPath(page, "/audit");
   await expect(
     correlationLookup.locator("xpath=following-sibling::*[@role='alert']").filter({

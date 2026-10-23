@@ -451,7 +451,7 @@ async function assertHome(page: Page) {
   const correlationLookup = page.locator("#tl-correlation-lookup");
   await expect(correlationLookup.getByLabel("Correlation id")).toBeVisible();
   await expect(
-    correlationLookup.getByRole("button", { name: "Open Timeline" }),
+    correlationLookup.getByRole("button", { name: "Open the timeline" }),
   ).toBeVisible();
 }
 
@@ -516,7 +516,7 @@ async function assertEvidence(page: Page) {
   ).toBeVisible();
   await expect(page.getByTestId("evidence-table").first()).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open proof history" }).first(),
+    page.getByRole("link", { name: "View proof history" }).first(),
   ).toBeVisible();
 }
 
@@ -546,7 +546,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
     16,
   );
   await expect(
-    page.getByRole("button", { name: "Run retention prune" }).last(),
+    page.getByRole("button", { name: "Prune now" }).last(),
   ).toBeVisible();
   await expectResponsiveTable(
     page.getByTestId("retention-runs-table"),

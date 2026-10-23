@@ -284,7 +284,7 @@ defmodule Threadline.OperatorSurface.UITest do
   end
 
   describe "toast" do
-    test "renders toast with phx-click-away and dismiss mechanisms" do
+    test "renders a persistent toast with explicit dismissal" do
       assigns = %{}
 
       html =
@@ -294,7 +294,8 @@ defmodule Threadline.OperatorSurface.UITest do
         </UI.Overlay.toast>
         """)
 
-      assert html =~ "phx-click-away"
+      refute html =~ "phx-click-away"
+      assert html =~ "aria-label=\"Close\""
       assert html =~ "Toast Message"
     end
   end
@@ -720,10 +721,18 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "tl-secondary-ref"
       assert html =~ ~s(data-tl-copy="#{@long_ref}")
       assert html =~ ~s(title="#{@long_ref}")
+      assert html =~ "<details"
+      assert html =~ "Show full correlation id"
+      assert html =~ "<summary>Show full correlation id</summary>"
+      assert html =~ ~s(<code class="tl-value__full">#{@long_ref}</code>)
 
       # Every data-tl-copy binding equals the full value — never the truncated visible text.
       targets = copy_targets(html)
       assert targets != []
+      assert html =~ "data-tl-copy-status"
+      assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-live="polite")
+      assert html =~ ~s(aria-atomic="true")
 
       assert Enum.all?(targets, &(&1 == @long_ref)),
              "every data-tl-copy must equal the full value"
@@ -733,6 +742,26 @@ defmodule Threadline.OperatorSurface.UITest do
       assert visible != @long_ref, "fixture must actually truncate so the test is meaningful"
       assert html =~ visible
       refute Enum.member?(targets, visible)
+    end
+
+    test "does not create a full-value disclosure for redacted tokens" do
+      canary = "synthetic-secret-canary-239-6f71"
+
+      assigns = %{
+        token: %{text: "[REDACTED]", modifier: "tl-value--redacted", title: canary}
+      }
+
+      html =
+        rendered_to_string(~H"""
+        <UI.Display.value token={@token} label="secret before value" />
+        """)
+
+      assert html =~ "[REDACTED]"
+      refute html =~ canary
+      refute html =~ "<details"
+      refute html =~ ~s(title=)
+      refute html =~ "data-tl-copy"
+      refute html =~ "aria-label"
     end
 
     test "copy_label is a required attr (omitting it warns at compile time — D-07)" do

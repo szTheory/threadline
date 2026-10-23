@@ -639,6 +639,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The root ExUnit suite checks the required operator journey identities
+      # against Playwright's real --list output. Install the locked CLI for all
+      # toolchain lanes; browser binaries are installed only by the browser job.
+      - name: Set up Node for browser journey contract
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+      - name: Install locked E2E dependencies for browser journey contract
+        working-directory: examples/threadline_phoenix/e2e
+        run: npm ci
+
       - uses: erlef/setup-beam@v1
         id: beam
         with:
@@ -1074,7 +1088,34 @@ jobs:
       # never executes. 14 < 18 keeps the diagnosis path alive.
       - name: Run example Playwright suite
         timeout-minutes: 14
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json
         run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
+
+      - name: Discover required operator journeys
+        working-directory: examples/threadline_phoenix/e2e
+        env:
+          OPERATOR_CI_DISCOVERED_JSON: ${{ runner.temp }}/operator-ci-discovered-${{ github.run_id }}.txt
+        run: ./node_modules/.bin/playwright test --list --project=desktop-chromium --project=mobile-chromium > "$OPERATOR_CI_DISCOVERED_JSON"
+
+      - name: Reconcile required operator journey evidence
+        working-directory: examples/threadline_phoenix/e2e
+        env:
+          OPERATOR_CI_RECEIPT: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
+        run: >-
+          ./node_modules/.bin/tsx support/operator-ci-evidence.ts --verify
+          support/operator-journey-inventory.json
+          "${{ runner.temp }}/operator-ci-discovered-${{ github.run_id }}.txt"
+          "${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
+          "$OPERATOR_CI_RECEIPT"
+
+      - name: Upload validated operator journey receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: operator-ci-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
+          if-no-files-found: error
+          retention-days: 14
 
       # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
       # this step is what makes that abort useful: it preserves the retained

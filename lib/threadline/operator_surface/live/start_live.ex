@@ -40,6 +40,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:health, [])
        |> assign(:health_enabled, false)
        |> assign(:saved_views, [])
+       |> assign(:record_lookup_table, "")
+       |> assign(:record_lookup_id, "")
+       |> assign(:correlation_lookup_id, "")
        |> assign(:record_lookup_error, nil)
        |> assign(:correlation_lookup_error, nil)}
     end
@@ -58,8 +61,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("open-row-history", %{"record_lookup" => params}, socket) do
-      table = params |> Map.get("table", "") |> String.trim()
-      record_id = params |> Map.get("record_id", "") |> String.trim()
+      raw_table = Map.get(params, "table", "")
+      raw_record_id = Map.get(params, "record_id", "")
+      table = String.trim(raw_table)
+      record_id = String.trim(raw_record_id)
+
+      socket =
+        socket
+        |> assign(:record_lookup_table, raw_table)
+        |> assign(:record_lookup_id, raw_record_id)
 
       cond do
         table == "" ->
@@ -84,7 +94,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("open-correlation", %{"correlation" => params}, socket) do
-      correlation_id = params |> Map.get("correlation_id", "") |> String.trim()
+      raw_correlation_id = Map.get(params, "correlation_id", "")
+      correlation_id = String.trim(raw_correlation_id)
+      socket = assign(socket, :correlation_lookup_id, raw_correlation_id)
 
       cond do
         correlation_id == "" ->
@@ -148,12 +160,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
 
           <section class="tl-home__earned-flow" aria-label="Go straight to an audited record">
-            <.record_lookup
+          <.record_lookup
               record_table_options={@record_table_options}
+              record_lookup_table={@record_lookup_table}
+              record_lookup_id={@record_lookup_id}
               record_lookup_error={@record_lookup_error}
             />
 
-            <.correlation_lookup correlation_lookup_error={@correlation_lookup_error} />
+            <.correlation_lookup
+              correlation_lookup_id={@correlation_lookup_id}
+              correlation_lookup_error={@correlation_lookup_error}
+            />
           </section>
 
           <.saved_views saved_views={@saved_views} base_path={@base_path} />
@@ -169,8 +186,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
           <UI.Page.page_header variant="display" title="Follow what happened.">
             <:lede>
-              Every change is connected to the action, context, and story around it.
-              Pick where you want to start.
+              Search captured changes by time, table, actor, or correlation. Open a transaction
+              to inspect its row changes and any recorded action or context.
             </:lede>
             <div :if={@health_enabled} class="tl-home__health" role="status" aria-label="System health">
               <span class="tl-home__health-label">System health</span>
@@ -178,12 +195,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <span class="tl-chip tl-chip--success">All systems healthy</span>
               <% else %>
                 <a
+                  :if={signal.path}
                   :for={signal <- @health}
                   class={"tl-chip #{health_chip_class(signal)}"}
                   href={"#{@base_path}#{signal.path}"}
                 >
                   <%= signal.label %>
                 </a>
+                <span
+                  :if={is_nil(signal.path)}
+                  :for={signal <- @health}
+                  class={"tl-chip #{health_chip_class(signal)}"}
+                >
+                  <%= signal.label %>
+                </span>
               <% end %>
             </div>
           </UI.Page.page_header>
@@ -204,8 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-home__card-kicker">Timeline</span>
               <h2 class="tl-home__card-title">Find what changed</h2>
               <p class="tl-home__card-body">
-                Search captured changes by time, table, actor, or correlation id, then open
-                transactions and row history for context.
+                Start with Timeline, or jump to a known row or correlation below.
               </p>
               <a href={"#{@base_path}/timeline"} class="tl-button tl-button--primary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -262,6 +286,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     attr(:record_table_options, :list, required: true)
+    attr(:record_lookup_table, :string, required: true)
+    attr(:record_lookup_id, :string, required: true)
     attr(:record_lookup_error, :string, default: nil)
 
     defp record_lookup(assigns) do
@@ -284,6 +310,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   label="Table"
                   class="tl-toolbar__field"
                   options={[{"Choose table", ""} | Enum.map(@record_table_options, &{&1, &1})]}
+                  value={@record_lookup_table}
                 />
                 <UI.Form.field
                   id="record-lookup-id"
@@ -291,6 +318,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   name="record_lookup[record_id]"
                   label="Record id"
                   class="tl-toolbar__field tl-toolbar__field--wide"
+                  value={@record_lookup_id}
                   autocomplete="off"
                 />
                 <button class="tl-button tl-button--secondary" type="submit">
@@ -305,6 +333,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    attr(:correlation_lookup_id, :string, required: true)
     attr(:correlation_lookup_error, :string, default: nil)
 
     defp correlation_lookup(assigns) do
@@ -326,12 +355,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     class="tl-control"
                     type="text"
                     name="correlation[correlation_id]"
+                    value={@correlation_lookup_id}
                     autocomplete="off"
                   />
                 </label>
                 <button class="tl-button tl-button--secondary" type="submit">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                  Open Timeline
+                  Open the timeline
                 </button>
               </form>
               <div :if={@correlation_lookup_error} class="tl-alert tl-alert--error" role="alert">
@@ -372,51 +402,84 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp health_warnings(socket) do
-      coverage_warning(socket) ++ exports_warning(socket) ++ retention_warning(socket)
-    end
+      coverage_status = coverage_status(socket)
+      exports_status = exports_status(socket)
+      retention_status = retention_status(socket)
 
-    defp coverage_warning(socket) do
-      coverage = socket.assigns[:threadline_coverage]
+      warnings =
+        coverage_warning(coverage_status) ++
+          exports_warning(exports_status) ++ retention_warning(retention_status)
 
-      if socket.assigns[:threadline_coverage_enabled] && coverage &&
-           coverage.uncovered_count > 0 do
-        [
-          %{
-            label: "Close coverage gaps before relying on timeline answers",
-            path: "/coverage",
-            severity: :warning
-          }
-        ]
+      if :unavailable in [coverage_status, exports_status, retention_status] do
+        warnings ++ [%{label: "Health status unavailable", path: nil, severity: :warning}]
       else
-        []
+        warnings
       end
     end
 
-    defp exports_warning(socket) do
-      with true <- !!socket.assigns[:threadline_exports_enabled],
-           n when is_integer(n) and n > 0 <- failed_export_count(socket) do
-        unit = if n == 1, do: "export", else: "exports"
-        verb = if n == 1, do: "needs", else: "need"
+    defp coverage_status(socket) do
+      cond do
+        not socket.assigns[:threadline_coverage_enabled] ->
+          :disabled
 
-        [
-          %{
-            label: "#{n} failed #{unit} #{verb} attention",
-            path: "/exports",
-            severity: :danger
-          }
-        ]
-      else
-        _ -> []
+        not is_nil(socket.assigns[:threadline_coverage_error]) ->
+          :unavailable
+
+        match?(
+          %{uncovered_count: count} when is_integer(count),
+          socket.assigns[:threadline_coverage]
+        ) ->
+          case socket.assigns.threadline_coverage.uncovered_count do
+            count when count > 0 ->
+              {:warning, "Close coverage gaps before relying on timeline answers", "/coverage"}
+
+            _ ->
+              :ok
+          end
+
+        true ->
+          :unavailable
       end
     end
 
-    defp retention_warning(socket) do
-      if socket.assigns[:threadline_policy_enabled] && latest_retention_failed?(socket) do
-        [%{label: "Latest retention run failed", path: "/policy/retention", severity: :danger}]
+    defp coverage_warning({:warning, label, path}),
+      do: [%{label: label, path: path, severity: :warning}]
+
+    defp coverage_warning(_), do: []
+
+    defp exports_status(socket) do
+      if socket.assigns[:threadline_exports_enabled] do
+        case failed_export_count(socket) do
+          n when is_integer(n) -> {:count, n}
+          _ -> :unavailable
+        end
       else
-        []
+        :disabled
       end
     end
+
+    defp exports_warning({:count, n}) when n > 0 do
+      unit = if n == 1, do: "export", else: "exports"
+      verb = if n == 1, do: "needs", else: "need"
+
+      [%{label: "#{n} failed #{unit} #{verb} attention", path: "/exports", severity: :danger}]
+    end
+
+    defp exports_warning(_), do: []
+
+    defp retention_status(socket) do
+      if socket.assigns[:threadline_policy_enabled] do
+        latest_retention_status(socket)
+      else
+        :disabled
+      end
+    end
+
+    defp retention_warning(:failed) do
+      [%{label: "Latest retention run failed", path: "/policy/retention", severity: :danger}]
+    end
+
+    defp retention_warning(_), do: []
 
     defp failed_export_count(socket) do
       actor_ref = socket.assigns[:threadline_actor_ref]
@@ -436,7 +499,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp latest_retention_failed?(socket) do
+    defp latest_retention_status(socket) do
       repo = resolve_repo(socket)
 
       if repo do
@@ -445,14 +508,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  from(r in RetentionRun, order_by: [desc: r.started_at], limit: 1),
                  storage_opts(socket)
                ) do
-            %{status: "failed"} -> true
-            _ -> false
+            %{status: "failed"} -> :failed
+            _ -> :ok
           end
         rescue
-          _ -> false
+          _ -> :unavailable
         end
       else
-        false
+        :unavailable
       end
     end
 

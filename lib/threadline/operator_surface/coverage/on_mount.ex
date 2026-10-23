@@ -4,6 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.LiveView
 
+    alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Coverage.Snapshot
 
     @default_interval 30_000
@@ -83,7 +84,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Telemetry.emit_health_checked_error(e)
 
           socket
-          |> Phoenix.Component.assign(:threadline_coverage, Snapshot.empty(now))
+          |> Phoenix.Component.assign(:threadline_coverage, %{
+            Snapshot.empty(nil)
+            | error: message
+          })
           |> Phoenix.Component.assign(:threadline_coverage_error, message)
       end
     end
@@ -91,22 +95,62 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refresh_coverage(socket) do
       repo = resolve_repo(socket)
       now = DateTime.utc_now()
+      schema = socket.assigns[:coverage_for_schema_name] || "public"
 
       try do
-        coverage = Threadline.Health.trigger_coverage(repo: repo, schema: "public")
+        schema = validate_selected_schema!(repo, schema)
+
+        coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
         snapshot = Snapshot.from_coverage(coverage, last_checked_at: now)
 
         socket
         |> Phoenix.Component.assign(:threadline_coverage, snapshot)
         |> Phoenix.Component.assign(:threadline_coverage_error, nil)
+        |> assign_selected_coverage(schema, snapshot)
       rescue
         e ->
           message = Exception.message(e)
           Threadline.Telemetry.emit_health_checked_error(e)
 
-          # Keep the previous :threadline_coverage assign untouched (last-good).
-          # Set the error so the badge can render a "stale" indicator.
-          Phoenix.Component.assign(socket, :threadline_coverage_error, message)
+          snapshot = failed_snapshot(socket, schema, message)
+
+          socket
+          |> Phoenix.Component.assign(:threadline_coverage, snapshot)
+          |> Phoenix.Component.assign(:threadline_coverage_error, message)
+          |> assign_selected_coverage(schema, snapshot)
+      end
+    end
+
+    defp assign_selected_coverage(socket, schema, snapshot) do
+      if socket.assigns[:coverage_for_schema_name] == schema do
+        Phoenix.Component.assign(socket, :coverage_for_schema, snapshot)
+      else
+        socket
+      end
+    end
+
+    defp validate_selected_schema!(_repo, "public"), do: "public"
+
+    defp validate_selected_schema!(repo, schema) do
+      case CoverageSchemas.validate(repo, schema) do
+        {:ok, validated_schema} -> validated_schema
+        {:error, message} -> raise ArgumentError, message
+      end
+    end
+
+    defp failed_snapshot(socket, schema, message) do
+      case {socket.assigns[:coverage_for_schema_name], socket.assigns[:coverage_for_schema]} do
+        {^schema, %Snapshot{last_checked_at: %DateTime{} = _last_checked_at} = last_good} ->
+          %{last_good | error: message}
+
+        _ ->
+          case socket.assigns[:threadline_coverage] do
+            %Snapshot{last_checked_at: %DateTime{} = _last_checked_at} = last_good ->
+              %{last_good | error: message}
+
+            _ ->
+              %{Snapshot.empty(nil) | error: message}
+          end
       end
     end
 

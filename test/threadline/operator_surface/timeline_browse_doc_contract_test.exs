@@ -160,7 +160,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            "TimelineLive must gate row-history links through routeable_row_identity/1"
 
     assert String.contains?(live_src, "safe_row_history_path"),
-           "TimelineLive must build direct row-history links through safe_row_history_path/3"
+           "TimelineLive must build direct row-history links through safe_row_history_path/4"
 
     assert String.contains?(live_src, "String.trim(table)"),
            "routeable_row_identity/1 must reject missing or blank table names"

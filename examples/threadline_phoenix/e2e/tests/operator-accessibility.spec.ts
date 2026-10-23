@@ -104,6 +104,27 @@ async function expectFocused(locator: Locator) {
   expect(hasFocusRing).toBe(true);
 }
 
+async function expectImmediateMotion(locator: Locator) {
+  const style = await locator.evaluate((element) => {
+    const computed = window.getComputedStyle(element);
+    return {
+      animationDelay: computed.animationDelay,
+      animationDuration: computed.animationDuration,
+      animationName: computed.animationName,
+      transitionDelay: computed.transitionDelay,
+      transitionDuration: computed.transitionDuration,
+      transitionProperty: computed.transitionProperty,
+    };
+  });
+
+  expect(style.animationName).toBe("none");
+  expect(style.animationDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.animationDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.transitionProperty).toBe("none");
+  expect(style.transitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(style.transitionDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
+}
+
 async function expectThemeOptionFocusVisible(radio: Locator) {
   await expect(radio).toBeFocused();
   const option = radio.locator(
@@ -147,6 +168,10 @@ async function focusByKeyboard(page: Page, target: Locator, maxTabs = 40) {
 
 async function expectNonObscuredFocused(locator: Locator, page: Page) {
   await expectFocused(locator);
+  // Overlay focus moves at open time while its entrance transition may still be
+  // running. Wait for the complete control to enter the viewport before checking
+  // the final hit target; a partial slide-in is not a stable accessibility state.
+  await expect(locator).toBeInViewport({ ratio: 1 });
   const focusVisibility = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const x = rect.left + Math.min(rect.width / 2, Math.max(1, rect.width - 1));
@@ -283,6 +308,67 @@ test.describe("operator accessibility baseline", () => {
     await login(page);
   });
 
+  for (const theme of ["Light", "Dark", "System"]) {
+    test(`inspection routes retain context and reachable controls in ${theme} at 320, 768, and 1280 CSS px`, async ({ page, isMobile }) => {
+      await page.emulateMedia({ colorScheme: "light" });
+      await page.goto("/audit/coverage");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await openOperatorNav(page);
+      const picker = page.getByTestId("operator-nav-group-theme");
+      await picker.getByRole("radio", { name: theme, exact: true }).check();
+      await picker.getByRole("button", { name: "Apply theme", exact: true }).click();
+
+      await page.goto("/audit/evidence");
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      const seeded = page.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+      await expect(seeded).toHaveCount(1);
+      const reference = (await seeded.locator("code[data-tl-copy]").getAttribute("data-tl-copy"))!;
+      expect(JSON.parse(reference).run_id).toBe("walk-retention-offboarded-co");
+      for (const width of [320, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto("/audit/coverage?schema=public");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        await expect(page.getByRole("region", { name: "Selected schema readiness" })).toContainText("public");
+        const refreshCoverage = page.getByRole("button", { name: "Refresh coverage", exact: true });
+        await refreshCoverage.focus();
+        await expectNonObscuredFocused(refreshCoverage, page);
+        if (isMobile) await refreshCoverage.tap();
+        else await page.keyboard.press("Enter");
+        await expect(page.locator("#coverage-schema")).toHaveValue("public");
+        await expectNoHorizontalOverflow(page);
+
+        await page.goto(
+          `/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}&mode=history`,
+        );
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const scope = page.locator(".tl-evidence__workflow-summary");
+        await expect(scope.locator("code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
+        await expect(page.getByTestId("evidence-claim-boundary")).toContainText("recorded snapshot");
+        await expect(page.locator(".tl-record-card").first()).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+
+        await page.goto("/audit/policy/redaction?schema=public");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const posture = page.getByRole("region", { name: "Redaction policy posture" });
+        await expect(posture).toContainText("public");
+        await expect(posture).toContainText("current deployed trigger definitions only");
+        const refreshPolicy = page.getByRole("button", { name: "Refresh policy inspection", exact: true });
+        await refreshPolicy.focus();
+        await expectNonObscuredFocused(refreshPolicy, page);
+        const row = page.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+        const disclosure = row.locator("summary");
+        await disclosure.focus();
+        await expectNonObscuredFocused(disclosure, page);
+        if (isMobile) await disclosure.tap();
+        else await page.keyboard.press("Enter");
+        await expect(row).toHaveAttribute("open", "");
+        await expect(row.getByRole("table")).toBeVisible();
+        await expect(row.getByText("Deployed matches config", { exact: true })).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+      }
+    });
+  }
   test("documents every D-04 rendered-state category as covered or explicitly bounded", async () => {
     expect(d04RenderedStateCoverage).toHaveLength(13);
 
@@ -341,7 +427,7 @@ test.describe("operator accessibility baseline", () => {
     await expect(
       page
         .locator("#tl-correlation-lookup")
-        .getByRole("button", { name: "Open Timeline" }),
+        .getByRole("button", { name: "Open the timeline" }),
     ).toBeVisible();
 
     await page.goto("/audit/timeline");
@@ -476,6 +562,99 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(applyTheme, page);
   });
 
+  test("keeps System selection while served colors follow OS through investigation navigation", async ({
+    page,
+  }) => {
+    await page.goto("/audit");
+
+    const themeGroup = page.getByTestId("operator-nav-group-theme");
+    await openOperatorNav(page);
+    const system = themeGroup.getByRole("radio", { name: "System" });
+    if (process.env.THREADLINE_E2E_THEME === "system") {
+      await expect(system).toBeChecked();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        "system",
+      );
+    }
+    await system.check();
+    await themeGroup.getByRole("button", { name: "Apply theme" }).click();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+
+    const appearance = async () =>
+      page.locator(".threadline-ui").evaluate((root) => {
+        const card = root.querySelector(".tl-home__card");
+        if (!(card instanceof HTMLElement)) throw new Error("Home card missing");
+        const rootStyle = getComputedStyle(root);
+        const cardStyle = getComputedStyle(card);
+        return {
+          background: rootStyle.backgroundColor,
+          foreground: rootStyle.color,
+          border: cardStyle.borderTopColor,
+        };
+      });
+
+    await page.emulateMedia({ colorScheme: "light" });
+    const systemLight = await appearance();
+    expect(systemLight.background).toBe("rgb(247, 249, 252)");
+    expect(systemLight.foreground).toBe("rgb(15, 23, 40)");
+    expect(systemLight.border).toBe("rgb(167, 180, 200)");
+
+    await page.emulateMedia({ colorScheme: "dark" });
+    const systemDark = await appearance();
+    expect(systemDark.background).toBe("rgb(11, 16, 32)");
+    expect(systemDark.foreground).not.toBe(systemLight.foreground);
+    expect(systemDark.border).not.toBe(systemLight.border);
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+
+    await page.getByRole("link", { name: "Open the timeline" }).click();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+    const { transactionHref } = await discoverTransactionAndRowHistory(page);
+    await page.goto(transactionHref);
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await page.reload();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+
+    for (const theme of ["light", "dark"]) {
+      await openOperatorNav(page);
+      const group = page.getByTestId("operator-nav-group-theme");
+      await group.getByRole("radio", { name: new RegExp(theme, "i") }).check();
+      await group.getByRole("button", { name: "Apply theme" }).click();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        theme,
+      );
+      await page.reload();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        theme,
+      );
+      await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+        theme,
+      );
+    }
+  });
+
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({
     page,
   }) => {
@@ -525,7 +704,7 @@ test.describe("operator accessibility baseline", () => {
       /phx-connected/,
     );
     const prune = page
-      .getByRole("button", { name: "Run retention prune" })
+      .getByRole("button", { name: "Prune now" })
       .last();
     await expect(prune).toBeVisible();
     await prune.focus();
@@ -533,7 +712,7 @@ test.describe("operator accessibility baseline", () => {
     await prune.click();
     const pruneModal = page.locator("#prune-confirm");
     const pruneDialog = page.getByRole("dialog", {
-      name: "Prune retention window permanently?",
+      name: "Prune retained audit data?",
     });
     await expect(pruneModal).toBeVisible();
     await expect(pruneDialog).toBeVisible();
@@ -543,13 +722,16 @@ test.describe("operator accessibility baseline", () => {
       "prune-confirm-description",
     );
     await expect(pruneModal).toContainText(
-      "This permanently deletes audit records older than the retention window",
+      "This prune applies the configured retention policy globally to the configured Threadline storage schema",
+    );
+    await expect(pruneModal).toContainText(
+      "removes AuditChange rows strictly older than the policy cutoff",
     );
     await expect(
-      pruneModal.getByText("Type the policy name default to confirm"),
+      pruneModal.getByText("Type the policy name “default” to confirm"),
     ).toBeVisible();
     await expect(
-      pruneModal.getByRole("button", { name: "Keep retention window" }),
+      pruneModal.getByRole("button", { name: "Keep audit data" }),
     ).toBeVisible();
     const confirm = pruneModal.getByLabel("Policy name to confirm");
     await expect(confirm).toBeVisible();
@@ -617,6 +799,106 @@ test.describe("operator accessibility baseline", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("keeps export and retention journeys readable across themes, widths, and a live reconnect", async ({ page }) => {
+    let blockReconnect = false;
+    await page.routeWebSocket(/\/live\/websocket/, (socket) => {
+      if (blockReconnect) socket.close();
+      else socket.connectToServer();
+    });
+
+    for (const theme of ["Light", "Dark", "System"] as const) {
+      await page.goto("/audit");
+      await openOperatorNav(page);
+      const themeGroup = page.getByTestId("operator-nav-group-theme");
+      const themeRadio = themeGroup.getByRole("radio", { name: theme, exact: true });
+      if (!(await themeRadio.isChecked())) await themeRadio.check();
+      await themeGroup.getByRole("button", { name: "Apply theme", exact: true }).click();
+      await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+
+      const longCorrelation = `retention-export-filter-${"x".repeat(80)}`;
+      await page.goto(`/audit/exports?table=${rowTable}&correlation_id=${encodeURIComponent(longCorrelation)}`);
+      const root = page.locator("[data-phx-main]");
+      await expect(root).toHaveClass(/phx-connected/);
+      const exportContext = page.getByTestId("timeline-export-context");
+      await expect(exportContext).toContainText(longCorrelation);
+      await expect(page.getByTestId("export-jobs")).toBeVisible();
+      const queue = page.getByRole("button", { name: "Queue Timeline export", exact: true });
+      for (const width of [320, 375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        await expect(exportContext).toContainText(longCorrelation);
+        const target = await queue.boundingBox();
+        expect(target, `Queue target exists at ${width}px`).toBeTruthy();
+        expect(target!.width, `Queue target width at ${width}px`).toBeGreaterThanOrEqual(40);
+        expect(target!.height, `Queue target height at ${width}px`).toBeGreaterThanOrEqual(40);
+        await expectNoHorizontalOverflow(page);
+      }
+
+      if (theme === "System") {
+        await page.setViewportSize({ width: 320, height: 900 });
+        const main = page.locator("#tl-main");
+        await main.focus();
+        blockReconnect = true;
+        await page.evaluate(() => (window as any).liveSocket.disconnect());
+        await expect(root).toHaveClass(/phx-loading/);
+        const banner = page.locator(".tl-reconnect-banner");
+        await expect(banner).toBeVisible();
+        await expect(banner).toHaveAttribute("role", "status");
+        await expect(banner.locator(".tl-reconnect-banner__reconnecting")).toHaveText(
+          "Reconnecting. Actions will remain unavailable until current status is refreshed.",
+        );
+        await expect(queue).toBeDisabled();
+        await expect(main).toBeVisible();
+        await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("tl-main");
+        const bannerLayout = await banner.evaluate((element) => ({
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          viewportWidth: window.innerWidth,
+        }));
+        expect(bannerLayout.scrollWidth).toBeLessThanOrEqual(bannerLayout.clientWidth + 1);
+        expect(bannerLayout.clientWidth).toBeLessThanOrEqual(bannerLayout.viewportWidth);
+        await expectNoHorizontalOverflow(page);
+        blockReconnect = false;
+        await page.evaluate(() => (window as any).liveSocket.connect());
+        await expect(root).toHaveClass(/phx-connected/);
+        await expect(banner).toBeHidden();
+      }
+
+      await page.goto("/audit/policy/retention");
+      await expect(root).toHaveClass(/phx-connected/);
+      const history = page.locator("#retention-runs");
+      await expect(history).toBeVisible();
+      await expect(history).toContainText(/Completed|Queued|No retention runs/);
+      const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+      for (const width of [320, 375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        const target = await prune.boundingBox();
+        expect(target, `Prune target exists at ${width}px`).toBeTruthy();
+        expect(target!.width, `Prune target width at ${width}px`).toBeGreaterThanOrEqual(40);
+        expect(target!.height, `Prune target height at ${width}px`).toBeGreaterThanOrEqual(40);
+        await expectNoHorizontalOverflow(page);
+      }
+
+      await page.setViewportSize({ width: 320, height: 440 });
+      await prune.focus();
+      await page.keyboard.press("Enter");
+      const modal = page.locator("#prune-confirm");
+      const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText("This prune applies the configured retention policy globally");
+      await expect(dialog.getByRole("textbox", { name: "Policy name to confirm" })).toBeFocused();
+      const keepData = dialog.getByRole("button", { name: "Keep audit data", exact: true });
+      await keepData.scrollIntoViewIfNeeded();
+      await expect(keepData).toBeInViewport({ ratio: 1 });
+      await expectNoHorizontalOverflow(page);
+      await keepData.focus();
+      await page.keyboard.press("Enter");
+      await expect(modal).toBeHidden();
+      await expect(prune).toBeFocused();
+    }
+  });
+
   test("keeps row-history drawer dialog semantics and visible focus", async ({
     page,
   }, testInfo) => {
@@ -645,7 +927,10 @@ test.describe("operator accessibility baseline", () => {
     await rowHistoryLink.focus();
     await expectNonObscuredFocused(rowHistoryLink, page);
 
-    await page.goto(rowHistoryHref);
+    const expectedHistoryUrl = new URL(rowHistoryHref, page.url());
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(expectedHistoryUrl.toString());
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const drawer = page.getByTestId("row-history-drawer");
     const dialog = drawer.getByRole("dialog", { name: /Row history/ });
     await expect(drawer).toBeVisible();
@@ -658,10 +943,23 @@ test.describe("operator accessibility baseline", () => {
 
     const close = dialog.getByRole("link", { name: "Close" });
     await expect(close).toBeVisible();
+    await expect(close).toBeFocused();
+    await expectImmediateMotion(dialog.locator(".tl-row-history-drawer"));
+    await expectImmediateMotion(dialog.locator(".tl-subview__timeline li").first());
 
     const snapshot = dialog.getByLabel("View snapshot at");
     await expect(snapshot).toBeVisible();
     await snapshot.focus();
+
+    for (const value of ["2026-10-10T10:00", "2026-10-10T10:05"]) {
+      await snapshot.fill(value);
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get("as_of"))
+        .toBe(`${value}:00Z`);
+      await expect(snapshot).toBeFocused();
+      await expectImmediateMotion(dialog.locator(".tl-row-history-drawer"));
+      await expectImmediateMotion(dialog.locator(".tl-subview__timeline li").first());
+    }
 
     if (rowHistoryRedControl === "obscure-date-input") {
       await snapshot.evaluate((element) => {
@@ -763,12 +1061,18 @@ test.describe("operator accessibility baseline", () => {
       );
       await expect(redControl).toHaveCount(0);
     }
+
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(transactionHref);
+    await expect(dialog).toBeHidden();
+    await expectNonObscuredFocused(rowHistoryLink, page);
   });
 
   test("opens stress rendered widgets with names, keyboard state, and focus entry", async ({
     page,
   }) => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(page.getByTestId("stress-preview")).toBeVisible();
 
     const dropdownTrigger = page.locator("#stress-dropdown-button");
@@ -877,6 +1181,17 @@ test.describe("operator accessibility baseline", () => {
     await expect(modal).toBeHidden();
     await expectNonObscuredFocused(modalTrigger, page);
 
+    // The fixture intentionally includes a persistent toast. Dismiss it before
+    // checking that the drawer trigger is visible, focused, and not obscured on
+    // the mobile viewport.
+    const toast = page.locator("#stress-toast");
+    if (await toast.isVisible()) {
+      const closeToast = toast.getByRole("button", { name: "Close" });
+      await closeToast.focus();
+      await page.keyboard.press("Enter");
+      await expect(toast).toBeHidden();
+    }
+
     const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
     await drawerTrigger.scrollIntoViewIfNeeded();
     await drawerTrigger.focus();
@@ -895,6 +1210,120 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(drawerTrigger, page);
 
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("keeps drawer focus stable while the toast is layered above it", async ({
+    page,
+  }) => {
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(page.getByTestId("stress-preview")).toBeVisible();
+
+    const toast = page.locator("#stress-toast");
+    const toastClose = toast.getByRole("button", { name: "Close" });
+    await expect(toast).toBeVisible();
+    await expect(toastClose).toBeVisible();
+
+    const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await focusByKeyboard(page, drawerTrigger);
+    await page.keyboard.press("Enter");
+    const drawer = page.getByRole("dialog", { name: "Stress drawer" });
+    const drawerClose = drawer.getByRole("button", { name: "Close stress drawer" });
+    await expect(drawer).toBeVisible();
+    await expect(drawerClose).toBeFocused();
+    await expectNonObscuredFocused(drawerClose, page);
+
+    // The toast has the higher stacking order and must receive this real pointer
+    // activation without dismissing the drawer underneath it.
+    await toastClose.click();
+    await expect(toast).toBeHidden();
+    await expect(drawer).toBeVisible();
+    await expect(drawerClose).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toBeHidden();
+    await expect(drawerTrigger).toBeFocused();
+    await expect(drawerTrigger).toBeVisible();
+
+  });
+
+  test("preserves modal and drawer Escape focus through repeated LiveView patches", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/audit/__stress?category=group&story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const liveId = await page.locator("[data-phx-main]").getAttribute("id");
+    await page.evaluate(() => { (window as any).__tl239PatchMarker = "same-document"; });
+    await page.locator("#stress-toast").getByRole("button", { name: "Close" }).click();
+    for (let iteration = 0; iteration < 3; iteration++) {
+      const story = page.getByTestId("stress-story-list").getByRole("link").nth(iteration % 2);
+      const target = await story.getAttribute("href");
+      await story.click();
+      await expect(page).toHaveURL(new URL(target!, page.url()).href);
+      await expect(page.locator("[data-phx-main]")).toHaveAttribute("id", liveId!);
+      expect(await page.evaluate(() => (window as any).__tl239PatchMarker)).toBe("same-document");
+      for (const kind of ["Modal", "Drawer"]) {
+        const trigger = page.getByRole("button", { name: `Show ${kind}`, exact: true });
+        await focusByKeyboard(page, trigger, 160);
+        await page.keyboard.press("Enter");
+        const dialog = page.getByRole("dialog", { name: `Stress ${kind.toLowerCase()}`, exact: true });
+        await expect(dialog).toBeVisible();
+        await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(dialog).toBeHidden();
+        await expect(trigger).toBeFocused();
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test("closes the focused menu before its drawer and recovers from removed or disabled controls", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    for (const [state, action] of [["empty", "Remove dialog controls"], ["disabled", "Disable dialog controls"], ["removed", "Remove opener"]]) {
+      await page.goto("/audit/__stress?story=group.modal-destructive.current");
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      const rootId = await page.locator("[data-phx-main]").getAttribute("id");
+      const opener = page.getByRole("button", { name: "Open overlay edge cases", exact: true });
+      await focusByKeyboard(page, opener);
+      await page.keyboard.press("Enter");
+      const drawer = page.getByRole("dialog", { name: "Overlay edge cases", exact: true });
+      await expect(drawer).toBeVisible();
+      const toast = page.locator("#stress-toast");
+      const toastClose = toast.getByRole("button", { name: "Close" });
+      await expect(toast).toHaveClass(/tl-overlay-visible/);
+      await toastClose.focus();
+      await expect(toastClose).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(toast).toBeHidden();
+      await expect(drawer).toBeVisible();
+      await expect(drawer.locator("[data-tl-initial-focus]")).toBeFocused();
+      const menuButton = drawer.getByRole("button", { name: "Drawer actions" });
+      await menuButton.click();
+      await expect(drawer.getByRole("menuitem", { name: "Inspect evidence" })).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(drawer.getByRole("menu")).toBeHidden();
+      await expect(drawer).toBeVisible();
+      await expect(menuButton).toBeFocused();
+      await drawer.getByRole("button", { name: action, exact: true }).click();
+      await expect(page.locator("#stress-edge-state")).toHaveText(state);
+      await expect(page.locator("[data-phx-main]")).toHaveAttribute("id", rootId!);
+      await expect(page.locator("#stress-edge-content")).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(drawer).toBeHidden();
+      await expect(state === "removed" ? page.locator("#tl-main") : opener).toBeFocused();
+      if (state !== "removed") {
+        await page.keyboard.press("Enter");
+        await expect(page.locator("#stress-edge-content")).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(page.locator("#stress-edge-content")).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(drawer).toBeHidden();
+        await expect(opener).toBeFocused();
+      }
+    }
+    expect(errors).toEqual([]);
   });
 
   test("captures accessibility-tree evidence for screen-reader-ready structure", async ({
@@ -920,6 +1349,7 @@ test.describe("operator accessibility baseline", () => {
     });
 
     await page.goto("/audit/timeline");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await openTimelineAdvancedFilters(page);
     const timelineSnapshot = await expectAriaSnapshotContains(
       page.locator("#tl-main"),
@@ -961,15 +1391,16 @@ test.describe("operator accessibility baseline", () => {
     });
 
     await page.goto("/audit/policy/retention");
-    await page.getByRole("button", { name: "Run retention prune" }).last().click();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await page.getByRole("button", { name: "Prune now" }).last().click();
     const retentionSnapshot = await expectAriaSnapshotContains(
-      page.getByRole("dialog", { name: "Prune retention window permanently?" }),
+      page.getByRole("dialog", { name: "Prune retained audit data?" }),
       [
-        'dialog "Prune retention window permanently?"',
-        'heading "Prune retention window permanently?" [level=2]',
+        'dialog "Prune retained audit data?"',
+        'heading "Prune retained audit data?" [level=2]',
         'textbox "Policy name to confirm"',
-        'button "Keep retention window"',
-        'button "Prune records permanently"',
+        'button "Keep audit data"',
+        'button "Prune now"',
       ],
       { depth: 5 },
     );
@@ -980,6 +1411,7 @@ test.describe("operator accessibility baseline", () => {
     await page.keyboard.press("Escape");
 
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const dropdownTrigger = page.locator("#stress-dropdown-button");
     await dropdownTrigger.scrollIntoViewIfNeeded();
     await dropdownTrigger.click();
@@ -1015,6 +1447,16 @@ test.describe("operator accessibility baseline", () => {
       contentType: "text/plain",
     });
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
+
+    // The fixture includes a persistent toast that overlaps this trigger on
+    // narrow screens. Dismiss it through its keyboard-accessible control first.
+    const toast = page.locator("#stress-toast");
+    if (await toast.isVisible()) {
+      const closeToast = toast.getByRole("button", { name: "Close" });
+      await closeToast.focus();
+      await page.keyboard.press("Enter");
+      await expect(toast).toBeHidden();
+    }
 
     await page.getByRole("button", { name: "Show Drawer" }).click();
     const stressDrawerSnapshot = await expectAriaSnapshotContains(

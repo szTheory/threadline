@@ -47,7 +47,9 @@ test.describe("operator evidence and exports mobile UAT", () => {
     }
 
     const readyGroup = page.locator(".tl-job-group", { hasText: "Ready to hand off" });
-    await expect(readyGroup.getByRole("link", { name: "Download export" })).toBeVisible();
+    await expect(
+      readyGroup.getByRole("link", { name: "Download export" }).first(),
+    ).toBeVisible();
 
     for (const groupName of ["Preparing", "Needs attention", "Unavailable"]) {
       const group = page.locator(".tl-job-group", { hasText: groupName });
@@ -78,28 +80,28 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
 
     const summary = await box(page.locator(".tl-summary-grid"));
-    const prune = await box(page.getByRole("button", { name: "Run retention prune" }).last());
+    const prune = await box(page.getByRole("button", { name: "Prune now" }).last());
     expect(summary.y).toBeLessThan(prune.y);
 
-    const pruneButton = page.getByRole("button", { name: "Run retention prune" }).last();
+    const pruneButton = page.getByRole("button", { name: "Prune now" }).last();
     await expect(pruneButton).toHaveClass(/tl-button--secondary/);
-    await expect(pruneButton).toHaveClass(/tl-button--danger/);
+    await expect(pruneButton).not.toHaveClass(/tl-button--danger/);
     await expect(pruneButton).not.toHaveAttribute("data-confirm", /./);
     await pruneButton.click();
     const modal = page.locator("#prune-confirm");
     await expect(
-      modal.getByRole("heading", { name: "Prune retention window permanently?" }),
+      modal.getByRole("heading", { name: "Prune retained audit data?" }),
+    ).toBeVisible();
+    await expect(modal).toContainText(
+      "removes AuditChange rows strictly older than the policy cutoff",
+    );
+    await expect(
+      modal.getByRole("button", { name: "Prune now" }),
     ).toBeVisible();
     await expect(
-      modal.getByText("older than the retention window for policy"),
+      modal.getByText("Type the policy name “default” to confirm"),
     ).toBeVisible();
-    await expect(
-      modal.getByRole("button", { name: "Prune records permanently" }),
-    ).toBeVisible();
-    await expect(
-      modal.getByText("Type the policy name default to confirm"),
-    ).toBeVisible();
-    await modal.getByRole("button", { name: "Keep retention window" }).click();
+    await modal.getByRole("button", { name: "Keep audit data" }).click();
 
     const failureMetric = page.locator(".tl-card--metric", { hasText: "Failures" });
     const failureLink = failureMetric.getByRole("link");
@@ -151,7 +153,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
     });
     expect(positions.verdictY).toBeLessThanOrEqual(positions.refY);
 
-    const history = await box(firstEvidenceCard.getByRole("link", { name: "Open proof history" }));
+    const history = await box(firstEvidenceCard.getByRole("link", { name: "View proof history" }));
     const firstSupport = firstEvidenceCard.getByRole("link").nth(1);
     if ((await firstSupport.count()) > 0) {
       const support = await box(firstSupport);

@@ -1,0 +1,173 @@
+# Final operator evidence custody
+
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `76768d5ddad5f7af25c9970a28a12f220a8994767ed58b5bd4672841ececc178`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+These accepted lanes follow reviewed repair `a2b4f350` (selected-manifest custody, portable runner and focused capture; prior security repairs retained) and supersede all historical pointers below. Product UI bytes and generic inventory remain unchanged. All 355 IDs are classified in 238-BASELINE-FINDINGS.md; its approved phase owners override historical suggestions below.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924` | 135 | `d796f34cfbe976e89b68e3d597b535e564f432cba18e55a3b76024dbc775ffb3` | `71fe864888b16030f8bd6fb5b8f4be901bcf37295348fa34eeb70609718a1028` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_dark_1791521971` | 63 | `25744cfd3e4644a33600eba7ea3edcdfdb884cbff2d25f6877b0f86ba2b32a9b` | `04dfe212581577f0496798a5208443c75370b5419aee4752753b0f5f093416cb` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_light_1791521998` | 63 | `ad53c46d449804e6bde6b5f35b5643646535ecd3c58ecc57bea30a3d321673b3` | `10a69d81e0b1f867c9350e418d37cf632a3db6f8e0a998455b582a79fd166664` |
+
+Main manifest SHA-256: `ea0cc9930f3be93b2c873565a0420c8b9d48f98034f201d15c1734473213c121`.
+
+Retained preview: http://127.0.0.1:4109. Local-only `238-PREVIEW-RECEIPT.json` SHA-256: `9d034c7b5540b8e072205bdd8db812b99374d88b215ec5facd5bd9b4c3d27a57`. PID 32249 remains the independently running preview; only tooling changed, so existing product/fixture/assets remain current. Its updated receipt passed the fresh preview-required runtime contract, including renamed selected-manifest positive and corrupt-source/output negative controls. Guarded stop/reopen commands and lifecycle script hash are in the receipt; retain the worktree, original synthetic databases and raw bundles.
+
+Exact browser-chrome 200% zoom and clipboard denial remain unverified. No physical-device, Safari/Firefox, all-animation/full-keyboard or worker-completion claim is made. This is baseline evidence, not final refinement acceptance. Parent synchronizes these small artifacts and machine-specific receipts to the original planning checkout after validation.
+
+## Historical evidence (superseded)
+
+# Final operator evidence custody
+
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791520842/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `87bbc6478e8d7740525d57cedf5ee8bd9516b473adc8fca1820b9a0cef1156a0`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+These accepted lanes follow security repair `2a1887e9` (safe public preview stop, typed nested receipt metadata) and supersede all historical pointers below. Product UI bytes and generic inventory remain unchanged. All 355 IDs are classified in 238-BASELINE-FINDINGS.md; its approved phase owners override historical suggestions below.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791520842` | 135 | `5db2639133be0ce13dc2103be7e733fc5f231d4dcad5e7d9fb41039058939779` | `be2dfb11492d6cae4d9c69f76c93581ca76ee71217bccb0e09eeccf5c8465589` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_dark_1791520998` | 63 | `b99f59894e77d2d37e46c551d833e62df7e94b9677584a236f6c446956a326ee` | `a3c0090d7ca6b126c0fb9b5c080c5d1abaecebfc4fb201f598185b53e78554b4` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_light_1791521025` | 63 | `0620a1f94d5ffaf0ce941e9db2bd0e07624ebe85ea07ca94344ccf66673a994a` | `ff673dd02315a688bd21b23e1618376af23023c24a9f4ec0baea3359177c9c5d` |
+
+Main manifest SHA-256: `ae0d09742f6328104e48a221d55fd3fe1d514a2f61943216848a2288f71a3e68`.
+
+Retained preview: http://127.0.0.1:4109. Local-only `238-PREVIEW-RECEIPT.json` SHA-256: `030b84ee6d56c633a3a00b5b89f3ced8036531db020f48e4fdce626df0f6a7f2`. PID 32249 remains the independently running preview; only tooling changed, so existing product/fixture/assets remain current. Its updated receipt passed the fresh preview-required runtime contract, including renamed selected-manifest positive and corrupt-source/output negative controls. Guarded stop/reopen commands and lifecycle script hash are in the receipt; retain the worktree, original synthetic databases and raw bundles.
+
+Exact browser-chrome 200% zoom and clipboard denial remain unverified. No physical-device, Safari/Firefox, all-animation/full-keyboard or worker-completion claim is made. This is baseline evidence, not final refinement acceptance. Parent synchronizes these small artifacts and machine-specific receipts to the original planning checkout after validation.
+
+## Historical evidence (superseded)
+
+# Final operator evidence custody
+
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `36502f568b3e354a7859d654dafcd8ad443445f5605d447df9964611c4566a39`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+Final inventory expansion is a relevant capture input, so these three bounded reruns supersede earlier accepted pointers. No UI/tooling source changed. Earlier raw bundles remain retained. All 355 generic IDs close in 238-BASELINE-FINDINGS.md with approved owner phases; earlier owner suggestions below are provisional and superseded.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644` | 135 | `e517fd5963d7bde68e2dc8f3c1b4420c339674318c64d7065d0ab227a4443fc8` | `d96b6fd0f00f17ab759a6d18939b462f7b8b5649ec2e2afe88ebaac6294338c3` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_states_1791519710` | 63 | `b2af509be7f06311fedb375b7f9de68e1cba14c36a575cfe17eb12e6ebedee54` | `2164cc4041fddd3e9f6bbb5e5e57efb2d2e46eb55580a3a05f63031c185c1777` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_system_1791519768` | 63 | `f25a5c8ffcff5c146d7d08b0f946624e1600d81ed85fd451c06c98c42bd99277` | `0386f6dd6578fcfd042aea9f3c6ddfd98462c9524969e11300558ddd8e0bc18a` |
+
+Main manifest SHA-256: `9fd22101966b75a04cf4522418a44c9339acf20b0494519486188e59525e5434`. All output bytes, source changes, captured ancestry prefixes, semantic fixture and served/local CSS/JS validate through explicit live ExUnit. Static mode needs no planning, live process or generated artifact.
+
+Actual browser-chrome 200% zoom remains unverified: Computer Use was not approved to use Google Chrome for Testing. Clipboard permission denial remains unverified (denied CDP probe still reported prompt and copied feedback). Neither viewport/DPR nor the retained preview upgrades these limits to passes.
+
+Runtime receipt: `238-PREVIEW-RECEIPT.json` in this isolated phase directory (local only, contains machine/process paths). The committed index is the durable pointer; raw bundles and lifecycle verifier stay generated and outside git. Parent copies the small receipt/findings/index byte-for-byte to its original planning checkout after terminal validation; executor never writes that checkout. Retain this worktree and server for future phases. Stop/reopen instructions reside in the receipt and guard PID, port and database before acting.
+
+
+Retained preview: http://127.0.0.1:4109; PID `32249`; isolated database `threadline_phoenix_testoperator_preview_reopen_1791519872`. Guarded stop completed on the original owned PID; immediate reopen refused busy port 4108, then succeeded independently on free 4109 with a new database. Both synthetic databases remain retained. Receipt SHA-256: `aed296d4759424f0977cc912261215f8b512eb6b363cbb85cf1ece53fbab5446`; lifecycle verifier SHA-256: `b88b953d9ceebe1b911708944104bf999ca707a2f579ed8b097c4eac6aaf8312`. Runtime verification checks actual PID cwd/listener/PG client ports, separate unauthenticated and seeded-authenticated contexts, deep link, resource timing and exact served/local hashes.
+
+## Historical plan 02 custody (superseded accepted pointers)
+
+# Phase 238 plan 02 evidence handoff
+
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_final_1791516878_82721/manifest.json
+
+Accepted after the last runner/config/capture-source edit; earlier runs are superseded. This index contributes to UIB-01/UIB-02, without closing the shared requirements or claiming a live preview. Parent owns plan 03, planning-state advancement and byte-for-byte index/receipt synchronization.
+
+## Custody and candidate
+
+- Retained worktree: `.`; branch: `worktree-agent-v146-operator-preview`.
+- Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`.
+- Honest capture-time HEAD: `aed99dfad3efdc536f06f0c2622b1344f01ef201`. Captures include effective uncommitted task-02 bytes; committing identical bytes preserves the digest rather than rewriting capture-time HEAD.
+- Relevant candidate diff digest: `78db5478e57c8cb41ec16d673ecd360ceace786dc51a99f610440131386517b8`.
+- Fixture: `threadline-demo-seed` / `seed-pipeline-v1`; seed SHA-256: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`; semantic ID: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`.
+- Verification: 2026-10-09T03:36:24Z. Strict manifest serialization, every effective source path/mode/hash, each CSS/JavaScript served/local comparison and every output byte hash passed. Receipt ancestry equals the exact first-parent prefix. Copied context matches receipt hashes, including its explicitly recorded isolated config override. Product rendering source and reference fixtures remain unchanged; the route inventory is the only new fixture.
+- Browser: Playwright 1.60.0 / Chromium 148.0.7778.96; normal Chromium sandbox under narrow approved execution. No DOM HTML, response headers, cookies, credential-bearing traces or session values are saved. Screenshots contain synthetic seeded audit data; observations are allowlisted facts.
+
+All following paths are beneath `examples/threadline_phoenix/e2e/artifacts/operator-evidence/` in the retained worktree. Raw generated bundles stay ignored/local, with no bulk screenshot commit. Keep this worktree and these directories through preview/inventory acceptance. Files referenced by each manifest are relative to its run directory; those manifests contain the individual output SHA-256 values and asset/source proof.
+
+| Accepted run | Browser result | Cells / unique outputs | Manifest-set SHA-256 | Output-set SHA-256 |
+|---|---|---|---|---|
+| `operator_routes_final_1791516878_82721` | 11 named routes + degraded twin passed; 1 legacy reference writer intentionally mode-skipped | 34 / 135 | `a290485c9fc3823a9dd64832935de22eba3c2f7eb1247058f215106feb8be8f7` | `85f006ae0ef53e45e44e945a2185eabcd8c1a3881fda05696faf785770bc28b1` |
+| `operator_states_1791516768_67927` | desktop/dark: 11 passed | 21 / 63 | `f76430421460ba7f411865fa64511d04f3768e7c510a762a9bd4418660be85a6` | `a497e533ad9b983605ef8be9bb14b714912153d86f6ab67a83583381a41f952d` |
+| `operator_system_light_1791516801_73894` | compile-time System/light: 11 passed | 21 / 63 | `6121ea2e2e6361e616930288973eab6fcdb019c38a419d05d4b85433cbd9742c` | `bca2fc9d47b26f937ce2fe1f515530ab39a8838397dc0f6ffab92b234edafcd9` |
+
+Set hashes use SHA-256 over compact UTF-8 `JSON.stringify` of `[filename, sha256]` pairs. Manifest pairs are the sorted `*-manifest.json` names, followed by `manifest.json` for the route run only. Output pairs are the filename-sorted union of all manifest output references, without duplicates. Each individual manifest below is SHA-256 of its exact file bytes. This makes every set value reproducible without trusting this prose.
+
+Final route `manifest.json` SHA-256: `29c9d02eb80a2130b22908c64929bf5c0208de1a4bfeb07a3efe6081a03c46d4`.
+
+## Eleven-route surface
+
+Independent router comparison proves exact equality with `lib/threadline/operator_surface/router.ex`, rather than deriving the expected set from capture tests. Each named route test directly navigates at 1280, 768 and 375 CSS pixels after login. Each cell has `-shell.png`, `-content.png`, `-observation.json` and `-scorecard.json`; IDs are `<route-id>__dark-<width>`. HTTP 200, mounted operator shell, heading, connected LiveView and intended detail/drawer state are checked. Width/DPR and reduced motion are observed separately from browser zoom.
+
+| Route ID / host-relative pattern | Seed identity | Per-route manifest SHA-256 |
+|---|---|---|
+| `route.home` / `/` | admin persona | `d9655eadd37fe33771ab578ba6771f34bda4853cc178f37f8ba96965d6ee883d` |
+| `route.timeline` / `/timeline` | synthetic activity | `11cf9b264d82336fd1cf478f1b01276fa99b6284de4d253e784fd3e20278d0d8` |
+| `route.transaction` / `/transactions/:id` | `walk-acme-4521-close` AuditTransaction link | `0afacf98f4659807f538e3f30614e0f24b7c0401e85ebdb66f1e8564ad9850fb` |
+| `route.row` / `/rows/:table/:record_id` | same AuditTransaction's `tickets` AuditChange scalar row | `e702febe77633d459dd9ea00833168c875ac53bab17bc2a832a95d6be636a476` |
+| `route.drawer` / `/transactions/:id/history/:table/:record_id` | same transaction/row; preserves seeded `as_of` query | `2e22dae09e59c14a727cdf8a5de367097cd189e82f3cf31f5fb07b6398a2ef80` |
+| `route.actor` / `/actors/:kind/:id` | ActorRef `service_account/zendesk-sync` | `aa657c00b7b2f8c89ef6808e97dac1af8c649b64c872778655c04ae357d87076` |
+| `route.coverage` / `/coverage` | seeded trigger registration | `8d5d60ab9caef97d5b471ab45cd5d439950e16dd905530921e3f08b07035d87c` |
+| `route.evidence` / `/evidence` | seeded evidence subject/snapshots | `abf547c9c6927a4f6cd07425da3415e0fe46b8640d5a345dd0962bfef341a713` |
+| `route.exports` / `/exports` | synthetic export jobs | `8f1618a1d8d3cc3346f3bffd172b384496083948f4751c600e2b0396f1d1baa2` |
+| `route.redaction` / `/policy/redaction` | seeded redaction policy | `bec0799d3ec78aa063b7eff6f81d7dc095b18b5c0e5247f3735d8de26995d8c0` |
+| `route.retention` / `/policy/retention` | offboarded retention fixture | `442dff838eeedd7a8253cedc6c122cae7c31bb37e0bc399acf90862087478ff6` |
+
+Mount is `/audit`; concrete URLs are recorded in each manifest. Role is seeded admin; scope is the isolated local demo database. The degraded Timeline at 1280 is an intentionally injected ranking twin with three outputs, **not a twelfth route**; `route.timeline.degraded-manifest.json`: `2766b4ea00eb19932589ccbaf3ac22aca80717dba243320723d95ff0a0cb6d22`.
+
+## Bounded state matrix
+
+Each row references a `<state>-manifest.json` in both state run directories, with shell/content PNGs and observations per cell. A passing state test proves evidence collection and asserted observations; it does not declare recorded product failures acceptable.
+
+| Manifest stem | Dark SHA-256 | System/light SHA-256 |
+|---|---|---|
+| `state.theme` | `e3f1101fb2e7e4a5564fad19fe7582ac87f5e2d90895c2c8852cb30d490265df` | `74a34433daa6c51b2e4343849eea3e13ae403491a8935cfdaf93cb3939fdc593` |
+| `state.copy.evidence` | `e5f0ce6eb53b915af9a39116f74ba59e77a1cdb9781a3395c36e43f8d16f9515` | `1f1106140b08835512566e3d56fe1fd75ccaa02efae2edd36c936ae4be1bf671` |
+| `state.copy.exports` | `93d2911fe698e1f1e9d1dd825db189c9b8f9c88f7b6c0d5438eac74854c678df` | `f7deabbe7d1000c18be3cf74a2299a4da6ce5c99d9362011b735f9b05a654c20` |
+| `state.copy.retention` | `2c5d9309635a90c2ae14b181184422f906102d0907c7781decc04c2b53fdf0e2` | `a2413f608c11614dda2d5d5dd61e4e7e021164d930cb59b869319fd2b7811de1` |
+| `state.clipboard` | `713b0e65cd0eb5d73150adf360a8bd9c466d19e59b964758b9856e692344e7db` | `4ab2b4314a3072d103ca2c10c7231e04ce07f611d3841161117693985226672b` |
+| `state.exports` | `60d2f5e0a3e6c79b4b18f8857eb05a44fe0d9063f3e45e877e52669b338c4fea` | `4b78f1f1699c86e5e9ad0a4a24e27409e9b7763dc43e170f3d83eee8a901c57e` |
+| `state.timeline` | `d719270488ec36b56fc26bddba7a89d726a91e552f627def161b54c7cace410b` | `f0e56e6115119ee9e9b2f36b03b0fea03c89528189db3d2644cf68c18a486ba0` |
+| `state.offline.pointer` | `8a08b6aaeb4384f27393539d1c800f84b7c6bda5bda4ebe1bf0f83e5a696d710` | `86a3f7db7d495e87d86a4b320055e4c7d02ec86bdd90a317df88c53c05939f4d` |
+| `state.offline.keyboard` | `b1688c56ea99a0d3b3c1bc119db36b31c1024b54442e58b5c11f8ec530549cc1` | `2def64e1d4f07a0ee825e241a7dd0935133fac7041f702e0878daaf6c4a6dbb1` |
+| `state.focus` | `23a0313fd0792cc16f8dd25e000f08d23afbfc08ed1ac4c44bd874b8985e8e41` | `541601b150bdbeebac77dee0cd739e060a5a1357fa6a7b4a561d7be0ad062679` |
+| `state.touch` | `2895b42214a016f107df80235d71d4ce365fb326298b6d3d293f0a832b183373` | `09cb22a7b6fccc2a2d5911b8c77b30db8f73506df95860449897c7f8dd40f256` |
+| `state.denied` | `2561c3a585316946a284a8be4b55a864103d8b6bb31d169072424d1375db5ec6` | `106e400f61dd711e2dc91c84667efa2e964df58835674dd71245b6d8b78e8ae5` |
+
+Observed coverage:
+
+- Themes: separate checked preference, mounted attribute and computed effective color scheme/background. Compile-time System starts with System checked and effective light; explicit Light/Dark/System form submissions work. Reduced-motion media matches and home card animation duration is `0.001s`; token values are actual computed values, not declared source defaults.
+- Copy: three fresh authenticated contexts directly enter Evidence, Exports and Retention without prior operator navigation. Exact clipboard completion is false and delegated handler absent on each. A separate bound Timeline control completes an exact clipboard copy.
+- Pending/empty/long value: intercept the real outbound LiveView query, observe `phx-submit-loading` while held, release to the server, observe zero rows and the actual empty message with the full 232-character filter retained at 375px.
+- Failed/pending/completed/unavailable: existing synthetic export jobs render their distinct status groups, failure alert and completed download link. Malformed subject input renders a real invalid-context alert. These are seeded status fixtures, not a newly finished export mutation.
+- Offline/reconnect: really disconnect LiveView and block reconnect; banner is visible. Pointer and keyboard queue activation are sampled separately. Reconnect restores the connected root/banner state; both lanes observe zero added jobs for each activation, with no observed duplicates and **no completion claim**.
+- Focus/touch: keyboard opens retention confirmation, focus is inside; Escape closes it and returns focus. No prune submission occurs. A separate 375px Chromium touch context opens mobile navigation by `tap`; this is emulated touch, not a physical device.
+- Denied: real host GET of `/audit/exports/changes.csv` as seeded Acme support read-only returns HTTP 403. The status and host authorization provenance are recorded separately from busy/disabled; no denial response body is saved.
+
+## Ranked findings for later classification
+
+| Rank | Observed finding / evidence | Follow-up owner |
+|---|---|---|
+| High | Fresh-entry Copy does not complete and handler is absent on Evidence/Exports/Retention in both lanes; `state.copy.*-observation.json`. Timeline exact-copy positive control works. | 242 interaction truth |
+| High | Exports queue remains enabled while truly disconnected: `disabled=false`, no `aria-disabled`, no mutation marker, `pointer-events:auto`; `state.offline.*-observation.json`. No new/duplicate job was observed after reconnect. | 241 status/affordance, 242 interaction |
+| High | Long-filter narrow Timeline overflows: CSS width 375, document scroll width 1928 dark / 1924 light; `state.timeline.empty-long-observation.json` and PNGs visibly clip controls/active filter. | 240 layout, 242 resilience |
+| Medium, classification candidate | Narrow drawer full-shell PNG shows its heading/Close area under the persistent shell header/navigation; `route.drawer__dark-375-shell.png`. Confirm against the live preview before prescribing layout changes. | 241 detail/drawer |
+| Medium, token/test debt | Computed `--tl-color-paper` and `--tl-color-ink` are empty in both initial themes; backgrounds/text do resolve and differ as expected. This is not a blanket visible contrast failure. | 239 token ownership |
+| Low, terminology candidate | Inspected home/coverage PNGs show “Check audit readiness”, navigation “Coverage”, and heading “Audit coverage”; retain rendered wording for canonical-label classification. AuditTransaction/AuditChange/ActorRef remain distinct in fixture/evidence notes. No comprehensive label-consistency pass is claimed. | 241 labels/content |
+
+Visually inspected final PNGs: dark home 375, coverage 768, drawer 375, Exports 1280; System/light initial home; dark empty/long Timeline 375. Inspection confirms actual shell/content and the noted clipping candidates. This is evidence review, not final design acceptance or a paid critic run.
+
+## Explicit acceptance limitations
+
+- **Actual browser-chrome 200% zoom: unverified.** Computer Use denied the exact installed Google Chrome for Testing app with “Computer Use was not approved to use Google Chrome for Testing”. No browser UI zoom value was observed. Viewport resizing, DPR=1, screenshot CSS scale and the manifest's neutral compatibility `input.zoom=1` do not establish browser zoom; every capture condition explicitly says `browserZoom=unverified`. Carry this precise unresolved condition into the final inventory.
+- **Clipboard denial/unavailability: unverified.** Clearing permissions and a context-specific CDP `Browser.setPermission(clipboard-write, denied)` still reports `prompt` in this Chromium context. The ensuing click shows copied feedback; no Clipboard API denial or failed legacy fallback is claimed. Fresh-entry unbound controls never attempt clipboard access, so they cannot establish denial handling. Missing-API/fallback failure was not forced; `state.clipboard.denied-observation.json` records the probe limitation. The independent host HTTP 403 is genuine authorization denial, not clipboard denial proof.
+- Offline tests sample the Exports queue control. Timeline's separate export activation and all other mutation controls are not exhaustively sampled. Zero observed new jobs is narrower than proof that any future queued job completes; worker completion is covered only by the seeded fixture here.
+- Reduced-motion proof covers media state and one actual home card animation; it is not an all-animation audit. Focus proof covers retention confirmation; touch proof covers mobile navigation. No Firefox/Safari, physical-device, full keyboard inventory, every route/theme Cartesian product or 200% readability claim is made.
+- The legacy reference-writing browser test is deliberately skipped in opt-in evidence mode to preserve read-only reference fixtures. Eleven route tests and the extra degraded-state test all execute; plan 01 already verified legacy evidence-off behavior.
+- Unsupported conditions and observed product failures are handoff items for plan 03's classification; no product fixes, public API changes, auth/scope changes, shared planning-state edits, publication or worktree cleanup occur in this plan.

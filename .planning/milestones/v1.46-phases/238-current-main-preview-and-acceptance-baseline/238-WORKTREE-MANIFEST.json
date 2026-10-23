@@ -1,0 +1,11 @@
+{
+  "orchestrator_root": "<project-root>",
+  "worktrees": [
+    {
+      "agent_id": "phase-238-preview",
+      "worktree_path": "<project-root>/.claude/worktrees/v146-operator-preview",
+      "branch": "worktree-agent-v146-operator-preview",
+      "expected_base": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2"
+    }
+  ]
+}

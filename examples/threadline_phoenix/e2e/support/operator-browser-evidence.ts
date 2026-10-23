@@ -1,0 +1,166 @@
+import { expect, type Browser, type Page, type TestInfo } from "@playwright/test";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { platform, release } from "node:os";
+import { join, relative, resolve } from "node:path";
+import { currentOperatorSurfacePaths, resolveContainedPath, atomicWriteFile } from "./operator-surface-paths.js";
+import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, seededFixtureIdentity, validateCaptureMetadata, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
+
+export const paths = currentOperatorSurfacePaths();
+const require = createRequire(import.meta.url);
+const sha = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
+export const widths = [1280, 768, 375] as const;
+const redactionCanary = "synthetic-secret-canary-239-6f71";
+export const inventory = JSON.parse(readFileSync(join(paths.repositoryRoot, "test/fixtures/operator_surface/route-inventory.json"), "utf8")) as {
+  routes: { id: string; pattern: string; path?: string; seedResolution: string; role: string; scope: string }[];
+};
+
+export async function login(page: Page, email = "admin@example.com") {
+  await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
+  await page.locator("#login_form").getByLabel("Email").fill(email);
+  await page.locator("#login_form").getByLabel("Password").fill(process.env.DEMO_SEED_PASSWORD ?? "password123456");
+  await page.locator("#login_form").getByRole("button", { name: /log in/i }).click();
+  await expect(page).toHaveURL("/", { timeout: 30_000 });
+}
+
+export async function seedPaths(page: Page) {
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  const link = page.getByTestId("timeline-row").first().getByTestId("transaction-link");
+  await expect(link).toBeVisible();
+  const transaction = await link.getAttribute("href");
+  expect(transaction).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  await page.goto(transaction!);
+  const rowLink = page.getByTestId("transaction-change-row").filter({ hasText: "tickets" }).getByTestId("row-history-link").first();
+  await expect(rowLink).toBeVisible();
+  const drawer = await rowLink.getAttribute("href");
+  const match = drawer && new URL(drawer, "http://127.0.0.1").pathname.match(/^\/audit\/transactions\/([^/]+)\/history\/([^/]+)\/([^/]+)$/);
+  expect(match, "Seeded AuditChange must resolve a scalar row-history path").toBeTruthy();
+  return { transaction: transaction!, drawer: drawer!, row: `/audit/rows/${match![2]}/${match![3]}` };
+}
+
+export function runRoot() {
+  const value = process.env.THREADLINE_E2E_EVIDENCE_ROOT;
+  if (!value) throw new Error("Runner must provide a fresh evidence output root");
+  return resolveContainedPath(paths.e2eRoot, relative(paths.e2eRoot, resolve(value)));
+}
+
+export async function startEvidence(page: Page, browser: Browser, info: TestInfo, role = "seeded-admin") {
+  const base = process.env.THREADLINE_E2E_BASE_SHA;
+  if (!base) throw new Error("Missing verified isolation base");
+  const identity = candidateIdentity(paths.repositoryRoot, base);
+  const candidateReceiptPath = process.env.THREADLINE_E2E_CANDIDATE_RECEIPT;
+  if (candidateReceiptPath) {
+    const expectedPath = join(paths.repositoryRoot, ".planning/phases/243-integrated-verification-and-review-preview/243-CANDIDATE-RECEIPT.json");
+    if (candidateReceiptPath !== expectedPath) throw new Error("Phase 243 receipt path is not the fixed owned path");
+    const receiptBytes = readFileSync(candidateReceiptPath);
+    const receiptSha256 = sha(receiptBytes);
+    if (receiptSha256 !== process.env.THREADLINE_E2E_CANDIDATE_RECEIPT_SHA256) throw new Error("Phase 243 candidate receipt changed after runner preflight");
+    const receipt = JSON.parse(receiptBytes.toString("utf8")) as {
+      baseSha: string; acceptedHead: string; acceptedReceiptSha256: string; acceptedEvidenceIndexSha256: string;
+      forwardTaskCommits: string[]; candidateHead: string; candidateDiffDigest: string;
+    };
+    if (receipt.baseSha !== base || receipt.candidateHead !== identity.candidateHead || receipt.candidateDiffDigest !== identity.candidateDiffDigest) throw new Error("Phase 243 receipt does not bind the current candidate source");
+    const custody: OperatorEvidenceManifest["custody"] = {
+      receiptSha256, acceptedReceiptSha256: receipt.acceptedReceiptSha256,
+      acceptedEvidenceIndexSha256: receipt.acceptedEvidenceIndexSha256,
+      acceptedHead: receipt.acceptedHead, forwardTaskCommits: receipt.forwardTaskCommits,
+    };
+    return startBoundEvidence(page, browser, info, identity, custody, role);
+  }
+  const receiptPath = process.env.THREADLINE_E2E_FORWARD_RECEIPT;
+  if (!receiptPath) throw new Error("Missing verified Phase 239 forward receipt");
+  const receiptBytes = readFileSync(receiptPath);
+  const receiptSha256 = sha(receiptBytes);
+  if (receiptSha256 !== process.env.THREADLINE_E2E_FORWARD_RECEIPT_SHA256) throw new Error("Phase 239 forward receipt changed after runner preflight");
+  const forwardReceipt = JSON.parse(receiptBytes.toString("utf8")) as {
+    acceptedHead: string; acceptedReceiptSha256: string; acceptedEvidenceIndexSha256: string;
+    forwardTaskCommits: string[]; candidateHead: string; candidateDiffDigest: string;
+  };
+  if (forwardReceipt.candidateHead !== identity.candidateHead || forwardReceipt.candidateDiffDigest !== identity.candidateDiffDigest) throw new Error("Phase 239 receipt does not bind the current candidate source");
+  const custody: OperatorEvidenceManifest["custody"] = {
+    receiptSha256, acceptedReceiptSha256: forwardReceipt.acceptedReceiptSha256,
+    acceptedEvidenceIndexSha256: forwardReceipt.acceptedEvidenceIndexSha256,
+    acceptedHead: forwardReceipt.acceptedHead, forwardTaskCommits: forwardReceipt.forwardTaskCommits,
+  };
+  return startBoundEvidence(page, browser, info, identity, custody, role);
+}
+
+async function startBoundEvidence(page: Page, browser: Browser, info: TestInfo, identity: ReturnType<typeof candidateIdentity>, custody: OperatorEvidenceManifest["custody"], role: string) {
+  const fixture = seededFixtureIdentity(paths.repositoryRoot);
+  const assets = new Map<string, ServedAsset>();
+  const errors: string[] = [];
+  const pending: Promise<void>[] = [];
+  // Start before operator navigation; never save network headers or document HTML.
+  await page.route("**/assets/**", (route) => route.continue());
+  page.on("response", (response) => {
+    if (!["stylesheet", "script"].includes(response.request().resourceType())) return;
+    pending.push((async () => {
+      try { assets.set(response.url(), assetRecord(paths.repositoryRoot, response.url(), response.status(), response.headers()["content-type"] ?? "", await response.body())); }
+      catch (error) { errors.push(String(error)); }
+    })());
+  });
+  const captures: OperatorEvidenceManifest["captures"][number][] = [];
+  let lastAppearance = { preference: "unknown", effectiveTheme: "unknown" };
+  let lastViewport = { width: 1280, height: 900, deviceScaleFactor: 1 };
+
+  async function capture(id: string, route: string, state: string, extra: unknown = {}, connected = true) {
+    validateCaptureMetadata(extra, redactionCanary, `${route} capture metadata`);
+    const root = page.locator(".threadline-ui").first();
+    const content = page.locator("#tl-main");
+    await expect(root).toBeVisible();
+    await expect(content).toBeVisible();
+    if (connected) await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await page.evaluate(() => document.fonts.ready);
+    await Promise.all(pending);
+    if (errors.length) throw new Error(errors.join("\n"));
+    const styleText = (await page.locator("style").allTextContents()).find((s) => s.includes(".threadline-ui"));
+    if (!styleText) throw new Error("Missing served operator stylesheet");
+    const local = ["01_tokens.css", "02_base_shell.css", "03_page_home.css", "04_controls.css", "05_feedback.css", "06_layout_primitives.css", "07_find_detail.css", "08_overlays_motion.css", "09_responsive.css"].map((f) => readFileSync(join(paths.repositoryRoot, "lib/threadline/operator_surface/style", f), "utf8")).join("");
+    const css: ServedAsset = { url: "inline:/audit#threadline-operator-stylesheet", status: 200, contentType: "text/css; charset=utf-8", servedSha256: sha(styleText), localPath: "lib/threadline/operator_surface/style/*.css (ordered segments)", localSha256: sha(local) };
+    const verified = [...assets.values(), css];
+    const observation = await root.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const names = ["--tl-color-bg", "--tl-color-text", "--tl-color-paper", "--tl-color-ink", "--tl-motion-base", "--tl-font-size-body"];
+      return { preference: (el.querySelector('input[name="theme"]:checked') as HTMLInputElement)?.value ?? "unknown", mountedTheme: el.getAttribute("data-tl-theme") ?? "unknown", effectiveTheme: style.colorScheme, osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
+    });
+    const renderedDom = await page.locator("body").evaluate((body) => {
+      const values = [body.textContent ?? ""];
+      for (const element of [body, ...Array.from(body.querySelectorAll("*"))]) {
+        for (const attribute of Array.from(element.attributes)) values.push(attribute.value);
+      }
+      return values.join("\n");
+    });
+    assertNoCanaryLeak(redactionCanary, `${route} rendered DOM`, renderedDom);
+    lastAppearance = { preference: observation.preference, effectiveTheme: observation.effectiveTheme };
+    lastViewport = { ...page.viewportSize()!, deviceScaleFactor: observation.dpr };
+    const condition = JSON.stringify({ project: info.project.name, viewport: lastViewport, motion: observation.reducedMotion ? "reduced" : "default", browserZoom: "unverified", ...extra });
+    for (const region of ["shell", "content"] as const) {
+      const file = resolveContainedPath(runRoot(), `${id}-${region}.png`);
+      if (region === "shell") await root.screenshot({ path: file, scale: "css", animations: "disabled" });
+      else await content.screenshot({ path: file, scale: "css", animations: "disabled", mask: [page.locator("time"), page.locator('[data-dynamic="true"]')], maskColor: observation.effectiveTheme === "light" ? "#F8FAFC" : "#0B1020" });
+      assertNoCanaryLeak(redactionCanary, file, readFileSync(file));
+      captures.push({ ...outputRecord(`${id}-${region}`, route, state, condition, file), assets: verified });
+    }
+    const observationPath = resolveContainedPath(runRoot(), `${id}-observation.json`);
+    const observationJson = JSON.stringify({ route, state, ...observation, ...extra }, null, 2) + "\n";
+    assertNoCanaryLeak(redactionCanary, observationPath, observationJson);
+    atomicWriteFile(observationPath, observationJson);
+    captures.push({ ...outputRecord(`${id}-observation`, route, state, condition, observationPath), assets: verified });
+    return observation;
+  }
+  function finish(id: string, route: string, state: string) {
+    const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, custody, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, environment: { os: `${platform()} ${release()}` }, captures };
+    // zoom=1 is a neutral compatibility field, NOT proof of browser chrome zoom;
+    // every capture's condition explicitly records browserZoom=unverified.
+    assertNoCanaryLeak(redactionCanary, `${id}-manifest.json`, JSON.stringify(manifest));
+    writeManifest(runRoot(), `${id}-manifest.json`, manifest);
+    return manifest;
+  }
+  function recordFile(id: string, route: string, state: string, condition: string, file: string) {
+    if (!captures.length) throw new Error("Record metadata only after verified browser capture");
+    assertNoCanaryLeak(redactionCanary, file, readFileSync(file));
+    captures.push({ ...outputRecord(id, route, state, condition, file), assets: captures[0].assets });
+  }
+  return { capture, finish, recordFile };
+}

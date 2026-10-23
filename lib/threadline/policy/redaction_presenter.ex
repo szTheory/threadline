@@ -113,23 +113,16 @@ defmodule Threadline.Policy.RedactionPresenter do
 
     case deployed_rows do
       [] ->
-        status =
-          if configured_policy == empty_policy() do
-            :config_matches_deployed
-          else
-            :drift_detected
-          end
-
         %{
           table: table,
           table_schema: table_schema,
           table_name: table_name,
-          status: status,
+          status: :drift_detected,
           configured: configured_policy,
           deployed: nil,
           diff: diff(configured_policy, nil),
-          warning: if(status == :drift_detected, do: @missing_trigger_warning),
-          hint: hint_for(status)
+          warning: @missing_trigger_warning,
+          hint: hint_for(:drift_detected)
         }
 
       [deployed_row] ->

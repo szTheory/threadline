@@ -108,6 +108,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       router: Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnRouter
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.TransitionRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    import Ecto.Query
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_transition",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
+      )
+    end
+
+    def auth(_socket) do
+      case Application.get_env(:threadline, :test_timeline_transition_auth, :allow) do
+        :allow -> {:ok, %{organization_id: "org-239-transition"}}
+        :deny -> {:error, :unauthorized}
+      end
+    end
+
+    def scope_operator_query(query, %{organization_id: organization_id}, %{
+          surface: :timeline,
+          params: %{filters: filters}
+        }) do
+      failed_correlation =
+        Application.get_env(:threadline, :test_timeline_transition_failure)
+
+      if is_binary(failed_correlation) and failed_correlation == Keyword.get(filters, :table) do
+        raise "test-only Timeline query failure"
+      end
+
+      where(
+        query,
+        [_change, txn],
+        fragment("?->>'organization_id' = ?", txn.meta, ^organization_id)
+      )
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.TransitionEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.TransitionRouter
+  end
+
   # Router/endpoint for the D-20 nil-scope matrix (233-04 Task 2) — the
   # authorize_fn returns :ok (admin, unscoped) but a scope_query_fn is still
   # configured at mount. The nil scope stays unscoped and the fn is never
@@ -597,7 +642,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "actor id is required for non-anonymous actors"
       refute html =~ "must-not-render"
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
     end
 
     test "actor id without actor kind renders an error and no unfiltered rows", %{conn: conn} do
@@ -607,7 +652,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "actor kind is required when actor id is present"
       refute html =~ "must-not-render"
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
     end
 
@@ -718,6 +763,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html_after_back =~ ~s|class="tl-alert tl-alert--error"|
     end
 
+    test "a changed applied query resets streamed rows and the older-page cursor", %{conn: conn} do
+      posts_table = "query_reset_posts_#{System.unique_integer([:positive])}"
+      users_table = "query_reset_users_#{System.unique_integer([:positive])}"
+      seed_changes!(51, table: posts_table)
+      seed_change!(table: users_table)
+
+      {:ok, lv, first_page} =
+        live(
+          conn,
+          "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{posts_table}"
+        )
+
+      assert first_page =~ "Showing 50 of 51 matching changes"
+      assert has_element?(lv, "button[phx-click=next-page]:not([disabled])")
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, first_page)) == 50
+
+      html_after_change =
+        render_patch(
+          lv,
+          "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{users_table}"
+        )
+
+      assert html_after_change =~ "Showing 1 of 1 matching changes"
+      assert has_element?(lv, "button[phx-click=next-page][disabled]")
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, html_after_change)) == 1
+      refute html_after_change =~ posts_table
+      assert html_after_change =~ users_table
+    end
+
     # -------------------------------------------------------------------
     # Case 15 — three download anchors render (EXPO-03)
     # Plan-supplied numbering 12-15; renumbered to 15-18 because Cases 12,
@@ -767,7 +841,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "invalid datetime: not-a-date"
       assert html =~ ~s|href="/audit/exports?from=not-a-date&amp;table=posts"|
-      refute html =~ "Queue export"
+      assert has_element?(lv, ~s|button[aria-label="Copy search URL"][disabled]|)
+      assert html =~ "Fix the Timeline filters before sharing this search."
+      refute html =~ "Export changes"
       refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
 
       render_click(lv, "request_background_export", %{})
@@ -778,7 +854,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "actorless Timeline mounts hide and reject background export actions", %{conn: conn} do
       {:ok, lv, html} = live(conn, "/audit/timeline?table=posts")
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit/exports/changes.csv?|
 
       render_click(lv, "request_background_export", %{})
@@ -801,8 +877,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
       {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
 
-      refute html_a =~ "Queue export"
-      refute html_b =~ "Queue export"
+      refute html_a =~ "Export changes"
+      refute html_b =~ "Export changes"
 
       render_click(view_a, "request_background_export", %{})
       render_click(view_b, "request_background_export", %{})
@@ -926,7 +1002,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|aria-controls="timeline-filters-drawer"|
       assert html =~ ~s|id="timeline-filters-drawer"|
       assert html =~ ~s|phx-window-keydown=|
-      assert html =~ ~s|phx-key="Escape"|
+      assert html =~ ~s|phx-key="escape"|
       assert html =~ "Window: 24h"
       assert html =~ "2026-06-06 20:07 UTC to 2026-06-07 20:07 UTC"
       assert html =~ "Reset to last 24h"
@@ -1019,7 +1095,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Large export — will stream in chunks."
     end
 
-    test "F-401: empty Timeline uses locked recovery copy", %{conn: conn} do
+    test "filtered empty Timeline uses the approved recovery copy", %{conn: conn} do
       table = "empty_timeline_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
@@ -1028,10 +1104,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
                )
 
-      assert html =~ "No captured changes match this window"
-
-      assert html =~
-               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+      assert html =~ "No changes match these filters"
+      assert html =~ "Adjust the time range or filters, then apply again."
     end
 
     test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
@@ -1058,10 +1132,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert filtered_html =~ ~s|tl-empty--no_data|
-      assert filtered_html =~ "No captured changes match this window"
-
-      assert filtered_html =~
-               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+      assert filtered_html =~ "No changes match these filters"
+      assert filtered_html =~ "Adjust the time range or filters, then apply again."
 
       refute filtered_html =~ "No captured changes in this window"
     end
@@ -1083,7 +1155,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
     end
 
-    test "F-401: scoped empty state keeps authorized-record caveat", %{conn: conn} do
+    test "F-401: filtered empty state uses the canonical heading and body", %{conn: conn} do
       table = "scoped_empty_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
@@ -1092,7 +1164,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
                )
 
-      assert html =~ "Scoped views only show records you are authorized to see."
+      assert html =~ "No changes match these filters"
+      assert html =~ "Adjust the time range or filters, then apply again."
     end
 
     test "F-403: dense Timeline renders filter summary and rows without a visible journey legend",
@@ -1209,7 +1282,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="transaction-link"|
       assert html =~ "/audit/transactions/#{change.transaction_id}"
       refute html =~ ~s|data-testid="timeline-row-history-link"|
-      refute html =~ "Row history"
     end
 
     test "TIME-01: unsafe Timeline row identities keep only the transaction pivot", %{conn: conn} do
@@ -1393,7 +1465,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="transaction-link"|
       assert html =~ "/audit_schema/transactions/#{change.transaction_id}"
       assert html =~ ~s|data-testid="timeline-row-history-link"|
-      assert html =~ ~s|href="/audit_schema/rows/routeable_rows/row%2Fwith%20space"|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/routeable_rows/row%2Fwith%20space?origin=timeline&amp;from=2020-01-01T00%3A00&amp;to=2099-01-01T00%3A00&amp;table=routeable_rows"|
+
       assert html =~ "Row history"
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
     end
@@ -1415,7 +1490,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ ~s|data-testid="timeline-row-history-link"|
-      assert html =~ ~s|href="/audit_schema/rows/support.tickets/ticket%2Fwith%20space"|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/support.tickets/ticket%2Fwith%20space?origin=timeline&amp;from=2020-01-01T00%3A00&amp;to=2099-01-01T00%3A00&amp;table_schema=support&amp;table=tickets"|
+
       assert html =~ "Row history"
     end
 
@@ -1502,7 +1580,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "default actor_fn mount path exposes actor-owned saved views", %{conn: conn} do
       {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
-      assert render(lv) =~ "Save view"
+      assert render(lv) =~ "Save search"
 
       lv
       |> form("#save-view-form", %{name: "Actor View"})
@@ -1522,6 +1600,116 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert view.actor_ref == %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"}
     end
 
+    test "saved searches show the approved empty copy and share only canonical applied filters",
+         %{conn: conn} do
+      {:ok, lv, html} =
+        mount_actor_audit(
+          conn,
+          "/audit_actor/timeline?table=posts&correlation_id=committed-42&scope=tenant-secret&cursor=next&saved_id=other&draft=ignored"
+        )
+
+      assert html =~ "No saved searches"
+      assert has_element?(lv, ".tl-saved-search-empty h3", "No saved searches")
+      assert html =~ "Save the applied Timeline filters to return to this search."
+      assert html =~ "Copy search URL"
+
+      assert html =~
+               "This URL shares the applied filters. Results and access are determined by the receiving host."
+
+      assert html =~
+               ~s|data-tl-copy="/audit_actor/timeline?table=posts&amp;correlation_id=committed-42"|
+
+      lv
+      |> form("#save-view-form", %{name: "Committed filters"})
+      |> render_submit()
+
+      view =
+        Repo.get_by!(
+          Threadline.Governance.SavedView,
+          [name: "Committed filters"],
+          repo_opts()
+        )
+
+      assert view.filters == %{"table" => "posts", "correlation_id" => "committed-42"}
+      assert render(lv) =~ "Committed filters"
+    end
+
+    test "saved searches are actor-isolated and blank names produce actionable feedback", %{
+      conn: conn
+    } do
+      other_actor_view =
+        Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "Another actor's private search",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-2"},
+            filters: %{"table" => "secret_rows"}
+          },
+          repo_opts()
+        )
+
+      {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
+
+      refute html =~ "Another actor's private search"
+
+      render_submit(lv, "save-view", %{"name" => ""})
+      assert render(lv) =~ "Enter a name for this saved search."
+      refute Repo.get_by(Threadline.Governance.SavedView, [name: ""], repo_opts())
+
+      render_click(lv, "delete-view", %{"id" => other_actor_view.id})
+      refute render(lv) =~ "Delete saved search"
+      assert Repo.get!(Threadline.Governance.SavedView, other_actor_view.id, repo_opts())
+    end
+
+    test "saved searches persist only committed filters and revalidate stored filters on apply",
+         %{conn: conn} do
+      legacy_search =
+        Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "Legacy search",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"},
+            filters: %{
+              "table" => "restored_posts",
+              "correlation_id" => "restored-7",
+              "scope" => "tenant-secret",
+              "cursor" => "page-2",
+              "saved_id" => "record-id"
+            }
+          },
+          repo_opts()
+        )
+
+      {:ok, lv, _html} =
+        mount_actor_audit(
+          conn,
+          "/audit_actor/timeline?table=committed_posts&correlation_id=committed-42"
+        )
+
+      lv
+      |> form("#save-view-form", %{name: "Committed only"})
+      |> render_submit()
+
+      view =
+        Repo.get_by!(Threadline.Governance.SavedView, [name: "Committed only"], repo_opts())
+
+      assert view.filters == %{"table" => "committed_posts", "correlation_id" => "committed-42"}
+
+      render_click(lv, "apply-view", %{"id" => legacy_search.id})
+
+      assert_patch(lv, "/audit_actor/timeline?table=restored_posts&correlation_id=restored-7")
+    end
+
+    test "an invalid committed Timeline query cannot be saved as a search", %{conn: conn} do
+      {:ok, lv, html} =
+        mount_actor_audit(conn, "/audit_actor/timeline?from=not-a-date&table=posts")
+
+      assert html =~ "Timeline filters could not be applied"
+
+      render_submit(lv, "save-view", %{"name" => "Invalid query"})
+
+      assert render(lv) =~ "Fix Timeline filters before saving this search."
+      refute Repo.get_by(Threadline.Governance.SavedView, [name: "Invalid query"], repo_opts())
+    end
+
     test "export-specific scope hides and rejects background exports", %{conn: conn} do
       Application.put_env(
         :threadline,
@@ -1533,7 +1721,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit_actor/exports/changes.csv?|
 
       render_click(lv, "request_background_export", %{})
@@ -1554,6 +1742,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.OperatorSurfaceCase,
       endpoint: Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
 
+    alias Threadline.Semantics.AuditAction
+
     setup_all do
       start_endpoint!(@endpoint)
       :ok
@@ -1568,6 +1758,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       storage_opts = repo_opts()
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
+      correlation_id = Keyword.get(opts, :correlation_id)
+
+      action =
+        if correlation_id do
+          repo.insert!(
+            AuditAction.changeset(%{
+              name: "timeline.test",
+              actor_ref: actor_ref,
+              status: "ok",
+              correlation_id: correlation_id
+            }),
+            storage_opts
+          )
+        end
 
       txn =
         repo.insert!(
@@ -1575,6 +1779,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
+            action_id: action && action.id,
             source: Keyword.get(opts, :source, "support")
           }),
           storage_opts
@@ -1610,6 +1815,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "admin_posts"
     end
 
+    test "forged URL scope parameters cannot widen the server-owned tenant scope", %{conn: conn} do
+      seed_change!(
+        table: "tenant_scope_posts",
+        source: "support",
+        actor_ref: %{"type" => "user", "id" => "support-agent"}
+      )
+
+      seed_change!(
+        table: "tenant_scope_posts",
+        source: "admin",
+        op: "delete",
+        actor_ref: %{"type" => "user", "id" => "admin-agent"}
+      )
+
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit_scoped/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&scope=admin"
+        )
+
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, html)) == 1
+      assert html =~ "INSERT"
+      refute html =~ "DELETE"
+    end
+
     test "Case 11: Operator can save, apply, and delete a view", %{conn: conn} do
       {:ok, lv, _html} =
         case live(conn, "/audit_scoped/timeline?table=support_posts") do
@@ -1643,8 +1873,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Ensure it's active
       assert render(lv) =~ "support_posts"
 
-      # Click delete
+      # Requesting deletion opens an explicit confirmation; it does not mutate yet.
       lv |> element("button[phx-click=\"delete-view\"]") |> render_click()
+
+      assert render(lv) =~
+               "Delete saved search “My Support View”? This removes it from your saved searches."
+
+      assert render(lv) =~ "Keep saved search"
+      assert render(lv) =~ "Delete search"
+      assert Repo.get_by!(Threadline.Governance.SavedView, [name: "My Support View"], repo_opts())
+
+      render_click(lv, "close-delete-view", %{})
+      refute render(lv) =~ "Delete saved search “My Support View”?"
+
+      lv |> element("button[phx-click=\"delete-view\"]") |> render_click()
+      render_click(lv, "confirm-delete-view", %{})
 
       # Ensure it's deleted
       refute render(lv) =~ "My Support View"
@@ -1654,6 +1897,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                [name: "My Support View"],
                repo_opts()
              )
+    end
+
+    test "Timeline actor and correlation pivots use their supported routes and filters", %{
+      conn: conn
+    } do
+      seed_change!(
+        table: "pivot_posts",
+        actor_ref: %{"type" => "user", "id" => "pivot-actor"},
+        correlation_id: "request-pivot-42"
+      )
+
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit_scoped/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=pivot_posts"
+        )
+
+      assert html =~ ~s|href="/audit_scoped/actors/user/pivot-actor"|
+      assert html =~ ~s|title="View correlated changes in Timeline"|
+      assert html =~ ~s|href="/audit_scoped/timeline?correlation_id=request-pivot-42"|
+      refute html =~ "incident/request-pivot-42"
     end
 
     test "Case 12: scoped Timeline refuses background export and keeps scoped downloads", %{
@@ -1689,7 +1953,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       initial_jobs = Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
       html = render(lv)
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       assert html =~ ~s|href="/audit_scoped/exports/changes.csv?|
 
       # A forged event must also fail closed without inserting or enqueueing a job.
@@ -1756,7 +2020,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      refute html =~ "Queue export"
+      refute html =~ "Export changes"
       refute html =~ ">CSV<"
       refute html =~ ">JSON<"
       refute html =~ ">NDJSON<"
@@ -1798,6 +2062,136 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 end
 
 if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveTransitionTest do
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.TransitionEndpoint
+
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+    alias Threadline.Test.Repo
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      Application.put_env(:threadline, :test_timeline_transition_auth, :allow)
+      Application.delete_env(:threadline, :test_timeline_transition_failure)
+
+      on_exit(fn ->
+        Application.delete_env(:threadline, :test_timeline_transition_auth)
+        Application.delete_env(:threadline, :test_timeline_transition_failure)
+      end)
+
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    defp seed_transition_change!(table, organization_id) do
+      repo = Repo
+      storage_opts = repo_opts()
+      actor_ref = %{"type" => "user", "id" => "operator-239"}
+
+      transaction =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            actor_ref: actor_ref,
+            source: "plan-239-04-mounted-test",
+            meta: %{"organization_id" => organization_id}
+          }),
+          storage_opts
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: transaction.id,
+          table_schema: "public",
+          table_name: table,
+          table_pk: %{"id" => "transition-#{System.unique_integer([:positive])}"},
+          op: "insert",
+          data_after: %{"title" => "synthetic transition fixture"},
+          changed_fields: nil,
+          captured_at: DateTime.utc_now()
+        }),
+        storage_opts
+      )
+    end
+
+    test "query B failure clears A, retry succeeds under the same scope, and host denial stops before mount",
+         %{
+           conn: conn
+         } do
+      change_a = seed_transition_change!("transition_query_a", "org-239-transition")
+      change_b = seed_transition_change!("transition_query_b", "org-239-transition")
+      other_tenant_b = seed_transition_change!("transition_query_b", "org-other-239")
+
+      query = fn table ->
+        URI.encode_query([
+          {"from", "2020-01-01T00:00"},
+          {"to", "2099-01-01T00:00"},
+          {"table", table}
+        ])
+      end
+
+      path_a = "/audit_transition/timeline?#{query.("transition_query_a")}"
+      path_b = "/audit_transition/timeline?#{query.("transition_query_b")}"
+
+      assert {:ok, lv, html_a} = live(conn, path_a)
+      assert html_a =~ "transition_query_a"
+      refute html_a =~ "transition_query_b"
+      assert has_element?(lv, "#change-#{change_a.id}")
+      refute has_element?(lv, "#change-#{change_b.id}")
+      refute has_element?(lv, "#change-#{other_tenant_b.id}")
+
+      Application.put_env(:threadline, :test_timeline_transition_failure, "transition_query_b")
+
+      lv
+      |> form("#timeline-filters",
+        filter: %{
+          from: "2020-01-01T00:00",
+          to: "2099-01-01T00:00",
+          table: "transition_query_b"
+        }
+      )
+      |> render_submit()
+
+      assert_patch(lv, path_b)
+      html_failed = render_patch(lv, path_b)
+
+      assert html_failed =~
+               "Timeline could not be loaded. Check the applied filters and try again."
+
+      assert html_failed =~ "Unknown"
+      assert html_failed =~ "query did not complete"
+      refute has_element?(lv, "[data-testid=timeline-row]")
+      assert html_failed =~ "value=\"transition_query_b\""
+      assert html_failed =~ "Retry applied filters"
+
+      Application.delete_env(:threadline, :test_timeline_transition_failure)
+      html_recovered = render_patch(lv, path_b)
+
+      assert html_recovered =~ "transition_query_b"
+      assert html_recovered =~ "Matching changes"
+      refute html_recovered =~ "transition_query_a"
+      assert has_element?(lv, "#change-#{change_b.id}")
+      refute has_element?(lv, "#change-#{change_a.id}")
+      refute has_element?(lv, "#change-#{other_tenant_b.id}")
+
+      Application.put_env(:threadline, :test_timeline_transition_auth, :deny)
+
+      assert {:error, {:redirect, %{to: "/"}}} = live(conn, path_b)
+
+      Application.put_env(:threadline, :test_timeline_transition_auth, :allow)
+      assert {:ok, recovered_lv, recovered_after_denial} = live(conn, path_b)
+      assert recovered_after_denial =~ "transition_query_b"
+      assert has_element?(recovered_lv, "#change-#{change_b.id}")
+      refute has_element?(recovered_lv, "#change-#{other_tenant_b.id}")
+    end
+  end
+
   defmodule Threadline.OperatorSurface.Live.TimelineLiveScopeFailClosedTest do
     @moduledoc """
     D-20 fail-closed matrix (233-04 Task 2): a mount whose authorize_fn
@@ -1819,17 +2213,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
-    test "a scope without a scope_query_fn crashes the mount instead of reading unscoped", %{
+    test "a scope query failure renders a retryable error instead of reading unscoped", %{
       conn: conn
     } do
-      Process.flag(:trap_exit, true)
+      path = "/audit_scope_no_fn/timeline?table=scope_failure_probe"
+      assert {:ok, lv, html} = live(conn, path)
 
-      {:error, {:live_redirect, %{to: path}}} = live(conn, "/audit_scope_no_fn/timeline")
-
-      reason = catch_exit(live(conn, path))
-
-      assert {{%ArgumentError{message: message}, _stacktrace}, _task_info} = reason
-      assert message =~ ":scope_query_fn"
+      assert html =~ "Timeline could not be loaded. Check the applied filters and try again."
+      assert html =~ ~s|href="/audit_scope_no_fn/timeline?table=scope_failure_probe"|
+      refute has_element?(lv, "[data-testid=timeline-row]")
+      refute html =~ "No changes match these filters"
     end
   end
 

@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Threadline isolated zoom proof",
+  "version": "1.0.0",
+  "permissions": ["tabs"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

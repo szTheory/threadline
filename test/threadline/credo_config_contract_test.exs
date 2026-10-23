@@ -58,6 +58,7 @@ defmodule Threadline.CredoConfigContractTest do
        metadata_keys: [
          :deleted_changes,
          :deleted_transactions,
+         :reason,
          :batch,
          :total_changes,
          :total_transactions

@@ -1,5 +1,43 @@
 # Project milestones: Threadline
 
+## v1.46 Operator UI Refinement (Shipped: 2026-10-11)
+
+**Phases completed:** 6 phases, 27 plans, 49 tasks
+
+**Requirements:** 26/26 complete. **Integration:** 24/26 fully wired, with UIV-02/03 satisfied under disclosed visual-evidence limits. **Flows:** 5/5 pass.
+
+**Closeout type:** verified_closeout. **Known verification overrides:** 0 newly acknowledged, 66 carried forward from prior closes (see STATE.md Deferred Items). The open-artifact audit reported zero open items.
+
+**Milestone audit:** `tech_debt` — no unsatisfied requirements or broken flows. Remaining review/evidence debt includes the inherited History drawer/header overlap, dense-typography contract drift, Redaction empty-category copy, exact-candidate/browser/device/theme evidence limits, and the documented GSD bookkeeping discrepancy. Full dispositions and reopen context are in `.planning/milestones/v1.46-MILESTONE-AUDIT.md`.
+
+**Key accomplishments:**
+- Authenticated home shell/content captures now bind real browser-served CSS/JavaScript to an isolated source candidate and synthetic fixture; 16 negative-control contracts fail closed on invalid evidence and reset targets.
+- Eleven direct operator routes now have source-bound shell/content evidence at 1280/768/375; separate dark and System/light journeys record real interaction states, existing product failures and precise unverified conditions.
+- 355 source-derived inventory IDs, verified ranked evidence links, and an independently retained seeded loopback preview with fail-closed custody.
+- Truthful Home copy, retained lookup corrections, honest health status, and a verified Home-to-transaction investigation path
+- An isolated Playwright Chromium profile now measures real 200% tab zoom and carries the same proof through Home, Timeline, and Transaction.
+- Phoenix transaction details now pair each database transaction with its own row changes, expose complete authorized evidence through native disclosure, and distinguish absent data from null or read failure.
+- Timeline keeps populated rows paired with their applied query through pending replacement, then distinguishes filtered empty results from retryable read errors.
+- Responsive operator investigation preserves complete 232-character Timeline filters and transaction evidence through actual 200% browser zoom.
+- Theme preference remains truthful, and shared overlays now dismiss and restore focus correctly through real LiveView patches.
+- Plan 07 is complete for candidate `b97f0ab9523de8669e53310adc757f393cbbfd36`.
+- Timeline and transaction row-history journeys now preserve investigation context, while scoped failures recover honestly.
+- Timeline pivots, actor-owned saved searches, and canonical share URLs now preserve the applied investigation query and host boundaries.
+- Clipboard controls now report only confirmed writes and preserve a usable, selectable recovery path when copying fails.
+- Row-history and changing investigation evidence now update immediately while keyboard semantics and focus return remain stable across LiveView patches.
+- Selected-schema coverage now separates confirmed-empty results from unavailable reads and stale last-good data, and gives operators safe host-migration guidance.
+- Evidence reads now distinguish a retryable outage from a scoped no-match while preserving the selected reference and bounded proof-history claims.
+- Committed Timeline filters now flow through actor-owned export jobs to a protected download and a canonical local return search, with truthful history and queue feedback.
+- Retention pruning now has a durable accepted run, preserves partial deletion outcomes, and presents its configured-schema scope and persisted history clearly.
+- Export and retention mutations stay natively blocked through actual socket loss until a fresh persisted-state render arrives, with no automatic replay.
+- Required browser CI now reconciles exact named operator journeys with native Playwright discovery and execution results, rejecting missing, filtered, skipped, failed, duplicate, or retry-only coverage.
+- Receipt-bound operator evidence now hashes verifier inputs, validates fresh full-shell captures, and preserves the accepted Phase 238 baseline.
+- The eleven-route review is recorded with evidence-bounded findings, two narrow UI corrections, and fresh post-fix viewport, theme, and real 200% zoom checks.
+- Plan 05 is complete for candidate `2f7560e97778d914a7639cbae308bb66fb7c528f`.
+- The final evidence index binds the Phase 243 candidate, local proof, matched visual captures, guarded preview, and successful required CI run to commit `2f7560e97778d914a7639cbae308bb66fb7c528f`.
+
+---
+
 ## v1.43 Supply Chain, CI Economy and Repo Hygiene (Shipped: 2026-09-30)
 
 **Delivered:** Dependency advisories are cleared and a required CI audit gate keeps them cleared. Every CI job was measured, and the ones that earned no signal were cut, deduplicated or cached. The public repo is scrubbed of machine-local paths, and a required guard keeps it that way. Shipped as two patch releases on hex.pm:

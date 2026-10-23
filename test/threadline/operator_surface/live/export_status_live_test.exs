@@ -48,6 +48,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.FailingRepo do
+    def all(_query, _opts), do: raise("database unavailable")
+  end
+
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.ExportStatusLiveTest.Router
@@ -60,6 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       endpoint: Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint
 
     alias Threadline.Governance.ExportJob
+    alias Threadline.OperatorSurface.ExportStatusLiveTest.FailingRepo
     alias Threadline.OperatorSurface.Live.ExportStatusLive
     alias Threadline.Semantics.ActorRef
 
@@ -156,6 +161,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Process.read_timer(refreshed_ref) == false
       end
 
+      test "a successful persisted read advances the mutation freshness marker", %{conn: conn} do
+        {:ok, view, initial_html} = live(conn, "/audit/exports")
+        initial_revision = mutation_revision(initial_html)
+
+        send(view.pid, :refresh)
+
+        assert_eventually(fn ->
+          revision = mutation_revision(render(view))
+          is_binary(revision) and revision != initial_revision
+        end)
+      end
+
       test "renders a generic denied fallback when the current state is not safely exportable", %{
         conn: conn
       } do
@@ -199,8 +216,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "No downloads ready"
         refute html =~ "tl-trust-rail"
         refute html =~ "What&#39;s ready to hand off?"
-        assert html =~ "No export jobs queued"
+        assert html =~ "No export jobs"
+        assert html =~ "Start an export from Timeline to see its status here."
         assert html =~ "Open timeline"
+      end
+
+      test "a failed actor-owned history read is not presented as empty", %{conn: conn} do
+        original_repos = Application.get_env(:threadline, :ecto_repos)
+        Application.put_env(:threadline, :ecto_repos, [FailingRepo])
+
+        on_exit(fn ->
+          if original_repos do
+            Application.put_env(:threadline, :ecto_repos, original_repos)
+          else
+            Application.delete_env(:threadline, :ecto_repos)
+          end
+        end)
+
+        {:ok, view, html} = live(conn, "/audit/exports")
+
+        assert html =~ "Export history is unavailable"
+        assert html =~ "Export history could not be loaded"
+        refute html =~ "No export jobs</h2>"
+        assert has_element?(view, "button", "Refresh export history")
+
+        render_click(view, "refresh_jobs", %{})
+        assert render(view) =~ "Export history could not be loaded"
+      end
+
+      test "unfiltered jobs retain a local Timeline return and ignore forged saved fields", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        job =
+          %ExportJob{}
+          |> ExportJob.changeset(%{
+            status: "pending",
+            query_params: %{
+              "return_url" => "https://evil.example/steal",
+              "tenant_id" => "tenant-secret",
+              "scope" => "all",
+              "cursor" => "forged-cursor"
+            },
+            actor_ref: actor_ref,
+            started_at: now
+          })
+          |> Repo.insert!(repo_opts())
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~ ~s|href="/audit/timeline"|
+        refute html =~ "evil.example"
+        refute html =~ "tenant-secret"
+        refute html =~ "forged-cursor"
+        assert html =~ "export-job-#{job.id}"
+      end
+
+      test "source Timeline return keeps only valid supported saved filters", %{
+        conn: conn,
+        actor_ref: actor_ref
+      } do
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        %ExportJob{}
+        |> ExportJob.changeset(%{
+          status: "pending",
+          query_params: %{
+            "table" => "ticket_replies",
+            "correlation_id" => "request-42",
+            "tenant_id" => "tenant-secret",
+            "scope" => "all",
+            "cursor" => "forged-cursor",
+            "return_url" => "https://evil.example/steal"
+          },
+          actor_ref: actor_ref,
+          started_at: now
+        })
+        |> Repo.insert!(repo_opts())
+
+        {:ok, _view, html} = live(conn, "/audit/exports")
+
+        assert html =~
+                 ~s|href="/audit/timeline?table=ticket_replies&amp;correlation_id=request-42"|
+
+        refute html =~ "evil.example"
+        refute html =~ "tenant-secret"
+        refute html =~ "forged-cursor"
       end
 
       test "renders carried Timeline export context with canonical allowed filters", %{conn: conn} do
@@ -510,7 +613,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        refute html =~ "No export jobs queued"
+        refute html =~ "No export jobs</h2>"
         assert html =~ "Queued"
         assert html =~ "users"
         refute html =~ "Preparing download"
@@ -532,7 +635,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "No export jobs queued"
+        assert html =~ "No export jobs"
       end
 
       test "shows download link when completed", %{conn: conn, actor_ref: actor_ref} do
@@ -566,6 +669,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                    html
                  )
 
+        assert download_link =~ ~s|target="_blank"|
+        assert download_link =~ ~s|rel="noopener"|
         refute download_link =~ "aria-disabled"
         refute download_link =~ ~s(tabindex="-1")
         refute download_link =~ "data-tl-mutating"
@@ -651,7 +756,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Export expired"
       end
 
-      test "shows the persisted failure reason for failed jobs", %{
+      test "shows safe failure copy for failed jobs", %{
         conn: conn,
         actor_ref: actor_ref
       } do
@@ -674,10 +779,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Needs attention"
         assert html =~ "Export failed."
         assert html =~ "Reopen source search"
-        assert html =~ "built-in export runtime is unavailable"
+        refute html =~ "built-in export runtime is unavailable"
       end
 
-      test "failed queued Timeline replay keeps source recovery and parser detail", %{
+      test "failed jobs keep safe recovery copy and reject invalid saved return filters", %{
         conn: conn,
         actor_ref: actor_ref
       } do
@@ -697,8 +802,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Export failed."
         assert html =~ "Reopen source search"
-        assert html =~ "invalid datetime: not-a-date"
-        assert html =~ ~s|href="/audit/timeline?from=not-a-date"|
+        refute html =~ "invalid datetime: not-a-date"
+        assert html =~ ~s|href="/audit/timeline"|
+        assert html =~ "Reopen source search"
       end
 
       test "groups exports by readiness in operator order with secondary refs", %{
@@ -827,6 +933,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           assert html =~ "audit_jobs"
           refute html =~ "threadline_jobs"
         end)
+      end
+    end
+
+    defp mutation_revision(html) do
+      case Regex.run(~r/data-tl-mutation-revision="([^"]+)"/, html) do
+        [_, revision] -> revision
+        _ -> nil
       end
     end
   end

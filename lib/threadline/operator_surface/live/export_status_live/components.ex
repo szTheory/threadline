@@ -9,6 +9,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Query.FilterParams
 
     attr(:jobs_count, :integer, required: true)
     attr(:default_limit, :integer, required: true)
@@ -41,13 +42,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       class={["tl-job", job_modifier(job)]}
                       data-testid="export-job"
                     >
+                      <% query_params = safe_query_params(job.query_params) %>
                       <div class="tl-job__main">
                         <div class="tl-job__summary">
                           <span class={["tl-chip", Presentation.status_modifier(job.status)]} role={status_role(job)}>
                             <%= Presentation.status_label(job.status) %>
                           </span>
                           <div class="tl-job__title">
-                            <strong><%= Presentation.export_summary(job.query_params) %></strong>
+                            <strong><%= Presentation.export_summary(query_params) %></strong>
                             <span>
                               requested by
                               <UI.Display.ref value={job.actor_ref} kind="actor" copy_label="Copy actor ref" />
@@ -63,6 +65,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <%= if Presentation.export_downloadable?(job) do %>
                             <.link
                               {download_link_attrs(%{base_path: @base_path, job: job})}
+                              target="_blank"
+                              rel="noopener"
                             >
                               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
                               Download export
@@ -88,18 +92,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </div>
                       </dl>
 
-                      <UI.Display.kv :if={Presentation.query_pairs(job.query_params) != []} aria-label="Export filters">
-                        <:item :for={{key, value} <- Presentation.query_pairs(job.query_params)} key={key}>
+                      <UI.Display.kv :if={Presentation.query_pairs(query_params) != []} aria-label="Export filters">
+                        <:item :for={{key, value} <- Presentation.query_pairs(query_params)} key={key}>
                           <UI.Display.ref value={value} copy_label={"Copy #{key} filter"} />
                         </:item>
                       </UI.Display.kv>
-                      <p :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
+                      <p :if={Presentation.query_pairs(query_params) == []} class="tl-param tl-param--muted">
                         No filters
                       </p>
 
-                      <div :if={Presentation.query_pairs(job.query_params) != []} class="tl-job__source">
+                      <div class="tl-job__source">
                         <span class="tl-hint">Source Timeline search</span>
-                        <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
+                        <a href={timeline_search_path(@base_path, query_params)} class="tl-button tl-button--compact tl-button--secondary">
                           <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                           Reopen source search
                         </a>
@@ -109,7 +113,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <div class="tl-alert tl-alert--error" role="alert">
                           <strong>Export failed.</strong>
                           Reopen the source search, adjust filters if needed, and queue a new export.
-                          <span :if={job.error_message}><%= job.error_message %></span>
                         </div>
                       <% end %>
                     </article>
@@ -159,15 +162,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp actor_path(_base_path, _actor_ref), do: nil
 
     defp timeline_search_path(base_path, params) when is_map(params) do
-      pairs =
-        params
-        |> Enum.map(fn {key, value} -> {to_string(key), to_string(value)} end)
-        |> Enum.reject(fn {_key, value} -> value == "" end)
-
-      case URI.encode_query(pairs) do
+      case safe_timeline_query(params) do
         "" -> "#{base_path}/timeline"
         query -> "#{base_path}/timeline?#{query}"
       end
+    end
+
+    defp safe_timeline_query(params) do
+      with {:ok, filters} <- FilterParams.parse(params),
+           :ok <- safe_validate(filters) do
+        params
+        |> FilterParams.filters_raw_from_params()
+        |> FilterParams.canonical_query()
+      else
+        _error -> ""
+      end
+    end
+
+    defp safe_query_params(params) do
+      case safe_timeline_query(params) do
+        "" -> %{}
+        query -> URI.decode_query(query)
+      end
+    end
+
+    defp safe_validate(filters) do
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      ArgumentError -> {:error, :invalid_filters}
     end
 
     defp download_link_attrs(%{base_path: base_path, job: job}) do

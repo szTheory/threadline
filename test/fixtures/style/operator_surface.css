@@ -41,9 +41,9 @@
     --tl-color-graphite: #141B2D;
     --tl-color-slate-line: #23304A;
     --tl-color-fog: #D7DEEA;
-    --tl-color-paper: var(--tl-color-paper);
+    --tl-color-paper: #F7F9FC;
     --tl-color-mist: #E7ECF4;
-    --tl-color-ink: var(--tl-color-ink);
+    --tl-color-ink: #0F1728;
     --tl-color-thread-blue: #4F8CFF;
     --tl-color-stitch-blue: #4781E6;
     --tl-color-signal-cyan: #4EDFD1;
@@ -86,8 +86,6 @@
     /* Signal Cyan — correlation, live traces, positive system flow */
     --tl-color-signal-bg: rgba(78, 223, 209, 0.12);
     --tl-color-signal-border: rgba(78, 223, 209, 0.30);
-    --tl-color-ink: var(--tl-color-ink);
-    --tl-color-paper: var(--tl-color-paper);
     --tl-color-danger: #FF8585;
     --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
     --tl-color-danger-border: rgba(255, 133, 133, 0.48);
@@ -212,8 +210,6 @@
     --tl-color-signal: #0F8F85;
     --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
     --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-    --tl-color-ink: var(--tl-color-ink);
-    --tl-color-paper: var(--tl-color-paper);
     --tl-color-danger: #A33434;
     --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
     --tl-color-danger-border: rgba(163, 52, 52, 0.28);
@@ -264,8 +260,6 @@
       --tl-color-signal: #0F8F85;
       --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
       --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-      --tl-color-ink: var(--tl-color-ink);
-      --tl-color-paper: var(--tl-color-paper);
       --tl-color-danger: #A33434;
       --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
       --tl-color-danger-border: rgba(163, 52, 52, 0.28);
@@ -314,7 +308,6 @@
       background: var(--tl-color-surface-hover);
     }
   }
-
   .threadline-ui *,
   .threadline-ui *::before,
   .threadline-ui *::after {
@@ -700,7 +693,7 @@
 
   .tl-home__headline {
     margin: 0;
-    font-size: var(--tl-font-size-title);
+    font-size: var(--tl-font-size-display);
     line-height: var(--tl-line-display);
     font-weight: var(--tl-weight-medium);
     letter-spacing: var(--tl-tracking-tight);
@@ -789,13 +782,13 @@
     align-items: center;
     min-height: var(--tl-control-height-compact);
     padding: 0 var(--tl-space-2);
-    border: 1px solid var(--tl-color-accent-border);
+    border: 1px solid var(--tl-color-border);
     border-radius: var(--tl-radius-md);
-    background: var(--tl-color-accent-soft);
+    background: var(--tl-color-surface-hover);
     font-size: var(--tl-font-size-xs);
     font-weight: var(--tl-weight-strong);
     line-height: var(--tl-line-label);
-    color: var(--tl-color-accent-strong);
+    color: var(--tl-color-muted);
   }
 
   .tl-home__card-title {
@@ -1206,6 +1199,7 @@
   .tl-toolbar__form {
     display: grid;
     gap: var(--tl-space-3);
+    min-width: 0;
   }
 
   .tl-filter-group {
@@ -1229,7 +1223,7 @@
 
   .tl-filter-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tl-space-3);
     align-items: start;
     min-width: 0;
@@ -1238,7 +1232,7 @@
   .tl-toolbar__field {
     display: flex;
     width: 100%;
-    min-width: 148px;
+    min-width: 0;
     flex-direction: column;
     gap: var(--tl-space-1);
     color: var(--tl-color-muted);
@@ -1271,7 +1265,9 @@
   .tl-control[type="datetime-local"],
   .threadline-ui select.tl-toolbar__control,
   .threadline-ui select.tl-control {
-    min-width: 178px;
+    min-width: min(178px, 100%);
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .tl-toolbar__control:disabled,
@@ -1386,19 +1382,74 @@
   }
 
   .tl-toolbar__saved-list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    align-items: stretch;
     gap: var(--tl-space-2);
+    width: 100%;
+    min-width: 0;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .tl-toolbar__saved-item {
-    display: inline-flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
     gap: var(--tl-space-1);
+    min-width: 0;
+  }
+
+  .tl-saved-search__apply {
+    justify-content: flex-start;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .tl-saved-search__content {
+    display: grid;
+    gap: var(--tl-space-1);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .tl-saved-search__name,
+  .tl-saved-search__summary {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .tl-saved-search__summary {
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-caption);
+    font-weight: var(--tl-weight-regular);
+  }
+
+  .tl-saved-search-empty {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .tl-saved-search-empty__title,
+  .tl-saved-search-empty p {
+    margin: 0;
+  }
+
+  .tl-saved-search-empty__title {
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-saved-search-empty p {
+    margin-top: var(--tl-space-1);
+  }
+
+  .tl-utility-group--share .tl-toolbar__hint {
+    flex: 1 1 18rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .tl-timeline-command__utilities {
@@ -1568,7 +1619,8 @@
   }
 
   .tl-button--compact {
-    min-height: var(--tl-control-height-compact);
+    min-height: var(--tl-hit-area);
+    min-width: var(--tl-hit-area);
     padding: var(--tl-space-1) var(--tl-space-3);
   }
 
@@ -1685,6 +1737,12 @@
     height: 16px;
   }
 
+  .tl-filter-actions .tl-button > svg {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+  }
+
   .tl-link {
     font-size: var(--tl-font-size-label);
     line-height: var(--tl-line-label);
@@ -1702,7 +1760,6 @@
   .threadline-ui .tl-link:hover {
     text-decoration: underline;
   }
-
   .tl-chip {
     display: inline-flex;
     align-items: center;
@@ -2788,6 +2845,11 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .tl-value__full {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   .tl-value--null,
   .tl-value--omitted,
   .tl-value--absent {
@@ -2849,11 +2911,25 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--tl-space-2);
+    min-width: 0;
     padding-top: var(--tl-space-2);
     border-top: 1px solid var(--tl-color-border);
     color: var(--tl-color-muted);
     font-size: var(--tl-font-size-label);
     line-height: var(--tl-line-label);
+    overflow-wrap: anywhere;
+  }
+
+  .tl-filter-summary > * {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .tl-filter-summary__filter {
+    align-items: flex-start;
+    border-radius: var(--tl-radius-sm);
+    white-space: normal;
   }
 
   .tl-filter-summary > strong {
@@ -3106,7 +3182,7 @@
     max-width: 100%;
     align-items: baseline;
     gap: var(--tl-space-1);
-    padding: 3px var(--tl-space-2);
+    padding: var(--tl-space-1) var(--tl-space-2);
     border-radius: var(--tl-radius-md);
     background: var(--tl-color-surface);
     color: var(--tl-color-text);
@@ -3178,6 +3254,10 @@
 
   .tl-policy__section--drift .tl-policy__section-header {
     border-left: var(--tl-status-stripe-width) solid var(--tl-color-warning-border);
+  }
+
+  .tl-policy__refresh {
+    margin-bottom: var(--tl-space-4);
   }
 
   .tl-policy__section--introspect .tl-policy__section-header {
@@ -3281,7 +3361,6 @@
     block-size: auto;
     opacity: 1;
   }
-
   .tl-subview-backdrop {
     position: fixed;
     inset: 0;
@@ -3303,7 +3382,6 @@
     overscroll-behavior: contain;
     background: var(--tl-color-bg);
     box-shadow: var(--tl-shadow-raised);
-    animation: tl-drawer-in var(--tl-motion-base) var(--tl-ease-standard);
   }
 
   .tl-subview[role="dialog"] {
@@ -3337,17 +3415,6 @@
     grid-template-columns: 1fr;
     gap: var(--tl-space-4);
     padding: var(--tl-space-4);
-  }
-
-  @keyframes tl-drawer-in {
-    from {
-      opacity: 0;
-      transform: translateX(var(--tl-motion-distance-md));
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
   }
 
   @keyframes tl-rise-in {
@@ -3450,7 +3517,7 @@
   .tl-drawer-scrim {
     position: absolute;
     inset: 0;
-    background: var(--tl-color-scrim, rgba(7, 11, 20, 0.62));
+    background: var(--tl-color-backdrop);
   }
 
   .tl-modal-wrapper {
@@ -3458,19 +3525,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100%;
+    height: 100%;
     padding: var(--tl-space-4);
+    pointer-events: none;
   }
 
   .tl-modal {
     position: relative;
     width: min(var(--tl-modal-width, 560px), 100%);
-    max-height: calc(100% - var(--tl-space-8));
+    max-height: calc(100dvh - var(--tl-space-8));
+    pointer-events: auto;
     overflow: auto;
     padding: var(--tl-space-5);
     background: var(--tl-color-surface-raised);
     border: 1px solid var(--tl-color-border);
     border-radius: var(--tl-radius-md);
+    overflow-wrap: anywhere;
     transform-origin: top center;
     transition-property: opacity, transform;
     transition-duration: var(--tl-motion-base);
@@ -3491,10 +3561,23 @@
     padding: var(--tl-space-5);
     background: var(--tl-color-surface-raised);
     border-left: 1px solid var(--tl-color-border);
+    overflow-wrap: anywhere;
     transform-origin: top right;
     transition-property: opacity, transform;
     transition-duration: var(--tl-motion-base);
     transition-timing-function: var(--tl-ease-standard);
+  }
+
+  /* Row history changes are evidence updates; its route patch has no stable
+   * input-modality signal, so opening, closing, and changing as-of state snap. */
+  .tl-row-history-drawer {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .tl-row-history-drawer .tl-subview__timeline > * {
+    animation: none !important;
+    transition: none !important;
   }
 
   .tl-popover,
@@ -3525,6 +3608,8 @@
     flex-direction: column;
     gap: var(--tl-space-1);
     max-width: min(360px, calc(100vw - var(--tl-space-8)));
+    max-height: calc(100dvh - var(--tl-space-8));
+    overflow-wrap: anywhere;
     padding: var(--tl-space-4);
     background: var(--tl-color-surface-raised);
     border: 1px solid var(--tl-color-border);
@@ -3533,6 +3618,16 @@
     transition-property: opacity, transform;
     transition-duration: var(--tl-motion-base);
     transition-timing-function: var(--tl-ease-standard);
+  }
+
+  .tl-toast__body {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .tl-toast__close {
+    flex-shrink: 0;
   }
 
   /*
@@ -3553,12 +3648,30 @@
    */
   .tl-reconnect-banner {
     display: none;
+    min-width: 0;
+  }
+
+  .tl-reconnect-banner__lost,
+  .tl-reconnect-banner__reconnecting {
+    display: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner__reconnecting {
+    display: inline;
+  }
+
+  [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner__lost,
+  [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner__lost {
+    display: inline;
   }
 
   [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--tl-gap-inline);
     padding: var(--tl-space-2) var(--tl-space-4);
@@ -3576,14 +3689,10 @@
 
   /*
    * Motion — purposeful, brand-coherent micro-interactions.
-   * Pure CSS, GPU-only (transform/opacity), reusing the motion tokens.
-   * Each fires on element mount; LiveView streams replay them only for
-   * newly inserted/changed rows, so a freshly prune-run row or a
-   * just-opened drawer animates while unchanged rows stay put. All
-   * auto-degrade via the prefers-reduced-motion blanket below. The
-   * high-traffic timeline stream is deliberately NOT animated — snappy
-   * paging beats an entrance flourish (never animate high-frequency
-   * actions).
+   * Retention-run entry and confirmed-copy feedback remain animated. Evidence
+   * values and investigation rows stay immediate so changing records are never
+   * presented as decorative arrivals. The high-traffic Timeline stream also
+   * stays still; snappy paging beats an entrance flourish.
    */
 
   /* C1 — a new retention run (the prune-now confirmation) rises in. */
@@ -3591,54 +3700,22 @@
     animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
   }
 
-  /* C4 — opening row history: the drawer's history items stagger in,
-   * reading as the timeline thread continuing into the drawer. */
-  .tl-subview__timeline > * {
-    animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
-  }
-
-  .tl-subview__timeline > *:nth-child(2) {
-    animation-delay: var(--tl-motion-stagger);
-  }
-
-  .tl-subview__timeline > *:nth-child(3) {
-    animation-delay: calc(var(--tl-motion-stagger) * 2);
-  }
-
-  .tl-subview__timeline > *:nth-child(4) {
-    animation-delay: calc(var(--tl-motion-stagger) * 3);
-  }
-
-  .tl-subview__timeline > *:nth-child(n + 5) {
-    animation-delay: calc(var(--tl-motion-stagger) * 4);
-  }
-
-  /* Evidence proofs and actor transactions are low-frequency reveals:
-   * a gentle fade as the records assemble. (Actor rows are scoped to
-   * #transactions-list so the shared .tl-change on the timeline is
-   * untouched.) */
-  .tl-record-list > .tl-record-card,
-  #transactions-list > .tl-change {
-    animation: tl-fade-in var(--tl-motion-base) var(--tl-ease-out) both;
-  }
-
-  /* C2 — copy id affordance. Vanilla embedded JS (operator_surface/script.ex)
-   * toggles .is-copied on success: a Signal-Cyan pulse + a "Copied" chip.
-   * The chip is a static ::after (not animated) so it still confirms under
-   * prefers-reduced-motion; only the pulse is motion. */
+  /* C2 — copy id affordance. The delegated handler adds .is-copied only after
+   * a confirmed write. Its status text stays in document flow so it can wrap
+   * without covering the value, focus, or adjacent controls. */
   .tl-copy {
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-width: var(--tl-control-height-compact);
-    min-height: var(--tl-control-height-chip);
+    min-width: var(--tl-hit-area);
+    min-height: var(--tl-hit-area);
     padding: 0 var(--tl-space-2);
     border: 1px solid var(--tl-color-border);
     border-radius: var(--tl-radius-sm);
     background: transparent;
     color: var(--tl-color-muted);
     font-family: inherit;
-    font-size: var(--tl-font-size-xs);
+    font-size: var(--tl-font-size-label);
     cursor: pointer;
     transition-property: color, border-color, background-color, box-shadow;
     transition-duration: var(--tl-motion-fast);
@@ -3656,20 +3733,28 @@
     animation: tl-copy-pulse var(--tl-motion-base) var(--tl-ease-out);
   }
 
-  .tl-copy.is-copied::after {
-    content: "Copied";
-    position: absolute;
-    bottom: calc(100% + var(--tl-space-1));
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 2px var(--tl-space-2);
-    border-radius: var(--tl-radius-sm);
-    background: var(--tl-color-signal-bg);
+  .tl-copy-status {
+    display: block;
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-block-start: var(--tl-space-1);
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+    overflow-wrap: anywhere;
+  }
+
+  .tl-copy-status:empty {
+    display: none;
+  }
+
+  .tl-copy-status[data-state="success"] {
     color: var(--tl-color-signal);
-    border: 1px solid var(--tl-color-signal-border);
-    font-size: var(--tl-font-size-xs);
-    white-space: nowrap;
-    pointer-events: none;
+  }
+
+  .tl-copy-status[data-state="error"] {
+    color: var(--tl-color-danger);
   }
 
   @keyframes tl-copy-pulse {
@@ -4077,6 +4162,18 @@
   }
 
   @media (max-width: 480px) {
+    .tl-evidence__group-footer {
+      gap: var(--tl-space-2);
+      margin-top: var(--tl-space-2);
+    }
+
+    .tl-evidence__group-footer > .tl-link--deep {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--tl-hit-area);
+      padding: 0 var(--tl-space-2);
+    }
+
     .tl-shell-nav__panel {
       gap: var(--tl-space-2);
       padding: 0 var(--tl-space-2) var(--tl-space-2);
@@ -4116,11 +4213,29 @@
 
     .tl-filter-grid {
       gap: var(--tl-space-2);
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+  }
+
+  @media (max-width: 767px) {
+    .tl-shell-nav:has(.tl-shell-nav__disclosure[open]) {
+      position: static;
+      top: auto;
     }
   }
 
   /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
   @media (min-width: 768px) {
+    .tl-diff__row:has(> .tl-diff__arrow) {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .tl-diff__row:has(> .tl-diff__arrow) > .tl-change__field-name {
+      grid-column: 1 / -1;
+    }
+
     .threadline-ui {
       display: grid;
       grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);
@@ -4180,16 +4295,12 @@
       min-width: 0;
     }
 
-    .tl-home__headline {
-      font-size: var(--tl-font-size-display);
-    }
-
     .threadline-ui .tl-shell-nav__item {
       min-height: var(--tl-control-height-compact);
     }
 
     .tl-timeline-command__facts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tl-filter-grid--primary {
@@ -4203,6 +4314,10 @@
 
   /* Desktop dense/operator layer starts at 1280px: full multi-column layout and sticky chrome. */
   @media (min-width: 1280px) {
+    .tl-timeline-command__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .tl-page {
       padding: var(--tl-space-4);
     }
@@ -4475,6 +4590,13 @@
 
     .tl-subview {
       animation: none !important;
+      transform: none !important;
+    }
+
+    .tl-row-history-drawer,
+    .tl-row-history-drawer * {
+      animation: none !important;
+      transition: none !important;
       transform: none !important;
     }
   }

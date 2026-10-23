@@ -2,6 +2,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
     @moduledoc false
     use Phoenix.LiveView
+    alias Phoenix.LiveView.JS
 
     # This page declares its own form policy, so a change that adds a form control
     # fails the guard in the same diff. See
@@ -17,24 +18,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      case Threadline.incident_bundle(id,
-             repo: repo,
-             scope: socket.assigns[:threadline_scope],
-             scope_query_fn: socket.assigns[:threadline_scope_query_fn]
-           ) do
-        {:error, :not_found} ->
-          {:ok, assign(socket, :not_found, true)}
+      try do
+        case Threadline.incident_bundle(id,
+               repo: repo,
+               scope: socket.assigns[:threadline_scope],
+               scope_query_fn: socket.assigns[:threadline_scope_query_fn]
+             ) do
+          {:error, :not_found} ->
+            {:ok, socket |> assign(:not_found, true) |> assign(:unavailable, false)}
 
-        {:ok, bundle} ->
+          {:ok, bundle} ->
+            {:ok,
+             socket
+             |> assign(:threadline_repo, repo)
+             |> assign(:not_found, false)
+             |> assign(:unavailable, false)
+             |> assign(:bundle, bundle)
+             |> stream_configure(:changes,
+               dom_id: fn change -> "change-#{change.change_diff["id"]}" end
+             )
+             |> stream(:changes, bundle.changes)}
+        end
+      rescue
+        _error in DBConnection.ConnectionError ->
           {:ok,
            socket
            |> assign(:threadline_repo, repo)
            |> assign(:not_found, false)
-           |> assign(:bundle, bundle)
-           |> stream_configure(:changes,
-             dom_id: fn change -> "change-#{change.change_diff["id"]}" end
-           )
-           |> stream(:changes, bundle.changes)}
+           |> assign(:unavailable, true)
+           |> assign(:failed_id, id)}
       end
     end
 
@@ -61,20 +73,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             _ -> nil
           end
 
+        return_focus_id =
+          if socket.assigns[:show_history] == true and socket.assigns[:history_focus_id] do
+            socket.assigns.history_focus_id
+          else
+            row_history_focus_id(table, record_id, params["as_of"])
+          end
+
         {:noreply,
          assign(socket,
            show_history: true,
            history_table: table,
            history_record_id: record_id,
-           history_as_of: as_of
+           history_as_of: as_of,
+           history_focus_id: return_focus_id,
+           history_focus_return_id: nil
          )}
       else
+        return_focus_id = socket.assigns[:history_focus_id]
+
         {:noreply,
          assign(socket,
            show_history: false,
            history_table: nil,
            history_record_id: nil,
-           history_as_of: nil
+           history_as_of: nil,
+           history_focus_id: nil,
+           history_focus_return_id: return_focus_id
          )}
       end
     end
@@ -108,7 +133,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <UI.Data.error_state>
               <:title>Transaction not found</:title>
-              This database transaction may not exist, or it may have been pruned by the retention policy.
+              No transaction is available at this ID. It may not exist or may be outside the records available to your current scope.
               Return to Timeline and check the transaction id.
               <:actions>
                 <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
@@ -119,25 +144,52 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </UI.Data.error_state>
           </div>
         <% else %>
-          <.transaction_header bundle={@bundle} base_path={@base_path} />
+          <%= if @unavailable do %>
+            <div class="tl-transaction tl-short-content">
+              <UI.Page.page_header
+                title="Transaction"
+                breadcrumbs={[
+                  %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+                  %{label: "Transaction"}
+                ]}
+              >
+                <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
+              </UI.Page.page_header>
 
-          <%= if Enum.empty?(@bundle.changes) do %>
-            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
-              <:title>No row-level changes captured</:title>
-              A database transaction was found, but row-level changes were not captured.
-              Check audit readiness for this table, then return to Timeline.
-              <:actions>
-                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
-            </UI.Data.empty_state>
+              <UI.Data.error_state>
+                <:title>Transaction details unavailable</:title>
+                The transaction could not be loaded. Retry or return to Timeline.
+                <:actions>
+                  <.link href={"#{surface_root(@base_path)}/transactions/#{@failed_id}"} class="tl-button tl-button--secondary">
+                    Retry
+                  </.link>
+                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                    Open timeline
+                  </.link>
+                </:actions>
+              </UI.Data.error_state>
+            </div>
           <% else %>
-            <.change_list changes={@streams.changes} base_path={@base_path} />
+            <.transaction_header bundle={@bundle} base_path={@base_path} />
+
+            <%= if Enum.empty?(@bundle.changes) do %>
+              <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
+                <:title>No row-level changes captured</:title>
+                A database transaction was found, but row-level changes were not captured.
+                Check audit readiness for this table, then return to Timeline.
+                <:actions>
+                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                    Open timeline
+                  </.link>
+                </:actions>
+              </UI.Data.empty_state>
+            <% else %>
+              <.change_list changes={@streams.changes} base_path={@base_path} />
+            <% end %>
           <% end %>
         <% end %>
-        <%= if @show_history do %>
+        <%= if @show_history and not @not_found and not @unavailable do %>
           <.live_component
             module={Threadline.OperatorSurface.Live.RowHistoryComponent}
             id="row-history"
@@ -146,6 +198,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             as_of={@history_as_of}
             base_path={@base_path}
             close_path={@base_path}
+            return_label="transaction"
             history_path={history_path(@base_path, @history_table, @history_record_id)}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
@@ -153,6 +206,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope_query_fn={@threadline_scope_query_fn}
           />
         <% end %>
+        <div
+          :if={@history_focus_return_id}
+          id="row-history-focus-return"
+          class="hidden"
+          aria-hidden="true"
+          phx-mounted={JS.focus(to: "##{@history_focus_return_id}") |> JS.push("clear_history_focus_return")}
+        />
       </UI.Page.shell>
       """
     end
@@ -188,6 +248,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:metadata :if={transaction_action_label(@bundle.transaction)} key="Action">
                 <%= transaction_action_label(@bundle.transaction) %>
               </:metadata>
+              <:metadata :if={action_actor_label(@bundle.action)} key="Action actor">
+                <%= action_actor_label(@bundle.action) %>
+              </:metadata>
+              <:metadata :if={action_request_id(@bundle.action)} key="Request ID">
+                <UI.Display.ref value={action_request_id(@bundle.action)} kind="correlation" copy_label="Copy request id" />
+              </:metadata>
+              <:metadata :if={action_job_id(@bundle.action)} key="Job ID">
+                <UI.Display.ref value={action_job_id(@bundle.action)} kind="correlation" copy_label="Copy job id" />
+              </:metadata>
+              <:metadata :if={action_reason(@bundle.action)} key="Recorded reason">
+                <%= action_reason(@bundle.action) %>
+              </:metadata>
               <:metadata key="Tables"><%= transaction_table_count(@bundle.changes) %></:metadata>
               <:metadata key="Changes"><%= transaction_change_count(@bundle.changes) %></:metadata>
               <:metadata :if={transaction_correlation_value(@bundle.transaction)} key="Correlation">
@@ -203,6 +275,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <time datetime={Presentation.exact_time(captured_at)} title={Presentation.exact_time(captured_at)}>
                   <%= Presentation.human_time(captured_at) %>
                 </time>
+                <UI.Display.full_value value={Presentation.exact_time(captured_at)} label="exact captured time" />
               </:metadata>
             </UI.Page.detail_header>
           </div>
@@ -229,13 +302,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <time class="tl-change__time" datetime={change_datetime(change.change_diff["captured_at"])} title={change_datetime(change.change_diff["captured_at"])}>
                       <%= change_time(change.change_diff["captured_at"]) %>
                     </time>
+                    <UI.Display.full_value value={change_datetime(change.change_diff["captured_at"])} label="exact change time" />
                   </div>
                   <div class="tl-meta">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
                   <% row_history_path = change_history_path(@base_path, change) %>
                   <div class="tl-change__actions" :if={row_history_path}>
-                    <.link patch={row_history_path} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                    <.link
+                      href={row_history_path}
+                      phx-click={JS.push_focus() |> JS.patch(row_history_path)}
+                      id={row_history_focus_id(change)}
+                      class="tl-button tl-button--compact tl-button--secondary"
+                      title="Open row history"
+                      data-testid="row-history-link"
+                    >
                       <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                       Open row history
                     </.link>
@@ -256,23 +337,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <span class="tl-change__field-name"><%= field["name"] %></span>
                         <%= if has_before_axis?(field) do %>
                           <% before = Presentation.change_value_token(field, :before) %>
-                          <span class="tl-diff__cell">
-                            <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
+                          <div class="tl-diff__cell">
+                            <span class="tl-diff__axis-label">Before</span>
+                            <UI.Display.value token={before} label={field["name"] <> " before value"} />
                             <button :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(before)} aria-label={"Copy #{field["name"]} before value"}>
                               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                               Copy
                             </button>
-                          </span>
+                            <span :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>
+                          </div>
                           <span class="tl-diff__arrow">-&gt;</span>
                         <% end %>
                         <% after_token = Presentation.change_value_token(field, :after) %>
-                        <span class="tl-diff__cell">
-                          <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
+                        <div class="tl-diff__cell">
+                          <span class="tl-diff__axis-label">After</span>
+                          <UI.Display.value token={after_token} label={field["name"] <> " after value"} />
                           <button :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(after_token)} aria-label={"Copy #{field["name"]} after value"}>
                             <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                             Copy
                           </button>
-                        </span>
+                          <span :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>
+                        </div>
                       </div>
                     <% end %>
                   <% end %>
@@ -288,6 +373,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("next-page", _, socket) do
       {:noreply, socket}
+    end
+
+    def handle_event("clear_history_focus_return", _, socket) do
+      {:noreply, assign(socket, :history_focus_return_id, nil)}
     end
 
     # `@base_path` is the request path including `/transactions/:id` for
@@ -319,6 +408,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
 
     defp transaction_actor_label(_), do: "unknown"
+
+    defp action_actor_label(%{actor_ref: %{type: type, id: id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp action_actor_label(%{actor_ref: %{"type" => type, "id" => id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp action_actor_label(_), do: nil
+
+    defp action_request_id(%{request_id: value}) when is_binary(value) and value != "", do: value
+    defp action_request_id(_), do: nil
+
+    defp action_job_id(%{job_id: value}) when is_binary(value) and value != "", do: value
+    defp action_job_id(_), do: nil
+
+    defp action_reason(%{reason: value}) when is_binary(value) and value != "", do: value
+    defp action_reason(_), do: nil
 
     defp transaction_actor_path(base_path, %{actor_ref: %{type: type, id: id}})
          when is_binary(base_path) and not is_nil(id),
@@ -375,6 +481,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # complete value in :title when it truncates; when it does not truncate the
     # rendered text IS the full value. Sentinel placeholders (omitted/absent/null)
     # have no copyable value.
+    defp diff_full(%{modifier: "tl-value--redacted"}), do: nil
     defp diff_full(%{title: title}) when is_binary(title), do: title
 
     defp diff_full(%{text: text, modifier: modifier}) do
@@ -410,6 +517,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           captured_at = change.change_diff["captured_at"]
 
           "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
+      end
+    end
+
+    defp row_history_focus_id(change) do
+      case Helpers.routeable_row_ref(change) do
+        nil ->
+          nil
+
+        record_id ->
+          row_history_focus_id(
+            change.change_diff["table_name"],
+            record_id,
+            change.change_diff["captured_at"]
+          )
+      end
+    end
+
+    defp row_history_focus_id(_table, _record_id, nil), do: nil
+
+    defp row_history_focus_id(table, record_id, as_of) do
+      timestamp =
+        case as_of do
+          %DateTime{} = datetime -> DateTime.to_iso8601(datetime)
+          value when is_binary(value) -> normalize_history_timestamp(value)
+          _ -> to_string(as_of)
+        end
+
+      key = Base.url_encode64("#{table}\0#{record_id}\0#{timestamp}", padding: false)
+      "row-history-open-#{key}"
+    end
+
+    defp normalize_history_timestamp(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, datetime, _offset} -> DateTime.to_iso8601(datetime)
+        _ -> value
       end
     end
 

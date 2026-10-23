@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "pid": 32249,
+  "url": "http://127.0.0.1:4109",
+  "database": "threadline_phoenix_testoperator_preview_reopen_1791519872",
+  "partition": "operator_preview_reopen_1791519872",
+  "worktree": "<project-root>/.claude/worktrees/v146-operator-preview",
+  "branch": "worktree-agent-v146-operator-preview",
+  "isolationManifest": {
+    "path": "<project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-WORKTREE-MANIFEST.json",
+    "sha256": "e3558116ce200eab10cbff30f13005315dca7d63b12c88e8bffc8c8252edaa2d"
+  },
+  "identity": {
+    "baseSha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
+    "candidateDiffDigest": "76768d5ddad5f7af25c9970a28a12f220a8994767ed58b5bd4672841ececc178",
+    "fixture": {
+      "scenario": "threadline-demo-seed",
+      "version": "seed-pipeline-v1",
+      "seedManifestSha256": "c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30",
+      "semanticId": "86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029"
+    },
+    "candidateHead": "a2b4f350d2f150ffadd4b8fa4b7f10e2ae20523d",
+    "candidateAncestry": [
+      "19d6a45e7001ccd79eb7c9750a222d52e57dc094",
+      "55c99f1de84209182aaabd21b8f002f1c4966ee9",
+      "8b8e8d9b21b1767f5a0020b8072eae092642f2e1",
+      "486134b4283248cf521343c07684989061176bb4",
+      "137b0870cce78b78a0299e9405ba7a095a446f6d",
+      "cb76439b821761367df8b6571e88b04c5ff03eaa",
+      "1ab560f63a07299e1dd7c7226b7c76da24ebd3a1",
+      "322f84ee5fa4782e05d43ebb823763b461483289",
+      "aed99dfad3efdc536f06f0c2622b1344f01ef201",
+      "27c3b04391bd6dbdf80c8db24a76db294373d96c",
+      "4accedeab50ef52feb3e6be5e1a43b680a458e1c",
+      "e36bd1f84332e7fea1145714652f272b512fbf2f",
+      "636a8a7fd6b1811fcf70448c767f004e26163cf5",
+      "7172b71e97218a53fc22058d64d56b022b7565c2",
+      "a273df11727afa19590b6244a0233df703ff9ac1",
+      "d3ebcdb6489d3368c849c1cfcb0b9c4fe13dd821",
+      "efef51e40be4a36fffca18c1aafda6d29899479a",
+      "cb8b223da79b157181087808f87af0483d80f11e",
+      "2a1887e996177002f65125834b2e2f81602e4c10",
+      "a2b4f350d2f150ffadd4b8fa4b7f10e2ae20523d"
+    ]
+  },
+  "checks": {
+    "unauthenticated": "local-login-redirect",
+    "audit": "authenticated-shell",
+    "deepLink": "authenticated-transaction",
+    "binding": "127.0.0.1",
+    "database": "verified-pid-connection"
+  },
+  "assets": [
+    {
+      "url": "http://127.0.0.1:4109/assets/app.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "db2c13efe67be20c497f2b18eec870066611e64e310d506f1f36b6acccee051a",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/app.js",
+      "localSha256": "db2c13efe67be20c497f2b18eec870066611e64e310d506f1f36b6acccee051a"
+    },
+    {
+      "url": "http://127.0.0.1:4109/assets/phoenix.mjs",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "514db00d9819585e1765df2c78b5f416f6e5fab501b631842182cae7d51439a0",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/phoenix.mjs",
+      "localSha256": "514db00d9819585e1765df2c78b5f416f6e5fab501b631842182cae7d51439a0"
+    },
+    {
+      "url": "http://127.0.0.1:4109/assets/phoenix_live_view.esm.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "servedSha256": "7f97fe077f3cc282b364fe2d9277ccfe080e42a1ed4e511e74a6af8fbf173ee2",
+      "localPath": "examples/threadline_phoenix/priv/static/assets/phoenix_live_view.esm.js",
+      "localSha256": "7f97fe077f3cc282b364fe2d9277ccfe080e42a1ed4e511e74a6af8fbf173ee2"
+    },
+    {
+      "url": "inline:/audit#threadline-operator-stylesheet",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "servedSha256": "b5053ff3b318590a838e7b5917305e1398fd394998b214dda253db51e0e2136c",
+      "localPath": "lib/threadline/operator_surface/style/*.css (ordered segments)",
+      "localSha256": "b5053ff3b318590a838e7b5917305e1398fd394998b214dda253db51e0e2136c"
+    }
+  ],
+  "capturedAt": "2026-10-09T05:03:12.583052+00:00",
+  "manifestPath": "<project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924/manifest.json",
+  "inventoryPath": "<project-root>/.claude/worktrees/v146-operator-preview/test/fixtures/operator_surface/route-inventory.json",
+  "lifecycle": {
+    "script": "<project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py",
+    "stop": "python3 <project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py stop <project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json",
+    "reopen": "python3 <project-root>/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_preview_1791519327/preview-lifecycle.py reopen <project-root>/.claude/worktrees/v146-operator-preview/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-PREVIEW-RECEIPT.json operator_preview_<fresh_unique_id> 4108",
+    "policy": "Fail closed on changed source/fixture/assets, branch/base, live PID/port/database mismatch. Reopen never reuses or resets an existing DB. Retain old synthetic database. No automatic worktree cleanup.",
+    "sha256": "b88b953d9ceebe1b911708944104bf999ca707a2f579ed8b097c4eac6aaf8312"
+  }
+}

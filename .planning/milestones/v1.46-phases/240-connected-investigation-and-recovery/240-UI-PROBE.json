@@ -1,0 +1,248 @@
+{
+  "items": [
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "A completed zero-result query retains its applied-filter summary and a filter-adjustment path; empty results are not reported as retrieval failure.",
+      "reason": null,
+      "probe": "What is shown when there is no data — zero items, an unfilled form, or absent media?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Pending query navigation keeps the requested query identifiable and never labels prior-scope rows as results for the new query.",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "error",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "A failed or denied applied query is distinct from zero results; allowed retry or recovery retains the committed query and host scope.",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "populated",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Timeline results retain supported action, table, actor, row, and transaction identities; existing paging remains reachable.",
+      "reason": null,
+      "probe": "What does the normal populated (happy-path) state look like at a typical volume of content?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "partial",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Missing action, actor, or context remains explicitly unrecorded where accurate; partial evidence never invents attribution or widens supported filters.",
+      "reason": null,
+      "probe": "What is shown for partial or incomplete data — some fields or rows present, others missing?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Long filter values and identifiers wrap or scroll locally without widening the document; filters and row actions stay reachable at narrow widths and 200% zoom.",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "UI-240-TIMELINE",
+      "category": "zero-one-many",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Zero, one, and multi-page results use truthful counts and paging availability; changing the query clears old rows and cursor state.",
+      "reason": null,
+      "probe": "How does the layout read at zero, one, and many items (singular vs plural copy, spacing)?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "When the current actor has no saved searches, show “No saved searches” and the Copywriting Contract guidance to save applied Timeline filters.",
+      "reason": null,
+      "probe": "What is shown when there is no data — zero items, an unfilled form, or absent media?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Loading saved searches preserves the committed Timeline query and does not present stale records as the requested actor’s saved searches.",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "error",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Save, apply, and delete failures receive actionable feedback; failed operations are never presented as saved, applied, or deleted, and deletion requires specific confirmation.",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "populated",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Only the current actor’s saved searches are listed; applying one restores its canonical supported committed query through normal validation.",
+      "reason": null,
+      "probe": "What does the normal populated (happy-path) state look like at a typical volume of content?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "partial",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Only supported canonical committed filters are saved or restored; draft values and host-scope state never become saved-search data.",
+      "reason": null,
+      "probe": "What is shown for partial or incomplete data — some fields or rows present, others missing?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Long saved-search names and filter summaries wrap or scroll locally; all collection actions remain visible and reachable.",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "UI-240-SAVED-SEARCH",
+      "category": "zero-one-many",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Empty, one, and many saved searches retain truthful singular or plural labels and usable apply and delete actions.",
+      "reason": null,
+      "probe": "How does the layout read at zero, one, and many items (singular vs plural copy, spacing)?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "empty",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "No available row changes remain distinct from absent, pruned, never-captured, and unavailable evidence; a known unavailable transaction remains authoritative.",
+      "reason": null,
+      "probe": "What is shown when there is no data — zero items, an unfilled form, or absent media?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Pending as-of or route changes keep the selected snapshot and origin visible and never present prior-state rows as the new history result.",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "error",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "A direct row-history read failure is retryable and keeps a safe return action; it is not labeled empty, denied, or not found, and an unavailable parent suppresses child reads.",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "populated",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "History shows supported changes at the selected as-of value with exact identity and authorized value affordances; transaction-origin history returns to the same transaction.",
+      "reason": null,
+      "probe": "What does the normal populated (happy-path) state look like at a typical volume of content?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "partial",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Redacted, absent, omitted, pruned, and never-captured evidence remains distinguishable; values and causal context are not fabricated.",
+      "reason": null,
+      "probe": "What is shown for partial or incomplete data — some fields or rows present, others missing?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Long keys and values remain reachable through wrapping or local scrolling without hiding return, as-of, dismissal, or focus controls.",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "zero-one-many",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Zero, one, and many history rows preserve truthful states and keep the selected as-of value and safe return destination available.",
+      "reason": null,
+      "probe": "How does the layout read at zero, one, and many items (singular vs plural copy, spacing)?"
+    },
+    {
+      "requirement_id": "UI-240-ROW-HISTORY",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Full authorized identifiers, timestamps, and values remain selectable or copyable; long fields wrap or scroll locally, while redacted and non-copyable values expose no copy control.",
+      "reason": null,
+      "probe": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?"
+    },
+    {
+      "requirement_id": "UI-240-COPY",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "While a clipboard write is pending, feedback does not claim success; the write starts from user activation and the current focus remains stable.",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "UI-240-COPY",
+      "category": "error",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Only confirmed Clipboard API or fallback completion announces “Copied”; failure offers manual-copy recovery and leaves the authorized value selectable.",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "UI-240-COPY",
+      "category": "overflow",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Copy status does not cover focus, drawer dismissal, or the source value; temporary selection nodes are removed after fallback.",
+      "reason": null,
+      "probe": "What happens when content exceeds its container — scroll, clip, wrap, or truncate?"
+    },
+    {
+      "requirement_id": "UI-240-COPY",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Long authorized text remains selectable without widening the page; redacted, absent, omitted, and otherwise non-copyable evidence stays non-copyable.",
+      "reason": null,
+      "probe": "What happens with unusually long text — truncation, wrapping, ellipsis, or reflow?"
+    }
+  ],
+  "coverage": {
+    "applicable": 26,
+    "resolved": 26,
+    "unresolved": 0,
+    "unclassified": 0,
+    "byVerification": {
+      "explicit": 26,
+      "backstop": 0
+    }
+  }
+}

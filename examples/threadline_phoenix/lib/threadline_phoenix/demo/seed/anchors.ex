@@ -79,7 +79,9 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
         ticket,
         %{
           body: "Thanks — we're closing this out.",
-          internal_note_body: "WALKTHROUGH-INTERNAL-SECRET-4521"
+          # The operator evidence lane scans rendered output for this sentinel.
+          # The configured trigger mask must keep it out of persisted audit data.
+          internal_note_body: "synthetic-secret-canary-239-6f71"
         },
         %{status: "closed", closed_at: Manifest.epoch()},
         []

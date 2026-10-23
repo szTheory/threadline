@@ -105,6 +105,24 @@ defmodule Threadline.E2ePreflightContractTest do
     refute source =~ ~r/"?\$CURL_BIN"?[^\n]*\s-L\b/
   end
 
+  test "preview lifecycle delegates receipts to the strict guard and proves before detaching" do
+    source = File.read!(@script)
+
+    assert source =~ "operator-preview-receipt.ts\" --stop"
+    assert source =~ "operator-preview-receipt.ts\" --capture"
+    assert source =~ "if [[ \"$PREVIEW_MODE\" != \"1\" ]]; then"
+    assert source =~ "THREADLINE_E2E_EVIDENCE"
+    assert source =~ "THREADLINE_E2E_PREVIEW"
+
+    capture_at = :binary.match(source, "--capture") |> elem(0)
+
+    detach_at =
+      :binary.match(source, "trap - EXIT", scope: {capture_at, byte_size(source) - capture_at})
+      |> elem(0)
+
+    assert capture_at < capture_at + detach_at
+  end
+
   defp run_preflight(tmp_dir, base, status, headers, body) do
     fixture_dir =
       Path.join(tmp_dir, "threadline-preflight-#{System.unique_integer([:positive])}")

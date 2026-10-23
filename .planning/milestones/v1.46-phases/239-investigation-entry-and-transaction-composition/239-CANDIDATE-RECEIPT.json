@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 1,
+  "phase": 239,
+  "worktree": "<project-root>/.claude/worktrees/v146-operator-preview",
+  "branch": "worktree-agent-v146-operator-preview",
+  "baseSha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
+  "acceptedHead": "43c5bcfa960b1a10cb07ef997e2231e9615dca6f",
+  "acceptedReceiptSha256": "1eaa28ead2105993d73e77364166600033e0940cf345e5b1776eb5ee5823ae99",
+  "acceptedEvidenceIndexSha256": "388700a3de3db3206fdf8fe5bdfc7dc316e8e83e59ed49150094e9e898789d47",
+  "acceptedEvidenceManifestSets": [
+    "d796f34cfbe976e89b68e3d597b535e564f432cba18e55a3b76024dbc775ffb3",
+    "25744cfd3e4644a33600eba7ea3edcdfdb884cbff2d25f6877b0f86ba2b32a9b",
+    "ad53c46d449804e6bde6b5f35b5643646535ecd3c58ecc57bea30a3d321673b3"
+  ],
+  "forwardTaskCommits": [
+    "ebc0a329e4ca64ccf6842f96ac8543e1de5b6f24",
+    "8cf4a8b6dfb4516f55af5d03ed3dcb117633a438",
+    "0153fdf486682fce4d7230f352bcce3a43b1f12e",
+    "b344dc073e09233710687d9d71cbb78e5985cb77",
+    "a3c218fd927899cf5d0f38534acd670320370a34",
+    "b93dc98538d01871ee9f490bca22d610f2d654ff",
+    "a9ffa7168749adb6995332442ac7c01148ad28ec",
+    "3d06a285288bdcd45e7c9489397684cb1a5c4792",
+    "2f958d85012f33e154cbbb29e6404bde2b1eebe7",
+    "bbfb4d0d81a610be4eecdd596360fdcb1dbbe4db",
+    "af274a5af5a7d7739d4380829d578b865acbaab8",
+    "f4c7e65a86bd32a05911701b2583e1223d27a2e7",
+    "d1ae5d29e34c5ceeb1cd82330ed6ba06c7cd02f4",
+    "e945f196758d35b817638ae8c14a126e4afa8622",
+    "b940a131c62701e96263ca0cc6ecdb3888672dff",
+    "42a895608c486fb2d722c087148d4583ba1f2fb3",
+    "f175ed18a5f60195a8143ed3e11a2d7e4f252bf9",
+    "9433cf5fa407afea382ad2adb514836216a02fa0",
+    "76d955f81cec76573a5ce18758bac3f4df0f3b82",
+    "b222f86efdbfe2a50289ce319dc514c19c7a4f7a",
+    "e130ff605a6878516a7f56708659cd511d3252d7",
+    "589c4c93fbbc768f36818aaebb440d0f3d9816d0",
+    "649cff01b9295e5991e462015242ea13e7ac0946",
+    "0bb41cdbb17628e15aab45cc4dbb3dd9ba6f75f9",
+    "d6367d33266c5654e00430745c14fdba0818f7a6",
+    "b9902f71140c7994e919cc117744261fcf3c0521",
+    "b48de3a438e23819abe4217062552d575e806058",
+    "f332edbb8228604dfe2478be5a08ae695d54beeb",
+    "04f77cadb7feb44a0f294d29fbb3207ef65b387d",
+    "21ea81fbd225d1977b33dae4836fd42e01caadb1",
+    "b14171a98c2a1261474f85c86c70b37a3cbdae1c",
+    "cb278d2795d61caa387294ec6185f1f876000ec7",
+    "207cf971dc6263241287b5433010b7eb2da2ff08",
+    "7cb0d3a00366388da76ce69ac12b65cb0d1966d7",
+    "40cc3f0491f9f8e568e77cae0f6cc330777c7067",
+    "0e25b4405386930446272c58d5f20fef5d9d7cef",
+    "f8f9a293a354277111109ba0ecb508a984346f7b",
+    "eb5ab6be767f130b292669fbd719cbd59ff65aca",
+    "d0994c8610388b20109b80da1d466aea0217dff1",
+    "f2909373788ffb1d81a4ba89410477c4d313c397",
+    "6d9f00387434420353aab8202da23b3db20523fb",
+    "e6079676497813ef3e9f45a26decbdc795b65005",
+    "10effef7dd471f0ba2a9336c7f38073d3fd6aff2",
+    "aa7c21861d4fbe1418cdb76300791ed19053f958",
+    "f72eb67ecfc2e2f88599383ffcf8416cca120f14",
+    "fca97b14a01f19120c449ee34d8f28c1b222d88c",
+    "2890beb3e1cbe42b304b7a2c9e3d81f5a35b5fa2",
+    "ea1191620968e5effc83cc4a178eef98531e911e",
+    "b97f0ab9523de8669e53310adc757f393cbbfd36"
+  ],
+  "candidateHead": "b97f0ab9523de8669e53310adc757f393cbbfd36",
+  "candidateAncestry": [
+    "19d6a45e7001ccd79eb7c9750a222d52e57dc094",
+    "55c99f1de84209182aaabd21b8f002f1c4966ee9",
+    "8b8e8d9b21b1767f5a0020b8072eae092642f2e1",
+    "486134b4283248cf521343c07684989061176bb4",
+    "137b0870cce78b78a0299e9405ba7a095a446f6d",
+    "cb76439b821761367df8b6571e88b04c5ff03eaa",
+    "1ab560f63a07299e1dd7c7226b7c76da24ebd3a1",
+    "322f84ee5fa4782e05d43ebb823763b461483289",
+    "aed99dfad3efdc536f06f0c2622b1344f01ef201",
+    "27c3b04391bd6dbdf80c8db24a76db294373d96c",
+    "4accedeab50ef52feb3e6be5e1a43b680a458e1c",
+    "e36bd1f84332e7fea1145714652f272b512fbf2f",
+    "636a8a7fd6b1811fcf70448c767f004e26163cf5",
+    "7172b71e97218a53fc22058d64d56b022b7565c2",
+    "a273df11727afa19590b6244a0233df703ff9ac1",
+    "d3ebcdb6489d3368c849c1cfcb0b9c4fe13dd821",
+    "efef51e40be4a36fffca18c1aafda6d29899479a",
+    "cb8b223da79b157181087808f87af0483d80f11e",
+    "2a1887e996177002f65125834b2e2f81602e4c10",
+    "a2b4f350d2f150ffadd4b8fa4b7f10e2ae20523d",
+    "223caa5575355061a7d8b7e5ae1e7ae21ca3d873",
+    "fcbf4bbafe3cdbddaae76f0fd514d5e56c0d8d48",
+    "9cbbd08c1ed1f64e15d6cce8907c7752476a9891",
+    "0b8afc697355ec877d78ff665707e42bdfeb3fdc",
+    "43c5bcfa960b1a10cb07ef997e2231e9615dca6f",
+    "ebc0a329e4ca64ccf6842f96ac8543e1de5b6f24",
+    "8cf4a8b6dfb4516f55af5d03ed3dcb117633a438",
+    "0153fdf486682fce4d7230f352bcce3a43b1f12e",
+    "b344dc073e09233710687d9d71cbb78e5985cb77",
+    "a3c218fd927899cf5d0f38534acd670320370a34",
+    "371f367bfee879397fecc1d4c006eddb6dd08de9",
+    "15aa8313ae4e877ac49495eec3b9e0246313a3a8",
+    "b93dc98538d01871ee9f490bca22d610f2d654ff",
+    "a9ffa7168749adb6995332442ac7c01148ad28ec",
+    "c6fa8181a9bbdac78c84ce61a7ad2b7b7c7b23bf",
+    "3d06a285288bdcd45e7c9489397684cb1a5c4792",
+    "2f958d85012f33e154cbbb29e6404bde2b1eebe7",
+    "bbfb4d0d81a610be4eecdd596360fdcb1dbbe4db",
+    "af274a5af5a7d7739d4380829d578b865acbaab8",
+    "a6a570e032cfac5662ec5490120a77f0364a788e",
+    "f4c7e65a86bd32a05911701b2583e1223d27a2e7",
+    "d1ae5d29e34c5ceeb1cd82330ed6ba06c7cd02f4",
+    "e945f196758d35b817638ae8c14a126e4afa8622",
+    "b940a131c62701e96263ca0cc6ecdb3888672dff",
+    "4902b6a0168286d58a2d5565f0df26bc9ddccf23",
+    "42a895608c486fb2d722c087148d4583ba1f2fb3",
+    "f175ed18a5f60195a8143ed3e11a2d7e4f252bf9",
+    "af2bc9c6c2a086dba7b09f27cc569a5be30890c4",
+    "9433cf5fa407afea382ad2adb514836216a02fa0",
+    "76d955f81cec76573a5ce18758bac3f4df0f3b82",
+    "b222f86efdbfe2a50289ce319dc514c19c7a4f7a",
+    "c29cb7b8f2ec7cba439b47e42aecdb9602429204",
+    "e130ff605a6878516a7f56708659cd511d3252d7",
+    "b6e6e0366d3c481985ad9fcf0747db646bf9701e",
+    "589c4c93fbbc768f36818aaebb440d0f3d9816d0",
+    "649cff01b9295e5991e462015242ea13e7ac0946",
+    "0bb41cdbb17628e15aab45cc4dbb3dd9ba6f75f9",
+    "b37b5caed0655de465a8499fe0e62f199ecb03be",
+    "d6367d33266c5654e00430745c14fdba0818f7a6",
+    "d33ad6b4c4c62e1c8d29ef23dc2e3a601a57eb46",
+    "b9902f71140c7994e919cc117744261fcf3c0521",
+    "b48de3a438e23819abe4217062552d575e806058",
+    "f332edbb8228604dfe2478be5a08ae695d54beeb",
+    "04f77cadb7feb44a0f294d29fbb3207ef65b387d",
+    "2182cbfae54a06616a449293e8dc886f54bb7015",
+    "36ff213de813010ee0caeeca070a412442dddeef",
+    "21ea81fbd225d1977b33dae4836fd42e01caadb1",
+    "b14171a98c2a1261474f85c86c70b37a3cbdae1c",
+    "cb278d2795d61caa387294ec6185f1f876000ec7",
+    "207cf971dc6263241287b5433010b7eb2da2ff08",
+    "7cb0d3a00366388da76ce69ac12b65cb0d1966d7",
+    "40cc3f0491f9f8e568e77cae0f6cc330777c7067",
+    "0e25b4405386930446272c58d5f20fef5d9d7cef",
+    "f8f9a293a354277111109ba0ecb508a984346f7b",
+    "eb5ab6be767f130b292669fbd719cbd59ff65aca",
+    "d0994c8610388b20109b80da1d466aea0217dff1",
+    "f2909373788ffb1d81a4ba89410477c4d313c397",
+    "6d9f00387434420353aab8202da23b3db20523fb",
+    "e6079676497813ef3e9f45a26decbdc795b65005",
+    "10effef7dd471f0ba2a9336c7f38073d3fd6aff2",
+    "aa7c21861d4fbe1418cdb76300791ed19053f958",
+    "f72eb67ecfc2e2f88599383ffcf8416cca120f14",
+    "fca97b14a01f19120c449ee34d8f28c1b222d88c",
+    "2890beb3e1cbe42b304b7a2c9e3d81f5a35b5fa2",
+    "ea1191620968e5effc83cc4a178eef98531e911e",
+    "b97f0ab9523de8669e53310adc757f393cbbfd36"
+  ],
+  "candidatePaths": [
+    "examples/threadline_phoenix/e2e/playwright.config.ts",
+    "examples/threadline_phoenix/e2e/run-e2e.sh",
+    "examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts",
+    "examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts",
+    "examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts",
+    "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+    "examples/threadline_phoenix/e2e/support/operator-tab-zoom.ts",
+    "examples/threadline_phoenix/e2e/support/operator-zoom-extension/background.js",
+    "examples/threadline_phoenix/e2e/support/operator-zoom-extension/manifest.json",
+    "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts",
+    "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+    "lib/threadline/change_diff.ex",
+    "lib/threadline/operator_surface/live/start_live.ex",
+    "lib/threadline/operator_surface/live/stress_live.ex",
+    "lib/threadline/operator_surface/live/stress_live/sections.ex",
+    "lib/threadline/operator_surface/live/timeline_live.ex",
+    "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+    "lib/threadline/operator_surface/live/transaction_live.ex",
+    "lib/threadline/operator_surface/style/01_tokens.css",
+    "lib/threadline/operator_surface/style/03_page_home.css",
+    "lib/threadline/operator_surface/style/04_controls.css",
+    "lib/threadline/operator_surface/style/07_find_detail.css",
+    "lib/threadline/operator_surface/style/08_overlays_motion.css",
+    "lib/threadline/operator_surface/style/09_responsive.css",
+    "lib/threadline/operator_surface/ui/display.ex",
+    "lib/threadline/operator_surface/ui/overlay.ex",
+    "test/fixtures/operator_surface/route-inventory.json"
+  ],
+  "candidateChanges": [
+    {
+      "path": "examples/threadline_phoenix/e2e/playwright.config.ts",
+      "mode": "100644",
+      "sha256": "b25b4959a102a14974cfa4bc92d0858ec13a90065f409a2c900ba8843c3a1cd2"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/run-e2e.sh",
+      "mode": "100755",
+      "sha256": "dca4409028c3cf3abbd8a8cf3ac1a517553bad35e6fa3eab47ec7a11c099d225"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts",
+      "mode": "100644",
+      "sha256": "117496fce930051e416bf1d70eba3161eaa3023f990a7d548b7a618453b7df2b"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts",
+      "mode": "100644",
+      "sha256": "f7e24f298aadbb2afc8ed06f376998464e759a322e69fddfd15309b868b60ae5"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts",
+      "mode": "100644",
+      "sha256": "ca1dbe8cc53628e48ed2fde7d095e5be5f2787cc12e21a862837a8ab83e01e5a"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+      "mode": "100644",
+      "sha256": "5924f07467f7d2c323b8f71d48ecdf3c2f586f314a37b71541b93d857cf6140b"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-tab-zoom.ts",
+      "mode": "100644",
+      "sha256": "e38a0a0985f0ac40b37da73a1bb91e18ef1007b7844a71868292c53c0bff2784"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-zoom-extension/background.js",
+      "mode": "100644",
+      "sha256": "9e23509b1d1524ed627939c9881d4e1fc839b69ed8f20ecf6f35554f8e01f6c6"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-zoom-extension/manifest.json",
+      "mode": "100644",
+      "sha256": "75d408b5adaed42d34078e2aa37abd28630fe5377f00304e0703f2bbbdebc0fa"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+      "mode": "100644",
+      "sha256": "80ba1c860a71199bdf74101b03b4a18017a741b420396565051b673d35dc0d57"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+      "mode": "100644",
+      "sha256": "08bb905fe5d2417aa1c0a9d4e576663379e155e0245feec011ec5340393ac6a9"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+      "mode": "100644",
+      "sha256": "a21ebeb2b544d00903bf43568dc62b54dfa804646241e82fcd191a7dc0a2f404"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts",
+      "mode": "100644",
+      "sha256": "bd64dc789190d3ed585fa77ad3d9f45cffae866c506c3e0f39369501588110a8"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+      "mode": "100644",
+      "sha256": "b85b1b14f5fd0d0b309d077203fac36cd1c5a907e28ac14cbfee4f81f8e0ff64"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+      "mode": "100644",
+      "sha256": "08d41d1dae7a61d7859a4e135baca8f0c078004c92e266ef321b3eae3f75e460"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-phase-173-uat.spec.ts",
+      "mode": "100644",
+      "sha256": "517f020fc0d011ba44d9cddd30421e06d8d9d8e6bb7e4d61194745ec0589be19"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+      "mode": "100644",
+      "sha256": "3b6d8e61dc99ba55db6196f0130232fd6e0e5cff5fdf8236f5280ca52d991ae4"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-phase-178-uat.spec.ts",
+      "mode": "100644",
+      "sha256": "59cdd789dc5ddd4b350cb47332dff4913f2e81fa9d5a7d9a9c2c46957f284424"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+      "mode": "100644",
+      "sha256": "82107753fab5b9d335dea034242e9a98e40dcbea612c90838d325ae963915ed8"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+      "mode": "100644",
+      "sha256": "8ba4a5a38ebc4fd0a7622324d8087dc077e3d640c49c47f889d364e93b77cc74"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-screenshots.spec.ts",
+      "mode": "100644",
+      "sha256": "5f60f2d018238e69756e9d955aa44eb0c006925a51bb6f6d5b292e33e86fc034"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+      "mode": "100644",
+      "sha256": "e41dae4b826afe7d8008789f1ca5dac4a6274a5cbc672e3760a0161f44f50831"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+      "mode": "100644",
+      "sha256": "b5d17ace730a6ce3ade2392bc250368bee95736116d7e2d90dc8401601928fcc"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+      "mode": "100644",
+      "sha256": "42d6cadc519d9a6007b9618095718060d7c0399ddcdc34922e966b65acb5fdc9"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts",
+      "mode": "100644",
+      "sha256": "ce19e84b8e35b0758057a9126edf3ab223dbb79ae8b94da07235b1c6dfb0718c"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+      "mode": "100644",
+      "sha256": "f3cdd5e1ab15fb48c58932fc1018d6340f80519aedcb871cda14e40cae60588f"
+    },
+    {
+      "path": "lib/threadline/change_diff.ex",
+      "mode": "100644",
+      "sha256": "19f29228ad927d9723806da58a682d65b6e0f5513f06e89566f71e4540642c8c"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/start_live.ex",
+      "mode": "100644",
+      "sha256": "ad387ba344876bc571065365b97c82a8e5b8deb17d2687b0b305b0a05489d16f"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/stress_live.ex",
+      "mode": "100644",
+      "sha256": "b933b495acb853bf67c65bc34b3998c33f82c22f30c6721842ce2ad12610a79c"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+      "mode": "100644",
+      "sha256": "38d714a2157146039d6bf5656148ab8b08e6fee38685bebaf641c9ee2264ce1b"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+      "mode": "100644",
+      "sha256": "1633109246eefa8ea19e3063efb6be6b80e63bc84985967e2dee8739aeefb6b9"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+      "mode": "100644",
+      "sha256": "bd25e3024d89b637ce14024ffd3c7c6d162849c56b8451e5173740af7f2f54a8"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+      "mode": "100644",
+      "sha256": "526e1b7c44e753853267ed85b563e8d334fdbf41ee07291b01f6ec79f9a84384"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/01_tokens.css",
+      "mode": "100644",
+      "sha256": "b0b0c12321d597bb6511aa198564702a6b5fed48b730a729faf8d8cb36fe31c7"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/03_page_home.css",
+      "mode": "100644",
+      "sha256": "821646fca888220b700c502c2d877dabed30524d56c1666a93366c8b9cfe0eff"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/04_controls.css",
+      "mode": "100644",
+      "sha256": "aa62fa61ad18516e12e7a2d8142560456e8cca85378dd33544b36f4bee9e19ca"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/07_find_detail.css",
+      "mode": "100644",
+      "sha256": "741e1eea6381dc374b28c568922679f6e3323d9b400a9a45eec38bd8f401ef9a"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/08_overlays_motion.css",
+      "mode": "100644",
+      "sha256": "32a7925c500833a0a28a45ca24658c80a92d16a654b0919d586998953cbf6d89"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/09_responsive.css",
+      "mode": "100644",
+      "sha256": "df3b6c4371f68d411b2279090ae257379f010d78559203deecd456bfb952b72b"
+    },
+    {
+      "path": "lib/threadline/operator_surface/ui/display.ex",
+      "mode": "100644",
+      "sha256": "c976bce4ead3416c8785c3c3aeff90eb8092d3686c4615055eb75487a4a73834"
+    },
+    {
+      "path": "lib/threadline/operator_surface/ui/overlay.ex",
+      "mode": "100644",
+      "sha256": "65e650f48654888478afbb20c1f32dbb94213d335775a3a3f643013788c31709"
+    },
+    {
+      "path": "test/fixtures/operator_surface/route-inventory.json",
+      "mode": "100644",
+      "sha256": "0081ad1d31f46dda677401f68aa8d10c2f37d8cd0cc8acbcbc4d72d2c76faaf9"
+    }
+  ],
+  "candidateDiffDigest": "af120f11e34bbbcb0ddda2d35d98f7f58cd5cda6bcbd5db0c45313dd9e62f7cd",
+  "planningContextSha256": {
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-07-PLAN.md": "1431ba3e03e03c225407af175b5180e0839e615270d9c7c508e63e846ed53258",
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-CONTEXT.md": "c4b219ceaf0eac55e617889e821e205feb63781c08e96f7f05dfd85e55f16ef6",
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-UI-SPEC.md": "2ee9ee9152d16096c49e86253adc2b8b9805e0bc01b931f0b1c0534805b744be",
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-RESEARCH.md": "41ce983808b666c05698882b624bbcc255e1d1028f27b933f5b91de14aadcf84",
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-PATTERNS.md": "c42c3da81ec54a200c57e9898e6837eeb570b808103381cf005a7d6f2f77754d",
+    ".planning/phases/239-investigation-entry-and-transaction-composition/239-VALIDATION.md": "7367d795f8cf1e66138bda1d009012fa2ee7052f3a85da67939eb485c7600668"
+  }
+}

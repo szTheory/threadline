@@ -194,17 +194,23 @@ defmodule Threadline.ChangeDiffPropertyTest do
   end
 
   defp expected_update_entry(f, :none) do
-    %{"name" => f.name, "after" => present_or_nil(f.after)}
+    f
+    |> expected_after_entry()
   end
 
   defp expected_update_entry(f, _sparse) do
-    base = %{"name" => f.name, "after" => present_or_nil(f.after)}
+    base = expected_after_entry(f)
 
     case f.prior do
       {:present, v} -> Map.put(base, "before", v)
       :absent -> Map.put(base, "prior_state", "omitted")
     end
   end
+
+  defp expected_after_entry(%{name: name, after: {:present, value}}),
+    do: %{"name" => name, "after" => value}
+
+  defp expected_after_entry(%{name: name, after: :absent}), do: %{"name" => name}
 
   defp present_or_nil({:present, v}), do: v
   defp present_or_nil(:absent), do: nil

@@ -4,17 +4,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     # The timeline owns forms for its primary query controls (the filter toolbar)
-    # and for saving the current view.
+    # and for saving the current search.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
-    @ui_form_policy {:has_forms, "filter toolbar and saved-view form"}
+    @ui_form_policy {:has_forms, "filter toolbar and saved-search form"}
 
     import Ecto.Query
 
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.SavedView
+    alias Threadline.OperatorSurface.Live.TimelineLive.Changes
     alias Threadline.OperatorSurface.Live.TimelineLive.Filters
     alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
-    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.Query
     alias Threadline.Query.ExportReads
@@ -65,10 +65,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:scope, scope)
         |> assign(:audited_tables, audited_tables)
         |> assign(:saved_views, saved_views)
+        |> assign(:saved_search_error, nil)
+        |> assign(:pending_delete_view, nil)
         |> assign(:cursor, nil)
         |> assign(:filters, [])
         |> assign(:filters_raw, %{})
+        |> assign(:search_url, "")
         |> assign(:form_error, nil)
+        |> assign(:query_error, false)
         |> assign(:unknown_table_attempted, false)
         |> assign(:future_window_empty, false)
         |> assign(:base_path, nil)
@@ -76,6 +80,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:match_count, 0)
         |> assign(:shown_count, 0)
         |> assign(:filter_query, "")
+        |> assign(:mutation_revision, nil)
 
       {:ok, socket}
     end
@@ -103,9 +108,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {"to", DateTime.to_iso8601(to) |> String.slice(0..15)}
           ])
 
-        {:noreply, push_patch(socket, to: "#{timeline_path}?#{query_string}", replace: true)}
+        {:noreply,
+         socket
+         |> assign(:search_url, timeline_path)
+         |> push_patch(to: "#{timeline_path}?#{query_string}", replace: true)}
       else
-        socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
+        filters_raw = FilterParams.filters_raw_from_params(params)
+        filter_query = build_canonical_query(filters_raw)
+
+        search_url =
+          if filter_query == "", do: timeline_path, else: "#{timeline_path}?#{filter_query}"
+
+        socket =
+          socket
+          |> assign(:filters_raw, filters_raw)
+          |> assign(:filter_query, filter_query)
+          |> assign(:search_url, search_url)
+          |> assign(:saved_search_error, nil)
 
         with {:ok, filters} <- FilterParams.parse(params),
              :ok <- safe_validate(filters) do
@@ -121,6 +140,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       socket
       |> assign(:form_error, message)
+      |> assign(:query_error, false)
       |> assign(:filters, [])
       |> assign(:cursor, nil)
       |> assign(:future_window_empty, false)
@@ -140,63 +160,135 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             table not in socket.assigns.audited_tables
         end
 
-      # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
-      socket = assign(socket, :cursor, nil)
+      # Scope callbacks must receive the query being applied, never the previous
+      # result's filters. Clear the cursor before resetting the stream.
+      socket = socket |> assign(:filters, filters) |> assign(:cursor, nil)
 
-      count_task =
-        Task.async(fn ->
-          ExportReads.count_matching(filters, count_opts(socket, 10_001))
-        end)
+      try do
+        page_opts = scope_aware_opts(socket)
 
-      page_opts = scope_aware_opts(socket)
+        # Two parallel queries; await with a generous timeout. A query failure must
+        # not crash the LiveView or leave partial rows attached to the new filter.
+        # async_stream owns cleanup if a query raises, times out, or the consumer exits.
+        results =
+          Task.Supervisor.async_stream_nolink(
+            Threadline.Export.TaskSupervisor,
+            [:count, :page],
+            fn
+              :count ->
+                safe_query(fn ->
+                  ExportReads.count_matching(filters, count_opts(socket, 10_001))
+                end)
 
-      page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
+              :page ->
+                safe_query(fn -> Query.timeline_page(filters, page_opts) end)
+            end,
+            max_concurrency: 2,
+            ordered: true,
+            timeout: 8_000,
+            on_timeout: :kill_task
+          )
+          |> Enum.to_list()
 
-      # Two parallel queries; await with a generous timeout.
-      # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
-      # capped-count queries on large tables.
-      {:ok, %{count: count}} = Task.await(count_task, 8_000)
+        case results do
+          [
+            {:ok, {:ok, {:ok, %{count: count}}}},
+            {:ok, {:ok, page}}
+          ] ->
+            page = preload_visible_context(page, socket.assigns.repo, scope_aware_opts(socket))
+            filter_query = build_canonical_query(socket.assigns.filters_raw)
+            future_window_empty = future_window_empty?(filters, count, socket)
 
-      page =
-        page_task
-        |> Task.await(8_000)
-        |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
+            socket
+            |> assign(:filters, filters)
+            |> assign(:form_error, nil)
+            |> assign(:query_error, false)
+            |> assign(:unknown_table_attempted, unknown_table_attempted)
+            |> assign(:future_window_empty, future_window_empty)
+            |> assign(:match_count, count)
+            |> assign(:shown_count, length(page.entries))
+            |> assign(:filter_query, filter_query)
+            |> stream(:changes, page.entries, reset: true)
+            |> assign(:cursor, page.cursor)
+            |> assign(:mutation_revision, mutation_revision())
 
+          _failed_or_timed_out ->
+            query_error(socket)
+        end
+      rescue
+        _error -> query_error(socket)
+      catch
+        _kind, _reason -> query_error(socket)
+      end
+    end
+
+    defp safe_query(query_fn) do
+      {:ok, query_fn.()}
+    rescue
+      _error -> {:error, :query_failed}
+    catch
+      _kind, _reason -> {:error, :query_failed}
+    end
+
+    defp query_error(socket) do
       filter_query = build_canonical_query(socket.assigns.filters_raw)
-      future_window_empty = future_window_empty?(filters, count, socket)
 
       socket
-      |> assign(:filters, filters)
       |> assign(:form_error, nil)
-      |> assign(:unknown_table_attempted, unknown_table_attempted)
-      |> assign(:future_window_empty, future_window_empty)
-      |> assign(:match_count, count)
-      |> assign(:shown_count, length(page.entries))
+      |> assign(:query_error, true)
+      |> assign(:unknown_table_attempted, false)
+      |> assign(:future_window_empty, false)
+      |> assign(:match_count, nil)
+      |> assign(:shown_count, 0)
       |> assign(:filter_query, filter_query)
-      |> stream(:changes, page.entries, reset: true)
-      |> assign(:cursor, page.cursor)
+      |> assign(:cursor, nil)
+      |> stream(:changes, [], reset: true)
     end
 
     def handle_event("save-view", %{"name" => name}, socket) do
-      if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
-        attrs = %{
-          name: name,
-          actor_ref: ActorRef.to_map(socket.assigns.threadline_actor_ref),
-          filters: socket.assigns.filters_raw
-        }
+      actor_ref = socket.assigns[:threadline_actor_ref]
+      name = if is_binary(name), do: String.trim(name), else: ""
 
-        changeset = SavedView.changeset(attrs)
+      cond do
+        not ActorRef.identifiable?(actor_ref) ->
+          saved_search_error(socket, "Sign in as a recognized actor to save searches.")
 
-        case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
-          {:ok, view} ->
-            saved_views = [view | socket.assigns.saved_views]
-            {:noreply, assign(socket, :saved_views, saved_views)}
+        name == "" ->
+          saved_search_error(socket, "Enter a name for this saved search.")
 
-          {:error, _} ->
-            {:noreply, socket}
-        end
-      else
-        {:noreply, socket}
+        not is_nil(socket.assigns.form_error) ->
+          saved_search_error(socket, "Fix Timeline filters before saving this search.")
+
+        true ->
+          attrs = %{
+            name: name,
+            actor_ref: ActorRef.to_map(actor_ref),
+            filters: canonical_filters(socket.assigns.filters_raw)
+          }
+
+          changeset = SavedView.changeset(attrs)
+
+          try do
+            case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
+              {:ok, view} ->
+                socket =
+                  socket
+                  |> assign(:saved_views, [view | socket.assigns.saved_views])
+                  |> assign(:saved_search_error, nil)
+
+                {:noreply, socket}
+
+              {:error, _changeset} ->
+                saved_search_error(
+                  socket,
+                  "Could not save this search. Check the name and try again."
+                )
+            end
+          rescue
+            _error -> saved_search_error(socket, "Could not save this search. Try again.")
+          catch
+            _kind, _reason -> saved_search_error(socket, "Could not save this search. Try again.")
+          end
       end
     end
 
@@ -207,19 +299,78 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         view ->
           query = build_canonical_query(view.filters)
-          {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
+
+          path =
+            if query == "",
+              do: socket.assigns.timeline_path,
+              else: "#{socket.assigns.timeline_path}?#{query}"
+
+          {:noreply,
+           socket
+           |> assign(:saved_search_error, nil)
+           |> push_patch(to: path)}
       end
     end
 
     def handle_event("delete-view", %{"id" => id}, socket) do
-      case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
-        nil ->
-          {:noreply, socket}
+      actor_ref = socket.assigns[:threadline_actor_ref]
 
-        view ->
-          socket.assigns.repo.delete!(view, storage_opts(socket))
-          saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
-          {:noreply, assign(socket, :saved_views, saved_views)}
+      if ActorRef.identifiable?(actor_ref) do
+        case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
+          %SavedView{} = view ->
+            {:noreply,
+             socket
+             |> assign(:pending_delete_view, view)
+             |> assign(:saved_search_error, nil)}
+
+          _ ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
+      end
+    end
+
+    def handle_event("close-delete-view", _params, socket) do
+      {:noreply, assign(socket, :pending_delete_view, nil)}
+    end
+
+    def handle_event("confirm-delete-view", _params, socket) do
+      actor_ref = socket.assigns[:threadline_actor_ref]
+      pending = socket.assigns[:pending_delete_view]
+
+      if ActorRef.identifiable?(actor_ref) and match?(%SavedView{}, pending) do
+        try do
+          case owned_saved_view(socket, pending.id, actor_ref) do
+            nil ->
+              saved_search_error(socket, "This saved search is no longer available.")
+
+            view ->
+              case socket.assigns.repo.delete(view, storage_opts(socket)) do
+                {:ok, _deleted} ->
+                  socket =
+                    socket
+                    |> assign(
+                      :saved_views,
+                      Enum.reject(socket.assigns.saved_views, &(&1.id == view.id))
+                    )
+                    |> assign(:pending_delete_view, nil)
+                    |> assign(:saved_search_error, nil)
+
+                  {:noreply, socket}
+
+                {:error, _changeset} ->
+                  saved_search_error(socket, "Could not delete this saved search. Try again.")
+              end
+          end
+        rescue
+          _error -> saved_search_error(socket, "Could not delete this saved search. Try again.")
+        catch
+          _kind, _reason ->
+            saved_search_error(socket, "Could not delete this saved search. Try again.")
+        end
+      else
+        {:noreply, assign(socket, :pending_delete_view, nil)}
       end
     end
 
@@ -279,7 +430,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       job_changeset =
         ExportJob.operator_changeset(%{
           status: "pending",
-          query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
+          query_params: committed_export_params(socket.assigns.filters_raw),
           actor_ref: actor_ref
         })
 
@@ -301,7 +452,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            socket
            |> put_flash(
              :info,
-             "Background export requested. View progress on the Export Status page."
+             "Export queued. You can follow its status here."
            )
            |> push_navigate(to: "#{socket.assigns.base_path}/exports")}
 
@@ -362,6 +513,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         script
         main_class="tl-page tl-page--intro"
       >
+          <span hidden data-tl-mutation-revision={@mutation_revision}></span>
           <Filters.timeline_command
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
@@ -370,36 +522,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             timeline_path={@timeline_path}
           />
 
-        <%= if @form_error do %>
-          <div class="tl-alert tl-alert--error" role="alert">
-            <%= Helpers.invalid_filter_message(@form_error) %>
-          </div>
-        <% end %>
+        <Filters.query_feedback
+          form_error={@form_error}
+          query_error={@query_error}
+          timeline_path={@timeline_path}
+          filter_query={@filter_query}
+          empty_changes={Enum.empty?(@streams.changes.inserts)}
+          unknown_table_attempted={@unknown_table_attempted}
+          filters_raw={@filters_raw}
+          audited_tables={@audited_tables}
+          match_count={@match_count}
+        />
 
-        <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
-          <div class="tl-alert tl-alert--info" role="status">
-            <%= Helpers.unknown_table_message(@filters_raw["table"], @audited_tables) %>
-          </div>
-        <% end %>
-
-        <%= if @match_count > 5_000 and @match_count < 10_001 do %>
-          <div class="tl-alert tl-alert--info" role="status">
-            Large export — will stream in chunks.
-          </div>
-        <% end %>
-
-        <%= if @match_count >= 10_001 do %>
-          <div class="tl-alert tl-alert--warning" role="alert">
-            Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
-          </div>
-        <% end %>
-
-        <.change_list
+        <Changes.change_list
           changes={@streams.changes}
           cursor={@cursor}
           base_path={@base_path}
           timeline_path={@timeline_path}
           schemas={assigns[:threadline_schemas]}
+          filters_raw={@filters_raw}
         />
         <UI.Page.pager
           shown={@shown_count}
@@ -410,13 +551,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           newer_event={nil}
         />
         <UI.Data.empty_state
-          :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
+          :if={not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
           variant={Helpers.timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
           icon={Helpers.timeline_empty_icon(@filters_raw, @future_window_empty)}
         >
-          <:title><%= Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %></:title>
-          <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
+          <:title>
+            <%= if field_filtered_query?(@filters_raw) and not @future_window_empty, do: "No changes match these filters", else: Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %>
+          </:title>
+          <%= if field_filtered_query?(@filters_raw) and not @future_window_empty do %>
+            Adjust the time range or filters, then apply again.
+            <span :if={@scope}>Scoped views only show records you are authorized to see.</span>
+          <% else %>
+            <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
+          <% end %>
           <:actions>
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">
               <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
@@ -431,6 +579,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           actor_ref={assigns[:threadline_actor_ref]}
           saved_views={@saved_views}
+          search_url={@search_url}
+          form_error={@form_error}
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
@@ -440,86 +590,69 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
+        <div :if={@saved_search_error && is_nil(@pending_delete_view)} class="tl-alert tl-alert--error" role="alert">
+          <%= @saved_search_error %>
+        </div>
+        <.saved_search_delete_modal
+          :if={@pending_delete_view}
+          view={@pending_delete_view}
+          error={@saved_search_error}
+        />
       </UI.Page.shell>
       """
     end
 
-    attr(:changes, :any, required: true)
-    attr(:cursor, :any, default: nil)
-    attr(:base_path, :string, required: true)
-    attr(:timeline_path, :string, required: true)
-    attr(:schemas, :map, default: nil)
+    attr(:view, :map, required: true)
+    attr(:error, :string, default: nil)
 
-    defp change_list(assigns) do
+    defp saved_search_delete_modal(assigns) do
       ~H"""
-      <section class="tl-change-list" id="timeline-rows" phx-update="stream"
-               phx-viewport-bottom={@cursor && "next-page"}
-               data-testid="operator-timeline">
-        <div :for={{dom_id, change} <- @changes} id={dom_id} class={["tl-change", Helpers.op_row_modifier(change.op)]} data-testid="timeline-row">
-          <div class="tl-change__summary">
-            <div class="tl-change__meta">
-              <span class={["tl-change__op", Presentation.operation_modifier(change.op)]}><%= Presentation.operation_label(change.op) %></span>
-              <span
-                class="tl-change__table tl-secondary-ref"
-                title={Helpers.table_ref(change).title}
-                data-tl-copy={Helpers.table_ref(change).title}
-              >
-                <%= Helpers.table_ref(change).visible %>
-              </span>
-              <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
-                <%= Presentation.human_time(change.captured_at) %>
-              </time>
-            </div>
-            <div class="tl-meta">
-              <span>
-                Actor
-                <%= if Helpers.actor_label(change) != "unknown" do %>
-                  <UI.Display.ref value={Helpers.actor_label(change)} kind="actor" copy_label="Copy actor ref" />
-                  <a
-                    :if={path = Helpers.actor_path(@base_path, change)}
-                    href={path}
-                    class="tl-link tl-link--deep"
-                    title="View actor activity"
-                  >
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                    Actor timeline
-                  </a>
-                <% else %>
-                  <code><%= Helpers.actor_label(change) %></code>
-                <% end %>
-              </span>
-              <span :if={Helpers.correlation_id(change)}>
-                Correlation
-                <UI.Display.ref value={Helpers.correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
-                <a href={Helpers.correlation_path(@timeline_path, Helpers.correlation_id(change))} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                  Timeline
-                </a>
-              </span>
-              <span :if={row_id = Helpers.routeable_row_ref(change)}>
-                Row
-                <UI.Display.ref value={row_id} kind="uuid" copy_label="Copy row id" />
-              </span>
-            </div>
-            <div class="tl-change__actions">
-              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                Open transaction
-              </a>
-              <a
-                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas)}
-                href={row_history_path}
-                class="tl-button tl-button--compact tl-button--secondary"
-                data-testid="timeline-row-history-link"
-              >
-                <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
-                Row history
-              </a>
-            </div>
-          </div>
+      <UI.Overlay.modal id="saved-search-delete-confirm" show={true} on_cancel={Phoenix.LiveView.JS.push("close-delete-view")}>
+        <h2 id="saved-search-delete-confirm-title" class="tl-modal__title">Delete saved search</h2>
+        <p id="saved-search-delete-confirm-description" class="tl-modal__body">
+          Delete saved search “<%= @view.name %>”? This removes it from your saved searches.
+        </p>
+        <div :if={@error} class="tl-alert tl-alert--error" role="alert"><%= @error %></div>
+        <div class="tl-modal__actions">
+          <button type="button" class="tl-button tl-button--secondary" phx-click="close-delete-view">
+            Keep saved search
+          </button>
+          <button type="button" class="tl-button tl-button--danger" phx-click="confirm-delete-view" data-tl-mutating>
+            <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
+            Delete search
+          </button>
         </div>
-      </section>
+      </UI.Overlay.modal>
       """
+    end
+
+    defp saved_search_error(socket, message) do
+      {:noreply, assign(socket, :saved_search_error, message)}
+    end
+
+    defp canonical_filters(filters_raw) do
+      filters_raw
+      |> build_canonical_query()
+      |> URI.decode_query()
+    end
+
+    defp mutation_revision do
+      System.unique_integer([:positive, :monotonic])
+    end
+
+    defp owned_saved_view(socket, id, actor_ref) do
+      socket.assigns.repo.get_by(
+        SavedView,
+        [id: id, actor_ref: actor_ref],
+        storage_opts(socket)
+      )
+    end
+
+    defp field_filtered_query?(filters_raw) do
+      Enum.any?(["table_schema", "table", "actor_kind", "actor_id", "correlation_id"], fn key ->
+        value = Map.get(filters_raw, key)
+        is_binary(value) and value != ""
+      end)
     end
 
     defp scope_aware_opts(socket) do
@@ -590,13 +723,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
 
-    defp background_export_error_message(:supervisor_not_started) do
-      "Background export could not start because the built-in export runtime is unavailable."
+    defp committed_export_params(raw) do
+      raw
+      |> FilterParams.canonical_query()
+      |> URI.decode_query()
     end
 
-    defp background_export_error_message(reason) do
-      "Background export could not start: #{inspect(reason)}."
-    end
+    defp background_export_error_message(_reason),
+      do: "Export could not be queued. Check the export status, then try again from Timeline."
 
     defp terminal_export_expiry do
       retention_ttl_hours =

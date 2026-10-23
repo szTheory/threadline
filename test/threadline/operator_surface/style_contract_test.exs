@@ -68,7 +68,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_exact_selector_contains(src, ".tl-button", ["min-height: var(--tl-hit-area);"])
 
     assert_exact_selector_contains(src, ".tl-button--compact", [
-      "min-height: var(--tl-control-height-compact);"
+      "min-height: var(--tl-hit-area);",
+      "min-width: var(--tl-hit-area);"
     ])
 
     assert_exact_selector_contains(src, ".tl-button--icon", ["width: var(--tl-hit-area);"])
@@ -282,6 +283,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
+  test "Home card kickers use neutral tokens and leave accent for interactive emphasis" do
+    src = StyleSource.read!()
+    kicker = selector_block!(src, ".tl-home__card-kicker")
+
+    assert String.contains?(kicker, "border: 1px solid var(--tl-color-border);")
+    assert String.contains?(kicker, "background: var(--tl-color-surface-hover);")
+    assert String.contains?(kicker, "color: var(--tl-color-muted);")
+    refute String.contains?(kicker, "--tl-color-accent")
+  end
+
   test "phase 140 home earned-flow controls stay scoped token-backed" do
     src = StyleSource.read!()
 
@@ -308,7 +319,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
-  test "phase 141 motion tokens and keyframes stay locked" do
+  test "motion tokens and keyframes stay locked" do
     src = StyleSource.read!()
 
     for token <- [
@@ -330,27 +341,39 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> List.flatten()
       |> Enum.sort()
 
-    assert keyframes ==
-             Enum.sort(~w(tl-drawer-in tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse))
+    assert keyframes == Enum.sort(~w(tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse))
   end
 
-  test "phase 141 animation consumers remain token-backed in live source" do
+  test "remaining animation consumers stay token-backed in live source" do
     src = StyleSource.read!()
 
     for {selector, keyframe} <- [
           {".tl-home__card", "tl-rise-in"},
           {".tl-home__card--primary::before", "tl-thread-draw"},
-          {".tl-subview", "tl-drawer-in"},
           {"#retention-runs > tr", "tl-rise-in"},
-          {".tl-subview__timeline > *", "tl-rise-in"},
-          {".tl-record-list > .tl-record-card", "tl-fade-in"},
-          {"#transactions-list > .tl-change", "tl-fade-in"},
           {".tl-copy.is-copied", "tl-copy-pulse"},
           {".tl-journey-rail::before", "tl-thread-draw"},
           {".tl-policy__success::after", "tl-thread-draw"}
         ] do
       assert_selector_uses_animation(src, selector, keyframe)
     end
+  end
+
+  test "row-history evidence stays immediate and copy feedback remains in flow" do
+    src = StyleSource.read!()
+    history = selector_block!(src, ".tl-row-history-drawer")
+    row_history_items = selector_block!(src, ".tl-row-history-drawer .tl-subview__timeline > *")
+    copy_status = selector_block!(src, ".tl-copy-status")
+
+    assert String.contains?(history, "animation: none !important;")
+    assert String.contains?(history, "transition: none !important;")
+    assert String.contains?(row_history_items, "animation: none !important;")
+    assert String.contains?(row_history_items, "transition: none !important;")
+    assert String.contains?(copy_status, "display: block;")
+    assert String.contains?(copy_status, "overflow-wrap: anywhere;")
+    refute String.contains?(copy_status, "position: absolute;")
+    refute String.contains?(src, ".tl-subview__timeline > *:nth-child(")
+    refute String.contains?(src, ".tl-record-list > .tl-record-card,")
   end
 
   test "phase 141 transition families remain token-backed in live source" do
@@ -628,7 +651,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-filter-grid", [
       "display: grid;",
-      "grid-template-columns: 1fr;",
+      "grid-template-columns: minmax(0, 1fr);",
       "align-items: start;"
     ])
 
@@ -734,6 +757,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     src = StyleSource.read!()
     base = base_responsive_section(src)
 
+    assert_selector_contains(base, ".tl-filter-summary__filter", [
+      "align-items: flex-start;",
+      "border-radius: var(--tl-radius-sm);",
+      "white-space: normal;"
+    ])
+
     assert_selector_contains(base, ".tl-timeline-command__lede", [
       "font-size: var(--tl-font-size-body);"
     ])
@@ -775,7 +804,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     assert_selector_contains(base, ".tl-copy", [
-      "min-width: var(--tl-control-height-compact);"
+      "min-width: var(--tl-hit-area);",
+      "min-height: var(--tl-hit-area);",
+      "font-size: var(--tl-font-size-label);"
     ])
 
     assert_selector_contains(base, ".tl-timeline-drawer", [
@@ -817,6 +848,14 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Timeline rows must fix narrow-width overflow at row/control level, not hide horizontal overflow"
   end
 
+  test "phase 239 Home lead keeps its display type role at narrow widths" do
+    base = base_responsive_section(StyleSource.read!())
+
+    assert_selector_contains(base, ".tl-home__headline", [
+      "font-size: var(--tl-font-size-display);"
+    ])
+  end
+
   test "phase 142 responsive primitives keep tablet wrapping and desktop table restoration" do
     src = StyleSource.read!()
     tablet = media_section(src, "768px")
@@ -826,7 +865,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_selector_contains(desktop, ".tl-page", ["padding: var(--tl-space-4);"])
 
     assert_selector_contains(tablet, ".tl-timeline-command__facts", [
-      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+      "grid-template-columns: repeat(2, minmax(0, 1fr));"
     ])
 
     assert_selector_contains(tablet, ".tl-filter-grid--primary", [
@@ -849,6 +888,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(desktop, ".tl-filter-grid--primary", [
       "grid-template-columns: minmax(178px, .8fr) minmax(178px, .8fr) minmax(180px, 1fr) minmax(240px, 1.3fr);"
+    ])
+
+    assert_selector_contains(desktop, ".tl-timeline-command__facts", [
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
     ])
 
     assert_selector_contains(desktop, ".tl-toolbar.tl-timeline-command", [
@@ -1023,6 +1066,31 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
         "font-size: var(--tl-font-size-dense);"
       ]
     )
+  end
+
+  test "phase 239 keeps paper and ink roles concrete and high-importance controls at readable floors" do
+    src = StyleSource.read!()
+    tokens = selector_block!(src, ".threadline-ui")
+
+    assert String.contains?(tokens, "--tl-color-paper: #F7F9FC;")
+    assert String.contains?(tokens, "--tl-color-ink: #0F1728;")
+    refute String.contains?(tokens, "--tl-color-paper: var(--tl-color-paper);")
+    refute String.contains?(tokens, "--tl-color-ink: var(--tl-color-ink);")
+
+    assert String.contains?(tokens, "--tl-font-size-label: 14px;")
+    assert String.contains?(tokens, "--tl-control-height: 40px;")
+
+    assert_selector_contains(src, ".tl-shell-nav:has(.tl-shell-nav__disclosure[open])", [
+      "position: static;",
+      "top: auto;"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-button", [
+      "min-height: var(--tl-hit-area);",
+      "font-size: var(--tl-font-size-label);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-toolbar__control", ["width: 100%;"])
   end
 
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do

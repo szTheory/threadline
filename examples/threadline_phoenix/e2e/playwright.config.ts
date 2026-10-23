@@ -104,6 +104,7 @@ const projects = [
       viewport: { width: 1280, height: 900 },
       deviceScaleFactor: 1,
       colorScheme: "dark" as const,
+      contextOptions: { reducedMotion: "reduce" as const },
     },
   },
   ...(lightLane
@@ -118,6 +119,7 @@ const projects = [
             /operator-timeline-investigation-flow\.spec\.ts/,
             /operator-component-contracts\.spec\.ts/,
             /operator-phase-178-uat\.spec\.ts/,
+            /operator-route-states\.spec\.ts/,
           ],
           use: {
             ...devices["Desktop Chrome"],
@@ -146,7 +148,11 @@ export default defineConfig({
   // traces are a diagnostic sample, one is an anecdote.
   maxFailures: process.env.CI ? 5 : 0,
   workers: 1,
-  reporter: process.env.CI ? [["github"], ["list"]] : [["list"]],
+  reporter: process.env.PLAYWRIGHT_JSON_OUTPUT_FILE
+    ? [["github"], ["json"]]
+    : process.env.CI
+      ? [["github"], ["list"]]
+      : [["list"]],
   use: {
     baseURL,
     trace: "retain-on-failure",
