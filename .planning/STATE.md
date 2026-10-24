@@ -1,38 +1,33 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.46
-milestone_name: Operator UI Refinement
-status: Awaiting next milestone
-stopped_at: Phase 243 complete — all phases complete
-last_updated: "2026-10-11T20:13:15.000Z"
-last_activity: 2026-10-11
-last_activity_desc: Milestone v1.46 completed and archived
-state_head: 2f7560e97778d914a7639cbae308bb66fb7c528f
+milestone: v1.47
+milestone_name: Release on autopilot
+status: planning
+last_updated: "2026-10-24T22:46:58.755Z"
+last_activity: 2026-10-24
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 27
-  completed_plans: 27
-  percent: 100
-current_phase: 243
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-11 after v1.46 closeout)
+See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Rolling quality roadmap adopted 2026-10-24 (see MILESTONE-ARC.md). Next: `/gsd-new-milestone` for v1.47 Release on autopilot.
+**Current focus:** v1.47 Release on autopilot (rolling quality roadmap rank 1; see MILESTONE-ARC.md).
 
 ## Current Position
 
-Phase: Milestone v1.46 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Milestone audit: `tech_debt` (26/26 requirements, 5/5 flows; two visual-evidence limits and non-blocking polish findings disclosed).
-Last activity: 2026-10-11 — Milestone v1.46 completed and archived
+Status: Defining requirements
+Last activity: 2026-10-24 — Milestone v1.47 started
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 

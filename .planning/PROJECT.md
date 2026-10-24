@@ -50,9 +50,18 @@ Threadline **1.0.1** is published on Hex.pm with ExDoc. v1.45 closed on 2026-10-
 
 </details>
 
-## Current Milestone: None selected
+## Current Milestone: v1.47 Release on autopilot
 
-Re-derive the product and release baseline using `.planning/MILESTONE-GUIDE.txt` and `.planning/MILESTONE-ARC.md` before selecting further work. Do not carry forward another broad operator-UI milestone by default; act on new adopter, operator, security, or measurable quality evidence. No next milestone is authorized or planned here.
+**Goal:** A release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
+
+**Target features:**
+- The release workflow dates the CHANGELOG `## Unreleased` section and refreshes stale release PRs, so the separate dating PR goes away.
+- Network fetches retry on transient errors (tests never do); Hex version pinned against lock churn.
+- Dependabot security-only updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue.
+- Browser-spec timing visibility, a per-project browser E2E split (CI median ≤ 9 min), contract tests on one lane, rebalanced partitions, and hang-proof test partitions.
+- Carried-debt register closed out; parked UI-critic loop retired to a tag (D-4).
+
+Scope and evidence: `.planning/MILESTONE-ARC.md` rank 1 and `.planning/research/QUALITY-ROADMAP-2026-10-24.md`.
 
 ## Prior shipped milestone: v1.45 1.0 API Contract
 
@@ -920,4 +929,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-11 after v1.46 closeout; 6 phases and 26 requirements complete, no successor selected*
+*Last updated: 2026-10-24 at v1.47 start (rolling quality roadmap rank 1)*
