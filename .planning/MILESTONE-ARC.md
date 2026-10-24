@@ -1,10 +1,30 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-10-11 (v1.46 archived and locally tagged)
-**Active milestone:** none. v1.46 — Operator UI Refinement is complete: six phases, 27 plans, 49 tasks, 26/26 requirements and 5/5 flows. Its audit is `tech_debt`, with UIV-02/03 visual-evidence limits and non-blocking polish findings disclosed. The planning tag is local; package 1.0.1 remains the published release. No successor is selected.
-**Posture:** Refine existing investigation and operations jobs using the confirmed product context and completed sibling research. Preserve public 1.x and host contracts; use code-first implementation, equal engineer/operator priority, fresh current-main evidence and bounded automated review. Keep routine patch work on the release train and the paid critic parked.
+**Updated:** 2026-10-24 (rolling quality roadmap adopted after the 1.1.0 release)
+**Active milestone:** none yet. Next: v1.47 Release on autopilot.
+**Posture:** rolling background quality. The maintainer's attention is elsewhere, so operator-UI feedback is parked until they bring it. Meanwhile, work through evidence-backed foundation milestones. Each milestone is short and ends in a release, and the ranking is re-derived at each close. The maintainer will dogfood Threadline in their own projects, so the standing goal is "no bitrot": main green, PRs triaged, specs honest, deps lean, performance measured, intent remembered.
 
-For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and near/mid/long horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
+For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
+
+## Rolling quality roadmap (2026-10-24)
+
+Evidence, file references, the rejected list, and the verified carried-debt register: `.planning/research/QUALITY-ROADMAP-2026-10-24.md`.
+
+| Rank | Version | Theme | Release | Status |
+|------|---------|-------|---------|--------|
+| 1 | v1.47 | Release on autopilot: CHANGELOG auto-dating, stale release-PR refresh, Dependabot security-only + SHA pins, tiered deps-audit, fetch retries, browser-lane timing then per-project split, contract tests on one lane, debt-register closeout, critic retired to a tag | patch | next |
+| 2 | v1.48 | Safe by default: operator surface fail-closed (bug fix), txid-reuse detection then trigger fix, CSV/header hardening, search_path pin + single SQL quoting, PgBouncer lock check, honest bypass/least-privilege/sandbox guides, floor to Elixir 1.17 / OTP 27 | 1.2.0 | queued |
+| 3 | v1.49 | Honest specs: dependency-free mutation replay, time-boxed contract-test keep/merge/delete, one-shot coverage probe, dependency-floor lane, twin probes | patch | queued |
+| 4 | v1.50 | Measured performance: in-server capture bench vs untriggered control with weekly ratchet, retention orphan-drain fix, adopter index generator, `timeline/2` `:limit`, honest performance guide | minor | queued |
+| 5 | v1.51 | Lean dependency tree: vendor CSV writer, Plug optional (required tree 11 to 7), drop unused optional deps, de-duplicate encoders/helpers, runtime-cycle gate, tooling out of `lib/` | minor | queued |
+
+Maintainer decisions, 2026-10-24 (in-session, after a research fan-out):
+- D-1: the operator surface fails open, but its docs promise fail-closed. Fix it as a bug in 1.2.0: a mount without `authorize_fn` or the explicit unauthenticated acknowledgement becomes a compile error with a fix-it message.
+- D-2: txid reuse after a logical restore. Detect it first with a health finding and docs, then fix the trigger key with a regenerate-triggers upgrade note.
+- D-3: raise the supported floor to Elixir 1.17 / OTP 27 in a minor release.
+- D-4: retire the parked UI-critic loop to a git tag.
+- Operating grants: a standing merge grant for agent quality PRs (all required CI green and automated review clean; public API, defaults, scope, and spend still escalate); release when releasable (the maintainer approves `production-hex`); standard agent spend.
+- Maintainer action outstanding: move `HEX_API_KEY` to a `production-hex` environment secret.
 
 ## Current position after v1.46 (2026-10-11)
 

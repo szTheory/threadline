@@ -894,6 +894,11 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 | Before/after comparisons are labeled limited when render inputs differ | Different assets, fixtures, route/state, or environment cannot establish pixel equivalence; visual evidence must state its actual comparison boundary. | ✓ Validated (v1.46, UIV-02; explicitly disclosed) |
 | Disconnected operator mutations wait for fresh server-rendered state and are never replayed automatically | Retention and export actions have consequences; native disabled semantics and persisted-state confirmation prevent accidental duplicate writes. | ✓ Validated (v1.46, Phase 242; browser checks and required CI) |
 | Investigation state stays paired with the result it describes during pending navigation and recovery | Operators must not mistake old rows for a new query or lose scope on a pivot; document navigation is treated as navigation rather than a speculative in-place mixed state. | ✓ Validated (v1.46, Phases 239–240) |
+| Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | — Pending (v1.48, D-1) |
+| Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | — Pending (v1.48, D-2) |
+| Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
+| Retire the parked UI-critic loop to a tag (2026-10-24) | About 3k lines + 3.6 MB of fixtures with no active use; restorable from the tag | — Pending (v1.47, D-4) |
+| Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
 
 ## Evolution
 
