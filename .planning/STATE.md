@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v1.47
 milestone_name: Release on autopilot
 status: planning
-last_updated: "2026-10-24T22:46:58.755Z"
+last_updated: "2026-10-24T23:30:00.000Z"
 last_activity: 2026-10-24
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 244 of 244–247 (Release flow) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-24 — Milestone v1.47 started
+Status: Ready to discuss/plan (roadmap defined: 4 phases, 14/14 requirements mapped)
+Last activity: 2026-10-24 — v1.47 roadmap created (Phases 244–247)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 0/0 plans (plan counts TBD until each phase is planned)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -459,6 +460,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ### Roadmap Evolution
 
+- **v1.47 roadmap (2026-10-24):** Phases 244-247 from `.planning/research/QUALITY-ROADMAP-2026-10-24.md`, 14/14 requirements mapped. 244 Release flow (REL-01..04), 245 Supply chain (SUP-01..04), 246 Debt closeout and critic retirement (DEBT-01..02), 247 CI critical path and suite lanes (CI-01..04). Debt runs before CI (numbers swapped from the approved draft) so the critic capture projects are deleted before the per-project browser split and the ≤ 9 min / ≤ 1.15 gates are measured once on the final suite. CI-01 precedes CI-02 inside 247.
 - **v1.45 roadmap (2026-10-03):** Phases 231-237 from the research SUMMARY "Implications for Roadmap" split, 25/25 requirements mapped. 231 facade topology + association edge (API-04, API-07), 232 consolidation/deprecation/bounded default (API-01/02/03/05/08), 233 return shapes (API-06), 234 specs + gate (SPEC-01..03), 235 stability contract + guides (CONTRACT-01..05, DOCS-01/02), 236 PG 15 floor + partition weights (FLOOR-01/02, CI-01), 237 upgrade guide + 1.0.0 (DOCS-03, REL-01..03). Kept seven phases despite coarse granularity: each boundary is an ordering constraint (topology before delegates, return shapes before specs, specs before the contract pins, test churn before the weight refresh, floor before release). 233 is single-requirement and could fold into 232; kept separate so specs follow final lookup signatures. Cross-cutting rule: each breaking change gets its CHANGELOG entry and `BREAKING CHANGE:` footer in the phase that makes it, so REL-02 cross-checks rather than reconstructs. No research flags; 231 and 232 carry the one-way calls and need careful discuss passes.
 - **Phase 223 added (2026-09-29):** Close v1.43 Audit Debt, from `.planning/v1.43-MILESTONE-AUDIT.md` (status tech_debt, 24/24 requirements, integration 15/15, flows 8/8). Scope: release the mint 1.11.0 advisory fix (on main, but in the `ci:` squash #60, so release-please has nothing to release), `persist-credentials: false` on the release.yml target-ref checkouts plus a contract (216 CR-01 remainder), and a disposition for each of the six open 217 round-2 findings (R2-WR-04 is the one to fix).
 - **v1.43 roadmap (2026-09-26):** Phases 214-222 from the research SUMMARY split, 24/24 requirements mapped. 214 Baseline, then 215 Supply chain / 216 Platform currency / 217 Repo hygiene (mutually independent), 218 Remove CI waste (ECON-07 re-measure), 219 deps-only `_build` cache, 220 newest lane (spike-gated), 221 names/order (rename once), 222 SEED-006 (conditional). Kept nine phases despite coarse granularity: each boundary is an ordering constraint (fix before gate, delete before cache, rename after roster changes, classifier after measured wins). Research flags: 220, 222, 219, parts of 216; 215 narrow (Hex cooldown only if adopted).
@@ -1142,7 +1144,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Operator Next Steps
 
-- Start the next milestone with $gsd-new-milestone
+- Next: `/gsd-discuss-phase 244` (Release flow), then `/gsd-plan-phase 244`
 
 ## Restart Recovery (2026-10-10)
 

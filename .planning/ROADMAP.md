@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- [ ] **v1.47 Release on autopilot** — Phases 244–247; in progress (opened 2026-10-24). Four phases, 14 requirements. Evidence: research/QUALITY-ROADMAP-2026-10-24.md; requirements: REQUIREMENTS.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
 - [x] **v1.44 Behavioral Depth: Properties, Twins, Telemetry** — Phases 224–230; shipped as 0.12.0 on 2026-10-02. Archive: milestones/v1.44-ROADMAP.md.
@@ -18,10 +19,78 @@
 
 Earlier milestones are recorded in MILESTONES.md and their archives under milestones/.
 
+## Phases
+
+**v1.47 Release on autopilot.** Goal: a release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
+
+- [ ] **Phase 244: Release flow** - The release workflow dates the CHANGELOG and refreshes stale release PRs; network fetches retry; Hex lock drift cannot recur silently
+- [ ] **Phase 245: Supply chain** - Dependabot security updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue
+- [ ] **Phase 246: Debt closeout and critic retirement** - Every carried-debt row has a disposition, and the parked UI-critic loop is removed from main and tagged for restoration
+- [ ] **Phase 247: CI critical path and suite lanes** - Browser-spec timing visibility, then a per-project browser split, contract tests on one lane, rebalanced partitions, and hang-proof partitions
+
+**Ordering note.** Debt closeout (246) runs before the CI phase (247): DEBT-02 deletes tests and the critic Playwright capture projects, so the CI-02 per-project split and the CI-02/CI-03 measured gates (median ≤ 9 min over 5 runs, ratio ≤ 1.15 over 3 runs) are taken once on the final suite instead of being split, measured, and re-measured. This swaps the numbers of the two approved phases; their contents are unchanged.
+
+## Phase Details
+
+### Phase 244: Release flow
+**Goal**: A release takes the landing PR, the release PR and the Hex approval, with no CHANGELOG-dating PR, no hand rebase of a stale release PR, and no red run from a transient fetch or Hex lock drift.
+**Depends on**: Nothing (first phase of v1.47)
+**Requirements**: REL-01, REL-02, REL-03, REL-04
+**Success Criteria** (what must be TRUE):
+  1. With release prose and the upgrade-path row under `## Unreleased` in the landing PR, the release workflow renames the section to `## [X.Y.Z] - YYYY-MM-DD` on the release branch, the release PR's first CI run is green, and no separate CHANGELOG-dating PR exists; the release-shape and version-truth contract tests pass against the renamed shape.
+  2. After a non-releasable merge leaves the open release PR behind main (release-please reports it unchanged), the release workflow rebases it with a CI-triggering token and a fresh CI run starts on the new head with zero human actions, proven by a release.yml contract test and one observed run.
+  3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
+  4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
+**Plans**: TBD
+
+### Phase 245: Supply chain
+**Goal**: Security fixes arrive as PRs without routine version noise, every action reference is immutable, and only advisories that reach adopters block the release lane.
+**Depends on**: Phase 244 (both edit ci.yml and release.yml; sequential to avoid workflow conflicts, and SUP-03's green release lane builds on Phase 244's release flow)
+**Requirements**: SUP-01, SUP-02, SUP-03, SUP-04
+**Success Criteria** (what must be TRUE):
+  1. `.github/dependabot.yml` enables security-update PRs for the mix ecosystem at root, bench and example and for github-actions, with routine version updates disabled; a contract test pins this.
+  2. Every third-party `uses:` reference is a full commit SHA with a version comment, setup-node reads its version from `.tool-versions`, and a contract test rejects a tag-only ref, with a negative control proving it fails.
+  3. A test pins both audit tiers: a new advisory in a shipped runtime dependency fails required CI, while a new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green.
+  4. The scheduled deps-health report opens or updates an issue only for advisories or retirements and closes it when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` exit-code classification is covered by a test.
+**Plans**: TBD
+
+### Phase 246: Debt closeout and critic retirement
+**Goal**: The carried-debt register is fully dispositioned, and the parked UI-critic loop is gone from main yet restorable, leaving the suite, CI topology and docs consistent for the CI phase to measure.
+**Depends on**: Phase 245 (register rows such as 216 action pinning, the setup-node float and 215 WR-01 are closed by SUP-02, so their dispositions cite Phase 245)
+**Requirements**: DEBT-01, DEBT-02
+**Success Criteria** (what must be TRUE):
+  1. Every row of the 2026-10-24 carried-debt register has a recorded disposition, with none left blank: fixed items closed, obsolete items (including the stale WINDOWS rows) waived with a reason, and still-real items routed to a named later milestone.
+  2. The cheap 215/223 CI self-test findings are fixed and their tests pass; the remaining 215/223 findings are waived with a reason.
+  3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
+  4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
+**Plans**: TBD
+
+### Phase 247: CI critical path and suite lanes
+**Goal**: Required CI finishes in ≤ 9 minutes median on main without dropping coverage, partitions are balanced, and a hung test fails fast and names itself.
+**Depends on**: Phase 246 (measured on the post-removal suite and Playwright project set). Within the phase, CI-01 timing visibility lands and is read before the CI-02 split.
+**Requirements**: CI-01, CI-02, CI-03, CI-04
+**Success Criteria** (what must be TRUE):
+  1. Every main CI run publishes at least the 20 slowest browser specs with durations in the job summary or an artifact, and this lands before the browser split.
+  2. Browser E2E runs as one parallel job per Playwright project, the operator-journey receipt still reconciles every journey across the merged results, and median ci.yml wall time over 5 main runs is ≤ 9 minutes (recorded as the measured gate for SEED-006's reopen condition).
+  3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
+  4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
+**Plans**: TBD
+
+## Progress
+
+**Execution order:** 244 → 245 → 246 → 247
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 244. Release flow | 0/TBD | Not started | - |
+| 245. Supply chain | 0/TBD | Not started | - |
+| 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
+| 247. CI critical path and suite lanes | 0/TBD | Not started | - |
+
 ## Current Position
 
-The latest published package remains Hex 1.0.1. v1.46 is a completed planning milestone and local Git tag, not a package release. No milestone is active or selected. Its audit records bounded visual-evidence limits and disclosed polish findings; see the linked audit and evidence index in the archive.
+v1.47 Release on autopilot is active; the roadmap is defined (Phases 244–247, 14/14 requirements mapped) and Phase 244 Release flow is next, not started. The latest published package is Hex 1.1.0. v1.46 is a completed planning milestone and local Git tag.
 
 ## Next
 
-Re-derive the product and release baseline using .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md before selecting further work. No successor milestone is selected.
+Run `/gsd-discuss-phase 244` (Release flow), then `/gsd-plan-phase 244`. Before closing v1.47, read .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md; the next rung is v1.48 Safe by default.

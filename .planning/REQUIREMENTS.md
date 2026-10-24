@@ -52,10 +52,25 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| REL-01 | Phase 244 | Pending |
+| REL-02 | Phase 244 | Pending |
+| REL-03 | Phase 244 | Pending |
+| REL-04 | Phase 244 | Pending |
+| SUP-01 | Phase 245 | Pending |
+| SUP-02 | Phase 245 | Pending |
+| SUP-03 | Phase 245 | Pending |
+| SUP-04 | Phase 245 | Pending |
+| DEBT-01 | Phase 246 | Pending |
+| DEBT-02 | Phase 246 | Pending |
+| CI-01 | Phase 247 | Pending |
+| CI-02 | Phase 247 | Pending |
+| CI-03 | Phase 247 | Pending |
+| CI-04 | Phase 247 | Pending |
 
 **Coverage:**
 - v1.47 requirements: 14 total
-- Mapped to phases: 0 (filled by the roadmap)
+- Mapped to phases: 14 (Phase 244: 4, Phase 245: 4, Phase 246: 2, Phase 247: 4)
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-10-24*
+*Requirements defined: 2026-10-24; traceability filled by the v1.47 roadmap 2026-10-24*
