@@ -24,7 +24,7 @@ current_phase: 243
 See: `.planning/PROJECT.md` (updated 2026-10-11 after v1.46 closeout)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** No active milestone; re-derive the baseline before selecting the next scope.
+**Current focus:** Rolling quality roadmap adopted 2026-10-24 (see MILESTONE-ARC.md). Next: `/gsd-new-milestone` for v1.47 Release on autopilot.
 
 ## Current Position
 

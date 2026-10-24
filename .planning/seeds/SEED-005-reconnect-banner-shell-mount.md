@@ -1,6 +1,6 @@
 ---
 id: SEED-005
-status: open
+status: closed (shipped Phase 178; ui/page.ex mounts the banner)
 planted: 2026-06-18
 planted_during: Phase 177 UAT shift-left automation
 scope: Small

@@ -123,6 +123,19 @@ operator incident, a new security advisory or high-severity finding, or a
 sustained measurable CI or correctness regression. Keep routine dependency
 and patch work on the release train.
 
+Rolling quality posture (2026-10-24, after 1.1.0): the maintainer parked
+UI feedback for lack of attention and asked for a rolling roadmap of
+foundation work. Every quality dimension matters: toil, correctness,
+security, a performance baseline and ratchet, and code and test quality.
+Use mutation and property testing to find weak specs and cut tautological
+tests. Keep specs strong on happy paths, error cases, and boundaries. Keep
+the JTBD/persona lenses (section 4) refined. The maintainer will dogfood
+Threadline, so "no bitrot" is a standing outcome: main green, PRs triaged,
+clean up after ourselves, and remember this intent. Agents hold a standing
+merge grant for their own green, reviewed quality PRs, and release when
+releasable. The live ranking is in MILESTONE-ARC.md. Re-rank at each close
+from fresh evidence; the roadmap is rolling, not a contract.
+
 Post-v1.46 closeout (2026-10-11): maintainer feedback explicitly selected one
 operator-refinement milestone after 1.0.0. v1.46 completed six phases, 27 plans,
 49 tasks, and 26/26 requirements. The milestone audit records `tech_debt`, with
