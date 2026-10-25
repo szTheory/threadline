@@ -9,11 +9,11 @@ findings:
     title: "A renamed Hex dependency (`hex:` option) is mis-tiered as non-blocking (latent fail-open)"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The live-tree closure contract re-implements the parser, so the bash parser that decides blocking is never run against real `deps.tree` output offline"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The D-29 doc contract \"class set CONTRIBUTING names equals RANK_NAMES\" only checks a subset"
   - id: IN-01
     severity: info
@@ -43,9 +43,9 @@ findings:
     severity: info
     disposition: open
     title: "Report truncation can split a multibyte character or an open code fence"
-open: 9
+open: 7
 total: 10
-recorded: 2026-10-25T21:05:15.853Z
+recorded: 2026-10-25T21:05:35.705Z
 ---
 
 # Phase 245: Code Review Disposition
@@ -53,8 +53,8 @@ recorded: 2026-10-25T21:05:15.853Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 245-REVIEW-FIX.md |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-02 | warning | fixed | 245-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 245-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
