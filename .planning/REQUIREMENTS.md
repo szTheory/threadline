@@ -18,7 +18,7 @@
 - [ ] **SUP-01**: Dependabot keeps SHA-pinned GitHub Actions current through one grouped monthly version-update PR with a 7-day cooldown. Hex security coverage comes from the tiered `hex.audit` gate (SUP-03) and the deps-health issue (SUP-04), because Dependabot does not serve Hex. A contract test pins the config.
 - [ ] **SUP-02**: Every third-party `uses:` reference is pinned to a full commit SHA with a version comment, setup-node reads its version from `.tool-versions`, and a contract test rejects tag-only refs.
 - [ ] **SUP-03**: The dependency-audit gate is tiered. A new advisory in a shipped runtime dependency fails required CI. A new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green. A test pins both behaviours.
-- [ ] **SUP-04**: The scheduled deps-health report opens or updates an issue only for advisories, retirements or an unknown audit state and closes it when clean; `bin/deps-health-report` classification is covered by a test.
+- [x] **SUP-04**: The scheduled deps-health report opens or updates an issue only for advisories, retirements or an unknown audit state and closes it when clean; `bin/deps-health-report` classification is covered by a test.
 
 ### CI critical path and suite lanes
 
@@ -59,7 +59,7 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 | SUP-01 | Phase 245 | Pending |
 | SUP-02 | Phase 245 | Pending |
 | SUP-03 | Phase 245 | Pending |
-| SUP-04 | Phase 245 | Pending |
+| SUP-04 | Phase 245 | Complete |
 | DEBT-01 | Phase 246 | Pending |
 | DEBT-02 | Phase 246 | Pending |
 | CI-01 | Phase 247 | Pending |
