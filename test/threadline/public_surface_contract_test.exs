@@ -659,7 +659,6 @@ defmodule Threadline.PublicSurfaceContractTest do
       Enum.filter(
         aliases,
         &(&1 in [
-            "verify.capture",
             "verify.operator_component_contracts"
           ])
       )

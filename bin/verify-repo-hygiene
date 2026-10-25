@@ -10,7 +10,7 @@
 #
 # Scan scope: `git grep -I` over tracked files only (via the current git
 # work tree's index) — never `deps/`, `_build/`, the gitignored `tmp/`, or
-# any untracked scratch file (including the untracked `.planning/` critic
+# any untracked scratch file (including the untracked `.planning/` cache
 # scratch). Binary files (a NUL byte) are skipped by `-I`. Records come
 # NUL-delimited from `git grep -z` (translated to SOH, since a bash variable
 # cannot hold NUL), so a colon or other punctuation in a tracked path is

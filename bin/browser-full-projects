@@ -18,8 +18,9 @@
 #                 `|` / `>` block scalars), after stripping shell comments. YAML
 #                 comments, `name:` values and every other key never count. PLUS the
 #                 `--project=` flags inside the mix.exs function behind any
-#                 `mix <alias>` a run body calls (today `mix verify.capture` ->
-#                 verify_capture/1). A flag counts only as an argument of a `mix` or
+#                 `mix <alias>` a run body calls (no ci.yml alias carries one
+#                 today; the resolution stays so an alias cannot hide a flag). A
+#                 flag counts only as an argument of a `mix` or
 #                 `npx` command (backslash continuations joined), so `echo` text never
 #                 counts. A flag in a step or job that carries an `if:` is refused
 #                 (exit 1): it may never run on pull_request or push, and counting it
@@ -32,8 +33,8 @@
 #   EXECUTED      BROWSER-FULL plus its transitive DEPS closure: what Browser-full
 #                 actually runs, because Playwright runs a selected project's
 #                 dependencies first. A declared dependencies edge is the only way a
-#                 CI project may also execute in Browser-full (218-08: refute-capture
-#                 needs the tier-a-capture cell directories).
+#                 CI project may also execute in Browser-full (no project declares
+#                 one today).
 #
 # Usage:
 #   bin/browser-full-projects                      one sorted `--project=<name>` line

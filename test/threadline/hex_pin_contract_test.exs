@@ -28,10 +28,10 @@ defmodule Threadline.HexPinContractTest do
   # list of {path, job} or {path, :all}.
   @live_scope :all
 
-  # Pinned setup-beam steps the live scope must contain (ci.yml 11, release.yml
+  # Pinned setup-beam steps the live scope must contain (ci.yml 10, release.yml
   # 3, browser-full, flake-detection, deps-health), so a parse that finds no
   # jobs cannot pass vacuously.
-  @live_pin_count 17
+  @live_pin_count 16
 
   # release.yml's sparse-job pin script, verbatim, as a mutation anchor.
   @release_inline_pin "        run: |\n" <>

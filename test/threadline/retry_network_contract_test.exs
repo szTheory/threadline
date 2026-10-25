@@ -590,9 +590,10 @@ defmodule Threadline.RetryNetworkContractTest do
       refute wrapped == []
     end
 
-    # 15 `run: mix deps.get` steps at b01ffa87: ci.yml 11, release.yml 2,
-    # browser-full.yml 1, flake-detection.yml 1. publish-hex is the inline one.
-    test "exactly 15 workflow fetches retry: 14 through the wrapper, 1 inline (not vacuous)" do
+    # 13 `run: mix deps.get` steps after 246 removed verify-capture: ci.yml 9,
+    # release.yml 2, browser-full.yml 1, flake-detection.yml 1. publish-hex is the
+    # inline one.
+    test "exactly 13 workflow fetches retry: 12 through the wrapper, 1 inline (not vacuous)" do
       steps = workflow_steps(all_workflows())
 
       wrapper_form =
@@ -607,7 +608,7 @@ defmodule Threadline.RetryNetworkContractTest do
             step.run =~ "mix deps.get",
             do: {step.path, step.job}
 
-      assert length(wrapper_form) == 14, inspect(wrapper_form)
+      assert length(wrapper_form) == 12, inspect(wrapper_form)
       assert inline_form == [{".github/workflows/release.yml", "publish-hex"}]
     end
 

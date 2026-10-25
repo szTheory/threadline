@@ -547,7 +547,7 @@ test.describe("Phase 178 active-state, pager + disabled affordance (#8/#9/#5/#7)
   test("timeline pager renders an honest range caption + disable-reflecting control (#9)", async ({
     page,
   }) => {
-    // The pager renders on the live timeline (hide-at-zero is Tier-A-proven; here we
+    // The pager renders on the live timeline (hide-at-zero is proven structurally in ExUnit; here we
     // prove the real-engine render). It must show the honest "Showing N …" caption
     // and any control must reflect its disabled state as a real boolean attribute.
     await page.goto("/audit/timeline");

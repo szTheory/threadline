@@ -592,7 +592,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   # --- Phase 178 (PAGE-02 #5/#7/#8/#9, D-06/D-07): footgun structural guards ---
   #
   # Permanent structural guards for the remaining footgun classes whose structural
-  # half is Tier-A-assertable. These EXTEND the existing z-order/reconnect/pager
+  # half is assertable in ExUnit. These EXTEND the existing z-order/reconnect/pager
   # idioms (D-07, do not reinvent). Each becomes a permanent CI assertion; the ones
   # that already pass today are GREEN-confirming (documented in the SUMMARY), the
   # Tier B computed-style/real-engine halves live in operator-phase-178-uat.spec.ts.

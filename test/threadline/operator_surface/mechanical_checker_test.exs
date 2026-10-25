@@ -489,27 +489,6 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     end
   end
 
-  test "the Tier A capture spec reads the product surface, not the document" do
-    # Source pin, matching this file's existing idiom of locking LOCKED constants
-    # against their source. Scoped to the Tier A spec only: the page/graded/storybook
-    # capture specs legitimately still contain the document-scoped read pending their
-    # own authorization, so a repo-wide assertion here would be wrong.
-    spec =
-      File.read!("examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts")
-
-    assert String.contains?(spec, "main.scrollHeight"),
-           "operator-tier-a-capture.spec.ts must scope scrollCost to the stress-preview element"
-
-    refute String.contains?(spec, "document.documentElement.scrollHeight"),
-           """
-           operator-tier-a-capture.spec.ts reads document.documentElement.scrollHeight again.
-
-           On /audit/__stress that is ~98.5% harness sidebar, so every committed cell's
-           scroll_cost would once more grow with the story catalog and re-red the
-           byte-stability gate on the next unrelated story registration.
-           """
-  end
-
   # ---------------------------------------------------------------------------
   # Fixture builders (synthetic, all-passing baseline; tests mutate one field).
   # ---------------------------------------------------------------------------

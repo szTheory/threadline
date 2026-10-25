@@ -1172,10 +1172,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"leading verb", rename.("verify-credo", "Run Credo"), contributing, ["rule=name-verb"]},
         {"49-character name", rename.("verify-format", String.duplicate("F", 49)), contributing,
          ["rule=name-length"]},
-        {"Tier A in a name", rename.("verify-capture", "Tier A capture evidence"), contributing,
-         ["rule=name-jargon"]},
-        {"lane in a name", rename.("verify-capture", "Capture Lane evidence"), contributing,
-         ["rule=name-jargon"]},
+        {"Tier A in a name", rename.("verify-example-browser", "Tier A capture evidence"),
+         contributing, ["rule=name-jargon"]},
+        {"lane in a name", rename.("verify-example-browser", "Capture Lane evidence"),
+         contributing, ["rule=name-jargon"]},
         {"timeout-minutes above name", timeout_first, contributing, ["rule=name-first-key"]},
         {"roster bullet dropped", ci, dropped_bullet, ["rule=roster"]},
         {"retired name in a CONTRIBUTING sentence", ci, retired_sentence, ["rule=name-retired"]}
@@ -1298,7 +1298,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @time_to_red_order ~w(verify-release-shape verify-repo-hygiene verify-format verify-deps-audit
                         verify-compile-no-optional verify-hex-evaluator verify-pgbouncer-topology
                         verify-credo verify-bump-rehearsal verify-dialyzer verify-test
-                        verify-capture verify-example-browser)
+                        verify-example-browser)
 
   # D-10: pure over ci.yml text. Order is read through the keyword reader and
   # cross-checked against the map reader, so a duplicate key, a merge key or a
@@ -1376,7 +1376,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "verify-bump-rehearsal" => "Next-minor release rehearsal (docs + contracts)",
     "verify-dialyzer" => "Dialyzer (full optional build)",
     "verify-test" => "Build and test",
-    "verify-capture" => "Capture evidence byte-stable",
     "verify-example-browser" => "Example app browser E2E (2 projects)",
     "ci-required" => "CI required"
   }
@@ -1388,7 +1387,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
   ]
 
   # The pre-221 job names that changed (read from 27e4ac61:.github/workflows/ci.yml),
-  # plus the old verify-test lane names GitHub composed from them.
+  # plus the old verify-test lane names GitHub composed from them, plus the names
+  # of jobs removed later (246: verify-capture), so none can silently come back.
   @retired_check_names [
     "Check formatting",
     "Run Credo (strict)",
@@ -1397,6 +1397,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "Hex evaluator smoke (threadline from hex.pm)",
     "Example app browser E2E (Playwright)",
     "Tier A capture lane (byte-stable evidence)",
+    "Capture evidence byte-stable",
     "PgBouncer transaction topology",
     "Release metadata (version / changelog)",
     "Bump rehearsal (next minor)",
@@ -1744,7 +1745,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_doc)
   end
 
-  # SC-3 id pin (D-11): the 14 ci.yml job ids, frozen as a literal. Adding or
+  # SC-3 id pin (D-11): the 13 ci.yml job ids, frozen as a literal. Adding or
   # renaming a job updates this literal on purpose in the same commit. It is not
   # derived from any other attribute, so one edit can never move two pins.
   # Phase 222's escape hatch (D-11) adds its new id here together with
@@ -1752,7 +1753,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @ci_job_ids MapSet.new(~w(
     ci-required
     verify-bump-rehearsal
-    verify-capture
     verify-compile-no-optional
     verify-credo
     verify-deps-audit
@@ -2395,9 +2395,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
        :restore_only, [:root]},
     {@ci_workflow, "verify-example-browser"} =>
       {"builds only the example app before Playwright; the root project is never compiled here",
-       :save, [:example]},
-    {@ci_workflow, "verify-capture"} =>
-      {"builds only the example app before regenerating the Tier A capture", :save, [:example]}
+       :save, [:example]}
   }
 
   # D-12, D-13: every deliberately cache-free job, each with its reason. Each
@@ -2631,8 +2629,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
              end) == %{
                {ci, "verify-test"} => {:save, [:root, :example]},
                {ci, "verify-pgbouncer-topology"} => {:restore_only, [:root]},
-               {ci, "verify-example-browser"} => {:save, [:example]},
-               {ci, "verify-capture"} => {:save, [:example]}
+               {ci, "verify-example-browser"} => {:save, [:example]}
              }
 
       for {key, {reason, _mode, _projects}} <- @build_cache_jobs do
@@ -2864,8 +2861,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
       setup_beam_steps =
         live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
 
-      assert setup_beam_steps - 1 == 11,
-             "expected 11 setup-beam steps (10 file-fed, 1 matrix-fed) under the toolchain " <>
+      assert setup_beam_steps - 1 == 10,
+             "expected 10 setup-beam steps (9 file-fed, 1 matrix-fed) under the toolchain " <>
                "contract, found #{setup_beam_steps - 1}"
 
       assert toolchain_contract_errors(%{path => live, release_path => release}) == []
@@ -4550,7 +4547,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       Regex.match?(~r/^\s*run:\s*mix compile --warnings-as-errors\s*$/m, stripped) ->
         :compile
 
-      Regex.match?(~r/^\s*run:\s*mix verify\.(?:example|example_browser|capture)\b/m, stripped) ->
+      Regex.match?(~r/^\s*run:\s*mix verify\.(?:example|example_browser)\b/m, stripped) ->
         :consumer
 
       true ->
@@ -4558,7 +4555,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  # Consumers (`mix verify.example`, `verify.example_browser`, `verify.capture`)
+  # Consumers (`mix verify.example`, `verify.example_browser`)
   # build the example app, whatever directory they run from.
   defp build_cache_project(_step, :consumer), do: :example
 
@@ -4898,7 +4895,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     @example_save
   ]
 
-  @capture_consumer "Regenerate Tier A capture"
+  @browser_consumer "Run example Playwright suite"
 
   # WR-01 (219 review): the escaped mutations, as literal steps. Each would pass
   # every per-step rule on its own; only the count and every-restore rules
@@ -5024,8 +5021,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
       {"CONTRIBUTING without `gh cache delete`", ctx.workflows,
        String.replace(ctx.contributing, "gh cache delete", "gh cache remove"),
        "rule=doc-contributing"},
-      {"CONTRIBUTING cached-job table without its verify-capture row", ctx.workflows,
-       remove_build_cache_section_row(ctx.contributing, "verify-capture"),
+      {"CONTRIBUTING cached-job table without its verify-example-browser row", ctx.workflows,
+       remove_build_cache_section_row(ctx.contributing, "verify-example-browser"),
        "rule=doc-contributing"}
     ]
   end
@@ -5092,9 +5089,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
       ),
       ci_control(
         ctx,
-        "second example save after the capture",
+        "second example save after the browser suite",
         ~s("Save example build cache again" rule=cache-count),
-        &insert_step_after(&1, "verify-capture", @capture_consumer, @late_example_save_step)
+        &insert_step_after(
+          &1,
+          "verify-example-browser",
+          @browser_consumer,
+          @late_example_save_step
+        )
       ),
       ci_control(
         ctx,
@@ -5371,9 +5373,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
     [
       ci_control(
         ctx,
-        "capture example block removed",
+        "browser example block removed",
         "rule=allowlist-unused",
-        &remove_steps(&1, "verify-capture", @example_block_steps)
+        &remove_steps(&1, "verify-example-browser", @example_block_steps)
       ),
       ci_control(
         ctx,
@@ -5389,9 +5391,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
       ),
       ci_control(
         ctx,
-        "root restore cloned into verify-capture",
+        "root restore cloned into verify-example-browser",
         "rule=allowlist-project",
-        &insert_step_in_job(&1, "verify-capture", @root_build_restore_step)
+        &insert_step_in_job(&1, "verify-example-browser", @root_build_restore_step)
       ),
       ci_control(
         ctx,
@@ -5434,12 +5436,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
       {"ci.yml verify-test: job-level MIX_ENV removed",
        update.(@ci_workflow, &remove_env_line_in_job(&1, "verify-test", "MIX_ENV")),
        "rule=job-mix-env"},
-      {"ci.yml verify-capture: ERL_COMPILER_OPTIONS in the job env",
+      {"ci.yml verify-example-browser: ERL_COMPILER_OPTIONS in the job env",
        update.(
          @ci_workflow,
          &insert_env_line_in_job(
            &1,
-           "verify-capture",
+           "verify-example-browser",
            "      ERL_COMPILER_OPTIONS: +deterministic"
          )
        ), "rule=compiler-env"},
@@ -5478,8 +5480,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
           Enum.map_join(fixture_stub_jobs(@ci_workflow), "\n", &fixture_stub_job/1),
           fixture_verify_test(),
           fixture_pgbouncer(),
-          fixture_example_consumer_job(:browser),
-          fixture_example_consumer_job(:capture)
+          fixture_example_consumer_job(:browser)
         ],
         "\n"
       )
@@ -5554,7 +5555,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
      | `verify-test` | root (every lane) and example (current lane) | yes |
      | `verify-pgbouncer-topology` | root, restore-only | no |
      | `verify-example-browser` | example | yes |
-     | `verify-capture` | example | yes |
 
      | Job or workflow | Why it has no build cache |
      | --- | --- |
@@ -5810,8 +5810,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       """
   end
 
-  # verify-example-browser and verify-capture share their live skeleton up to
-  # the example block, including the deferred root `Cache deps` and
+  # verify-example-browser's live skeleton up to the example block, including the deferred root `Cache deps` and
   # `Install root dependencies` steps (out of CACHE-01 scope, kept as live).
   defp fixture_example_consumer_job(kind) do
     {header, consumer} = fixture_consumer_parts(kind)
@@ -5885,34 +5884,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
                path: |
                  examples/threadline_phoenix/e2e/test-results
                  /tmp/threadline_phoenix_e2e.log
-     """}
-  end
-
-  defp fixture_consumer_parts(:capture) do
-    {~S"""
-       verify-capture:
-         name: Capture evidence byte-stable
-         runs-on: ubuntu-24.04
-         timeout-minutes: 35
-         env:
-           DB_HOST: localhost
-           DB_PORT: 5432
-           MIX_ENV: test
-         services:
-           postgres:
-             image: postgres:16
-     """,
-     ~S"""
-           - name: Regenerate Tier A capture
-             run: mix verify.capture
-
-           - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
-             run: |
-               find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.json' | wc -l
-
-           - name: Assert byte-stable regeneration (no drift from committed evidence)
-             run: |
-               git status --porcelain test/fixtures/operator_surface/scorecards/
      """}
   end
 end

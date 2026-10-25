@@ -21,12 +21,8 @@ const repositoryRoot = resolve(moduleDirectory, "../../../..");
 export interface OperatorSurfacePaths {
   readonly repositoryRoot: string;
   readonly e2eRoot: string;
-  readonly tierAArtifactsDir: string;
   readonly fixtureRoot: string;
   readonly ledgerPath: string;
-  readonly scorecardsDir: string;
-  readonly goldenDir: string;
-  readonly refuteDir: string;
   readonly generatedRoot: string;
   readonly routeScorecardsDir: string;
 }
@@ -80,22 +76,15 @@ export function resolveOperatorSurfacePaths(
   );
 
   const ledgerPath = resolve(fixtureRoot, "design-system-ledger.json");
-  const scorecardsDir = resolve(fixtureRoot, "scorecards");
-  const goldenDir = resolve(fixtureRoot, "golden");
-  const refuteDir = resolve(fixtureRoot, "refute");
   const routeScorecardsDir = resolve(generatedRoot, "route-scorecards");
-  const immutableRoots = [ledgerPath, scorecardsDir, goldenDir, refuteDir];
+  const immutableRoots = [ledgerPath];
   assertSeparatedOutputRoot(generatedRoot, immutableRoots);
 
   return Object.freeze({
     repositoryRoot,
     e2eRoot: resolve(repositoryRoot, "examples/threadline_phoenix/e2e"),
-    tierAArtifactsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/artifacts/tier-a"),
     fixtureRoot,
     ledgerPath,
-    scorecardsDir,
-    goldenDir,
-    refuteDir,
     generatedRoot,
     routeScorecardsDir,
   });
@@ -313,8 +302,5 @@ export function reviewDiffCommand(targetPath: string): string {
 }
 export const IMMUTABLE_EVIDENCE_ROOTS = Object.freeze([
   DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath,
-  DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir,
-  DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir,
-  DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir,
 ]);
 export const GENERATED_EVIDENCE_ROOT = DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot;
