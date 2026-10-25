@@ -181,6 +181,79 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     assert bootstrap_guard_errors(bootstrap) == []
   end
 
+  # --- Phase 244 / REL-01: the release branch dates its own CHANGELOG --------
+  #
+  # The 1.1.0 release PR was born red on bin/verify-release-shape (run
+  # 40033918741) because nothing renamed `## Unreleased — highlights` to a dated
+  # heading until a separate dating PR. The sync job now runs
+  # bin/date-release-changelog after the pin writer and stages CHANGELOG.md.
+
+  test "the sync job dates the CHANGELOG before it commits (REL-01)" do
+    sync = job_block!(release_workflow(), "sync-release-pr-pins")
+
+    assert changelog_dating_errors(sync) == [],
+           "sync-release-pr-pins must run bin/date-release-changelog after " <>
+             "`mix release.pins --check`, with no token, and stage CHANGELOG.md, or the " <>
+             "release PR is born red on bin/verify-release-shape (REL-01): " <>
+             inspect(changelog_dating_errors(sync))
+  end
+
+  describe "mutation controls (REL-01 changelog dating)" do
+    setup do
+      %{live: release_workflow()}
+    end
+
+    @date_step "      - name: Date the CHANGELOG from the Unreleased block\n" <>
+                 "        run: bin/date-release-changelog\n\n"
+
+    test "not vacuous: the live sync job carries exactly one date step", %{live: live} do
+      sync = job_block!(live, "sync-release-pr-pins")
+
+      assert length(String.split(sync, @date_step)) == 2,
+             "date step anchor not found or not unique"
+
+      assert changelog_dating_errors(sync) == []
+    end
+
+    for {label, from, to, rule} <- [
+          {"drop the date step", @date_step, "", "date-step"},
+          {"move the date step ahead of the pin writer",
+           @date_step <> "      # The PAT (when configured)", "      # The PAT (when configured)",
+           "date-order"},
+          {"stop staging CHANGELOG.md", "git add -- README.md guides/ CHANGELOG.md\n",
+           "git add -- README.md guides/\n", "date-staged"},
+          {"hand the date step a token", "        run: bin/date-release-changelog\n",
+           "        env:\n          PUSH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}\n" <>
+             "        run: bin/date-release-changelog\n", "date-no-token"}
+        ] do
+      test "#{label} fires rule=#{rule}", %{live: live} do
+        from = unquote(from)
+        to = unquote(to)
+
+        assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+
+        mutated = String.replace(live, from, to, global: false)
+
+        mutated =
+          if unquote(rule) == "date-order" do
+            String.replace(
+              mutated,
+              "      - name: Rewrite install pins from the bumped @version\n",
+              @date_step <> "      - name: Rewrite install pins from the bumped @version\n",
+              global: false
+            )
+          else
+            mutated
+          end
+
+        refute mutated == live, "the control did not change the input"
+
+        errors = mutated |> job_block!("sync-release-pr-pins") |> changelog_dating_errors()
+        assert rule_fired?(errors, unquote(rule)), inspect(errors)
+      end
+    end
+  end
+
   # --- Phase 218 / ECON-03: one CI run per release PR head --------------------
   #
   # With RELEASE_PLEASE_TOKEN configured, release-please's own push already fires
@@ -397,6 +470,49 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
          "the bootstrap decision depend on timing, which ECON-03 forbids."}
     ]
     |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # REL-01 rules over the sync-release-pr-pins job block, as `{ok?, message}`
+  # pairs with the ok ones rejected, in the style of bootstrap_guard_errors/1.
+  defp changelog_dating_errors(sync) do
+    date_steps =
+      sync |> job_steps() |> Enum.filter(&(run_scripts(&1) == "bin/date-release-changelog"))
+
+    date_at = position(sync, "run: bin/date-release-changelog\n")
+    check_at = position(sync, "run: mix release.pins --check\n")
+    add_at = position(sync, "git add --")
+
+    staged =
+      case Regex.run(~r/^\s*git add -- (.*?)\s*$/m, sync) do
+        [_, paths] -> String.split(paths)
+        nil -> []
+      end
+
+    ([
+       {length(date_steps) == 1,
+        "rule=date-step: sync-release-pr-pins must carry exactly one step whose run is " <>
+          "`bin/date-release-changelog` (found #{length(date_steps)})"},
+       {date_at != nil and check_at != nil and add_at != nil and check_at < date_at and
+          date_at < add_at,
+        "rule=date-order: the date step must run after `mix release.pins --check` and " <>
+          "before the push step's `git add --` line"},
+       {Enum.all?(["README.md", "guides/", "CHANGELOG.md"], &(&1 in staged)),
+        "rule=date-staged: the push step's `git add --` line must name README.md, guides/ " <>
+          "and CHANGELOG.md (found #{inspect(staged)})"}
+     ] ++
+       for step <- date_steps do
+         {not (step =~ ~r/^\s+env:/m or step =~ "PUSH_TOKEN" or step =~ "secrets."),
+          "rule=date-no-token: the date step must carry no env: and no token; PUSH_TOKEN is " <>
+            "bound to the push step alone (T-244-02)"}
+       end)
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp position(text, needle) do
+    case :binary.match(text, needle) do
+      {at, _len} -> at
+      :nomatch -> nil
+    end
   end
 
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))
