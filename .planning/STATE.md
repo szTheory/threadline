@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Completed 244-03-PLAN.md
-last_updated: "2026-10-25T14:08:52.011Z"
+stopped_at: Completed 244-04-PLAN.md
+last_updated: "2026-10-25T14:22:38.542Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-03 complete (bin/retry-network; all 15 workflow deps.get steps retry, publish-hex inline)
-state_head: 77a938cb14432822f9bb7d54d26463a39d16e006
+last_activity_desc: Plan 244-04 complete (nested fetches retry: hex-evaluator resolve, 5 mix.exs aliases, 3 bin scripts; REL-03 complete)
+state_head: 3d4ec25c351c2b1350b2c299ce365f4b810e5772
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 4
+  percent: 57
 milestone_name: Release on autopilot
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 244 (Release flow) — EXECUTING
-Plan: 3 of 7 complete (244-04 next)
+Plan: 4 of 7 complete (244-05 next)
 Status: Executing Phase 244
-Last activity: 2026-10-25 — Plan 244-03 complete (bin/retry-network + retry contract; 14 workflow fetches wrapped, publish-hex inline bounded retry)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 3/7 Phase 244 plans complete (later phases TBD)
+Last activity: 2026-10-25 — Plan 244-04 complete (nested fetches retry through bin/retry-network: hex-evaluator resolve + 5 mix.exs alias fetches + 3 bin scripts; lock drift still fails on attempt 1; nested contract; REL-03 complete)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 4/7 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -307,6 +307,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P01 | 25min | 2 tasks | 6 files |
 | Phase 244 P02 | 15min | 2 tasks | 4 files |
 | Phase 244 P03 | ~40 min | 2 tasks | 8 files |
+| Phase 244 P04 | ~50 min | 2 tasks | 7 files |
 
 ## Deferred Items
 
@@ -1108,6 +1109,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-03: bin/retry-network backoff sleeps in the background and waits, so SIGINT/SIGTERM exit 130/143 immediately
 - [Phase 244]: 244-03: publish-hex fetch uses an inline bounded retry (no repo file) because its computed ref can be a pre-phase recovery tag; rule retry-ref-independent pins it
 - [Phase 244]: 244-03: inline_retry_shape/1 is the single inline-retry recogniser for 244-05/244-06
+- [Phase 244]: 244-04: mix.exs nested fetches sit behind an interpolated absolute retry_network() path; a relative bin/retry-network in mix.exs counts as unwrapped
+- [Phase 244]: 244-04: bin/verify-clean-checkout and bin/verify-planning-independent stay unwrapped (reasoned allowlist): they run inside clean-clone proofs invoked from ExUnit, not CI fetch steps
 
 ### Blockers
 
@@ -1128,8 +1131,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T14:08:51.957Z
-**Stopped at:** Completed 244-03-PLAN.md
+**Last session:** 2026-10-25T14:22:38.497Z
+**Stopped at:** Completed 244-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
