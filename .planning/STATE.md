@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Completed 244-06-PLAN.md
-last_updated: "2026-10-25T14:46:06.811Z"
+stopped_at: Completed 244-07-PLAN.md
+last_updated: "2026-10-25T15:06:54.916Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-06 complete (Hex 2.6.0 pinned in all 17 setup-beam steps; hex pin contract covers every workflow; REL-04 complete)
-state_head: 0a435e6147e8bf47bb21857d85dcb8c7ce66f1ac
+last_activity_desc: Plan 244-07 complete (bump rehearsal green; REL-02 evidence pending; REL-04 reproduction falsifies Hex-drift cause; local ci.all blocked at verify.example by shared-Postgres connections)
+state_head: cd1ea86b87d18ca77a3fd742fec9962a5b4ef71b
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 milestone_name: Release on autopilot
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 244 (Release flow) — EXECUTING
-Plan: 6 of 7 complete (244-07 next)
-Status: Executing Phase 244
-Last activity: 2026-10-25 — Plan 244-06 complete (all 17 setup-beam steps set install-hex: false and pin Hex 2.6.0, retried: 14 via bin/retry-network, 3 inline in release.yml sparse jobs; hex_pin_contract_test live scope = every workflow, 17-step count; parity matrix admits install-hex: false; REL-04 complete; A3 min/latest lanes confirmed only by the phase PR CI)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 6/7 Phase 244 plans complete (later phases TBD)
+Plan: 7 of 7 complete (phase verification next)
+Status: Executing Phase 244 (all plans complete, verification pending)
+Last activity: 2026-10-25 — Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 7/7 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -310,6 +310,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P04 | ~50 min | 2 tasks | 7 files |
 | Phase 244 P05 | ~40 min | 2 tasks | 6 files |
 | Phase 244 P06 | 35min | 2 tasks | 7 files |
+| Phase 244 P07 | 16 min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -1115,10 +1116,12 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-04: bin/verify-clean-checkout and bin/verify-planning-independent stay unwrapped (reasoned allowlist): they run inside clean-clone proofs invoked from ExUnit, not CI fetch steps
 - [Phase 244]: 244-05: Hex pinned 2.6.0 in verify-deps-audit (install-hex: false + retried local.hex); MIN_HEX=2.6.0 equals the pin; 244-06 widens hex_pin_contract_test @live_scope to every job
 - [Phase 244]: 244-06: Hex pin contract live scope is every job in every workflow, 17 pinned setup-beam steps; release.yml sparse jobs pin with the inline bounded retry before the ref checkout
+- [Phase 244]: 244-07: REL-04 reproduction shows deps/ cache state, not Hex version, decides whether --check-locked rejects the [] manager lock; Hex pin kept, re-scope routed to verifier
 
 ### Blockers
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
+- 244-07: CI=true mix ci.all blocked at verify.example by shared local Postgres too_many_connections (70 idle conns from another project); browser lane unobserved
 
 ### Quick Tasks Completed
 
@@ -1135,8 +1138,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T14:46:06.782Z
-**Stopped at:** Completed 244-06-PLAN.md
+**Last session:** 2026-10-25T15:06:54.889Z
+**Stopped at:** Completed 244-07-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
