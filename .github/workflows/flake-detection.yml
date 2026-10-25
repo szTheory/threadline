@@ -124,7 +124,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.gate.outputs.decision == 'run'
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile (warnings as errors)
         if: steps.gate.outputs.decision == 'run'

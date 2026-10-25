@@ -200,7 +200,7 @@ jobs:
           version-type: strict
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile without optional deps (warnings-as-errors)
         run: mix verify.compile_no_optional
@@ -302,7 +302,7 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile dependencies on build cache miss
         if: steps.build-restore.outputs.cache-hit != 'true'
@@ -366,7 +366,7 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Run Credo
         run: mix verify.credo
@@ -476,7 +476,7 @@ jobs:
 
       # Dependency work is deliberately outside both GNU time measurements.
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile full optional build
         run: mix compile --warnings-as-errors
@@ -686,7 +686,7 @@ jobs:
           restore-keys: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile dependencies on build cache miss
         if: steps.build-restore.outputs.cache-hit != 'true'
@@ -767,7 +767,7 @@ jobs:
       - name: Install example dependencies
         if: matrix.lane == 'current'
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: matrix.lane == 'current' && steps.example-build-restore.outputs.cache-hit != 'true'
@@ -861,7 +861,7 @@ jobs:
           restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists (threadline on search_path)
         env:
@@ -885,7 +885,7 @@ jobs:
 
       - name: Install example dependencies
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: steps.example-build-restore.outputs.cache-hit != 'true'
@@ -1020,7 +1020,7 @@ jobs:
           restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists
         env:
@@ -1044,7 +1044,7 @@ jobs:
 
       - name: Install example dependencies
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: steps.example-build-restore.outputs.cache-hit != 'true'

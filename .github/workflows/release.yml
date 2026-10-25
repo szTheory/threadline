@@ -172,7 +172,7 @@ jobs:
           persist-credentials: false
 
       - name: Fetch dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Rewrite install pins from the bumped @version
         run: mix release.pins
@@ -502,7 +502,21 @@ jobs:
           persist-credentials: false
 
       - name: Install dependencies
-        run: mix deps.get
+        run: |
+          # REL-03: a bounded retry through a transient hex.pm or network blip.
+          # Inline, not the repo's retry wrapper: this job checks out a computed
+          # ref, and a workflow_dispatch recovery can point it at a tag cut
+          # before that wrapper existed. It references no repo file.
+          for attempt in 1 2 3; do
+            if mix deps.get <<<'n'; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "Install dependencies: giving up after 3 attempts" >&2
+          exit 1
 
       - name: Confirm tag matches mix.exs @version
         run: |
