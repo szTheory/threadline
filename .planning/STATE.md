@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Phase 244 gap plans 08-10 created and checker-verified; execute gaps next
-last_updated: "2026-10-25T15:59:11.850Z"
+stopped_at: Completed 244-08-PLAN.md
+last_updated: "2026-10-25T16:07:10.553Z"
 last_activity: 2026-10-25
-last_activity_desc: Gap plans 244-08 (REL-04 lock hygiene + cause rewrite), 244-09 (CR-01 lazy retry-network + WR-01/03/04), 244-10 (gate + dispositions) planned; checker passed
-state_head: 98167f16be12be3e4f6b22e1c686c6b2acf7fd75
+last_activity_desc: Plan 244-08 complete (REL-04 bin/verify-lock-hygiene wired into verify-deps-audit; CONTRIBUTING cause rewritten); 244-09 next
+state_head: 2e4ee11ab9ac677257069de2b5ab6d71a1cb9df1
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 milestone_name: Release on autopilot
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 244 (Release flow) — READY TO EXECUTE
-Plan: 7 of 10 complete (gap plans 08-10 ready)
+Plan: 8 of 10 complete (gap plans 09-10 ready)
 Status: Phase 244 gap closure planned — next /gsd-execute-phase 244 --gaps-only
-Last activity: 2026-10-25 — Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 7/7 Phase 244 plans complete (later phases TBD)
+Last activity: 2026-10-25 — Plan 244-08 complete (bin/verify-lock-hygiene rejects an empty :hex build-manager list without fetching, run per dir by bin/verify-deps-audit; a3301bed mutation control + live-tree tests; CONTRIBUTING records the cold/warm deps/ mechanism, Hex pin = determinism; mix verify.deps_audit audit clean). Earlier: Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 8/10 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -311,6 +311,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P05 | ~40 min | 2 tasks | 6 files |
 | Phase 244 P06 | 35min | 2 tasks | 7 files |
 | Phase 244 P07 | 16 min | 2 tasks | 2 files |
+| Phase 244 P08 | 25 min | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1117,6 +1118,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-05: Hex pinned 2.6.0 in verify-deps-audit (install-hex: false + retried local.hex); MIN_HEX=2.6.0 equals the pin; 244-06 widens hex_pin_contract_test @live_scope to every job
 - [Phase 244]: 244-06: Hex pin contract live scope is every job in every workflow, 17 pinned setup-beam steps; release.yml sparse jobs pin with the inline bounded retry before the ref checkout
 - [Phase 244]: 244-07: REL-04 reproduction shows deps/ cache state, not Hex version, decides whether --check-locked rejects the [] manager lock; Hex pin kept, re-scope routed to verifier
+- [Phase 244]: 244-08: REL-04 prevention is a static lock check (bin/verify-lock-hygiene) run by bin/verify-deps-audit; the Hex 2.6.0 pin stays as toolchain determinism
 
 ### Blockers
 
@@ -1137,8 +1139,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T15:06:54.889Z
-**Stopped at:** Completed 244-07-PLAN.md
+**Last session:** 2026-10-25T16:07:10.521Z
+**Stopped at:** Completed 244-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
