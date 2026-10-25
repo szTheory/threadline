@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# REL-03: retry a network dependency fetch through a transient hex.pm or
+# network blip. Never a test.
+#
+# Usage: bin/retry-network [--attempts N] [--] COMMAND [ARGS...]
+#   --attempts N  total attempts, 1..10 (default 3)
+#
+# Allowlist (checked before anything runs): COMMAND's basename is `mix` and
+# its first argument is `deps.get` or `local.hex`. Anything else exits 2
+# without running. A retry around a test hides a flaky test, so test steps are
+# never retried (REQUIREMENTS.md Out of Scope); the workflow contract
+# test/threadline/retry_network_contract_test.exs pins the same rule on every
+# CI step.
+#
+# Backoff: the delay before attempt k+1 is BASE * 3^(k-1) seconds plus a
+# jitter of RANDOM % (BASE + 1) seconds, so 5s then 15s (plus jitter) at the
+# default BASE of 5. RETRY_NETWORK_BASE_DELAY overrides BASE (0 in tests).
+#
+# Deterministic failures are not retried: exit status 126, 127, 130 or 143,
+# or output containing `mix.lock is out of date`, `Unchecked dependencies` or
+# `Dependency resolution failed`. Each stops after that attempt with its
+# status. SIGINT/SIGTERM exit 130/143 at once, with no further attempt.
+#
+# Each attempt reads `n` on stdin (it answers any interactive Mix prompt) from
+# a here-string, never `printf 'n\n' | mix ...`: under pipefail that pipe also
+# counts printf, which fails whenever mix exits before reading stdin. The
+# command's stderr is merged into stdout and streamed through a temp log,
+# which is removed on every exit path.
+#
+# Exit status: the command's status (0 on success), or 2 on a usage error or
+# a refused command.
+set -euo pipefail
+
+PROG="retry-network"
+
+usage_error() {
+  printf '%s: %s\n' "$PROG" "$*" >&2
+  printf 'usage: bin/retry-network [--attempts N] [--] mix deps.get|local.hex [ARGS...]\n' >&2
+  exit 2
+}
+
+attempts=3
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --attempts)
+      [ "$#" -ge 2 ] || usage_error "--attempts needs a value"
+      attempts="$2"
+      shift 2
+      ;;
+    --attempts=*)
+      attempts="${1#--attempts=}"
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      usage_error "unknown option: $1"
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if ! [[ "$attempts" =~ ^[0-9]+$ ]] || [ "$((10#$attempts))" -lt 1 ] || [ "$((10#$attempts))" -gt 10 ]; then
+  usage_error "--attempts must be an integer from 1 to 10, got '$attempts'"
+fi
+attempts=$((10#$attempts))
+
+base="${RETRY_NETWORK_BASE_DELAY:-5}"
+if ! [[ "$base" =~ ^[0-9]+$ ]]; then
+  usage_error "RETRY_NETWORK_BASE_DELAY must be a non-negative integer, got '$base'"
+fi
+base=$((10#$base))
+
+if [ "$#" -lt 2 ] || [ "$(basename -- "$1")" != "mix" ] ||
+  { [ "$2" != "deps.get" ] && [ "$2" != "local.hex" ]; }; then
+  usage_error "refusing '$*': only the network fetches \`mix deps.get\` and \`mix local.hex\` may be retried, and test steps never are (REL-03)"
+fi
+
+log=""
+sleep_pid=""
+
+cleanup() {
+  if [ -n "$sleep_pid" ]; then
+    kill "$sleep_pid" 2>/dev/null || true
+  fi
+  if [ -n "$log" ]; then
+    rm -f "$log"
+  fi
+}
+
+trap cleanup EXIT
+trap 'cleanup; trap - EXIT; exit 130' INT
+trap 'cleanup; trap - EXIT; exit 143' TERM
+
+attempt=1
+while :; do
+  log="$(mktemp "${TMPDIR:-/tmp}/retry-network.XXXXXX")"
+
+  set +e
+  "$@" <<<'n' 2>&1 | tee "$log"
+  status="${PIPESTATUS[0]}"
+  set -e
+
+  if [ "$status" -eq 0 ]; then
+    exit 0
+  fi
+
+  reason=""
+  case "$status" in
+    126 | 127 | 130 | 143) reason="exit $status is not transient" ;;
+  esac
+
+  if [ -z "$reason" ] && grep -qF \
+    -e 'mix.lock is out of date' \
+    -e 'Unchecked dependencies' \
+    -e 'Dependency resolution failed' "$log"; then
+    reason="the output names a lock or resolution defect, which a retry cannot fix"
+  fi
+
+  rm -f "$log"
+  log=""
+
+  if [ -n "$reason" ]; then
+    printf '%s: not retrying: %s; giving up after %d attempt(s)\n' "$PROG" "$reason" "$attempt" >&2
+    exit "$status"
+  fi
+
+  if [ "$attempt" -ge "$attempts" ]; then
+    printf '%s: giving up after %d attempt(s)\n' "$PROG" "$attempt" >&2
+    exit "$status"
+  fi
+
+  delay=$((base * 3 ** (attempt - 1)))
+  if [ "$base" -gt 0 ]; then
+    delay=$((delay + RANDOM % (base + 1)))
+  fi
+
+  printf '%s: attempt %d/%d failed (exit %d); retrying in %ds\n' \
+    "$PROG" "$attempt" "$attempts" "$status" "$delay" >&2
+
+  # Backgrounded and waited on, so a SIGINT/SIGTERM trap fires at once
+  # instead of after the whole delay.
+  sleep "$delay" &
+  sleep_pid=$!
+  wait "$sleep_pid"
+  sleep_pid=""
+
+  attempt=$((attempt + 1))
+done

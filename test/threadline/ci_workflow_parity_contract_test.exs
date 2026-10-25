@@ -2550,6 +2550,41 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "a CONTRIBUTING without the section must fail the doc rules"
     end
 
+    test "a deps.get wrapped in bin/retry-network still holds its D-07 order slot (REL-03)" do
+      fixture = build_cache_fixture()
+
+      wrapped =
+        Map.new(fixture, fn {path, yaml} ->
+          {path,
+           yaml
+           |> String.replace(
+             ~r/(working-directory: examples\/threadline_phoenix\n\s+run: )mix deps\.get\n/,
+             "\\1../../bin/retry-network mix deps.get\n"
+           )
+           |> String.replace("run: mix deps.get\n", "run: bin/retry-network mix deps.get\n")}
+        end)
+
+      refute wrapped == fixture, "the wrapped-form fixture did not change the input"
+      assert Enum.any?(Map.values(wrapped), &(&1 =~ "run: ../../bin/retry-network mix deps.get"))
+      assert Enum.any?(Map.values(wrapped), &(&1 =~ "run: bin/retry-network mix deps.get"))
+
+      errors = build_cache_errors(wrapped, build_cache_fixture_contributing())
+
+      assert errors == [],
+             "the wrapped deps.get must classify as :deps_get, got:\n" <> Enum.join(errors, "\n")
+
+      for form <- ["bin/retry-network mix deps.get", "../../bin/retry-network mix deps.get"] do
+        assert build_cache_step_class("      - name: Fetch\n        run: #{form}\n") == :deps_get
+      end
+    end
+
+    test "a wrapped compile classifies as neither :compile nor :deps_get" do
+      step =
+        "      - name: Compile\n        run: bin/retry-network mix compile --warnings-as-errors\n"
+
+      refute build_cache_step_class(step) in [:compile, :deps_get]
+    end
+
     test "the synthetic fixture satisfies every build cache rule" do
       errors = build_cache_errors(build_cache_fixture(), build_cache_fixture_contributing())
 
@@ -4486,7 +4521,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp run_step_class(stripped) do
     cond do
-      Regex.match?(~r/^\s*run:\s*mix deps\.get\s*$/m, stripped) ->
+      # A fetch wrapped in bin/retry-network (REL-03) is still the D-07 deps.get.
+      Regex.match?(
+        ~r/^\s*run:\s*(?:(?:\.\.\/)*bin\/retry-network\s+)?mix deps\.get\s*$/m,
+        stripped
+      ) ->
         :deps_get
 
       Regex.match?(~r/^\s*run:\s*mix deps\.compile\b/m, stripped) ->
