@@ -223,10 +223,7 @@ defmodule Threadline.MixProject do
       # examples/threadline_phoenix (test/threadline/operator_surface/stress_router_test.exs)
       # and cannot boot that router without them. Everything else the suite needs —
       # creating and migrating the test database — test/test_helper.exs already does.
-      "test.setup": [
-        "cmd --cd examples/threadline_phoenix #{retry_network()} mix deps.get",
-        "test"
-      ],
+      "test.setup": [&test_setup_fetch/1, "test"],
       # Restore a recreate-by-default posture. Threadline's effective
       # default is --keepdb with NO staleness check, which is exactly how a database
       # predating the storage-schema migration produced ~81 misleading failures. Only the
@@ -270,29 +267,35 @@ defmodule Threadline.MixProject do
     ]
   end
 
-  # REL-03: the absolute path of bin/retry-network, for the nested `mix deps.get`
-  # calls below. Absolute because each alias `cd`s before fetching; refused if it
-  # holds whitespace or a quote, since it is interpolated into `bash -lc '...'`
-  # scripts. test/threadline/retry_network_contract_test.exs pins every nested
-  # fetch behind it and every test tail outside it.
-  defp retry_network do
-    path = Path.join(__DIR__, "bin/retry-network")
+  # REL-03: nested `mix deps.get` calls run through bin/retry-network, reached via
+  # the RETRY_NETWORK environment variable and expanded quoted by the child shell
+  # (`"$RETRY_NETWORK" mix deps.get`). Lazy and env-passed on purpose (CR-01):
+  # mix.exs ships in the Hex package and Mix evaluates `project/0` for every
+  # adopter, so nothing evaluated at project load may compute or validate a path
+  # that a directory name with a space or quote could break. The path is resolved
+  # only here, inside the task functions that fetch, and never spliced into shell
+  # text. test/threadline/retry_network_contract_test.exs pins every nested fetch
+  # behind it, every test tail outside it, and the load-time purity of aliases/0.
+  defp retry_network_env(env \\ []) do
+    [{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry-network")} | env]
+  end
 
-    if String.match?(path, ~r/[\s'"`\\]/) do
-      Mix.raise(
-        "the checkout path #{inspect(path)} contains whitespace or a quote; " <>
-          "bin/retry-network cannot be interpolated into a shell command"
-      )
+  # The example app's deps fetch for `test.setup` (see the alias for why).
+  defp test_setup_fetch(_args) do
+    cmd =
+      "bash -c 'set -euo pipefail && cd examples/threadline_phoenix && \"$RETRY_NETWORK\" mix deps.get'"
+
+    case Mix.shell().cmd(cmd, env: retry_network_env()) do
+      0 -> :ok
+      status -> Mix.raise("test.setup fetch failed (#{status})")
     end
-
-    path
   end
 
   defp verify_bench(_args) do
     cmd =
-      "bash -lc 'set -euo pipefail && cd bench && #{retry_network()} mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs && MIX_ENV=test mix run pk_capture_bench.exs'"
+      "bash -lc 'set -euo pipefail && cd bench && \"$RETRY_NETWORK\" mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs && MIX_ENV=test mix run pk_capture_bench.exs'"
 
-    case Mix.shell().cmd(cmd) do
+    case Mix.shell().cmd(cmd, env: retry_network_env()) do
       0 -> :ok
       status -> Mix.raise("verify.bench failed (#{status})")
     end
@@ -303,9 +306,9 @@ defmodule Threadline.MixProject do
     # `MIX_ENV=test mix ci.all` — the point is proving bare `mix compile` works via
     # bench/mix.exs's own `preferred_envs`, not whatever the parent shell exports.
     cmd =
-      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && #{retry_network()} mix deps.get && mix compile --warnings-as-errors'"
+      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && \"$RETRY_NETWORK\" mix deps.get && mix compile --warnings-as-errors'"
 
-    case Mix.shell().cmd(cmd) do
+    case Mix.shell().cmd(cmd, env: retry_network_env()) do
       0 -> :ok
       status -> Mix.raise("verify.bench_compile failed (#{status})")
     end
@@ -365,9 +368,9 @@ defmodule Threadline.MixProject do
     # answers `n` to the interactive Hex re-auth prompt a nested `mix deps.get` raises
     # without a cached Hex token.
     cmd =
-      "bash -lc 'set -euo pipefail && cd examples/threadline_phoenix && #{retry_network()} mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r ThreadlinePhoenix.Repo && mix test'"
+      "bash -lc 'set -euo pipefail && cd examples/threadline_phoenix && \"$RETRY_NETWORK\" mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r ThreadlinePhoenix.Repo && mix test'"
 
-    case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
+    case Mix.shell().cmd(cmd, env: retry_network_env([{"MIX_ENV", "test"}])) do
       0 -> :ok
       status -> Mix.raise("verify.example failed (#{status})")
     end
@@ -493,7 +496,7 @@ defmodule Threadline.MixProject do
     # Only the resolve retries a transient hex.pm blip (REL-03); the compile,
     # ecto and test tail never does, so a flaky test cannot hide behind a retry.
     steps =
-      "#{retry_network()} mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
+      "\"$RETRY_NETWORK\" mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
 
     # Rehearsal mode must re-resolve `:threadline` on EVERY run. The rehearsal
     # tarball's version does not change when the tree does, so a lock entry
@@ -515,7 +518,7 @@ defmodule Threadline.MixProject do
           "bin/with-rehearsal-registry bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && #{unlock} && #{steps}'"
       end
 
-    case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
+    case Mix.shell().cmd(cmd, env: retry_network_env([{"MIX_ENV", "test"}])) do
       0 -> :ok
       status -> Mix.raise("verify.hex_evaluator failed (#{status})")
     end

@@ -905,12 +905,15 @@ defmodule Threadline.RetryNetworkContractTest do
   # A step-level retry cannot reach a fetch nested inside a mix alias or a
   # gate script without also retrying what follows it (the hex-evaluator
   # resolve shares its CI step with `mix test`), so the wrapper goes on the
-  # command itself. mix.exs reaches it through `retry_network/0` (an absolute
-  # path, so a `cd` inside the alias cannot break it); a bin/ script through
-  # its own directory.
+  # command itself. mix.exs reaches it through `"$RETRY_NETWORK"`, an absolute
+  # path that `retry_network_env/1` puts in the child shell's environment at
+  # run time (so a `cd` inside the alias cannot break it, and a space or quote
+  # in the checkout path never reaches shell text, CR-01); a bin/ script
+  # through its own directory.
 
   @mix_exs "mix.exs"
-  @mix_wrapper ~S"#{retry_network()}"
+  # As written inside mix.exs's double-quoted command strings.
+  @mix_wrapper ~S|\"$RETRY_NETWORK\"|
 
   # Fetches left unwrapped on purpose, path => reason.
   @unwrapped_fetch_allowlist %{
@@ -942,12 +945,12 @@ defmodule Threadline.RetryNetworkContractTest do
   end
 
   # The wrapper reference a fetch in `path` must sit behind.
-  defp wrapper_prefix(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+$/
+  defp wrapper_prefix(@mix_exs), do: ~r/\\?"\$RETRY_NETWORK\\?"[ \t]+$/
   defp wrapper_prefix(_bin), do: ~r/retry-network"?[ \t]+$/
 
   # The rest of the line is captured in a lookahead, so a second reference on
   # the same line (a wrapped test tail) is still scanned.
-  defp wrapper_reference(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+(?=([^\n]*))/
+  defp wrapper_reference(@mix_exs), do: ~r/\\?"\$RETRY_NETWORK\\?"[ \t]+(?=([^\n]*))/
   defp wrapper_reference(_bin), do: ~r/retry-network"?[ \t]+(?=([^\n]*))/
 
   # Every `mix deps.get` / `"$MIX_BIN" deps.get` invocation: {path, line, wrapped?}.
@@ -1045,7 +1048,7 @@ defmodule Threadline.RetryNetworkContractTest do
         |> Enum.filter(&(&1 =~ "-r HexEvaluator.Repo"))
 
       assert String.trim(chain) ==
-               ~S|"#{retry_network()} mix deps.get && mix compile --warnings-as-errors && | <>
+               ~S|"\"$RETRY_NETWORK\" mix deps.get && mix compile --warnings-as-errors && | <>
                  ~S|mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"|
 
       [_, tail] = String.split(chain, "mix compile", parts: 2)
@@ -1155,6 +1158,69 @@ defmodule Threadline.RetryNetworkContractTest do
 
       errors = nested_fetch_errors(mutated)
       assert rule_fired?(errors, "nested-stale-allowlist"), inspect(errors)
+    end
+  end
+
+  # --- CR-01: mix.exs loads from any checkout path ------------------------------
+  #
+  # mix.exs ships in the Hex package and Mix evaluates `project/0` (and so
+  # `aliases/0`) for every adopter that depends on Threadline. Nothing there may
+  # compute or validate a path that a directory name can break: the wrapper path
+  # is resolved only inside the fetching task functions, at run time.
+
+  @eager_guard_anchor "aliases: aliases(),"
+  @eager_guard ~S|aliases: (if String.match?(__DIR__, ~r/\s/), do: Mix.raise("eager load guard"), else: aliases()),|
+
+  # Copies mix.exs alone into a fresh `name`d dir and runs `mix help compile`
+  # there. The MIX_* path variables are unset so the child cannot fall back to
+  # this checkout. Not `Mix.Project.in_project/4`: the copy defines
+  # `Threadline.MixProject`, which this suite has already loaded.
+  defp load_mix_exs(name, source) do
+    parent =
+      Path.join(System.tmp_dir!(), "threadline_cr01_#{System.unique_integer([:positive])}")
+
+    dir = Path.join(parent, name)
+    File.mkdir_p!(dir)
+    on_exit(fn -> File.rm_rf!(parent) end)
+    File.write!(Path.join(dir, "mix.exs"), source)
+
+    env = for var <- ~w(MIX_EXS MIX_BUILD_PATH MIX_DEPS_PATH MIX_LOCKFILE), do: {var, nil}
+    System.cmd("mix", ["help", "compile"], cd: dir, stderr_to_stdout: true, env: env)
+  end
+
+  defp live_mix_exs, do: File.read!(Path.join(@repo_root, @mix_exs))
+
+  defp eager_guard_mix_exs do
+    text = live_mix_exs()
+    assert length(String.split(text, @eager_guard_anchor)) == 2, "eager-guard anchor not unique"
+    String.replace(text, @eager_guard_anchor, @eager_guard)
+  end
+
+  describe "mix.exs loads from any checkout path (CR-01)" do
+    test "a directory name with a space loads" do
+      {out, status} = load_mix_exs("threadline checkout", live_mix_exs())
+      assert status == 0, out
+    end
+
+    test "a directory name with a single quote loads" do
+      {out, status} = load_mix_exs("threadline's checkout", live_mix_exs())
+      assert status == 0, out
+    end
+
+    test "control: a plain directory name loads" do
+      {out, status} = load_mix_exs("threadline_checkout", live_mix_exs())
+      assert status == 0, out
+    end
+
+    test "mutation control: an eager load-time path guard is caught (not vacuous)" do
+      mutant = eager_guard_mix_exs()
+
+      {out, status} = load_mix_exs("threadline checkout", mutant)
+      assert status != 0, out
+      assert out =~ "eager load guard", out
+
+      {out, status} = load_mix_exs("threadline_checkout", mutant)
+      assert status == 0, out
     end
   end
 end
