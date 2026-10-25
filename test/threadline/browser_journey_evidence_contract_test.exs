@@ -77,7 +77,7 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     [_, test_workflow] = String.split(workflow, "  verify-test:\n", parts: 2)
     [test_job, _] = String.split(test_workflow, "\n  verify-capture:\n", parts: 2)
 
-    assert test_job =~ "uses: actions/setup-node@v5"
+    assert test_job =~ "uses: actions/setup-node@"
     assert test_job =~ "cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json"
     assert test_job =~ "working-directory: examples/threadline_phoenix/e2e\n        run: npm ci"
 
@@ -100,7 +100,7 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
 
     assert browser_job =~ "support/operator-ci-evidence.ts --verify"
     assert browser_job =~ "operator-journey-inventory.json"
-    assert browser_job =~ "actions/upload-artifact@v7"
+    assert browser_job =~ "actions/upload-artifact@"
     assert browser_job =~ "retention-days: 14"
     assert browser_job =~ "operator-ci-receipt-${{ github.run_id }}.json"
     refute browser_job =~ "path: examples/threadline_phoenix/e2e/test-results"

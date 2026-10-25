@@ -1182,8 +1182,8 @@ A new major of `googleapis/release-please-action` bundles a newer `release-pleas
    ```
 
    Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
-4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml` and this section disagree).
-5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@vN'`, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
+5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
 
 Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
 
