@@ -217,52 +217,7 @@ defmodule Threadline.HexPinContractTest do
         err(path, job, "pin-install-hex-off", "setup-beam must declare `install-hex: false`")
       end
 
-    after_beam =
-      Enum.flat_map(beams, fn i ->
-        next = Enum.at(steps, i + 1)
-        rooted? = steps |> Enum.take(i) |> Enum.any?(&root_checkout?/1)
-
-        case next && pin(next) do
-          nil ->
-            [
-              err(
-                path,
-                job,
-                "pin-step",
-                "the step right after setup-beam must pin `mix local.hex V --force`, retried"
-              )
-            ]
-
-          {form, version} ->
-            version_errors =
-              if Regex.match?(@version, version),
-                do: [],
-                else: [err(path, job, "pin-step", "pin version #{inspect(version)} is not X.Y.Z")]
-
-            wrapped_errors =
-              case {rooted?, form} do
-                {true, :inline} ->
-                  [
-                    err(path, job, "pin-wrapped", "bin/ is on disk here: use bin/retry-network")
-                  ]
-
-                {false, :wrapper} ->
-                  [
-                    err(
-                      path,
-                      job,
-                      "pin-wrapped",
-                      "no root checkout precedes setup-beam, so bin/ is absent: use the inline retry"
-                    )
-                  ]
-
-                _ ->
-                  []
-              end
-
-            version_errors ++ wrapped_errors
-        end
-      end)
+    after_beam = Enum.flat_map(beams, &after_beam_errors(path, job, steps, &1))
 
     unretried =
       for step <- hex_steps, pin(step) == nil do
@@ -276,6 +231,50 @@ defmodule Threadline.HexPinContractTest do
 
     install_off ++ after_beam ++ unretried ++ single
   end
+
+  # pin-step / pin-wrapped for the step right after the setup-beam at index i.
+  defp after_beam_errors(path, job, steps, i) do
+    next = Enum.at(steps, i + 1)
+    rooted? = steps |> Enum.take(i) |> Enum.any?(&root_checkout?/1)
+
+    case next && pin(next) do
+      nil ->
+        [
+          err(
+            path,
+            job,
+            "pin-step",
+            "the step right after setup-beam must pin `mix local.hex V --force`, retried"
+          )
+        ]
+
+      {form, version} ->
+        version_errors(path, job, version) ++ wrapped_errors(path, job, rooted?, form)
+    end
+  end
+
+  defp version_errors(path, job, version) do
+    if Regex.match?(@version, version),
+      do: [],
+      else: [err(path, job, "pin-step", "pin version #{inspect(version)} is not X.Y.Z")]
+  end
+
+  # A root checkout before setup-beam puts bin/ on disk: use the wrapper.
+  # Without one (a sparse `.toolchain-pin` checkout) bin/ is absent: inline.
+  defp wrapped_errors(path, job, true, :inline),
+    do: [err(path, job, "pin-wrapped", "bin/ is on disk here: use bin/retry-network")]
+
+  defp wrapped_errors(path, job, false, :wrapper),
+    do: [
+      err(
+        path,
+        job,
+        "pin-wrapped",
+        "no root checkout precedes setup-beam, so bin/ is absent: use the inline retry"
+      )
+    ]
+
+  defp wrapped_errors(_path, _job, _rooted?, _form), do: []
 
   defp rule_fired?(errors, rule), do: Enum.any?(errors, &String.contains?(&1, "rule=#{rule}"))
 
