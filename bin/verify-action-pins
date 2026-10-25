@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+# SUP-02 / D-14(b) (245-04): prove that every SHA-pinned GitHub Action ref is
+# the commit its `# vX.Y.Z` comment names. The offline pin contract
+# (test/threadline/ci_action_pin_contract_test.exs) proves the FORM of every
+# ref; it cannot prove PROVENANCE, because GitHub serves any commit in a fork
+# network under the parent repo's name (an "impostor commit"), and a tag can
+# be moved after the pin was taken. This script asks the GitHub API what each
+# tag resolves to today and compares that commit with the pin.
+#
+# It runs only in the scheduled deps-health lane (bin/deps-health-report calls
+# it), never in pull-request CI, so PR CI stays hermetic. It is table-tested
+# through a fake `gh` (GH_BIN) in test/threadline/verify_action_pins_test.exs,
+# so no test row touches the network.
+#
+# Usage:
+#   bin/verify-action-pins [--root DIR]
+#   DIR defaults to the repository root (the parent of this script's dir).
+#   env: GH_BIN (default gh); real callers need an authenticated gh (GH_TOKEN).
+#
+# Scans raw `uses:` lines (full-line comments skipped) in
+#   DIR/.github/workflows/*.yml|*.yaml and DIR/.github/actions/**/action.yml|yaml
+#
+# Behavior table, per ref:
+#   `./local` ref                                  -> skipped (no remote to prove)
+#   `uses: owner/repo[/path]@<40-hex> # vX.Y.Z`    -> verified (deduplicated by
+#                                                     repo + tag + sha)
+#   anything else (tag-only ref, short SHA, no or  -> NOT-PINNED <file>:<line>
+#   malformed comment, quoted ref, docker ref)        (no API call is made)
+# Per distinct (repo, tag, sha), repo = the first two path segments of the
+# action (actions/cache/restore -> actions/cache):
+#   gh api repos/<repo>/git/ref/tags/<tag>  -> "<type> <sha>"
+#   type == tag (annotated)  -> gh api repos/<repo>/git/tags/<sha> -> commit sha
+#   commit == pin            -> match
+#   commit != pin            -> MISMATCH <repo>@<tag>: pinned <pin> resolves to <commit>
+#   gh error, or an answer that is not a 40-hex sha / known object type
+#                            -> UNVERIFIED <repo>@<tag>: <reason>
+#
+# Fail-closed rule: this is the opposite of bin/ci-sha-gate, which fails OPEN
+# (an API error there means "run the proof"). Here an API error can never be a
+# pass, because a pass is the claim "every pin is its tag". Only an explicit
+# match for every distinct pin exits 0.
+#
+# Repo, SHA and tag values are validated against
+#   ^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$   ^[0-9a-f]{40}$   ^v[0-9]+\.[0-9]+\.[0-9]+$
+# before any URL is built, so no workflow text reaches the request path
+# unchecked.
+#
+# Output (stdout): one line per failure, then a final summary line.
+# Exit: 0 every pin matches its tag (`verify-action-pins: N pin(s) match their
+#       tags`); 1 any MISMATCH, UNVERIFIED or NOT-PINNED; 2 usage error, a
+#       missing root, or zero refs found (a vacuous pass is refused).
+set -uo pipefail
+
+die() {
+  printf 'verify-action-pins: %s\n' "$*" >&2
+  exit 2
+}
+
+GH_BIN=${GH_BIN:-gh}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+root="$SCRIPT_DIR/.."
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --root)
+      [ "$#" -ge 2 ] || die "--root needs a value"
+      root=$2
+      shift 2
+      ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[ -d "$root" ] || die "--root $root is not a directory"
+root="$(cd "$root" && pwd -P)"
+
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/verify-action-pins.XXXXXX")" || die "could not create a temp directory"
+trap 'rm -rf "$WORK_DIR"' EXIT
+
+files="$WORK_DIR/files"
+triples="$WORK_DIR/triples"
+: >"$triples"
+{
+  [ -d "$root/.github/workflows" ] &&
+    find "$root/.github/workflows" -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \)
+  [ -d "$root/.github/actions" ] &&
+    find "$root/.github/actions" -type f \( -name 'action.yml' -o -name 'action.yaml' \)
+} 2>/dev/null | LC_ALL=C sort >"$files"
+
+re_uses='^[[:space:]]*(-[[:space:]]+)?uses:(.*)$'
+re_canonical='^[[:space:]]*([^[:space:]@#]+)@([^[:space:]#]+)[[:space:]]+#[[:space:]]*([^[:space:]]+)[[:space:]]*$'
+re_repo='^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$'
+re_sha='^[0-9a-f]{40}$'
+re_tag='^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+failures=0
+refs=0
+
+while IFS= read -r file; do
+  [ -n "$file" ] || continue
+  rel="${file#"$root"/}"
+  n=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    n=$((n + 1))
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$line" =~ $re_uses ]] || continue
+    rest="${BASH_REMATCH[2]}"
+    refs=$((refs + 1))
+    trimmed="${rest#"${rest%%[![:space:]]*}"}"
+    case "$trimmed" in
+      ./*) continue ;;
+    esac
+    action="" sha="" tag="" repo=""
+    if [[ "$rest" =~ $re_canonical ]]; then
+      action="${BASH_REMATCH[1]}"
+      sha="${BASH_REMATCH[2]}"
+      tag="${BASH_REMATCH[3]}"
+      repo="$(printf '%s' "$action" | cut -d/ -f1-2)"
+    fi
+    if [ -z "$action" ] ||
+      ! [[ "$repo" =~ $re_repo ]] ||
+      ! [[ "$sha" =~ $re_sha ]] ||
+      ! [[ "$tag" =~ $re_tag ]]; then
+      # shellcheck disable=SC2016 # backticks are literal Markdown, not expansion
+      printf 'NOT-PINNED %s:%s: %s is not `owner/repo@<40-hex sha> # vX.Y.Z`\n' "$rel" "$n" "$trimmed"
+      failures=$((failures + 1))
+      continue
+    fi
+    printf '%s %s %s\n' "$repo" "$tag" "$sha" >>"$triples"
+  done <"$file"
+done <"$files"
+
+[ "$refs" -gt 0 ] || die "zero \`uses:\` refs found under $root/.github; refusing to pass vacuously"
+
+LC_ALL=C sort -u "$triples" -o "$triples"
+pins="$(wc -l <"$triples" | tr -d ' ')"
+
+if [ "$pins" -eq 0 ] && [ "$failures" -eq 0 ]; then
+  die "zero remote pinned refs found under $root/.github; refusing to pass vacuously"
+fi
+
+# First line of a gh error, for the UNVERIFIED reason.
+first_line() {
+  local text
+  text="$(sed -n '/[^[:space:]]/{p;q;}' "$1" 2>/dev/null)"
+  [ -n "$text" ] || text="no output"
+  printf '%s' "$text"
+}
+
+while read -r repo tag pin; do
+  [ -n "$repo" ] || continue
+  err="$WORK_DIR/err"
+  if ! answer="$("$GH_BIN" api "repos/$repo/git/ref/tags/$tag" --jq '.object.type+" "+.object.sha' 2>"$err" </dev/null)"; then
+    printf 'UNVERIFIED %s@%s: tag lookup failed (%s)\n' "$repo" "$tag" "$(first_line "$err")"
+    failures=$((failures + 1))
+    continue
+  fi
+  typ="${answer%% *}"
+  obj="${answer#* }"
+  if [ "$typ" = "$answer" ] || ! [[ "$obj" =~ $re_sha ]]; then
+    printf 'UNVERIFIED %s@%s: tag lookup answered %s, not "<type> <40-hex sha>"\n' "$repo" "$tag" "$(printf '%s' "$answer" | head -n1 | cut -c1-80)"
+    failures=$((failures + 1))
+    continue
+  fi
+  case "$typ" in
+    commit) commit="$obj" ;;
+    tag)
+      if ! commit="$("$GH_BIN" api "repos/$repo/git/tags/$obj" --jq .object.sha 2>"$err" </dev/null)"; then
+        printf 'UNVERIFIED %s@%s: annotated tag %s lookup failed (%s)\n' "$repo" "$tag" "$obj" "$(first_line "$err")"
+        failures=$((failures + 1))
+        continue
+      fi
+      if ! [[ "$commit" =~ $re_sha ]]; then
+        printf 'UNVERIFIED %s@%s: annotated tag %s answered %s, not a 40-hex sha\n' "$repo" "$tag" "$obj" "$(printf '%s' "$commit" | head -n1 | cut -c1-80)"
+        failures=$((failures + 1))
+        continue
+      fi
+      ;;
+    *)
+      printf 'UNVERIFIED %s@%s: tag points at a %s object, not a commit or annotated tag\n' "$repo" "$tag" "$typ"
+      failures=$((failures + 1))
+      continue
+      ;;
+  esac
+  if [ "$commit" != "$pin" ]; then
+    printf 'MISMATCH %s@%s: pinned %s resolves to %s\n' "$repo" "$tag" "$pin" "$commit"
+    failures=$((failures + 1))
+  fi
+done <"$triples"
+
+if [ "$failures" -gt 0 ]; then
+  printf 'verify-action-pins: %s failure(s) across %s distinct pin(s); provenance not proven\n' "$failures" "$pins"
+  exit 1
+fi
+
+printf 'verify-action-pins: %s pin(s) match their tags\n' "$pins"
+exit 0
