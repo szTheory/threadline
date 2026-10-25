@@ -133,7 +133,10 @@ defmodule Threadline.RetryNetworkContractTest do
     for marker <- [
           "** (Mix) Your mix.lock is out of date and must be updated without the --check-locked flag",
           "Unchecked dependencies for environment test:",
-          "** (Mix) Dependency resolution failed"
+          # Hex's real text (Hex.RemoteConverger in hex 2.6.0), WR-01.
+          "** (Mix) Hex dependency resolution failed",
+          # The match is case-insensitive.
+          "** (MIX) YOUR MIX.LOCK IS OUT OF DATE AND MUST BE UPDATED"
         ] do
       test "a deterministic failure is not retried: #{marker}" do
         sb = sandbox()
@@ -192,7 +195,9 @@ defmodule Threadline.RetryNetworkContractTest do
           {"--attempts with no value", ["--attempts"], []},
           {"an unknown flag", ["--retries", "2", "mix", "deps.get"], []},
           {"RETRY_NETWORK_BASE_DELAY=abc", ["mix", "deps.get"],
-           [{"RETRY_NETWORK_BASE_DELAY", "abc"}]}
+           [{"RETRY_NETWORK_BASE_DELAY", "abc"}]},
+          {"RETRY_NETWORK_BASE_DELAY=31", ["mix", "deps.get"],
+           [{"RETRY_NETWORK_BASE_DELAY", "31"}]}
         ] do
       test "usage error: #{label} exits 2 with no attempt" do
         sb = sandbox()
@@ -201,6 +206,31 @@ defmodule Threadline.RetryNetworkContractTest do
         assert r.status == 2, r.out
         assert r.calls == 0
       end
+    end
+
+    test "each backoff delay is capped at 60s (WR-03), with no real sleep" do
+      sb = sandbox()
+      sleep_log = sb.tmp |> Path.dirname() |> Path.join("sleep_log")
+      fake_sleep = Path.join(sb.bin, "fake-sleep")
+      File.write!(fake_sleep, "#!/usr/bin/env bash\nprintf '%s\\n' \"$1\" >> \"$SLEEP_LOG\"\n")
+      File.chmod!(fake_sleep, 0o755)
+
+      r =
+        run_wrapper(sb, ["--attempts", "10", "mix", "deps.get"], [
+          {"FAKE_FAIL_TIMES", "99"},
+          {"RETRY_NETWORK_BASE_DELAY", "30"},
+          {"RETRY_NETWORK_SLEEP_BIN", fake_sleep},
+          {"SLEEP_LOG", sleep_log}
+        ])
+
+      assert r.status == 1, r.out
+      assert r.calls == 10
+      delays = sleep_log |> File.read!() |> String.split("\n", trim: true)
+      delays = Enum.map(delays, &String.to_integer/1)
+
+      assert length(delays) == 9, inspect(delays)
+      assert Enum.all?(delays, &(&1 <= 60)), inspect(delays)
+      assert 60 in delays, "the cap was never reached (vacuous): #{inspect(delays)}"
     end
 
     test "SIGTERM during the backoff exits 143 at once, starts no attempt, leaves no temp file" do

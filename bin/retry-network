@@ -14,12 +14,22 @@
 #
 # Backoff: the delay before attempt k+1 is BASE * 3^(k-1) seconds plus a
 # jitter of RANDOM % (BASE + 1) seconds, so 5s then 15s (plus jitter) at the
-# default BASE of 5. RETRY_NETWORK_BASE_DELAY overrides BASE (0 in tests).
+# default BASE of 5, and each delay is capped at 60s. RETRY_NETWORK_BASE_DELAY
+# overrides BASE (0 in tests); it must be an integer from 0 to 30, so no flag
+# or environment can make CI block for long. RETRY_NETWORK_SLEEP_BIN replaces
+# `sleep` for the backoff wait (default `sleep`; a test seam that records the
+# requested delays without waiting them out).
 #
 # Deterministic failures are not retried: exit status 126, 127, 130 or 143,
 # or output containing `mix.lock is out of date`, `Unchecked dependencies` or
-# `Dependency resolution failed`. Each stops after that attempt with its
-# status. SIGINT/SIGTERM exit 130/143 at once, with no further attempt.
+# `dependency resolution failed` (matched case-insensitively). Each stops after
+# that attempt with its status.
+#
+# Signals: a SIGINT/SIGTERM during the backoff wait exits 130/143 at once with
+# no further attempt. While an attempt runs, bash defers the trap until the
+# command exits, so a signal sent only to the wrapper's PID waits for mix; a
+# signal to the process group (a terminal Ctrl-C, a GitHub Actions cancel)
+# reaches mix too, and its 130/143 exit is not retried.
 #
 # Each attempt reads `n` on stdin (it answers any interactive Mix prompt) from
 # a here-string, never `printf 'n\n' | mix ...`: under pipefail that pipe also
@@ -74,6 +84,11 @@ if ! [[ "$base" =~ ^[0-9]+$ ]]; then
   usage_error "RETRY_NETWORK_BASE_DELAY must be a non-negative integer, got '$base'"
 fi
 base=$((10#$base))
+if [ "$base" -gt 30 ]; then
+  usage_error "RETRY_NETWORK_BASE_DELAY must be at most 30, got '$base'"
+fi
+max_delay=60
+sleep_bin="${RETRY_NETWORK_SLEEP_BIN:-sleep}"
 
 if [ "$#" -lt 2 ] || [ "$(basename -- "$1")" != "mix" ] ||
   { [ "$2" != "deps.get" ] && [ "$2" != "local.hex" ]; }; then
@@ -114,10 +129,12 @@ while :; do
     126 | 127 | 130 | 143) reason="exit $status is not transient" ;;
   esac
 
-  if [ -z "$reason" ] && grep -qF \
+  # `dependency resolution failed` is Hex's own text: `** (Mix) Hex dependency
+  # resolution failed` (Hex.RemoteConverger, read from the hex-2.6.0 archive).
+  if [ -z "$reason" ] && grep -qiF \
     -e 'mix.lock is out of date' \
     -e 'Unchecked dependencies' \
-    -e 'Dependency resolution failed' "$log"; then
+    -e 'dependency resolution failed' "$log"; then
     reason="the output names a lock or resolution defect, which a retry cannot fix"
   fi
 
@@ -138,13 +155,16 @@ while :; do
   if [ "$base" -gt 0 ]; then
     delay=$((delay + RANDOM % (base + 1)))
   fi
+  if [ "$delay" -gt "$max_delay" ]; then
+    delay=$max_delay
+  fi
 
   printf '%s: attempt %d/%d failed (exit %d); retrying in %ds\n' \
     "$PROG" "$attempt" "$attempts" "$status" "$delay" >&2
 
   # Backgrounded and waited on, so a SIGINT/SIGTERM trap fires at once
   # instead of after the whole delay.
-  sleep "$delay" &
+  "$sleep_bin" "$delay" &
   sleep_pid=$!
   wait "$sleep_pid"
   sleep_pid=""
