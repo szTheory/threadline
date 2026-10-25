@@ -714,10 +714,12 @@ and `bin/deps-health-report`, and fails if this section drops one.
 
 ### Why Hex is pinned in CI
 
-CI and every contributor run one Hex version, chosen on purpose. This is
-toolchain determinism: a future change in how Hex treats a lock lands as a
-reviewed bump, not as a surprise in CI. The pin did not fix the 1.1.0 red
-run. The lock hygiene check below does.
+CI pins Hex to exactly one version, chosen on purpose. A local run enforces
+only a minimum: it refuses a Hex older than the CI pin, and allows a newer
+one, which is then not what CI runs. The CI pin is toolchain determinism: a
+future change in how Hex treats a lock lands as a reviewed bump, not as a
+surprise in CI. The pin did not fix the 1.1.0 red run. The lock hygiene
+check below does.
 
 What happened: the 1.1.0 landing PR's `Dependency audit (Mix lockfiles)` job
 failed in run 40028641095 with `Your mix.lock is out of date and must be
@@ -750,8 +752,9 @@ The rule:
   the next step installs exactly `mix local.hex 2.6.0 --force`, retried
   (through `bin/retry-network`, or an inline bounded retry where `bin/` is
   not checked out yet).
-- `MIN_HEX` in `bin/verify-deps-audit` equals that pin, so a local run uses
-  the same Hex as CI and refuses an older one.
+- `MIN_HEX` in `bin/verify-deps-audit` equals that pin. A local run refuses
+  a Hex older than `MIN_HEX`. It does not refuse a newer one, so a local Hex
+  ahead of the pin passes the gate while CI still runs exactly the pin.
 - `test/threadline/hex_pin_contract_test.exs` enforces both. A Hex bump
   changes `MIN_HEX` and every workflow pin in one commit.
 
