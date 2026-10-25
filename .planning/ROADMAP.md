@@ -43,7 +43,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
   4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
 
-**Plans**: 7/7 plans executed
+**Plans**: 7/10 plans executed (3 gap-closure plans added)
 
 Plans:
 **Wave 1**
@@ -66,6 +66,13 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [x] 244-07-PLAN.md — phase gate (CI=true ci.all, bump rehearsal, REL-04 reproduction) + REL-02 observed-run evidence and PAT-expiry item (may stay pending)
+
+**Gap closure, wave 1** *(from 244-VERIFICATION.md)*
+- [ ] 244-08-PLAN.md — REL-04 gap: bin/verify-lock-hygiene (empty `:hex` manager list, deps/-independent) in verify-deps-audit; CONTRIBUTING cause rewritten to the deps/-state mechanism
+- [ ] 244-09-PLAN.md — CR-01 gap: mix.exs resolves bin/retry-network lazily via RETRY_NETWORK; spaced-path load test; WR-01/03/04
+
+**Gap closure, wave 2** *(blocked on 244-08 and 244-09)*
+- [ ] 244-10-PLAN.md — CI=true ci.all on ephemeral postgres:16 over both fixes; repo-hygiene evidence; final review dispositions
 
 ### Phase 245: Supply chain
 

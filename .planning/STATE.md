@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Phase 244 verification gaps_found 4/7 (REL-04 cause falsified, CR-01); gap planning next
-last_updated: "2026-10-25T15:06:54.916Z"
+stopped_at: Phase 244 gap plans 08-10 created and checker-verified; execute gaps next
+last_updated: "2026-10-25T15:59:11.850Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-07 complete (bump rehearsal green; REL-02 evidence pending; REL-04 reproduction falsifies Hex-drift cause; local ci.all blocked at verify.example by shared-Postgres connections)
-state_head: cd1ea86b87d18ca77a3fd742fec9962a5b4ef71b
+last_activity_desc: Gap plans 244-08 (REL-04 lock hygiene + cause rewrite), 244-09 (CR-01 lazy retry-network + WR-01/03/04), 244-10 (gate + dispositions) planned; checker passed
+state_head: 98167f16be12be3e4f6b22e1c686c6b2acf7fd75
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 7
+  total_plans: 10
   completed_plans: 7
-  percent: 100
+  percent: 70
 milestone_name: Release on autopilot
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 244 (Release flow) — EXECUTING
-Plan: 7 of 7 complete (phase verification next)
-Status: Phase 244 gaps found — 7/7 plans executed, verification 4/7; next /gsd-plan-phase 244 --gaps
+Phase: 244 (Release flow) — READY TO EXECUTE
+Plan: 7 of 10 complete (gap plans 08-10 ready)
+Status: Phase 244 gap closure planned — next /gsd-execute-phase 244 --gaps-only
 Last activity: 2026-10-25 — Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
 Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 7/7 Phase 244 plans complete (later phases TBD)
 
