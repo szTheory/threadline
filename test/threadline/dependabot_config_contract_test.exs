@@ -175,7 +175,7 @@ defmodule Threadline.DependabotConfigContractTest do
         err(
           "ecosystems",
           "the {package-ecosystem, directory} set must be exactly " <>
-            "[{\"github-actions\", \"/\"}], got #{inspect(Enum.sort(pairs))}; Dependabot " <>
+            ~s([{"github-actions", "/"}], got #{inspect(Enum.sort(pairs))}; Dependabot ) <>
             "does not serve Hex, and the e2e npm lock ships nothing"
         )
       ]
