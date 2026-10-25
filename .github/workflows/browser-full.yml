@@ -117,7 +117,7 @@ jobs:
 
       - name: Install root dependencies
         if: steps.gate.outputs.decision == 'run'
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists
         if: steps.gate.outputs.decision == 'run'
