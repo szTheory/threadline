@@ -59,8 +59,15 @@ jobs:
       - name: Pin Hex (CI and local must agree)
         run: bin/retry-network mix local.hex 2.6.0 --force
 
+      # The report step also re-proves every SHA-pinned action ref against its
+      # `# vX.Y.Z` tag (bin/verify-action-pins, read-only GitHub API calls, so
+      # it needs GH_TOKEN). A mismatch or an unverifiable pin makes the run
+      # `unknown`, with the reason at the top of the report. PR CI never runs
+      # this check. The job's permissions are unchanged.
       - name: Classify hex.audit over all three lockfiles
         id: report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bin/deps-health-report "$RUNNER_TEMP/deps-health"
 
       # `if: always() && ...` gates on the classification VALUE rather than

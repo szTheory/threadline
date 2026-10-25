@@ -67,9 +67,20 @@
 # verdict, the calling workflow's own fail step decides whether the run goes
 # red based on the classification value.
 #
-# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# Action pin provenance (SUP-02 / D-14b): once per run, before any directory,
+# this script calls bin/verify-action-pins, which re-proves over the GitHub API
+# (read-only, needs GH_TOKEN) that every SHA-pinned action ref is the commit
+# its `# vX.Y.Z` tag names. A non-zero exit (MISMATCH, UNVERIFIED, NOT-PINNED,
+# zero refs, or the script missing) bumps the run to `unknown` and its output
+# is written at the top of report.md under `## Action pin provenance`. It is an
+# independent unknown source: an active suppression does not skip it, and a
+# confirmed advisory or retirement still outranks it. PR CI never runs it.
+#
+# Seams: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
 # exercise this script's behavior fully offline — the same idiom as
-# bin/verify-deps-audit. Never used by real callers.
+# bin/verify-deps-audit. VERIFY_ACTION_PINS_BIN (default
+# bin/verify-action-pins) lets tests substitute a fake pin check so the
+# offline suite never calls gh. Never used by real callers.
 
 set -uo pipefail
 
@@ -82,6 +93,7 @@ OUT_DIR="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
+VERIFY_ACTION_PINS_BIN="${VERIFY_ACTION_PINS_BIN:-$SCRIPT_DIR/verify-action-pins}"
 # shellcheck source=bin/deps-audit-tier
 source "$SCRIPT_DIR/deps-audit-tier"
 
@@ -93,9 +105,11 @@ mkdir -p "$OUT_DIR"
 REPORT_FILE="$OUT_DIR/report.md"
 SECTIONS_FILE="$OUT_DIR/.deps-health-sections.tmp"
 : >"$SECTIONS_FILE"
+PROVENANCE_FILE="$OUT_DIR/.deps-health-provenance.tmp"
+: >"$PROVENANCE_FILE"
 NEUTRAL_HEX_CONFIG_DIR=""
 cleanup_sections() {
-  rm -f "$SECTIONS_FILE"
+  rm -f "$SECTIONS_FILE" "$PROVENANCE_FILE"
   [ -n "${TIER_ROWS_DIR:-}" ] || rm -f "$OUT_DIR/.deps-health-blocking.tmp" "$OUT_DIR/.deps-health-non-blocking.tmp"
   [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
   dat_cleanup
@@ -219,6 +233,20 @@ check_hex_suppression() {
 }
 
 check_hex_suppression
+
+# --- Action pin provenance (SUP-02 / D-14b) ------------------------------------
+#
+# The `&& ... || ...` capture keeps the exit status without depending on the
+# current errexit mode (check_hex_suppression leaves `set -e` on).
+pins_output="$("$VERIFY_ACTION_PINS_BIN" --root "$ROOT" 2>&1 </dev/null)" && pins_status=0 || pins_status=$?
+if [ "$pins_status" -ne 0 ]; then
+  bump unknown
+  {
+    printf '## Action pin provenance\n\n'
+    printf 'bin/verify-action-pins exited %s: a pinned action could not be proven to be the commit its tag names, so this run is `unknown`.\n\n' "$pins_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$pins_output" | strip_ansi)"
+  } >>"$PROVENANCE_FILE"
+fi
 
 # SUP-03 tier rows (D-27): one bullet per finding, collected per tier in a
 # registered temp dir and written as two body sections after the per-dir
@@ -398,6 +426,7 @@ tier_section() {
 
 FULL_BODY="$(
   printf '# Dependency health: %s\n\n' "$overall"
+  cat "$PROVENANCE_FILE"
   cat "$SECTIONS_FILE"
   tier_section "Blocking — shipped runtime" "$BLOCKING_ROWS"
   tier_section "Non-blocking — dev/test/bench/example" "$NON_BLOCKING_ROWS"
