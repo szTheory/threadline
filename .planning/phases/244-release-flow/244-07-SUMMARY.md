@@ -129,6 +129,30 @@ I wrote `.planning/phases/244-release-flow/244-REL02-EVIDENCE.md` (commit 175abb
 
 One small correction to the plan text: the "expired PAT fails loudly" comment in release.yml sits above the `Bootstrap CI on Release PR` job (the ECON-03 comment), not near l.212. The evidence file cites it by job name.
 
+## Gate re-run on an ephemeral Postgres (orchestrator, 2026-10-25)
+
+The first gate run stopped at `verify.example` on the shared local server (Homebrew PostgreSQL
+14.17, below the PG15 support floor, `C` collation, non-UTC timezone, about 21 free slots against
+the example app's 36-connection pool). After a three-way research fan-out the orchestrator re-ran
+the gate on a throwaway `postgres:16` container, with no repo change:
+
+- `docker run -d --rm --pull never -p 127.0.0.1::5432` with `dev.threadline.kind=gate-db` /
+  `owner-pid` labels, readiness via `pg_isready -h 127.0.0.1`, then `DB_HOST=127.0.0.1`,
+  `DB_PORT=<docker-assigned>` and `CI=true` exported for the whole run; trap teardown.
+- Server proof printed first: `PostgreSQL 16.14 (Debian 16.14-1.pgdg13+1) on aarch64` |
+  `inet_server_port()=5432` (container side) | `Etc/UTC` | `en_US.utf8`; host port 49759.
+- `CI=true mix ci.all` exit 0:
+  - ExUnit `32 properties, 3250 tests, 0 failures, 3 excluded`; example app `132 tests, 0 failures`
+  - credo `5769 mods/funs, found no issues`; format, xref, repo hygiene clean
+  - `verify-deps-audit: 3 lockfile(s) audit clean (Hex 2.6.0)`
+  - Dialyzer `Total errors: 0, Skipped: 0, Unnecessary Skips: 0`; dialyzer slice 17/0
+  - Playwright `418 passed, 64 skipped`, 0 failed
+- Teardown removed the container; 0 labelled containers remained.
+
+No collation, timezone or stale-schema failures surfaced on the fresh CI-parity database. The
+durable wrapper (`bin/with-test-postgres`) is captured as
+`.planning/todos/pending/2026-10-25-local-gate-ephemeral-postgres-wrapper.md`.
+
 ## Success criteria status
 
 - **Criterion 1 (REL-01):** proven by contract plus rehearsal. Rehearsal green above. The real release PR's first green CI run is pending the first release after landing.

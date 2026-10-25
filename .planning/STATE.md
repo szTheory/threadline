@@ -1121,7 +1121,6 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ### Blockers
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
-- 244-07: CI=true mix ci.all blocked at verify.example by shared local Postgres too_many_connections (70 idle conns from another project); browser lane unobserved
 
 ### Quick Tasks Completed
 
