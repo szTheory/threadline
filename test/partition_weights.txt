@@ -70,6 +70,7 @@
 20 test/threadline/critic_trust/krippendorff_alpha_test.exs
 3 test/threadline/critic_trust/ledger_splice_test.exs
 57 test/threadline/critic_trust/measure_test.exs
+800 test/threadline/date_release_changelog_test.exs
 237 test/threadline/db_property_harness_test.exs
 15 test/threadline/dep_floor_guard_test.exs
 6893 test/threadline/deprecation_parity_test.exs
