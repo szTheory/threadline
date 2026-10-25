@@ -114,7 +114,16 @@ Plans:
   3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
   4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 246-01-PLAN.md — Wave 0 close check (`tools/verify-phase.sh` default / --close / --self-test)
+- [ ] 246-02-PLAN.md — Removal slices C1 (critic-trust + Dialyzer re-point) and C2 (TS critic, npm, Retired pointer)
+- [ ] 246-03-PLAN.md — Removal slices C3a (capture projects + verify-capture job, Browser-full one-project) and C3b (mechanical floor)
+- [ ] 246-04-PLAN.md — Removal slice C4 (stress stories, ledger, fixture corpus) + residual sweep + post-removal suite
+- [ ] 246-05-PLAN.md — D-16 cheap 215/223 self-test fixes and the 216 IN-01 fix-or-waive
+- [ ] 246-06-PLAN.md — Debt register, SEED-005 closure, SEED-008 carry, routes, stale rows, live planning wording
+- [ ] 246-07-PLAN.md — WINDOWS to zero open, D-24 phase gate, landing hand-off for the squash PR and archive tag
 
 ### Phase 247: CI critical path and suite lanes
 
@@ -137,7 +146,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
-| 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
+| 246. Debt closeout and critic retirement | 0/7 | Planned | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
 
 ## Current Position
