@@ -240,10 +240,21 @@ defmodule Threadline.DepsHealthDocContractTest do
 
     section = policy_section()
 
-    for name <- names do
-      assert section =~ "`#{name}`",
-             "CONTRIBUTING.md's #{@policy_heading} section must name the class `#{name}`"
-    end
+    # The precedence sentence lists every class, highest first; compare it in
+    # both directions so a class the classifier no longer emits cannot return.
+    [_, chain] =
+      Regex.run(~r/highest wins.*?:\s*(`[a-z]+`.*?`clean`)/s, section) ||
+        flunk(
+          "CONTRIBUTING.md's #{@policy_heading} section lost its `highest wins` precedence sentence"
+        )
+
+    documented = ~r/`([a-z]+)`/ |> Regex.scan(chain, capture: :all_but_first) |> List.flatten()
+
+    assert documented == Enum.reverse(names),
+           "CONTRIBUTING.md's precedence classes #{inspect(documented)} must equal RANK_NAMES highest first"
+
+    refute section =~ "`outdated`",
+           "`outdated` is not a class bin/deps-health-report emits (D-24)"
   end
 
   test "the policy section no longer says a finding alone stays green (D-24)" do
