@@ -420,9 +420,11 @@ defmodule Threadline.RetryNetworkContractTest do
     do: Regex.match?(~r/(?:^|[;&|(]|\bthen|\bdo|\bif)\s*mix deps\.get\b/, String.trim(line))
 
   # rule=retry-unwrapped: every `mix deps.get` goes through a retry.
+  # A valid inline bounded retry (below) is a retried fetch too.
   defp unwrapped_errors(steps) do
     for step <- steps,
         step.run != nil,
+        inline_retry_shape(step.run) != [],
         line <- String.split(step.run, "\n"),
         deps_get_line?(line),
         not String.contains?(line, "retry-network") do
@@ -431,6 +433,92 @@ defmodule Threadline.RetryNetworkContractTest do
         "retry-unwrapped",
         "`mix deps.get` must run through bin/retry-network " <>
           "(REL-03): #{String.trim(line)}"
+      )
+    end
+  end
+
+  # The inline bounded retry: a `for attempt in 1 2 3` loop around one fetch,
+  # for a step that must not depend on a repo file (publish-hex checks out a
+  # computed ref that a recovery run can point at a tag predating
+  # bin/retry-network). The Hex pin (244-05/244-06) shares this shape, so this
+  # is the one recogniser. nil when the script is not an inline retry, else
+  # its shape problems ([] = valid).
+  defp inline_retry_shape(nil), do: nil
+
+  defp inline_retry_shape(run) do
+    case Regex.run(~r/\bfor\s+attempt\s+in\s+((?:\d+[ \t]+)*\d+)[ \t]*(?:;[ \t]*|\n\s*)do\b/, run) do
+      nil -> nil
+      [_, list] -> inline_shape_problems(run, list |> String.split() |> length())
+    end
+  end
+
+  defp inline_shape_problems(run, count) do
+    fetches =
+      Regex.scan(~r/(?:^|[\s;&|(])mix\s+(?:deps\.get\b|local\.hex\b[^\n]*--force\b)/m, run)
+
+    mix_calls = Regex.scan(~r/(?:^|[\s;&|(])mix\s+\S/m, run)
+    done? = Regex.match?(~r/^\s*done\s*$/m, run)
+    after_done = run |> String.split(~r/^\s*done\s*$/m) |> List.last()
+
+    [
+      {count in 2..10, "the loop must run 2..10 attempts, got #{count}"},
+      {length(fetches) == 1,
+       "the loop must run exactly one `mix deps.get` or `mix local.hex ... --force`"},
+      {length(mix_calls) == 1, "an inline retry runs no other mix command (never a test)"},
+      {Regex.match?(~r/\bsleep\s/, run), "the loop must sleep between attempts"},
+      {done? and Regex.match?(~r/\bexit 1\b/, after_done),
+       "`exit 1` must follow `done`, so exhausting the attempts fails the step"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  # rule=retry-inline-shape: every inline bounded retry is bounded, backs off,
+  # fails when exhausted and fetches nothing but one allowlisted command.
+  defp inline_shape_errors(steps) do
+    for step <- steps,
+        problems = inline_retry_shape(step.run),
+        problems not in [nil, []],
+        problem <- problems do
+      error(step, "retry-inline-shape", problem)
+    end
+  end
+
+  # Scripts this phase introduces. A recovery tag cut before the phase lacks
+  # them; pre-phase scripts (bin/verify-release-shape) exist on every tag.
+  @phase_scripts ["bin/retry-network", "bin/date-release-changelog"]
+
+  # A workspace-root actions/checkout (no `path:`) whose `ref:` is computed.
+  defp expression_root_checkout?(step) do
+    text = strip_comment_lines(step.text)
+
+    Regex.match?(~r/^\s*(?:-\s+)?uses:\s*actions\/checkout@/m, text) and
+      yaml_value(text, "path") == nil and
+      String.contains?(yaml_value(text, "ref") || "", "${{")
+  end
+
+  defp ref_switching_jobs(steps) do
+    for step <- steps,
+        expression_root_checkout?(step),
+        into: MapSet.new(),
+        do: {step.path, step.job}
+  end
+
+  # rule=retry-ref-independent: a job that checks out a computed ref (a
+  # workflow_dispatch recovery can point it at a pre-phase tag) references no
+  # phase-introduced script, or a recovery publish exits 127.
+  defp ref_independent_errors(steps) do
+    switching = ref_switching_jobs(steps)
+
+    for step <- steps,
+        MapSet.member?(switching, {step.path, step.job}),
+        script <- @phase_scripts,
+        String.contains?(strip_comment_lines(step.text), script) do
+      error(
+        step,
+        "retry-ref-independent",
+        "#{script} may be absent from the computed ref this job checks out (a pre-phase " <>
+          "recovery tag); use the inline bounded retry instead"
       )
     end
   end
@@ -450,7 +538,15 @@ defmodule Threadline.RetryNetworkContractTest do
   end
 
   describe "workflow retry rules on the live tree" do
-    for rule <- ["retry-allowlist", "retry-no-test", "retry-no-action", "retry-path"] do
+    for rule <- [
+          "retry-allowlist",
+          "retry-no-test",
+          "retry-no-action",
+          "retry-path",
+          "retry-unwrapped",
+          "retry-ref-independent",
+          "retry-inline-shape"
+        ] do
       test "rule=#{rule} holds" do
         errors = workflow_errors(all_workflows(), &rule_errors(unquote(rule), &1))
         assert errors == [], Enum.join(errors, "\n")
@@ -463,12 +559,52 @@ defmodule Threadline.RetryNetworkContractTest do
 
       refute wrapped == []
     end
+
+    # 15 `run: mix deps.get` steps at b01ffa87: ci.yml 11, release.yml 2,
+    # browser-full.yml 1, flake-detection.yml 1. publish-hex is the inline one.
+    test "exactly 15 workflow fetches retry: 14 through the wrapper, 1 inline (not vacuous)" do
+      steps = workflow_steps(all_workflows())
+
+      wrapper_form =
+        for step <- steps,
+            {_path, rest} <- wrapper_calls(step.run),
+            rest =~ ~r/^(?:--attempts(?:=|\s+)\d+\s+)?(?:--\s+)?mix deps\.get\b/,
+            do: {step.path, step.job}
+
+      inline_form =
+        for step <- steps,
+            inline_retry_shape(step.run) == [],
+            step.run =~ "mix deps.get",
+            do: {step.path, step.job}
+
+      assert length(wrapper_form) == 14, inspect(wrapper_form)
+      assert inline_form == [{".github/workflows/release.yml", "publish-hex"}]
+    end
+
+    test "positive control: publish-hex is ref-switching and keeps its pre-phase script" do
+      steps = workflow_steps(all_workflows())
+      job = {".github/workflows/release.yml", "publish-hex"}
+
+      assert MapSet.member?(ref_switching_jobs(steps), job),
+             "publish-hex must be scanned as a computed-ref job, or the rule is vacuous"
+
+      assert Enum.any?(
+               steps,
+               &({&1.path, &1.job} == job and &1.text =~ "bin/verify-release-shape")
+             ),
+             "the pre-phase bin/verify-release-shape step must be present in the scanned job"
+
+      assert ref_independent_errors(steps) == []
+    end
   end
 
   defp rule_errors("retry-allowlist", steps), do: allowlist_errors(steps)
   defp rule_errors("retry-no-test", steps), do: no_test_errors(steps)
   defp rule_errors("retry-no-action", steps), do: no_action_errors(steps)
   defp rule_errors("retry-path", steps), do: path_errors(steps)
+  defp rule_errors("retry-unwrapped", steps), do: unwrapped_errors(steps)
+  defp rule_errors("retry-ref-independent", steps), do: ref_independent_errors(steps)
+  defp rule_errors("retry-inline-shape", steps), do: inline_shape_errors(steps)
 
   describe "mutation controls (REL-03 workflow rules)" do
     setup do
@@ -568,6 +704,148 @@ defmodule Threadline.RetryNetworkContractTest do
         )
 
       assert rule_fired?(job_errors.(mutated), "retry-unwrapped")
+    end
+  end
+
+  @release ".github/workflows/release.yml"
+
+  # Replaces the named step of one job with `new_step`.
+  defp replace_step(yaml, job_id, step_name, new_step) do
+    {^job_id, block} = Enum.find(workflow_jobs(yaml), fn {id, _} -> id == job_id end)
+    [step] = block |> job_steps() |> Enum.filter(&(yaml_value(&1, "name") == step_name))
+    mutate_job(yaml, job_id, step, new_step)
+  end
+
+  describe "mutation controls (REL-03 ref independence and the inline retry)" do
+    setup do
+      %{live: all_workflows()}
+    end
+
+    test "unwrapping publish-hex's fetch fires rule=retry-unwrapped", %{live: live} do
+      mutated =
+        Map.update!(
+          live,
+          @release,
+          &replace_step(
+            &1,
+            "publish-hex",
+            "Install dependencies",
+            "      - name: Install dependencies\n        run: mix deps.get\n\n"
+          )
+        )
+
+      errors = workflow_errors(mutated, &unwrapped_errors/1)
+
+      assert Enum.any?(errors, &(&1 =~ "rule=retry-unwrapped" and &1 =~ "job=publish-hex ")),
+             inspect(errors)
+    end
+
+    test "unwrapping an example-dir fetch fires rule=retry-unwrapped", %{live: live} do
+      mutated =
+        Map.update!(live, @ci, fn yaml ->
+          Regex.replace(
+            ~r/(working-directory: examples\/threadline_phoenix\n\s+run: )\.\.\/\.\.\/bin\/retry-network mix deps\.get\n/,
+            yaml,
+            "\\1mix deps.get\n",
+            global: false
+          )
+        end)
+
+      refute mutated == live, "the control did not change the input"
+      errors = workflow_errors(mutated, &unwrapped_errors/1)
+
+      assert Enum.any?(
+               errors,
+               &(&1 =~ "rule=retry-unwrapped" and &1 =~ "Install example dependencies")
+             ),
+             inspect(errors)
+    end
+
+    test "the wrapper in publish-hex fires rule=retry-ref-independent", %{live: live} do
+      mutated =
+        Map.update!(
+          live,
+          @release,
+          &replace_step(
+            &1,
+            "publish-hex",
+            "Install dependencies",
+            "      - name: Install dependencies\n        run: bin/retry-network mix deps.get\n\n"
+          )
+        )
+
+      errors = workflow_errors(mutated, &ref_independent_errors/1)
+      assert rule_fired?(errors, "retry-ref-independent"), inspect(errors)
+    end
+
+    test "bin/date-release-changelog in publish-hex fires rule=retry-ref-independent", %{
+      live: live
+    } do
+      mutated =
+        Map.update!(
+          live,
+          @release,
+          &mutate_job(
+            &1,
+            "publish-hex",
+            "      - name: Install dependencies\n",
+            "      - name: Date the changelog\n        run: bin/date-release-changelog\n\n" <>
+              "      - name: Install dependencies\n"
+          )
+        )
+
+      errors = workflow_errors(mutated, &ref_independent_errors/1)
+      assert rule_fired?(errors, "retry-ref-independent"), inspect(errors)
+    end
+  end
+
+  @inline_step """
+        - name: Install dependencies
+          run: |
+            for attempt in 1 2 3; do
+              if mix deps.get <<<'n'; then
+                exit 0
+              fi
+              if [ "$attempt" -lt 3 ]; then
+                sleep $((attempt * 10))
+              fi
+            done
+            echo "Install dependencies: giving up after 3 attempts" >&2
+            exit 1
+  """
+
+  describe "rule=retry-inline-shape fixtures" do
+    defp inline_fixture(step) do
+      %{
+        ".github/workflows/fixture.yml" =>
+          "on: push\njobs:\n  fixture:\n    runs-on: ubuntu-24.04\n    steps:\n" <> step
+      }
+    end
+
+    test "the valid inline form passes every rule and counts as retried" do
+      fixture = inline_fixture(@inline_step)
+
+      assert workflow_errors(fixture, &inline_shape_errors/1) == []
+      assert workflow_errors(fixture, &unwrapped_errors/1) == []
+      assert workflow_errors(fixture, &no_test_errors/1) == []
+    end
+
+    for {label, from, to} <- [
+          {"a bound above 10 attempts", "for attempt in 1 2 3;",
+           "for attempt in 1 2 3 4 5 6 7 8 9 10 11;"},
+          {"no sleep", "          sleep $((attempt * 10))\n", ""},
+          {"no final exit 1", "          exit 1\n", ""},
+          {"a test in the loop", "            exit 0\n",
+           "            mix test\n            exit 0\n"}
+        ] do
+      test "#{label} fires rule=retry-inline-shape (and the fetch counts as unwrapped)" do
+        from = unquote(from)
+        assert length(String.split(@inline_step, from)) == 2, "control anchor not unique"
+        mutated = inline_fixture(String.replace(@inline_step, from, unquote(to)))
+
+        assert rule_fired?(workflow_errors(mutated, &inline_shape_errors/1), "retry-inline-shape")
+        assert rule_fired?(workflow_errors(mutated, &unwrapped_errors/1), "retry-unwrapped")
+      end
     end
   end
 
