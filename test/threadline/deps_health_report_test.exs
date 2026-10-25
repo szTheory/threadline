@@ -163,6 +163,25 @@ defmodule Threadline.DepsHealthReportTest do
     path
   end
 
+  # Fake bin/verify-action-pins (VERIFY_ACTION_PINS_BIN seam, RESEARCH Pitfall
+  # 9): every run uses it, so the offline suite never reaches gh. Exits
+  # FAKE_PINS_EXIT (default 0) after printing FAKE_PINS_OUTPUT.
+  defp fake_pins do
+    dir = Path.join(System.tmp_dir!(), "fake-pins-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+    path = Path.join(dir, "verify-action-pins")
+
+    File.write!(path, """
+    #!/usr/bin/env bash
+    [ -z "${FAKE_PINS_OUTPUT:-}" ] || printf '%s\\n' "$FAKE_PINS_OUTPUT"
+    exit "${FAKE_PINS_EXIT:-0}"
+    """)
+
+    File.chmod!(path, 0o755)
+    on_exit(fn -> File.rm_rf!(dir) end)
+    path
+  end
+
   defp tmp_out_dir do
     dir = Path.join(System.tmp_dir!(), "deps-health-out-#{System.unique_integer([:positive])}")
     on_exit(fn -> File.rm_rf!(dir) end)
@@ -181,6 +200,7 @@ defmodule Threadline.DepsHealthReportTest do
     env =
       [
         {"MIX_BIN", fake_mix()},
+        {"VERIFY_ACTION_PINS_BIN", fake_pins()},
         {"FAKE_MIX_ROOT", @repo_root},
         {"FAKE_MIX_LOG", log},
         {"FAKE_SARIF_DIR", @sarif_dir},
@@ -362,6 +382,7 @@ defmodule Threadline.DepsHealthReportTest do
         System.cmd(Path.join(root, "bin/deps-health-report"), [out_dir],
           env: [
             {"MIX_BIN", fake_mix()},
+            {"VERIFY_ACTION_PINS_BIN", fake_pins()},
             {"FAKE_MIX_ROOT", root},
             {"FAKE_SARIF_DIR", @sarif_dir},
             {"RETRY_NETWORK_BASE_DELAY", "0"}
@@ -409,6 +430,78 @@ defmodule Threadline.DepsHealthReportTest do
       out_dir = tmp_out_dir()
       {output, 0, _calls} = run_report(out_dir, [{"FAKE_SARIF_NO_FILE", "bench"}])
       assert output =~ "classification=unknown", diag(out_dir, output)
+    end
+  end
+
+  describe "action pin provenance (SUP-02, D-14b, D-25)" do
+    @mismatch "MISMATCH actions/checkout@v5.1.0: pinned " <>
+                "fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 resolves to " <>
+                "1111111111111111111111111111111111111111"
+
+    test "a pin mismatch with clean dirs -> unknown, reason first under the title" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [{"FAKE_PINS_EXIT", "1"}, {"FAKE_PINS_OUTPUT", @mismatch}])
+
+      assert output =~ "classification=unknown", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ ~r/\A# Dependency health: unknown\n\n## Action pin provenance\n/
+
+      [provenance, _] = String.split(body, "\n## .\n", parts: 2)
+      assert provenance =~ @mismatch
+    end
+
+    test "a pin mismatch plus a root advisory -> advisory (a finding outranks unknown)" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_PINS_EXIT", "1"},
+          {"FAKE_PINS_OUTPUT", @mismatch},
+          {"FAKE_SARIF_ROOT", "advisory_plug.json"}
+        ])
+
+      assert output =~ "classification=advisory", diag(out_dir, output)
+      assert File.read!(Path.join(out_dir, "report.md")) =~ "## Action pin provenance"
+    end
+
+    test "a passing pin check -> no provenance block, class follows the dirs" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_PINS_OUTPUT", "verify-action-pins: 8 pin(s) match their tags"}
+        ])
+
+      assert output =~ "classification=clean", diag(out_dir, output)
+      refute File.read!(Path.join(out_dir, "report.md")) =~ "Action pin provenance"
+    end
+
+    test "a missing pin-check binary fails closed to unknown" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [{"VERIFY_ACTION_PINS_BIN", "/nonexistent/verify-action-pins"}])
+
+      assert output =~ "classification=unknown", diag(out_dir, output)
+      assert File.read!(Path.join(out_dir, "report.md")) =~ "## Action pin provenance"
+    end
+
+    test "an active suppression does not skip the pin check" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"HEX_IGNORE_ADVISORIES", "x"},
+          {"FAKE_PINS_EXIT", "1"},
+          {"FAKE_PINS_OUTPUT", @mismatch}
+        ])
+
+      assert output =~ "classification=unknown", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ @mismatch
+      assert body =~ "Hex advisory suppression is active"
     end
   end
 

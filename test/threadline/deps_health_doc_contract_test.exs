@@ -173,6 +173,35 @@ defmodule Threadline.DepsHealthDocContractTest do
     assert section =~ "hex_audit_ignores"
   end
 
+  test "the policy section names the action pin provenance check and the pending setting (D-14, D-15)" do
+    section = policy_section()
+
+    assert section =~ "bin/verify-action-pins"
+    assert section =~ "sha_pinning_required"
+    assert section =~ "never runs on pull requests"
+  end
+
+  test "the deps-health report step passes GH_TOKEN to the pin provenance check" do
+    report_step =
+      case String.split(deps_health_yaml(), "- name: Classify hex.audit over all three lockfiles",
+             parts: 2
+           ) do
+        [_, tail] -> tail |> String.split(~r/\n      - /, parts: 2) |> List.first()
+        _ -> flunk("deps-health.yml has no `Classify hex.audit over all three lockfiles` step")
+      end
+
+    assert report_step =~ ~r/^\s*id: report\s*$/m
+
+    assert report_step =~
+             ~r/^        env:\n          GH_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}$/m,
+           "the report step runs bin/verify-action-pins, which needs GH_TOKEN for its read-only API calls"
+  end
+
+  test "bin/verify-action-pins is never run by ci.yml" do
+    refute File.read!(@ci_yml) =~ "verify-action-pins",
+           "the pin provenance check runs only in the scheduled deps-health lane, never in PR CI"
+  end
+
   @tier_sections ["Blocking — shipped runtime", "Non-blocking — dev/test/bench/example"]
 
   test "the policy section states the SUP-03 tier rule and the D-16 policy change" do

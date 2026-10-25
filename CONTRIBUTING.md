@@ -746,6 +746,20 @@ Hex's `cooldown` setting (delaying resolution of freshly-published releases)
 was considered and is not adopted; the batched release-train review above is
 the adopted control instead.
 
+The same lane also runs `bin/verify-action-pins`, which re-proves every
+SHA-pinned GitHub Action ref against its `# vX.Y.Z` tag through read-only
+GitHub API calls (an annotated tag is followed to its commit). A pinned SHA
+that no longer matches its tag, a pin that cannot be verified (an API error
+or an unexpected answer), or a ref not in the pinned form makes the run
+`unknown`: the `ci-deps` issue stays open and the reason is written at the
+top of its body under `Action pin provenance`. A confirmed advisory or
+retirement still outranks it. The check never runs on pull requests, so PR
+CI stays hermetic. The repository setting `sha_pinning_required` is enabled
+by the maintainer only after the pinned refs are on `main`; until then it
+stays off. `zizmor` and `pinact` are useful optional local tools for
+auditing or re-pinning workflows, but they are not dependencies of this
+repository and no gate runs them.
+
 This section is not documentation-on-trust:
 `test/threadline/deps_health_doc_contract_test.exs` derives the schedule, the
 label and the three lockfile paths from `.github/workflows/deps-health.yml`
