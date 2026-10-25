@@ -1054,20 +1054,22 @@ defmodule Threadline.RetryNetworkContractTest do
 
     test "prose is not an invocation" do
       prose = %{
-        "bin/fixture" =>
-          "# run `mix deps.get` first\n" <>
-            "fail \"deps\" \"\\`mix deps.get\\` failed\"\n" <>
-            "printf -- '- note: mix deps.get --check-locked failed\\n'\n" <>
-            "printf 'usage: x [--] mix deps.get|local.hex\\n'\n" <>
-            "FAILURES+=(\"FAIL $d: deps.get --check-locked exited 1\")\n"
+        "bin/fixture" => ~S"""
+        # run `mix deps.get` first
+        fail "deps" "\`mix deps.get\` failed"
+        printf -- '- note: mix deps.get --check-locked failed\n'
+        printf 'usage: x [--] mix deps.get|local.hex\n'
+        FAILURES+=("FAIL $d: deps.get --check-locked exited 1")
+        """
       }
 
       assert nested_fetches(prose) == []
 
       calls = %{
-        "bin/fixture" =>
-          "out=\"$(cd \"$d\" && \"$MIX_BIN\" deps.get --check-locked 2>&1)\"\n" <>
-            "(cd x && mix deps.get)\n"
+        "bin/fixture" => ~S"""
+        out="$(cd "$d" && "$MIX_BIN" deps.get --check-locked 2>&1)"
+        (cd x && mix deps.get)
+        """
       }
 
       assert [{_, _, false}, {_, _, false}] = nested_fetches(calls)
