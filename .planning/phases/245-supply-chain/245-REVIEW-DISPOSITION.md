@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A renamed Hex dependency (`hex:` option) is mis-tiered as non-blocking (latent fail-open)"
   - id: WR-02
     severity: warning
@@ -43,16 +43,16 @@ findings:
     severity: info
     disposition: open
     title: "Report truncation can split a multibyte character or an open code fence"
-open: 10
+open: 9
 total: 10
-recorded: 2026-10-25T20:47:26.848Z
+recorded: 2026-10-25T21:05:15.853Z
 ---
 
 # Phase 245: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
+| WR-01 | warning | fixed | 245-REVIEW-FIX.md |
 | WR-02 | warning | open | - |
 | WR-03 | warning | open | - |
 | IN-01 | info | open | - |
