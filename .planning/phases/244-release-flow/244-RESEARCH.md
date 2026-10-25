@@ -357,13 +357,16 @@ steps =
 | A5 | The wrapper's default 3 attempts / 5s,15s delays are sufficient for typical hex.pm blips | D-3 | Low: tunable by env/flag |
 | A6 | `gh` read access and PAT presence reflect the maintainer's real PAT scopes (contents + pull-requests + workflows) | E3 | Medium: CI fan-out is proven by runs, but `always-update` force-push uses the same scopes release-please already used, so risk is low |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How is the REL-02 observed run produced without a throwaway release?**
    - Known: needs an open release PR plus a later non-releasable merge; none exist now. Remote mutation is out of scope for research.
    - Recommendation: the plan includes an evidence-capture task bound to the first natural releasable change in v1.47 (or milestone close), listing exact `gh` commands. If none occurs, the maintainer decides at close whether to accept the contract test plus a recorded dry reasoning, or authorise a deliberate `fix:` for the observation. Do not create a release solely to observe it unless the maintainer asks.
+   - **RESOLVED (planning, 2026-10-24):** deferred to the first natural release cycle after this phase lands. 244-07 Task 2 writes `244-REL02-EVIDENCE.md` with the exact read-only `gh` commands, pass conditions and `Status: pending`; no throwaway release. The contract half is proven in 244-01.
 2. **PAT expiry date.** `gh secret list` shows only the update date (2026-05-28). Fine-grained PATs usually expire; ask the maintainer once whether and when it expires (a single question, no decision needed). Out of 244's code scope.
+   - **RESOLVED (planning, 2026-10-24):** routed as a maintainer-owned item. 244-07 records it in `244-REL02-EVIDENCE.md` ("Maintainer-owned items") and in the SUMMARY handoff list. An expired PAT fails loudly at the release-please step (release.yml comment near l.212), so it cannot silently strand a release PR. Agents cannot read the expiry date.
 3. **Heading literal.** REQ text says `## Unreleased`; the repo literal is `## Unreleased — highlights`. This research keeps the literal and tolerates the bare form. If the maintainer wants the shorter heading, that is a separate contract migration (three tests reference the em-dash form), not part of REL-01.
+   - **RESOLVED (planning, 2026-10-24):** keep the em-dash literal `## Unreleased — highlights` (U+2014). bin/date-release-changelog also accepts bare `## Unreleased` on input and always re-seeds the em-dash form; 244-01 adds a byte-level test.
 
 ## Environment Availability
 

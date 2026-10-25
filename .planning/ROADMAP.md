@@ -33,6 +33,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
 ## Phase Details
 
 ### Phase 244: Release flow
+
 **Goal**: A release takes the landing PR, the release PR and the Hex approval, with no CHANGELOG-dating PR, no hand rebase of a stale release PR, and no red run from a transient fetch or Hex lock drift.
 **Depends on**: Nothing (first phase of v1.47)
 **Requirements**: REL-01, REL-02, REL-03, REL-04
@@ -41,9 +42,33 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   2. After a non-releasable merge leaves the open release PR behind main (release-please reports it unchanged), the release workflow rebases it with a CI-triggering token and a fresh CI run starts on the new head with zero human actions, proven by a release.yml contract test and one observed run.
   3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
   4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
-**Plans**: TBD
+
+**Plans**: 7 plans
+
+Plans:
+**Wave 1**
+- [ ] 244-01-PLAN.md — REL-01/02: bin/date-release-changelog in sync-release-pr-pins, always-update, contracts with mutation controls
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 244-02-PLAN.md — REL-01/02: rehearsal runs the real rename script in release order; CONTRIBUTING/CHANGELOG/workflow docs
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 244-03-PLAN.md — REL-03: bin/retry-network + contract; all 15 workflow deps.get steps retried (publish-hex via ref-independent inline loop)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 244-04-PLAN.md — REL-03: nested fetches (hex-evaluator resolve, mix aliases, bin scripts) wrapped; fake-mix tests
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 244-05-PLAN.md — REL-04: cause recorded; Hex 2.6.0 pin tracer on verify-deps-audit; MIN_HEX 2.6.0; hex pin contract
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 244-06-PLAN.md — REL-04: pin Hex 2.6.0 in all 17 setup-beam steps (release lane via inline retry); parity matrix input
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 244-07-PLAN.md — phase gate (CI=true ci.all, bump rehearsal, REL-04 reproduction) + REL-02 observed-run evidence and PAT-expiry item (may stay pending)
 
 ### Phase 245: Supply chain
+
 **Goal**: Security fixes arrive as PRs without routine version noise, every action reference is immutable, and only advisories that reach adopters block the release lane.
 **Depends on**: Phase 244 (both edit ci.yml and release.yml; sequential to avoid workflow conflicts, and SUP-03's green release lane builds on Phase 244's release flow)
 **Requirements**: SUP-01, SUP-02, SUP-03, SUP-04
@@ -52,9 +77,11 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   2. Every third-party `uses:` reference is a full commit SHA with a version comment, setup-node reads its version from `.tool-versions`, and a contract test rejects a tag-only ref, with a negative control proving it fails.
   3. A test pins both audit tiers: a new advisory in a shipped runtime dependency fails required CI, while a new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green.
   4. The scheduled deps-health report opens or updates an issue only for advisories or retirements and closes it when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` exit-code classification is covered by a test.
+
 **Plans**: TBD
 
 ### Phase 246: Debt closeout and critic retirement
+
 **Goal**: The carried-debt register is fully dispositioned, and the parked UI-critic loop is gone from main yet restorable, leaving the suite, CI topology and docs consistent for the CI phase to measure.
 **Depends on**: Phase 245 (register rows such as 216 action pinning, the setup-node float and 215 WR-01 are closed by SUP-02, so their dispositions cite Phase 245)
 **Requirements**: DEBT-01, DEBT-02
@@ -63,9 +90,11 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   2. The cheap 215/223 CI self-test findings are fixed and their tests pass; the remaining 215/223 findings are waived with a reason.
   3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
   4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
+
 **Plans**: TBD
 
 ### Phase 247: CI critical path and suite lanes
+
 **Goal**: Required CI finishes in ≤ 9 minutes median on main without dropping coverage, partitions are balanced, and a hung test fails fast and names itself.
 **Depends on**: Phase 246 (measured on the post-removal suite and Playwright project set). Within the phase, CI-01 timing visibility lands and is read before the CI-02 split.
 **Requirements**: CI-01, CI-02, CI-03, CI-04
@@ -74,6 +103,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   2. Browser E2E runs as one parallel job per Playwright project, the operator-journey receipt still reconciles every journey across the merged results, and median ci.yml wall time over 5 main runs is ≤ 9 minutes (recorded as the measured gate for SEED-006's reopen condition).
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
+
 **Plans**: TBD
 
 ## Progress
@@ -82,7 +112,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 244. Release flow | 0/TBD | Not started | - |
+| 244. Release flow | 0/7 | Not started | - |
 | 245. Supply chain | 0/TBD | Not started | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
