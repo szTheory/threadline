@@ -43,7 +43,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
   4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
 
-**Plans**: 4/7 plans executed
+**Plans**: 5/7 plans executed
 
 Plans:
 **Wave 1**
@@ -59,7 +59,7 @@ Plans:
 - [x] 244-04-PLAN.md — REL-03: nested fetches (hex-evaluator resolve, mix aliases, bin scripts) wrapped; fake-mix tests
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 244-05-PLAN.md — REL-04: cause recorded; Hex 2.6.0 pin tracer on verify-deps-audit; MIN_HEX 2.6.0; hex pin contract
+- [x] 244-05-PLAN.md — REL-04: cause recorded; Hex 2.6.0 pin tracer on verify-deps-audit; MIN_HEX 2.6.0; hex pin contract
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 244-06-PLAN.md — REL-04: pin Hex 2.6.0 in all 17 setup-beam steps (release lane via inline retry); parity matrix input
@@ -112,7 +112,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 244. Release flow | 4/7 | In Progress | - |
+| 244. Release flow | 5/7 | In Progress | - |
 | 245. Supply chain | 0/TBD | Not started | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
