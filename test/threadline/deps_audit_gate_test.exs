@@ -106,6 +106,13 @@ defmodule Threadline.DepsAuditGateTest do
     log
   end
 
+  # CALL_LOG lines for `deps.get --check-locked` run in the dir named `name`.
+  defp fetch_calls(log, name) do
+    log
+    |> String.split("\n")
+    |> Enum.count(&String.ends_with?(&1, "/#{name}|deps.get --check-locked"))
+  end
+
   defp run(args, env, root) do
     mix = fake_mix(root)
     log = call_log(root)
@@ -116,7 +123,8 @@ defmodule Threadline.DepsAuditGateTest do
       {"FAKE_HEX_INFO", "Hex:    2.5.1"},
       {"FAKE_FAIL", ""},
       {"HEX_IGNORE_ADVISORIES", ""},
-      {"HEX_IGNORE_RETIREMENTS", ""}
+      {"HEX_IGNORE_RETIREMENTS", ""},
+      {"RETRY_NETWORK_BASE_DELAY", "0"}
     ]
 
     full_env =
@@ -233,6 +241,19 @@ defmodule Threadline.DepsAuditGateTest do
     assert out =~ "one"
     assert out =~ "deps.get"
     refute log =~ "hex.audit"
+    # REL-03: a transient fetch failure is retried through bin/retry-network.
+    assert fetch_calls(log, "one") == 3, log
+  end
+
+  test "lock drift fails on the first attempt: bin/retry-network never retries it" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} = run([d1], [{"FAKE_LOCK_DRIFT", "one"}], root)
+
+    assert status != 0
+    assert out =~ "mix.lock is out of date"
+    assert fetch_calls(log, "one") == 1, log
   end
 
   test "a lock that no longer matches mix.exs fails via --check-locked and skips that dir's hex.audit" do
@@ -445,7 +466,8 @@ defmodule Threadline.DepsAuditGateTest do
       {"FAKE_HEX_INFO", "Hex:    2.5.1"},
       {"FAKE_FAIL", ""},
       {"HEX_IGNORE_ADVISORIES", ""},
-      {"HEX_IGNORE_RETIREMENTS", ""}
+      {"HEX_IGNORE_RETIREMENTS", ""},
+      {"RETRY_NETWORK_BASE_DELAY", "0"}
     ]
 
     {_out, status} = System.cmd(@script, [], env: env, cd: real_root, stderr_to_stdout: true)

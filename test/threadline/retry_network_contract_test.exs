@@ -1003,19 +1003,30 @@ defmodule Threadline.RetryNetworkContractTest do
       %{live: nested_sources()}
     end
 
-    test "rule=nested-unwrapped holds over mix.exs", %{live: live} do
-      errors =
-        live
-        |> Map.take([@mix_exs])
-        |> nested_fetch_errors()
-        |> Enum.reject(&(&1 =~ "rule=nested-stale"))
-
+    test "rule=nested-unwrapped and rule=nested-stale-allowlist hold over mix.exs and bin/", %{
+      live: live
+    } do
+      errors = nested_fetch_errors(live)
       assert errors == [], Enum.join(errors, "\n")
     end
 
-    test "rule=nested-stale-allowlist holds over bin/", %{live: live} do
-      errors = live |> nested_fetch_errors() |> Enum.filter(&(&1 =~ "rule=nested-stale"))
-      assert errors == [], Enum.join(errors, "\n")
+    test "the detector finds exactly the known invocations and no prose (not vacuous)", %{
+      live: live
+    } do
+      found =
+        live
+        |> nested_fetches()
+        |> Enum.map(fn {path, _line, wrapped?} -> {path, wrapped?} end)
+        |> Enum.frequencies()
+
+      assert found == %{
+               {@mix_exs, true} => 5,
+               {"bin/deps-health-report", true} => 1,
+               {"bin/verify-bump-rehearsal", true} => 1,
+               {"bin/verify-deps-audit", true} => 1,
+               {"bin/verify-clean-checkout", false} => 1,
+               {"bin/verify-planning-independent", false} => 1
+             }
     end
 
     test "mix.exs wraps exactly its 5 alias fetches (not vacuous)", %{live: live} do
