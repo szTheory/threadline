@@ -899,4 +899,247 @@ defmodule Threadline.RetryNetworkContractTest do
       assert allowlist_errors(steps) == []
     end
   end
+
+  # --- Nested fetches: mix.exs aliases and bin/ scripts -----------------------
+  #
+  # A step-level retry cannot reach a fetch nested inside a mix alias or a
+  # gate script without also retrying what follows it (the hex-evaluator
+  # resolve shares its CI step with `mix test`), so the wrapper goes on the
+  # command itself. mix.exs reaches it through `retry_network/0` (an absolute
+  # path, so a `cd` inside the alias cannot break it); a bin/ script through
+  # its own directory.
+
+  @mix_exs "mix.exs"
+  @mix_wrapper ~S"#{retry_network()}"
+
+  # Fetches left unwrapped on purpose, path => reason.
+  @unwrapped_fetch_allowlist %{
+    "bin/verify-clean-checkout" =>
+      "runs inside its own clean-clone proof invoked from an ExUnit contract test, not a " <>
+        "CI fetch step; REL-03 scope is CI fetch steps and the hex-evaluator resolve",
+    "bin/verify-planning-independent" =>
+      "runs inside its own clean-clone proof invoked from an ExUnit contract test, not a " <>
+        "CI fetch step; REL-03 scope is CI fetch steps and the hex-evaluator resolve"
+  }
+
+  defp nested_sources do
+    bins =
+      @repo_root |> Path.join("bin/*") |> Path.wildcard() |> Enum.filter(&File.regular?/1)
+
+    Map.new(
+      [Path.join(@repo_root, @mix_exs) | bins],
+      &{Path.relative_to(&1, @repo_root), File.read!(&1)}
+    )
+  end
+
+  # Source text with message prose removed: comment lines, backtick spans
+  # (`mix deps.get` in a fail message) and single-quoted printf formats.
+  defp nested_code(text) do
+    text
+    |> strip_comment_lines()
+    |> String.replace(~r/\\?`[^`\n]*?\\?`/, "")
+    |> String.replace(~r/\bprintf[ \t]+(?:--[ \t]+)?'[^'\n]*'/, "printf")
+  end
+
+  # The wrapper reference a fetch in `path` must sit behind.
+  defp wrapper_prefix(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+$/
+  defp wrapper_prefix(_bin), do: ~r/retry-network"?[ \t]+$/
+
+  defp wrapper_reference(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+([^\n]*)/
+  defp wrapper_reference(_bin), do: ~r/retry-network"?[ \t]+([^\n]*)/
+
+  # Every `mix deps.get` / `"$MIX_BIN" deps.get` invocation: {path, line, wrapped?}.
+  defp nested_fetches(files) do
+    for {path, text} <- Enum.sort(files),
+        line <- text |> nested_code() |> String.split("\n"),
+        [{start, _len}] <-
+          Regex.scan(~r/(?<![\w.\/-])(?:mix|"\$MIX_BIN")[ \t]+deps\.get\b/, line, return: :index) do
+      prefix = binary_part(line, 0, start)
+      {path, String.trim(line), Regex.match?(wrapper_prefix(path), prefix)}
+    end
+  end
+
+  defp nested_fetch_errors(files) do
+    fetches = nested_fetches(files)
+
+    unwrapped =
+      for {path, line, false} <- fetches,
+          not Map.has_key?(@unwrapped_fetch_allowlist, path) do
+        "rule=nested-unwrapped #{path}: `deps.get` must run through bin/retry-network " <>
+          "(REL-03), or be allowlisted with a reason: #{line}"
+      end
+
+    stale =
+      for {path, _reason} <- @unwrapped_fetch_allowlist,
+          not Enum.any?(fetches, &match?({^path, _, false}, &1)) do
+        "rule=nested-stale-allowlist #{path} has no unwrapped `deps.get` left; " <>
+          "drop it from @unwrapped_fetch_allowlist"
+      end
+
+    allowlist =
+      for {path, text} <- Enum.sort(files),
+          [_, rest] <- Regex.scan(wrapper_reference(path), nested_code(text)),
+          not Regex.match?(
+            ~r/^(?:--attempts(?:=|\s+)\d+\s+)?(?:--\s+)?(?:mix|"\$MIX_BIN")\s+(?:deps\.get|local\.hex)\b/,
+            rest
+          ) do
+        "rule=retry-allowlist #{path}: bin/retry-network may only run `mix deps.get` or " <>
+          "`mix local.hex`, got #{inspect(rest)}"
+      end
+
+    unwrapped ++ stale ++ allowlist
+  end
+
+  defp mutate_source(files, path, from, to) do
+    text = Map.fetch!(files, path)
+    assert length(String.split(text, from)) == 2, "control anchor not unique in #{path}"
+    Map.put(files, path, String.replace(text, from, to))
+  end
+
+  describe "nested fetch rules (REL-03 mix aliases and bin scripts)" do
+    setup do
+      %{live: nested_sources()}
+    end
+
+    test "rule=nested-unwrapped holds over mix.exs", %{live: live} do
+      errors =
+        live
+        |> Map.take([@mix_exs])
+        |> nested_fetch_errors()
+        |> Enum.reject(&(&1 =~ "rule=nested-stale"))
+
+      assert errors == [], Enum.join(errors, "\n")
+    end
+
+    test "rule=nested-stale-allowlist holds over bin/", %{live: live} do
+      errors = live |> nested_fetch_errors() |> Enum.filter(&(&1 =~ "rule=nested-stale"))
+      assert errors == [], Enum.join(errors, "\n")
+    end
+
+    test "mix.exs wraps exactly its 5 alias fetches (not vacuous)", %{live: live} do
+      fetches = nested_fetches(Map.take(live, [@mix_exs]))
+      assert length(fetches) == 5, inspect(fetches, pretty: true)
+      assert Enum.all?(fetches, &elem(&1, 2)), inspect(fetches, pretty: true)
+    end
+
+    test "the hex-evaluator resolve retries and its compile, ecto and test tail do not", %{
+      live: live
+    } do
+      [chain] =
+        live
+        |> Map.fetch!(@mix_exs)
+        |> String.split("\n")
+        |> Enum.filter(&(&1 =~ "-r HexEvaluator.Repo"))
+
+      assert String.trim(chain) ==
+               ~S|"#{retry_network()} mix deps.get && mix compile --warnings-as-errors && | <>
+                 ~S|mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"|
+
+      [_, tail] = String.split(chain, "mix compile", parts: 2)
+      refute tail =~ "retry"
+    end
+
+    test "prose is not an invocation" do
+      prose = %{
+        "bin/fixture" =>
+          "# run `mix deps.get` first\n" <>
+            "fail \"deps\" \"\\`mix deps.get\\` failed\"\n" <>
+            "printf -- '- note: mix deps.get --check-locked failed\\n'\n" <>
+            "printf 'usage: x [--] mix deps.get|local.hex\\n'\n" <>
+            "FAILURES+=(\"FAIL $d: deps.get --check-locked exited 1\")\n"
+      }
+
+      assert nested_fetches(prose) == []
+
+      calls = %{
+        "bin/fixture" =>
+          "out=\"$(cd \"$d\" && \"$MIX_BIN\" deps.get --check-locked 2>&1)\"\n" <>
+            "(cd x && mix deps.get)\n"
+      }
+
+      assert [{_, _, false}, {_, _, false}] = nested_fetches(calls)
+    end
+  end
+
+  describe "mutation controls (REL-03 nested fetches)" do
+    setup do
+      %{live: nested_sources()}
+    end
+
+    test "unwrapping the hex-evaluator resolve fires rule=nested-unwrapped", %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          "#{@mix_wrapper} mix deps.get && mix compile --warnings-as-errors && " <>
+            "mix ecto.create --quiet -r HexEvaluator.Repo",
+          "mix deps.get && mix compile --warnings-as-errors && " <>
+            "mix ecto.create --quiet -r HexEvaluator.Repo"
+        )
+
+      errors = nested_fetch_errors(Map.take(mutated, [@mix_exs]))
+      assert rule_fired?(errors, "nested-unwrapped"), inspect(errors)
+    end
+
+    test "wrapping the hex-evaluator `mix test` tail fires rule=retry-allowlist", %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          "mix ecto.migrate --quiet && mix test\"",
+          "mix ecto.migrate --quiet && #{@mix_wrapper} mix test\""
+        )
+
+      errors = nested_fetch_errors(Map.take(mutated, [@mix_exs]))
+      assert rule_fired?(errors, "retry-allowlist"), inspect(errors)
+    end
+
+    test "a relative wrapper path in mix.exs fires rule=nested-unwrapped", %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          "cd bench && #{@mix_wrapper} mix deps.get && mix compile",
+          "cd bench && bin/retry-network mix deps.get && mix compile"
+        )
+
+      errors = nested_fetch_errors(Map.take(mutated, [@mix_exs]))
+      assert rule_fired?(errors, "nested-unwrapped"), inspect(errors)
+    end
+
+    test "an unwrapped deps.get added to a bin script fires rule=nested-unwrapped", %{
+      live: live
+    } do
+      path = "bin/verify-deps-audit"
+      mutated = Map.update!(live, path, &(&1 <> "\n(cd \"$d\" && mix deps.get)\n"))
+
+      errors = nested_fetch_errors(mutated)
+
+      assert Enum.any?(errors, &(&1 =~ "rule=nested-unwrapped #{path}:")),
+             Enum.join(errors, "\n")
+    end
+
+    test "renaming an allowlisted script fires rule=nested-stale-allowlist", %{live: live} do
+      {text, rest} = Map.pop!(live, "bin/verify-clean-checkout")
+      mutated = Map.put(rest, "bin/verify-clean-checkout-renamed", text)
+
+      errors = nested_fetch_errors(mutated)
+      assert rule_fired?(errors, "nested-stale-allowlist"), inspect(errors)
+    end
+
+    test "removing an allowlisted script's fetch fires rule=nested-stale-allowlist", %{
+      live: live
+    } do
+      mutated =
+        mutate_source(
+          live,
+          "bin/verify-planning-independent",
+          "\nmix deps.get --check-locked\n",
+          "\ntrue\n"
+        )
+
+      errors = nested_fetch_errors(mutated)
+      assert rule_fired?(errors, "nested-stale-allowlist"), inspect(errors)
+    end
+  end
 end
