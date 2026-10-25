@@ -18,9 +18,13 @@ defmodule Threadline.HexPinContractTest do
   @deps_audit "bin/verify-deps-audit"
   @ci ".github/workflows/ci.yml"
 
-  # The jobs the live assertion covers. 244-06 widens this to every job that
-  # runs setup-beam; widening is a change to this one list.
-  @live_scope [{@ci, "verify-deps-audit"}]
+  # The jobs the live assertion covers: {path, job} or {path, :all} for every job
+  # in that workflow. Widening is a change to this one list and to the count.
+  @live_scope [{@ci, :all}]
+
+  # Pinned setup-beam steps the live scope must contain, so a parse that finds
+  # no jobs cannot pass vacuously.
+  @live_pin_count 11
 
   @job_id_pattern "[A-Za-z_][A-Za-z0-9_-]*"
   @version ~r/^[0-9]+\.[0-9]+\.[0-9]+$/
@@ -173,7 +177,7 @@ defmodule Threadline.HexPinContractTest do
   end
 
   defp in_scope?(_path, _job, :all), do: true
-  defp in_scope?(path, job, scope), do: {path, job} in scope
+  defp in_scope?(path, job, scope), do: {path, job} in scope or {path, :all} in scope
 
   defp scoped_jobs(workflows, scope) do
     for {path, yaml} <- Enum.sort(workflows),
@@ -276,7 +280,58 @@ defmodule Threadline.HexPinContractTest do
 
   defp wrapped_errors(_path, _job, _rooted?, _form), do: []
 
+  # setup-beam steps in scope whose very next step is a recognised pin.
+  defp pinned_beam_count(workflows, scope) do
+    for {_path, _job, steps} <- scoped_jobs(workflows, scope),
+        {step, i} <- Enum.with_index(steps),
+        setup_beam?(step),
+        next = Enum.at(steps, i + 1),
+        next != nil and pin(next) != nil,
+        reduce: 0 do
+      acc -> acc + 1
+    end
+  end
+
   defp rule_fired?(errors, rule), do: Enum.any?(errors, &String.contains?(&1, "rule=#{rule}"))
+
+  # Replaces `from` (which must occur exactly once in the job) inside one job of
+  # one workflow, so a control stays unique when every job carries the pin.
+  defp mutate_job(workflows, path, job, from, to) do
+    yaml = Map.fetch!(workflows, path)
+    block = job_block!(yaml, job)
+
+    assert length(String.split(block, from)) == 2,
+           "control anchor not found or not unique in #{path} job=#{job}"
+
+    mutated = String.replace(yaml, block, String.replace(block, from, to), global: false)
+    refute mutated == yaml, "the control did not change the input"
+    Map.put(workflows, path, mutated)
+  end
+
+  defp job_block!(yaml, job) do
+    case List.keyfind(workflow_jobs(yaml), job, 0) do
+      {^job, block} -> block
+      nil -> flunk("no job #{job} in the workflow")
+    end
+  end
+
+  # Moves the job's pin step to just after its first cache step.
+  defp move_pin_after_first_cache(workflows, path, job) do
+    yaml = Map.fetch!(workflows, path)
+    block = job_block!(yaml, job)
+    [header | _] = Regex.split(~r/^(?=      - )/m, block)
+    steps = job_steps(block)
+
+    pin_at = Enum.find_index(steps, &(pin(&1) != nil))
+    assert pin_at, "#{path} job=#{job} has no pin step to move"
+    {pin_step, rest} = List.pop_at(steps, pin_at)
+
+    cache_at = Enum.find_index(rest, &String.contains?(&1, "uses: actions/cache"))
+    assert cache_at, "#{path} job=#{job} has no cache step"
+
+    moved = header <> Enum.join(List.insert_at(rest, cache_at + 1, pin_step))
+    Map.put(workflows, path, String.replace(yaml, block, moved, global: false))
+  end
 
   defp min_hex! do
     text = File.read!(Path.join(@repo_root, @deps_audit))
@@ -440,30 +495,45 @@ defmodule Threadline.HexPinContractTest do
     end
 
     test "the scoped jobs pin Hex, retried, right after setup-beam, at MIN_HEX" do
-      assert hex_pin_errors(all_workflows(), min_hex!(), @live_scope) == []
+      workflows = all_workflows()
+      assert hex_pin_errors(workflows, min_hex!(), @live_scope) == []
+
+      assert pinned_beam_count(workflows, @live_scope) == @live_pin_count,
+             "expected #{@live_pin_count} pinned setup-beam steps in the live scope"
     end
 
-    for {label, from, to, rule} <- [
-          {"dropping install-hex: false", "          install-hex: false\n", "",
-           "pin-install-hex-off"},
-          {"unretrying the pin", "run: bin/retry-network mix local.hex 2.6.0 --force",
+    for {label, path, job, from, to, rule} <- [
+          {"dropping install-hex: false", @ci, "verify-deps-audit",
+           "          install-hex: false\n", "", "pin-install-hex-off"},
+          {"unretrying the pin", @ci, "verify-deps-audit",
+           "run: bin/retry-network mix local.hex 2.6.0 --force",
            "run: mix local.hex 2.6.0 --force", "pin-step"},
-          {"pinning below MIN_HEX", "run: bin/retry-network mix local.hex 2.6.0 --force",
-           "run: bin/retry-network mix local.hex 2.5.1 --force", "pin-floor"}
+          {"pinning below MIN_HEX", @ci, "verify-deps-audit",
+           "run: bin/retry-network mix local.hex 2.6.0 --force",
+           "run: bin/retry-network mix local.hex 2.5.1 --force", "pin-floor"},
+          {"dropping install-hex: false from the matrix step", @ci, "verify-test",
+           "          install-hex: false\n", "", "pin-install-hex-off"}
         ] do
-      test "#{label} in the live scope fires rule=#{rule}" do
+      test "#{label} (#{job}) fires rule=#{rule}" do
         workflows = all_workflows()
-        live = Map.fetch!(workflows, @ci)
-        from = unquote(from)
 
-        assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+        mutated =
+          mutate_job(workflows, unquote(path), unquote(job), unquote(from), unquote(to))
 
-        mutated = String.replace(live, from, unquote(to), global: false)
-        refute mutated == live, "the control did not change the input"
-
-        errors = hex_pin_errors(Map.put(workflows, @ci, mutated), min_hex!(), @live_scope)
+        errors = hex_pin_errors(mutated, min_hex!(), @live_scope)
         assert rule_fired?(errors, unquote(rule)), inspect(errors)
       end
+    end
+
+    test "moving the verify-format pin after its first cache step fires rule=pin-step" do
+      workflows = all_workflows()
+      assert hex_pin_errors(workflows, min_hex!(), @live_scope) == []
+
+      mutated = move_pin_after_first_cache(workflows, @ci, "verify-format")
+      refute mutated == workflows, "the control did not change the input"
+
+      errors = hex_pin_errors(mutated, min_hex!(), @live_scope)
+      assert rule_fired?(errors, "pin-step"), inspect(errors)
     end
   end
 end
