@@ -945,8 +945,10 @@ defmodule Threadline.RetryNetworkContractTest do
   defp wrapper_prefix(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+$/
   defp wrapper_prefix(_bin), do: ~r/retry-network"?[ \t]+$/
 
-  defp wrapper_reference(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+([^\n]*)/
-  defp wrapper_reference(_bin), do: ~r/retry-network"?[ \t]+([^\n]*)/
+  # The rest of the line is captured in a lookahead, so a second reference on
+  # the same line (a wrapped test tail) is still scanned.
+  defp wrapper_reference(@mix_exs), do: ~r/#\{retry_network\(\)\}[ \t]+(?=([^\n]*))/
+  defp wrapper_reference(_bin), do: ~r/retry-network"?[ \t]+(?=([^\n]*))/
 
   # Every `mix deps.get` / `"$MIX_BIN" deps.get` invocation: {path, line, wrapped?}.
   defp nested_fetches(files) do
