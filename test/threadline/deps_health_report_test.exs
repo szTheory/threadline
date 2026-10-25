@@ -114,6 +114,27 @@ defmodule Threadline.DepsHealthReportTest do
         echo "Found packages with security advisories"
         exit 1
         ;;
+      deps.tree)
+        # SUP-03 (D-27): the `--only prod` closure, rendered as a plain tree
+        # under a project line. FAKE_TREE_ROOT|BENCH|EXAMPLE are comma or
+        # space separated names (default `plug,telemetry`); FAKE_TREE_FAIL
+        # lists dirs whose deps.tree exits 1.
+        if should_match "${FAKE_TREE_FAIL:-}"; then
+          echo "** (Mix) fake deps.tree failure for $REL" >&2
+          exit 1
+        fi
+        case "$REL" in
+          .) tree="${FAKE_TREE_ROOT:-plug,telemetry}" ;;
+          bench) tree="${FAKE_TREE_BENCH:-plug,telemetry}" ;;
+          examples/threadline_phoenix) tree="${FAKE_TREE_EXAMPLE:-plug,telemetry}" ;;
+          *) tree="plug,telemetry" ;;
+        esac
+        echo "project"
+        printf '%s\n' "$tree" | tr ', ' '\n\n' | sed '/^$/d' | while IFS= read -r name; do
+          printf '|-- %s ~> 1.0 (Hex package)\n' "$name"
+        done
+        exit 0
+        ;;
       hex.outdated)
         # Regression bait (D-24): real hex.outdated exits 1 whenever anything
         # is outdated. The classifier must never call it.
@@ -388,6 +409,131 @@ defmodule Threadline.DepsHealthReportTest do
       out_dir = tmp_out_dir()
       {output, 0, _calls} = run_report(out_dir, [{"FAKE_SARIF_NO_FILE", "bench"}])
       assert output =~ "classification=unknown", diag(out_dir, output)
+    end
+  end
+
+  describe "tier sections (SUP-03, D-27, D-23 case 12)" do
+    defp section(body, title) do
+      case String.split(body, "## " <> title <> "\n", parts: 2) do
+        [_, rest] -> rest |> String.split(~r/^## |^---$/m, parts: 2) |> hd()
+        _ -> flunk("section #{title} missing from:\n#{body}")
+      end
+    end
+
+    test "root runtime plug is Blocking; bench plug and plug_crypto are Non-blocking; class stays advisory" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_SARIF_ROOT", "advisory_plug.json"},
+          {"FAKE_SARIF_BENCH", "vulnerable_lock.json"}
+        ])
+
+      assert output =~ "classification=advisory", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      blocking = section(body, "Blocking — shipped runtime")
+      non_blocking = section(body, "Non-blocking — dev/test/bench/example")
+
+      assert blocking =~
+               "- .: advisory plug EEF-CVE-2026-56813 — plug is in the shipped runtime closure (root mix.lock)"
+
+      refute blocking =~ "bench"
+
+      assert non_blocking =~
+               "- bench: advisory plug EEF-CVE-2026-54892 — plug is only in bench/mix.lock; not shipped in the Hex package"
+
+      assert non_blocking =~ "- bench: advisory plug_crypto "
+      refute non_blocking =~ "- .:"
+    end
+
+    test "a root advisory for a package outside the closure is Non-blocking (dev/test only)" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_SARIF_ROOT", "advisory_plug.json"},
+          {"FAKE_TREE_ROOT", "telemetry"}
+        ])
+
+      assert output =~ "classification=advisory", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert section(body, "Blocking — shipped runtime") =~ "- none"
+
+      assert section(body, "Non-blocking — dev/test/bench/example") =~
+               "- .: advisory plug EEF-CVE-2026-56813 — plug is not in the --only prod closure of .; dev/test only"
+    end
+
+    test "a retirement keeps its own class and is tiered the same way" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} = run_report(out_dir, [{"FAKE_SARIF_EXAMPLE", "retired_plug.json"}])
+
+      assert output =~ "classification=retirement", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+
+      assert section(body, "Non-blocking — dev/test/bench/example") =~
+               "- examples/threadline_phoenix: retirement plug HEX0002 — plug is only in examples/threadline_phoenix/mix.lock"
+    end
+
+    test "a clean run lists none under both sections" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} = run_report(out_dir)
+
+      assert output =~ "classification=clean", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert section(body, "Blocking — shipped runtime") =~ "- none"
+      assert section(body, "Non-blocking — dev/test/bench/example") =~ "- none"
+      assert body =~ ~r/\A# Dependency health: clean\n/
+    end
+
+    test "a deps.tree failure in root after a successful fetch -> unknown, findings untiered" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [{"FAKE_TREE_FAIL", "."}])
+
+      assert output =~ "classification=unknown", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "deps.tree --only prod failed"
+    end
+
+    test "a deps.tree failure does not hide a root advisory from the class or the body" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [{"FAKE_TREE_FAIL", "."}, {"FAKE_SARIF_ROOT", "advisory_plug.json"}])
+
+      assert output =~ "classification=advisory", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "deps.tree --only prod failed"
+      assert body =~ "- advisory plug EEF-CVE-2026-56813"
+      refute section(body, "Blocking — shipped runtime") =~ "plug"
+      refute section(body, "Non-blocking — dev/test/bench/example") =~ "plug"
+    end
+
+    test "an empty root closure -> unknown" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} = run_report(out_dir, [{"FAKE_TREE_ROOT", " "}])
+
+      assert output =~ "classification=unknown", diag(out_dir, output)
+      assert File.read!(Path.join(out_dir, "report.md")) =~ "empty runtime closure"
+    end
+
+    test "deps.tree runs only in root, only after its successful --check-locked fetch" do
+      out_dir = tmp_out_dir()
+
+      {_output, 0, calls} = run_report(out_dir)
+      lines = String.split(calls, "\n", trim: true)
+
+      tree_idx = Enum.find_index(lines, &(&1 == ". deps.tree --only prod --format plain"))
+      fetch_idx = Enum.find_index(lines, &(&1 == ". deps.get --check-locked"))
+      assert tree_idx && fetch_idx && fetch_idx < tree_idx, calls
+      assert length(Enum.filter(lines, &String.contains?(&1, "deps.tree"))) == 1, calls
+
+      {_output, 0, drift_calls} = run_report(tmp_out_dir(), [{"FAKE_LOCK_DRIFT", "."}])
+      refute drift_calls =~ "deps.tree", drift_calls
     end
   end
 

@@ -664,7 +664,8 @@ independently of this policy.
 Every pull request runs the required `verify-deps-audit` job (`mix
 verify.deps_audit`): it asserts Hex 2.6.0 or newer, fetches with `mix
 deps.get --check-locked`, runs `mix deps.unlock --check-unused`, and runs
-`mix hex.audit` over all three lockfiles above. `--check-locked` means the
+`mix hex.audit --format sarif` over all three lockfiles above, classifying
+each finding from its SARIF fingerprint. `--check-locked` means the
 lock actually audited is the one committed to the repo: a `mix.lock` that no
 longer matches `mix.exs` fails that directory's audit instead of being
 silently re-resolved and audited under a fresh lock. It refuses to run at
@@ -673,6 +674,27 @@ environment, or a non-empty global Hex `ignore_advisories` /
 `ignore_retirements` set with `mix hex.config` (in any Hex home) — an
 unaccountable bypass would defeat the point of a required gate. Run it
 locally (`mix verify.deps_audit`) before touching a lockfile.
+
+Findings are tiered per directory, not per package. A finding (advisory or
+retirement) blocks the gate only when its package is in the root's runtime
+closure, as `mix deps.tree --only prod --format plain` lists it after a
+successful `--check-locked` fetch: that closure includes optional and
+transitive dependencies, and `runtime: false` is never consulted, because a
+dependency without `only:` still ships as a requirement of the Hex package.
+Every `bench` and `examples/threadline_phoenix` finding is non-blocking, even
+for a package that shares a runtime package's name, because neither ships.
+Advisories in root dev/test-only dependencies no longer block a pull request or a release; they are annotated on the run and reported on the `ci-deps` issue.
+A non-blocking finding leaves the job green, because the release train's
+publish gate needs a fully successful `ci.yml` run; it prints a `::warning::`
+annotation, one `deps-audit-finding tier=... dir=... kind=... package=...
+id=...` line, and a job-summary row saying why. Everything other than a
+finding stays blocking in all three directories: the Hex version floor, the
+ignore refusal, lock hygiene, `--check-locked`, `--check-unused`, a missing
+lock, a failing `deps.tree` or an empty closure, and any audit result the
+gate cannot classify. `mix.exs` requirement ranges are not required to
+exclude vulnerable versions: Hex ships ranges, not this lock, so an adopter's
+own lock and `hex.audit` govern their exposure. Raising a floor stays a
+maintainer call when Threadline's own code reaches the vulnerable path.
 
 The non-required `.github/workflows/deps-health.yml` lane runs daily at
 08:00 UTC (`0 8 * * *`), on every push to `main` that touches one of the
@@ -704,7 +726,11 @@ And like the required gate, an active Hex advisory suppression —
 `HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the environment, or a
 non-empty global `mix hex.config ignore_advisories` / `ignore_retirements`
 (any Hex home) — is reported `unknown` for the whole run without running any
-audit; the report names the reason.
+audit; the report names the reason. The issue body tiers every finding
+with the same rule and library as the required gate, under the sections
+`Blocking — shipped runtime` and `Non-blocking — dev/test/bench/example`;
+the tier never changes the class, so a dev-only advisory still opens the
+issue as `advisory`.
 
 Ignoring an advisory is only ever done through a documented convention, never
 the environment-variable bypass above: define `hex_audit_ignores/0` on the

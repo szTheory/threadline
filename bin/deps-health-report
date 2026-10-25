@@ -30,6 +30,15 @@
 # finding outranks an unrelated unknown elsewhere, and the body still lists
 # every directory's state; `unknown` is never quietly reported as `clean`.
 #
+# Tier sections (SUP-03, D-27): every finding is also tagged blocking or
+# non-blocking through the same bin/deps-audit-tier functions the required
+# gate uses (root closure from `mix deps.tree --only prod`, read only after a
+# successful fetch; bench and example findings always non-blocking), and the
+# body lists them under `Blocking — shipped runtime` and
+# `Non-blocking — dev/test/bench/example`. Tier never changes the class. A
+# failing deps.tree or an empty closure makes that directory unknown and its
+# findings stay untiered.
+#
 # Findings come only from the SARIF `hexAudit/v1` fingerprint (D-18). Human
 # hex.audit output and deps.get output are never parsed for classification
 # (deps.get prints advisories and still exits 0); deps.get output appears in
@@ -87,6 +96,7 @@ SECTIONS_FILE="$OUT_DIR/.deps-health-sections.tmp"
 NEUTRAL_HEX_CONFIG_DIR=""
 cleanup_sections() {
   rm -f "$SECTIONS_FILE"
+  [ -n "${TIER_ROWS_DIR:-}" ] || rm -f "$OUT_DIR/.deps-health-blocking.tmp" "$OUT_DIR/.deps-health-non-blocking.tmp"
   [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
   dat_cleanup
 }
@@ -210,6 +220,22 @@ check_hex_suppression() {
 
 check_hex_suppression
 
+# SUP-03 tier rows (D-27): one bullet per finding, collected per tier in a
+# registered temp dir and written as two body sections after the per-dir
+# sections. Tier never changes the class.
+TIER_ROWS_DIR=""
+if dat_new_sarif_path; then
+  TIER_ROWS_DIR="$(dirname "$DAT_SARIF_PATH")"
+fi
+BLOCKING_ROWS="${TIER_ROWS_DIR:-$OUT_DIR}/.deps-health-blocking.tmp"
+NON_BLOCKING_ROWS="${TIER_ROWS_DIR:-$OUT_DIR}/.deps-health-non-blocking.tmp"
+: >"$BLOCKING_ROWS"
+: >"$NON_BLOCKING_ROWS"
+if [ -z "$TIER_ROWS_DIR" ]; then
+  bump unknown
+  printf '**Tier sections unavailable:** could not create a temp directory under %s/tmp.\n\n' "$ROOT" >>"$SECTIONS_FILE"
+fi
+
 if [ -n "$SUPPRESSION_REASON" ]; then
   bump unknown
   {
@@ -277,6 +303,30 @@ for d in "${CANONICAL_DIRS[@]}"; do
     continue
   fi
 
+  # The closure is read only after the successful --check-locked fetch above
+  # (RESEARCH correction 2), and only for closure-rule directories. Without a
+  # closure the directory is unknown and its findings are listed untiered.
+  role="$(dat_role "$resolved")"
+  closure_file=""
+  tier_ok=1
+  if [ "$role" = "closure" ]; then
+    closure_file="$(dirname "$sarif_path")/closure.txt"
+    dat_closure "$resolved" "$closure_file" && tree_status=0 || tree_status=$?
+    if [ "$tree_status" -ne 0 ]; then
+      tier_ok=0
+      bump unknown
+      if [ "$tree_status" -eq 1 ]; then
+        tree_reason="deps.tree --only prod failed (exit $DAT_TREE_STATUS)"
+      else
+        tree_reason="deps.tree --only prod failed: empty runtime closure"
+      fi
+      {
+        printf -- '- tier: unknown (%s; findings below are untiered)\n\n' "$tree_reason"
+        printf '```\n%s\n```\n\n' "$(printf '%s' "$DAT_TREE_OUTPUT" | strip_ansi)"
+      } >>"$SECTIONS_FILE"
+    fi
+  fi
+
   dat_audit "$resolved" "$sarif_path" && audit_status=0 || audit_status=$?
   shape_error="$(dat_audit_shape_error "$audit_status" "$sarif_path")" && shape_ok=1 || shape_ok=0
 
@@ -303,6 +353,16 @@ for d in "${CANONICAL_DIRS[@]}"; do
           *) bump unknown ;;
         esac
         printf -- '- %s %s %s: %s\n' "$f_kind" "$f_pkg" "$f_id" "$(printf '%s' "$f_msg" | strip_ansi)" >>"$SECTIONS_FILE"
+        if [ "$tier_ok" -eq 1 ]; then
+          f_tier="$(dat_tier "$role" "$f_pkg" "$closure_file")"
+          f_reason="$(dat_reason "$f_tier" "$role" "$f_pkg" "$d")"
+          if [ "$f_tier" = "blocking" ]; then
+            tier_rows="$BLOCKING_ROWS"
+          else
+            tier_rows="$NON_BLOCKING_ROWS"
+          fi
+          printf -- '- %s: %s %s %s — %s\n' "$d" "$f_kind" "$f_pkg" "$f_id" "$f_reason" >>"$tier_rows"
+        fi
       done <<EOF
 $findings
 EOF
@@ -326,9 +386,21 @@ FOOTER='---
 This issue is reused across runs: a re-run comments on the same issue instead
 of opening a new one. Policy: see CONTRIBUTING.md, "Dependency freshness policy".'
 
+tier_section() {
+  printf '## %s\n\n' "$1"
+  if [ -s "$2" ]; then
+    cat "$2"
+  else
+    printf -- '- none\n'
+  fi
+  printf '\n'
+}
+
 FULL_BODY="$(
   printf '# Dependency health: %s\n\n' "$overall"
   cat "$SECTIONS_FILE"
+  tier_section "Blocking — shipped runtime" "$BLOCKING_ROWS"
+  tier_section "Non-blocking — dev/test/bench/example" "$NON_BLOCKING_ROWS"
   printf '%s\n' "$FOOTER"
 )"
 
