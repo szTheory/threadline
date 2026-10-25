@@ -14,10 +14,9 @@ defmodule Threadline.LayerBoundaryContractTest do
   fully qualified reference to one contains that substring. Case sensitivity
   keeps prose like "operator surface" in docs and comments from tripping it.
 
-  One non-surface file is allowlisted: the maintainer-only critic Mix task,
-  which sits outside the four layers and is excluded from the Hex package. The
-  allowlist is existence-checked, so a stale entry fails instead of silently
-  widening the gate.
+  The allowlist of non-surface files exempt from the scan is empty today. It is
+  existence-checked, so a future entry that goes stale fails instead of
+  silently widening the gate.
   """
 
   use ExUnit.Case, async: true
@@ -25,7 +24,7 @@ defmodule Threadline.LayerBoundaryContractTest do
   @lib_glob "lib/**/*.ex"
   @surface_root "lib/threadline/operator_surface.ex"
   @surface_dir "lib/threadline/operator_surface/"
-  @allowlist ["lib/mix/tasks/critic.synth.ex"]
+  @allowlist []
   @needle "OperatorSurface"
 
   defp scanned_files do

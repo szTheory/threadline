@@ -68,9 +68,6 @@
 3 test/threadline/critic_iteration_runbook_doc_contract_test.exs
 1 test/threadline/critic_pair_labeling_contract_test.exs
 1 test/threadline/critic_shell_safety_contract_test.exs
-20 test/threadline/critic_trust/krippendorff_alpha_test.exs
-3 test/threadline/critic_trust/ledger_splice_test.exs
-57 test/threadline/critic_trust/measure_test.exs
 800 test/threadline/date_release_changelog_test.exs
 237 test/threadline/db_property_harness_test.exs
 15 test/threadline/dep_floor_guard_test.exs
@@ -150,7 +147,6 @@
 11 test/threadline/operator_surface/coverage/on_mount_test.exs
 58 test/threadline/operator_surface/coverage_doc_contract_test.exs
 3527 test/threadline/operator_surface/coverage_mix_test.exs
-440 test/threadline/operator_surface/critic_trust_test.exs
 0 test/threadline/operator_surface/data_state_mapping_wave0_test.exs
 0 test/threadline/operator_surface/export_auth_plug_test.exs
 1450 test/threadline/operator_surface/export_controller_telemetry_test.exs
