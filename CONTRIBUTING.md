@@ -714,20 +714,35 @@ and `bin/deps-health-report`, and fails if this section drops one.
 
 ### Why Hex is pinned in CI
 
-The same `mix.lock` can pass under one Hex version and fail under another,
-so CI and contributors run one Hex version, chosen on purpose.
+CI and every contributor run one Hex version, chosen on purpose. This is
+toolchain determinism: a future change in how Hex treats a lock lands as a
+reviewed bump, not as a surprise in CI. The pin did not fix the 1.1.0 red
+run. The lock hygiene check below does.
 
 What happened: the 1.1.0 landing PR's `Dependency audit (Mix lockfiles)` job
 failed in run 40028641095 with `Your mix.lock is out of date and must be
 updated without the --check-locked flag` in all three lock directories.
-Commit a3301bed had written plug_crypto 2.2.1's build-manager list as `[]`;
-commit f7fdcaca restored `[:mix]` (what hex.pm lists for that release). CI
-had floated to Hex 2.6.0, published 2026-10-23T11:57Z, about ten hours
-earlier, while maintainers ran Hex 2.5.1. An isolated reproduction showed
-Hex 2.5.1 accepts the `[]` lock and Hex 2.6.0 rejects it, so version drift
-explains why the defect surfaced only in CI. What wrote `[]` was not
-reproduced: neither version writes it through `deps.get` or `deps.update`,
-so it is presumed a hand or tool edit of the lock.
+Commit a3301bed had written plug_crypto 2.2.1's build-manager list as `[]`.
+Commit f7fdcaca restored `[:mix]` (what hex.pm lists for that release). An
+isolated reproduction (separate Mix and Hex homes, a minimal project holding
+that one entry) showed Hex 2.5.1 and Hex 2.6.0 behave the same. From a cold
+`deps/`, both reject the `[]` lock, because the fetch rewrites the list to the
+manager the package declares. With plug_crypto 2.2.1 already in `deps/`, both
+accept it, because nothing is fetched. So `deps/` state, not Hex version,
+explains why the defect passed locally and failed in CI's fresh checkout.
+What wrote `[]` was not reproduced: neither version writes it through
+`deps.get` or `deps.update`, so it is presumed a hand or tool edit of the
+lock.
+
+The prevention: `bin/verify-lock-hygiene` reads each audited `mix.lock` as
+data and rejects any `:hex` entry with an empty build-manager list. It never
+fetches, so a warm `deps/` cannot hide the defect. `mix verify.deps_audit`
+runs it on every audited lock before the fetch, so it runs in `mix ci.all`
+and in the CI `verify-deps-audit` job. To check the locks by hand:
+
+```bash
+bin/verify-lock-hygiene mix.lock bench/mix.lock examples/threadline_phoenix/mix.lock
+```
 
 The rule:
 
@@ -735,8 +750,8 @@ The rule:
   the next step installs exactly `mix local.hex 2.6.0 --force`, retried
   (through `bin/retry-network`, or an inline bounded retry where `bin/` is
   not checked out yet).
-- `MIN_HEX` in `bin/verify-deps-audit` equals that pin, so a local run
-  refuses a Hex that would judge the lock differently from CI.
+- `MIN_HEX` in `bin/verify-deps-audit` equals that pin, so a local run uses
+  the same Hex as CI and refuses an older one.
 - `test/threadline/hex_pin_contract_test.exs` enforces both. A Hex bump
   changes `MIN_HEX` and every workflow pin in one commit.
 

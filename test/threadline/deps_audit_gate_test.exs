@@ -195,9 +195,9 @@ defmodule Threadline.DepsAuditGateTest do
     end
   end
 
-  # REL-04: the 1.1.0 drift pair. The maintainer's Hex accepted a lock that
-  # CI's floated Hex 2.6.0 rejected under --check-locked, so the old passing
-  # default is now below the floor and refused before any lock is judged.
+  # REL-04: the maintainers' Hex at 1.1.0 (2.5.1) is below the chosen pin, so
+  # the floor refuses it before any lock is checked. The pin is toolchain
+  # determinism; the 1.1.0 `[]` lock is caught by the lock hygiene tests below.
   test "the 1.1.0 local Hex is below the floor CI pins" do
     root = tmp_root()
     d1 = project_dir(root, "one")

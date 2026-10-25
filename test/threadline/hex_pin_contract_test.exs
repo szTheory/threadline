@@ -1,13 +1,14 @@
 defmodule Threadline.HexPinContractTest do
   @moduledoc """
-  REL-04: CI and local agree on the Hex version that judges `mix.lock`.
+  REL-04: CI and local run one chosen Hex version.
 
-  The 1.1.0 landing went red at `deps.get --check-locked` only in CI: setup-beam
-  floated to Hex 2.6.0, which rejects a `[]` build-manager lock entry that the
-  maintainer's Hex 2.5.1 accepted. So every setup-beam step turns its own Hex
+  The pin is toolchain determinism. Every setup-beam step turns its own Hex
   install off and the very next step pins one explicit version, retried, and
-  `MIN_HEX` in bin/verify-deps-audit equals that pin, so the local gate refuses
-  a Hex that would judge the lock differently.
+  `MIN_HEX` in bin/verify-deps-audit equals that pin, so a future Hex
+  behaviour change lands as a reviewed bump. It is not what fixed the 1.1.0
+  red run: Hex 2.5.1 and 2.6.0 both reject a `[]` build-manager lock from a
+  cold deps/ and both accept it from a warm one. bin/verify-lock-hygiene is
+  the check for that defect.
 
   `hex_pin_errors/3` is pure over a map of workflow path => text. Each rule
   emits a `rule=<tag>` message and has a mutation control that turns it red.
