@@ -117,6 +117,7 @@
 2002 test/threadline/health/trigger_findings_test.exs
 6 test/threadline/health_findings_doc_contract_test.exs
 724 test/threadline/health_test.exs
+50 test/threadline/hex_pin_contract_test.exs
 1 test/threadline/how_threadline_works_doc_contract_test.exs
 94 test/threadline/idle_transaction_reaper_contract_test.exs
 2 test/threadline/ignore_advisories_contract_test.exs
