@@ -117,12 +117,25 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
+**Wave 1**
 - [ ] 246-01-PLAN.md — Wave 0 close check (`tools/verify-phase.sh` default / --close / --self-test)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 246-02-PLAN.md — Removal slices C1 (critic-trust + Dialyzer re-point) and C2 (TS critic, npm, Retired pointer)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 246-03-PLAN.md — Removal slices C3a (capture projects + verify-capture job, Browser-full one-project) and C3b (mechanical floor)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 246-04-PLAN.md — Removal slice C4 (stress stories, ledger, fixture corpus) + residual sweep + post-removal suite
+
+**Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 246-05-PLAN.md — D-16 cheap 215/223 self-test fixes and the 216 IN-01 fix-or-waive
+
+**Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 246-06-PLAN.md — Debt register, SEED-005 closure, SEED-008 carry, routes, stale rows, live planning wording
+
+**Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 246-07-PLAN.md — WINDOWS to zero open, D-24 phase gate, landing hand-off for the squash PR and archive tag
 
 ### Phase 247: CI critical path and suite lanes

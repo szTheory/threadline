@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 246
 current_phase_name: Debt closeout and critic retirement
-status: planning
-stopped_at: Phase 246 context gathered
-last_updated: "2026-10-25T21:43:15.317Z"
+status: ready_to_execute
+stopped_at: Phase 246 planned (7 plans, 7 waves)
+last_updated: "2026-10-25T22:59:34.189Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 245 complete, transitioned to Phase 246
-state_head: e0f70c66b89e302792ff908ec23f6a249a407cba
+state_head: f4e59651ba7ccfb38ddd3afe15064d5ab689a161
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 15
+  total_plans: 22
   completed_plans: 15
   percent: 50
 milestone_name: Release on autopilot
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 246 — Debt closeout and critic retirement
+Phase: 246 (Debt closeout and critic retirement) — READY TO EXECUTE
 Plan: Not started
-Status: Context gathered (246-CONTEXT.md, D-00a..D-26, single confirm 2026-10-25); ready to plan
+Status: Planned — 7 plans in 7 sequential waves (246-01..07); research, pattern map, validation strategy; plan-checker passed on iteration 3; ready to execute
 Last activity: 2026-10-25 — Phase 245 Supply chain verified passed 4/4 (SUP-01..04 Complete; SUP-01 judged against the D-01 rewording). Code review 0 critical / 3 warning / 7 info, all open in 245-REVIEW-DISPOSITION.md — WR-01 (a `hex:`-renamed runtime dep would tier non-blocking; latent, no such dep today) recommended fixed before landing. Regression gate: phase-244 files 341/0. Landing hand-offs in 245-VERIFICATION.md `landing_handoffs:` (Dependabot accepts config, #61 retitles/self-closes, enable sha_pinning_required after pins are on main, first grouped Dependabot PR majors-only red by design; push token needs workflow scope; land 244 before 245). Not yet run: /gsd-validate-phase 245 (VALIDATION.md draft) and /gsd-secure-phase 245 (no SECURITY.md). Deferred: TriggerRerunPropertyTest flake (deferred-items.md). Prior: 245 executed sequentially on the main tree, 5 plans in 5 waves (657aa51a..5d2f785c); Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 advisories R2-WR-01..03 / R2-IN-02..04
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
