@@ -175,6 +175,14 @@ jobs:
       - name: Confirm the pin writer is now idempotent
         run: mix release.pins --check
 
+      # REL-01: rename the landing PR's `## Unreleased — highlights` prose to
+      # `## [X.Y.Z] - DATE` (the date release-please wrote into
+      # CHANGELOG-GENERATED.md) and re-seed the standing block, so the release PR
+      # passes bin/verify-release-shape with no separate dating PR. It needs no
+      # token; an empty Unreleased block fails the job loudly.
+      - name: Date the CHANGELOG from the Unreleased block
+        run: bin/date-release-changelog
+
       # The PAT (when configured) is what makes the pushed commit trigger CI on the
       # release PR; a GITHUB_TOKEN push does not fan out, which the bootstrap job
       # below covers by dispatching CI after this job.
@@ -183,16 +191,16 @@ jobs:
           PUSH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Stage only the files the pin writer owns, so a stray lockfile or build
-          # artefact can never ride along into the release commit.
-          git add -- README.md guides/
+          # Stage only the files the pin writer and the date step own, so a stray
+          # lockfile or build artefact can never ride along into the release commit.
+          git add -- README.md guides/ CHANGELOG.md
           if git diff --cached --quiet; then
-            echo "Install pins already match @version — nothing to push."
+            echo "Install pins and CHANGELOG already match @version — nothing to push."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(release): sync documented install pins to @version"
+          git commit -m "chore(release): sync install pins and date the changelog"
           git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             HEAD:release-please--branches--main
 

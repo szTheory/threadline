@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# REL-01: the release branch dates its own CHANGELOG.
+#
+# Renames the human-written `## Unreleased — highlights` block (a bare
+# `## Unreleased` is also accepted) to `## [X.Y.Z] - YYYY-MM-DD` for the
+# @version in mix.exs, and re-seeds a fresh standing block above it:
+#
+#   ## Unreleased — highlights
+#
+#   _Nothing yet for the next release._
+#
+# The sync-release-pr-pins job in .github/workflows/release.yml runs this on
+# the release branch after `mix release.pins --check`, so the release PR's
+# final head passes bin/verify-release-shape with no separate dating PR.
+#
+# Date precedence: --date, then the first `## [X.Y.Z](...) (YYYY-MM-DD)`
+# heading for the current version in CHANGELOG-GENERATED.md (release-please's
+# own release date), then today's UTC date.
+#
+# Usage: bin/date-release-changelog [--root DIR] [--date YYYY-MM-DD] [--check]
+#   --root DIR   tree to operate on (default: this script's repo root)
+#   --date DATE  override the release date
+#   --check      never write; exit 1 when a rename is pending
+#
+# Exit status: 0 dated or nothing to do (incl. a pre-release @version),
+# 1 refused (no release prose, or an ambiguous CHANGELOG), 2 usage or
+# validation error (unknown flag, bad --root, bad --date, non-semver @version).
+#
+# Version and date reach perl only through the environment ($ENV{...}), never
+# interpolated into perl source, and both are regex-validated first (T-244-01).
+set -euo pipefail
+
+PROG="date-release-changelog"
+die() {
+  local code="$1"
+  shift
+  printf '%s: %s\n' "$PROG" "$*" >&2
+  exit "$code"
+}
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DATE=""
+CHECK=0
+DATE_RE='^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --root)
+      [[ $# -ge 2 ]] || die 2 "--root needs a directory"
+      ROOT="$2"
+      shift 2
+      ;;
+    --date)
+      [[ $# -ge 2 ]] || die 2 "--date needs a YYYY-MM-DD value"
+      DATE="$2"
+      shift 2
+      ;;
+    --check)
+      CHECK=1
+      shift
+      ;;
+    *)
+      die 2 "unknown argument: $1 (usage: $PROG [--root DIR] [--date YYYY-MM-DD] [--check])"
+      ;;
+  esac
+done
+
+if [[ ! -f "$ROOT/mix.exs" ]] || [[ ! -f "$ROOT/CHANGELOG.md" ]]; then
+  die 2 "mix.exs and CHANGELOG.md required under --root $ROOT"
+fi
+cd "$ROOT"
+
+if [[ -n "$DATE" ]] && ! [[ "$DATE" =~ $DATE_RE ]]; then
+  die 2 "--date must be YYYY-MM-DD, got: $DATE"
+fi
+
+# Same extraction as bin/verify-release-shape.
+VER_LINE=$(grep -E '^\s*@version\s+"' mix.exs | head -1 || true)
+[[ -n "$VER_LINE" ]] || die 2 "no @version line found in mix.exs"
+VER=$(sed -n 's/.*@version "\([^"]*\)".*/\1/p' <<<"$VER_LINE" | head -1)
+[[ -n "$VER" ]] || die 2 "could not parse @version from mix.exs"
+
+if [[ "$VER" == *-* ]]; then
+  echo "$PROG: pre-release version \"$VER\" — skipping, nothing dated."
+  exit 0
+fi
+
+if ! [[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  die 2 "@version must be MAJOR.MINOR.PATCH, got: $VER"
+fi
+ESC_VER="${VER//./\\.}"
+
+if [[ -z "$DATE" ]] && [[ -f CHANGELOG-GENERATED.md ]]; then
+  DATE=$(grep -m1 -E "^## \[${ESC_VER}\]" CHANGELOG-GENERATED.md |
+    sed -nE 's/.*\(([0-9]{4}-[0-9]{2}-[0-9]{2})\)[[:space:]]*$/\1/p' || true)
+fi
+if [[ -z "$DATE" ]]; then
+  DATE="$(date -u +%F)"
+fi
+[[ "$DATE" =~ $DATE_RE ]] || die 2 "resolved release date is not YYYY-MM-DD: $DATE"
+
+# Classify the CHANGELOG: how many Unreleased headings, whether the block has
+# real prose (anything but blank lines and the placeholder), and whether a
+# dated heading for VER already exists. The em dash is written \x{2014};
+# -CSD decodes the file as UTF-8 so it matches the single decoded character.
+STATE=$(VER="$VER" perl -CSD -0ne '
+  my @heads = /^## Unreleased(?: \x{2014} highlights)?$/mg;
+  my $prose = 0;
+  if (/^## Unreleased(?: \x{2014} highlights)?\n(.*?)(?=^## |\z)/ms) {
+    my $body = $1;
+    $body =~ s/^_Nothing yet for the next release\._[ \t]*$//mg;
+    $prose = ($body =~ /\S/) ? 1 : 0;
+  }
+  my $v = quotemeta($ENV{VER});
+  my $dated = /^## \[$v\](?: - |\()/m ? 1 : 0;
+  printf "%d %d %d\n", scalar(@heads), $prose, $dated;
+' CHANGELOG.md)
+read -r HEADS PROSE DATED <<<"$STATE"
+
+RULE="the landing PR must carry release prose under '## Unreleased — highlights' (see CONTRIBUTING.md \"Ongoing releases\")"
+
+if [[ "$HEADS" -gt 1 ]]; then
+  die 1 "CHANGELOG.md has $HEADS Unreleased headings; expected exactly one."
+fi
+
+if [[ "$DATED" -eq 1 ]]; then
+  if [[ "$PROSE" -eq 1 ]]; then
+    die 1 "CHANGELOG.md already has a [$VER] heading AND release prose under Unreleased; refusing to guess which is the release section."
+  fi
+  echo "$PROG: [$VER] already dated, nothing to do"
+  exit 0
+fi
+
+if [[ "$HEADS" -eq 0 ]]; then
+  die 1 "CHANGELOG.md has no Unreleased heading and no [$VER] heading; $RULE."
+fi
+
+if [[ "$PROSE" -eq 0 ]]; then
+  die 1 "the Unreleased block is empty or placeholder-only, so there is nothing to date as [$VER]; $RULE."
+fi
+
+if [[ "$CHECK" -eq 1 ]]; then
+  die 1 "rename pending: the Unreleased block would become [$VER] - $DATE (run without --check)."
+fi
+
+# Rewrite a temp copy beside the file, self-check it, and only then move it
+# into place, so a failed check leaves CHANGELOG.md untouched.
+TMP="$(mktemp "$ROOT/.CHANGELOG.md.XXXXXX")"
+trap 'rm -f "$TMP"' EXIT
+cp CHANGELOG.md "$TMP"
+
+VER="$VER" DATE="$DATE" perl -CSD -0pi -e '
+  s{^## Unreleased(?: \x{2014} highlights)?\n(.*?)(?=^## |\z)}{
+    my $body = $1;
+    $body =~ s/^_Nothing yet for the next release\._[ \t]*\n//mg;
+    $body =~ s/\A\n+//;
+    $body =~ s/\n{3,}/\n\n/g;
+    "## Unreleased \x{2014} highlights\n\n_Nothing yet for the next release._\n\n"
+      . "## [$ENV{VER}] - $ENV{DATE}\n\n" . $body
+  }mse;
+' "$TMP"
+
+DATED_COUNT=$(grep -cE "^## \[${ESC_VER}\] - ${DATE}$" "$TMP" || true)
+STANDING_COUNT=$(grep -cxF '## Unreleased — highlights' "$TMP" || true)
+if [[ "$DATED_COUNT" != 1 ]] || [[ "$STANDING_COUNT" != 1 ]]; then
+  die 1 "self-check failed after rewrite (dated headings: $DATED_COUNT, standing headings: $STANDING_COUNT); CHANGELOG.md left untouched."
+fi
+
+chmod --reference=CHANGELOG.md "$TMP" 2>/dev/null || chmod 644 "$TMP"
+mv "$TMP" CHANGELOG.md
+trap - EXIT
+echo "$PROG: dated [$VER] - $DATE"
