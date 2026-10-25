@@ -18,13 +18,30 @@ defmodule Threadline.HexPinContractTest do
   @deps_audit "bin/verify-deps-audit"
   @ci ".github/workflows/ci.yml"
 
-  # The jobs the live assertion covers: {path, job} or {path, :all} for every job
-  # in that workflow. Widening is a change to this one list and to the count.
-  @live_scope [{@ci, :all}]
+  @release ".github/workflows/release.yml"
+  @browser_full ".github/workflows/browser-full.yml"
 
-  # Pinned setup-beam steps the live scope must contain, so a parse that finds
-  # no jobs cannot pass vacuously.
-  @live_pin_count 11
+  # The live assertion covers every job in every workflow. A narrower scope is a
+  # list of {path, job} or {path, :all}.
+  @live_scope :all
+
+  # Pinned setup-beam steps the live scope must contain (ci.yml 11, release.yml
+  # 3, browser-full, flake-detection, deps-health), so a parse that finds no
+  # jobs cannot pass vacuously.
+  @live_pin_count 17
+
+  # release.yml's sparse-job pin script, verbatim, as a mutation anchor.
+  @release_inline_pin "        run: |\n" <>
+                        "          for attempt in 1 2 3; do\n" <>
+                        "            if mix local.hex 2.6.0 --force <<<'n'; then\n" <>
+                        "              exit 0\n" <>
+                        "            fi\n" <>
+                        "            if [ \"$attempt\" -lt 3 ]; then\n" <>
+                        "              sleep $((attempt * 10))\n" <>
+                        "            fi\n" <>
+                        "          done\n" <>
+                        "          echo \"Pin Hex: giving up after 3 attempts\" >&2\n" <>
+                        "          exit 1\n"
 
   @job_id_pattern "[A-Za-z_][A-Za-z0-9_-]*"
   @version ~r/^[0-9]+\.[0-9]+\.[0-9]+$/
@@ -512,7 +529,16 @@ defmodule Threadline.HexPinContractTest do
            "run: bin/retry-network mix local.hex 2.6.0 --force",
            "run: bin/retry-network mix local.hex 2.5.1 --force", "pin-floor"},
           {"dropping install-hex: false from the matrix step", @ci, "verify-test",
-           "          install-hex: false\n", "", "pin-install-hex-off"}
+           "          install-hex: false\n", "", "pin-install-hex-off"},
+          {"a bare, unretried release pin", @release, "publish-hex", @release_inline_pin,
+           "        run: mix local.hex 2.6.0 --force\n", "pin-step"},
+          {"a release pin through the wrapper bin/ does not yet hold", @release,
+           "smoke-published", @release_inline_pin,
+           "        run: bin/retry-network mix local.hex 2.6.0 --force\n", "pin-wrapped"},
+          {"a rooted browser-full pin in the inline form", @browser_full,
+           "verify-example-browser-full",
+           "        run: bin/retry-network mix local.hex 2.6.0 --force\n", @release_inline_pin,
+           "pin-wrapped"}
         ] do
       test "#{label} (#{job}) fires rule=#{rule}" do
         workflows = all_workflows()
