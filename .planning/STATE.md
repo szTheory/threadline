@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
-status: planning
-stopped_at: Phase 244 planned (7 plans, verification passed); execution next
-last_updated: "2026-10-25T02:35:56.571Z"
-last_activity: 2026-10-24
-last_activity_desc: Phase 244 planned — 7 plans in 7 sequential waves
-state_head: b01ffa87f1c2c11b3e7a18bdfc28b70a0f94c21d
+status: executing
+stopped_at: Completed 244-01-PLAN.md
+last_updated: "2026-10-25T13:48:21.138Z"
+last_activity: 2026-10-25
+last_activity_desc: Plan 244-01 complete (changelog dating + always-update)
+state_head: 7b60aab8954b62885571ef656bb5fa783406ddc1
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 14
 milestone_name: Release on autopilot
 ---
 
@@ -25,15 +25,15 @@ milestone_name: Release on autopilot
 See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.47 Release on autopilot (rolling quality roadmap rank 1; see MILESTONE-ARC.md).
+**Current focus:** Phase 244 — Release flow
 
 ## Current Position
 
-Phase: 244 (Release flow) — READY TO EXECUTE
-Plan: 0 of 7 complete (244-01 next)
-Status: Ready to execute (plans verified 3 iterations; research + patterns + validation committed)
-Last activity: 2026-10-24 — Phase 244 planned (7 plans, 7 sequential waves)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 0/7 Phase 244 plans complete (later phases TBD)
+Phase: 244 (Release flow) — EXECUTING
+Plan: 1 of 7 complete (244-02 next)
+Status: Executing Phase 244
+Last activity: 2026-10-25 — Plan 244-01 complete (bin/date-release-changelog in the sync job, always-update)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 1/7 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -304,6 +304,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 243 P02 | 30min | 3 tasks | 10 files |
 | Phase 243 P03 | 17min | 2 tasks | 4 files |
 | Phase 243 P4 | 4h 26m | 3 tasks | 7 files |
+| Phase 244 P01 | 25min | 2 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1099,6 +1100,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 243]: Persist only the bounded candidate, fixture, route, process, database and asset identities; never persist credentials, cookies, storage state, response bodies or arbitrary environment.
 - [Phase 243]: Kept drawer-title clipping as medium DR-243-01 carry-forward because the overlay owner is outside Plan 04 and the geometry is present in the accepted baseline.
 - [Phase 243]: Preserved :could_not_introspect while using plain-language rendered copy, and used existing spacing tokens for bounded fixes.
+- [Phase 244]: date-release-changelog runs in sync-release-pr-pins after mix release.pins --check and stages CHANGELOG.md; em dash as \x{2014} under perl -CSD
+- [Phase 244]: release-please-config.json always-update: true regenerates the stale release PR with the PAT (A1 observed run deferred to 244-07)
 
 ### Blockers
 
@@ -1119,8 +1122,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-11T18:28:59Z
-**Stopped at:** Phase 243 complete — all phases complete
+**Last session:** 2026-10-25T13:48:21.108Z
+**Stopped at:** Completed 244-01-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
