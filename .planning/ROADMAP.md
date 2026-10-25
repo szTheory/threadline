@@ -23,7 +23,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
 
 **v1.47 Release on autopilot.** Goal: a release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
 
-- [ ] **Phase 244: Release flow** - The release workflow dates the CHANGELOG and refreshes stale release PRs; network fetches retry; Hex lock drift cannot recur silently
+- [x] **Phase 244: Release flow** - The release workflow dates the CHANGELOG and refreshes stale release PRs; network fetches retry; Hex lock drift cannot recur silently (completed 2026-10-25)
 - [ ] **Phase 245: Supply chain** - Dependabot security updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue
 - [ ] **Phase 246: Debt closeout and critic retirement** - Every carried-debt row has a disposition, and the parked UI-critic loop is removed from main and tagged for restoration
 - [ ] **Phase 247: CI critical path and suite lanes** - Browser-spec timing visibility, then a per-project browser split, contract tests on one lane, rebalanced partitions, and hang-proof partitions
@@ -43,7 +43,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
   4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
 
-**Plans**: 10/10 plans executed (3 gap-closure plans added)
+**Plans**: 10/10 plans complete (3 gap-closure plans added)
 
 Plans:
 **Wave 1**
@@ -119,7 +119,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 244. Release flow | 10/10 | In Progress | - |
+| 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 0/TBD | Not started | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
