@@ -1,11 +1,13 @@
 defmodule Threadline.HexPinContractTest do
   @moduledoc """
-  REL-04: CI and local run one chosen Hex version.
+  REL-04: CI pins one chosen Hex version exactly; local runs enforce it as a
+  minimum.
 
   The pin is toolchain determinism. Every setup-beam step turns its own Hex
   install off and the very next step pins one explicit version, retried, and
   `MIN_HEX` in bin/verify-deps-audit equals that pin, so a future Hex
-  behaviour change lands as a reviewed bump. It is not what fixed the 1.1.0
+  behaviour change lands as a reviewed bump. Locally `MIN_HEX` is a floor: an
+  older Hex is refused, a newer one is allowed (and is not what CI runs). It is not what fixed the 1.1.0
   red run: Hex 2.5.1 and 2.6.0 both reject a `[]` build-manager lock from a
   cold deps/ and both accept it from a warm one. bin/verify-lock-hygiene is
   the check for that defect.
