@@ -60,16 +60,19 @@ findings:
     rationale: "The release PR still fails loudly at verify-release-shape, which names the real cause."
   - id: R2-WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "REL-04 prose says local and CI run one Hex version, but MIN_HEX is a floor"
+    evidence: "1b6dd778 CONTRIBUTING, verify-deps-audit and hex_pin moduledoc now say CI pins Hex exactly; local check is a floor"
   - id: R2-WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "verify-lock-hygiene breaks its exit-status contract (crash exits 1; a malformed later lock hides earlier violations)"
+    evidence: "e0e14b80 verify-lock-hygiene reports every lock then exits 2 on any malformed one; 5 new tests failed before the fix"
   - id: R2-WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Nested-fetch contract checks the RETRY_NETWORK name, not its binding in retry_network_env/1"
+    evidence: "6912fa96 new rule retry-env-target pins the RETRY_NETWORK binding to bin/retry-network, with mutation controls"
   - id: R2-IN-01
     severity: info
     disposition: open
@@ -86,10 +89,10 @@ findings:
     severity: info
     disposition: open
     title: "CR-01 load tests cover only a space and a single quote"
-open: 7
+open: 4
 total: 17
 recorded: 2026-10-25T15:45:00Z
-updated: 2026-10-25T17:20:00Z
+updated: 2026-10-25T18:10:00Z
 ---
 
 # Phase 244: Code Review Disposition
@@ -106,9 +109,9 @@ updated: 2026-10-25T17:20:00Z
 | R1-IN-02 | info | deferred | No caller distinguishes rename-pending from refusal today | 244-REVIEW.md @ ffbaf4c4 |
 | R1-IN-03 | info | deferred | Both `MIX_BIN` users are test seams with fakes named `mix`; revisit when a real versioned shim appears | 244-REVIEW.md @ ffbaf4c4 |
 | R1-IN-04 | info | deferred | The release PR still fails loudly at `verify-release-shape`, which names the real cause | 244-REVIEW.md @ ffbaf4c4 |
-| R2-WR-01 | warning | open | REL-04 prose says local and CI run one Hex version, but MIN_HEX is a floor | 244-REVIEW.md (round 2) |
-| R2-WR-02 | warning | open | verify-lock-hygiene breaks its exit-status contract (crash exits 1; a malformed later lock hides earlier violations) | 244-REVIEW.md (round 2) |
-| R2-WR-03 | warning | open | Nested-fetch contract checks the RETRY_NETWORK name, not its binding in retry_network_env/1 | 244-REVIEW.md (round 2) |
+| R2-WR-01 | warning | fixed | `1b6dd778` (CONTRIBUTING, verify-deps-audit and hex_pin moduledoc now say CI pins Hex exactly; local check is a floor) | 244-REVIEW.md (round 2) |
+| R2-WR-02 | warning | fixed | `e0e14b80` (verify-lock-hygiene reports every lock then exits 2 on any malformed one; 5 new tests failed before the fix) | 244-REVIEW.md (round 2) |
+| R2-WR-03 | warning | fixed | `6912fa96` (new rule retry-env-target pins the RETRY_NETWORK binding to bin/retry-network, with mutation controls) | 244-REVIEW.md (round 2) |
 | R2-IN-01 | info | open | verify-deps-audit hygiene FAIL line blames an empty manager list for every non-zero status | 244-REVIEW.md (round 2) |
 | R2-IN-02 | info | open | No test covers a signal during an attempt (WR-04 header claim) | 244-REVIEW.md (round 2) |
 | R2-IN-03 | info | open | Stale verify.deps_audit alias comment | 244-REVIEW.md (round 2) |
