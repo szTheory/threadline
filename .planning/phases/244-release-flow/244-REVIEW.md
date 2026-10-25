@@ -1,253 +1,213 @@
 ---
 phase: 244-release-flow
-reviewed: 2026-10-25T15:33:04Z
+reviewed: 2026-10-25T16:35:55Z
 depth: standard
-files_reviewed: 22
+round: 2
+prior_round: ffbaf4c4
+files_reviewed: 9
 files_reviewed_list:
-  - .github/workflows/browser-full.yml
-  - .github/workflows/ci.yml
-  - .github/workflows/deps-health.yml
-  - .github/workflows/flake-detection.yml
-  - .github/workflows/release.yml
-  - CHANGELOG.md
-  - CONTRIBUTING.md
-  - bin/date-release-changelog
-  - bin/deps-health-report
-  - bin/retry-network
-  - bin/verify-bump-rehearsal
+  - bin/verify-lock-hygiene
   - bin/verify-deps-audit
+  - bin/retry-network
   - mix.exs
-  - release-please-config.json
-  - test/partition_weights.txt
-  - test/threadline/ci_workflow_parity_contract_test.exs
-  - test/threadline/date_release_changelog_test.exs
   - test/threadline/deps_audit_gate_test.exs
-  - test/threadline/deps_health_report_test.exs
-  - test/threadline/hex_pin_contract_test.exs
-  - test/threadline/release_control_plane_contract_test.exs
   - test/threadline/retry_network_contract_test.exs
+  - test/threadline/hex_pin_contract_test.exs
+  - .github/workflows/ci.yml
+  - CONTRIBUTING.md
 findings:
-  critical: 1
-  warning: 5
+  critical: 0
+  warning: 3
   info: 4
-  total: 10
+  total: 7
 status: issues_found
 ---
 
-# Phase 244: Code Review Report
+# Phase 244: Code Review Report (round 2)
 
-**Reviewed:** 2026-10-25T15:33:04Z
+**Reviewed:** 2026-10-25T16:35:55Z
 **Depth:** standard
-**Files Reviewed:** 22
+**Files Reviewed:** 9
 **Status:** issues_found
 
 ## Narrative Findings (AI reviewer)
 
 ## Summary
 
-I reviewed the hunks changed since `5d83bf24` in the release workflow, CI workflows, bin
-scripts, `mix.exs`, release-please config and the new or changed contract tests.
-`bin/date-release-changelog` works as described. A copy run dated a seeded block, was
-idempotent on a second run, and never puts version or date text into perl source. The
-Hex pin contract is not vacuous: it checks the live pin count (17) against the 17
-`setup-beam` steps.
+This round covers the diff `ffbaf4c4..HEAD` (plans 244-08 and 244-09), with each file read
+in full. In scope: the new `bin/verify-lock-hygiene` and how `bin/verify-deps-audit` calls
+it, the lazy `RETRY_NETWORK` wiring in `mix.exs`, the WR-01, WR-03 and WR-04 changes in
+`bin/retry-network`, and the new tests and mutation controls.
 
-The blocker is in `mix.exs`. The new `retry_network/0` guard runs every time the project
-loads. Any checkout or dependency path with a space in it now fails every `mix` command,
-and that includes adopters who use threadline as a dependency. Both cases were reproduced.
+Checks run during the review:
+- `mix.exs` copied into directories named `a b"c`, `back\slash`, `` tick`x `` and `plain`.
+  `mix help compile` exits 0 in each.
+- `bin/verify-lock-hygiene` run on every git-tracked `mix.lock`: 4 locks, 134 `:hex`
+  entries, exit 0.
+- `bin/verify-lock-hygiene` run on 15 hand-made edge-case locks.
+- A process-group SIGTERM sent while a fake `mix` (a real `erl`) was mid-attempt. The
+  wrapper exits 143 after one call and leaves no `erl` process behind.
 
-The other findings are in `bin/retry-network`:
-- One of its three "deterministic failure" markers can never match Hex's real output, and
-  its test passes only because the test output was made up to match it.
-- Its backoff has no cap.
-- Its signal handling does not match what the script header says.
+No blocker found. CR-01 is closed. The hygiene check reads the lock as data and never
+evaluates it. The new mutation controls do turn red.
 
-The known 244-07 problem with the CONTRIBUTING "Why Hex is pinned in CI" cause text is not
-reported again here.
+Remaining problems:
+- The rewritten REL-04 prose still says local and CI "use one Hex version", but
+  `MIN_HEX` is only a floor.
+- `bin/verify-lock-hygiene` breaks its own exit-status contract in two edge cases.
+- The nested-fetch contract now checks the variable name `$RETRY_NETWORK`. No test checks
+  what that variable points at.
 
-## Critical Issues
+## Round 1 status
 
-### CR-01: `retry_network/0` raises during project load, so any path with whitespace or a quote breaks every `mix` command, including for adopters
-
-**File:** `mix.exs:50`, `mix.exs:226-229`, `mix.exs:278-289`
-**Issue:** `project/0` calls `aliases()` (line 50). The `"test.setup"` alias interpolates
-`#{retry_network()}` into a string literal inside `aliases/0`, so `retry_network/0` runs
-every time `Mix.Project` loads, not only when a nested fetch runs. If `__DIR__` contains
-whitespace, `'`, `"`, a backtick or `\`, it calls `Mix.raise` before any task runs.
-Reproduced in two ways:
-- `mix.exs` copied into a directory named `a b`: `mix help compile` and `mix eval` both
-  fail with `** (Mix.Error) the checkout path ".../a b/bin/retry-network" contains
-  whitespace or a quote`.
-- A consumer project with `{:threadline, path: "../"}` pointing at that directory:
-  `mix deps.get` fails with `Error while loading project :threadline ... ** (Mix) the
-  checkout path ...`.
-
-`mix.exs` ships in the Hex package (`files:` line 561), and Mix runs `project/0` for every
-dependency. Once this is released, any adopter whose project path has a space (common on
-macOS, and for Windows profile folders named "First Last") can no longer
-compile threadline. `bin/` is not even in the package, so the path being checked does not
-exist on the adopter's machine. Contributors cloning into such a path are also locked out
-of all tooling, including `mix test`.
-
-**Fix:** Do not compute the path during alias definition. Resolve it only when a fetch
-actually runs, and pass it through the environment instead of interpolating it into
-shell text, so it never needs to be refused:
-```elixir
-"test.setup": [&test_setup_fetch/1, "test"],
-
-defp test_setup_fetch(_args) do
-  run_nested!("cd examples/threadline_phoenix && \"$RETRY_NETWORK\" mix deps.get")
-end
-
-defp run_nested!(script, env \\ []) do
-  env = [{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry-network")} | env]
-  case Mix.shell().cmd("bash -lc " <> shell_quote("set -euo pipefail && " <> script), env: env) do
-    0 -> :ok
-    status -> Mix.raise("nested fetch failed (#{status})")
-  end
-end
-```
-Then use `"$RETRY_NETWORK" mix deps.get` in `verify_bench`, `verify_bench_compile`,
-`verify_example` and `verify_hex_evaluator`. Add a contract test that loads `mix.exs`
-from a directory whose name contains a space. If the update to
-`retry_network_contract_test.exs`'s `wrapper_prefix/1` regex is missed, that test can still
-pass while the guard is broken.
+| Round-1 ID | Status | Evidence |
+|------------|--------|----------|
+| CR-01 | **Confirmed fixed** | `mix.exs:226` makes `"test.setup"` the function capture `&test_setup_fetch/1`. `mix.exs:279-281` computes `retry_network_env/1`'s path only when a task runs. Nothing in `project/0` or `aliases/0` checks the path, and the path never goes into shell text: all five users expand `"$RETRY_NETWORK"` in the child shell (`mix.exs:286,296,309,371,499`). Reproduced: a copied `mix.exs` loads from paths containing a space, `"`, `\` or a backtick. The tests at `test/threadline/retry_network_contract_test.exs:1315-1339` are not vacuous, because the eager-guard mutant fails in the spaced directory. |
+| WR-01 | **Confirmed fixed** | `bin/retry-network:134-137` matches `grep -qiF ... 'dependency resolution failed'`. The fixture at `test/threadline/retry_network_contract_test.exs:137` uses Hex's real text. `Hex dependency resolution failed` is a literal in `Elixir.Hex.RemoteConverger.beam` (hex 2.5.1 archive checked). A registry fetch failure raises a different string, `Stopping due to errors` (`Elixir.Hex.Registry.Server.beam`), so the case-insensitive match does not turn that transient failure into a deterministic stop. |
+| WR-03 | **Confirmed fixed** | `bin/retry-network:87-89` refuses a base above 30, and `bin/retry-network:158-160` caps each delay at 60s. The cap test at `test/threadline/retry_network_contract_test.exs:211-234` uses base 30, so 60 is always reached (the first delay is 30-60, and every later delay is capped). It also has a non-vacuity assertion. |
+| WR-04 | **Confirmed fixed (header option); test gap remains** | `bin/retry-network:28-32` now describes the deferred trap correctly. Reproduced: a process-group TERM during an attempt gives exit 143 with exactly one call. Round 1 also asked for a test that sends TERM while the command is blocked. No such test was added (see R2-IN-02). |
 
 ## Warnings
 
-### WR-01: The `Dependency resolution failed` marker never matches Hex's real message, and its test passes only on made-up output
+### R2-WR-01: REL-04 prose says local and CI run "one Hex version", but `MIN_HEX` is a floor
 
-**File:** `bin/retry-network:117-120`; `test/threadline/retry_network_contract_test.exs:132-150`
-**Issue:** `grep -qF` matches case-sensitively. Hex's actual resolution failure is raised
-as `Hex dependency resolution failed`, with a lower-case `d`. That string is in
-`Elixir.Hex.RemoteConverger.beam` in the Hex 2.5.1 archive, and no `Dependency resolution
-failed` string exists there. So a real version-conflict failure, which a retry cannot fix,
-runs all 3 attempts with 5s and 15s backoff instead of stopping after the first. The
-contract test passes because its fixture prints `** (Mix) Dependency resolution failed`,
-a string written to match the script's grep rather than taken from Hex.
-**Fix:** Match on the actual text, case-insensitively, and use real Hex output in the test:
+**File:** `bin/verify-deps-audit:61-65`, `bin/verify-deps-audit:247-249`, `CONTRIBUTING.md:717-720`, `CONTRIBUTING.md:753-754`, `test/threadline/hex_pin_contract_test.exs:3`
+**Issue:** This round rewrote the rationale for the Hex pin as toolchain determinism:
+- `CONTRIBUTING.md:717`: "CI and every contributor run one Hex version".
+- `CONTRIBUTING.md:754`: "a local run uses the same Hex as CI and refuses an older one".
+- `bin/verify-deps-audit:64`: "local runs and CI use one Hex version".
+- The `hex_pin_contract_test.exs` moduledoc: "CI and local run one chosen Hex version".
+
+The gate does not enforce that. `version_ge "$hex_version" "$MIN_HEX"` (line 247) accepts
+any newer Hex. A contributor on Hex 2.7.x passes `mix verify.deps_audit` while CI runs
+2.6.0. That is the version-drift situation the section says the pin rules out, now with
+local ahead of CI. This round's main purpose was to make the REL-04 explanation accurate,
+and this sentence is still false.
+**Fix:** Pick one and make the prose and the code agree:
 ```bash
-grep -qiF -e 'mix.lock is out of date' -e 'Unchecked dependencies' \
-  -e 'dependency resolution failed' "$log"
+# Option A: enforce the pin locally (the prose then becomes true)
+if [ "$hex_version" != "$MIN_HEX" ]; then
+  die "requires Hex $MIN_HEX (the CI pin), found $hex_version; run: mix local.hex $MIN_HEX --force"
+fi
 ```
-Change the fixture to `** (Mix) Hex dependency resolution failed`, copied from Hex's
-real output.
+Option B: keep the floor and say what it does: "CI runs exactly 2.6.0, and a local run
+refuses anything older. A newer local Hex is allowed and is not what CI runs." Apply the
+same wording to the moduledoc and the script comment.
 
-### WR-02: The denylist still retries common failures that are not network problems
+### R2-WR-02: `bin/verify-lock-hygiene` breaks its exit-status contract: a crash exits 1, and a malformed later lock hides earlier violations
 
-**File:** `bin/retry-network:112-122`
-**Issue:** Every nonzero exit other than 126, 127, 130 and 143, and other than the three
-markers, is treated as transient. That covers deterministic failures that `deps.get` hits
-often:
-- `Registry checksum mismatch against lock` (the `verify_hex_evaluator` comment at
-  `mix.exs:498-506` mentions this exact case)
-- `No package with name ...` / `No matching version`
-- A `mix.exs` compile error (`** (CompileError)`)
-- `Request failed (403)` / `(401)` authentication errors
+**File:** `bin/verify-lock-hygiene:36-62`, `bin/verify-lock-hygiene:64-76`, `bin/verify-lock-hygiene:103-107`
+**Issue:** The header says exit 1 means "an empty build-manager list" and exit 2 means
+"malformed ... (fail closed)". Both cases below were reproduced.
+1. If a violating entry's version (or name) is not a string literal, line 48 crashes. The
+   example lock was `%{"x": {:hex, :x, {:a, :b}, "a", [], [], "hexpm", "b"}}`. Line 48
+   interpolates the AST into a string and raises `Protocol.UndefinedError`, so `elixir`
+   exits 1 with a stack trace. A malformed lock from an untrusted PR is then reported as a
+   hygiene violation, partway through a broken FAIL line, instead of as exit 2 with a clear
+   reason. `Enum.at(elems, 2)` is never checked to be a binary.
+2. `main/1` calls `check/1` on every path before it prints anything, and `malformed/2`
+   halts at once. Run as `verify-lock-hygiene good_with_violation.lock missing.lock`, it
+   prints only the `missing.lock` read error and exits 2. The real `[]` violation in the
+   first lock is never reported. `bin/verify-deps-audit` passes one lock per call, so the
+   gate is not affected. The documented multi-lock CLI in `CONTRIBUTING.md` is affected.
 
-Each of these costs 2 extra attempts and about 20s or more. The header says "retry a
-network dependency fetch", but in practice the script retries any fetch failure.
-**Fix:** Add these markers to the not-retried list, matched case-insensitively, with one
-real-output fixture per marker in `retry_network_contract_test.exs`. A safer long-term
-option is an allowlist of transient signatures, such as `timeout`, `econnrefused`,
-`nxdomain`, `closed`, and HTTP 5xx or 429 responses, retrying only on those.
-
-### WR-03: Exponential backoff has no cap: `--attempts 10` can sleep for about 13.6 hours
-
-**File:** `bin/retry-network:67-68`, `bin/retry-network:137-140`
-**Issue:** The script accepts `--attempts` up to 10, and the delay is `base * 3^(attempt-1)`
-with no ceiling. At the default base of 5, attempts 2 to 10 wait 5, 15, 45, 135, 405,
-1215, 3645, 10935 and 32805 seconds, about 49,000 seconds in total. A caller who raises
-`--attempts` would leave a CI job hanging until the job timeout, and a local run would
-look stuck. `RETRY_NETWORK_BASE_DELAY` has no upper bound either.
-**Fix:** Cap each delay and validate the base:
-```bash
-max_delay=60
-delay=$((base * 3 ** (attempt - 1)))
-[ "$delay" -gt "$max_delay" ] && delay=$max_delay
+Either way the result is still non-zero, so the gate fails closed. The diagnosis and exit
+code are wrong.
+**Fix:**
+```elixir
+version = Enum.at(elems, 2)
+unless is_binary(version) do
+  malformed(path, ":hex entry #{inspect(name)} has a non-string version: #{Macro.to_string(version)}")
+end
+# ...and in the FAIL line use inspect/1 for name, so no AST can reach String.Chars
 ```
-Also reject `RETRY_NETWORK_BASE_DELAY` values above a small bound, for example 30.
+For the ordering problem, make `check/1` return `{:malformed, path, reason}` instead of
+halting. Print every violation and every malformed reason, then exit 2 if any lock was
+malformed, else 1 if any violation was found, else 0. Add an ExUnit case for each problem
+next to the existing fail-closed table in `deps_audit_gate_test.exs`.
 
-### WR-04: "SIGINT/SIGTERM exit 130/143 at once" is false while the command is running
+### R2-WR-03: The nested-fetch contract now checks the variable name, not where the variable points; mutating `retry_network_env/1` removes every retry and keeps the suite green
 
-**File:** `bin/retry-network:22`, `bin/retry-network:95-105`
-**Issue:** Bash defers trap handlers until the foreground pipeline (`"$@" <<<'n' 2>&1 | tee
-"$log"`) finishes. A SIGTERM sent only to the wrapper's PID does nothing until `mix` exits,
-and `cleanup` never signals the running `mix`. Examples of such a signal are `timeout`,
-`kill <pid>`, or a supervisor that does not signal the whole process group. The immediate
-exit the comment promises only happens during the backgrounded `sleep`. The contract test
-appears to cover only signals during the sleep.
-**Fix:** Run the attempt in the background, forward signals to it, and `wait`:
-```bash
-"$@" <<<'n' > >(tee "$log") 2>&1 &
-cmd_pid=$!
-trap 'kill -TERM "$cmd_pid" 2>/dev/null; cleanup; exit 143' TERM
-wait "$cmd_pid"; status=$?
+**File:** `mix.exs:279-281`; `test/threadline/retry_network_contract_test.exs:978`, `test/threadline/retry_network_contract_test.exs:1255-1263`
+**Issue:** `wrapper_prefix(@mix_exs)` passes any fetch written as `"$RETRY_NETWORK" mix
+deps.get`. `rule=retry-env-pairing` passes any `Mix.shell().cmd` call that mentions
+`retry_network_env`. No test asserts what `retry_network_env/1` sets. Suppose it is
+changed to
+`[{"RETRY_NETWORK", "env"} | env]`, or to `"command"`, or to a wrapper that only `exec`s
+its arguments. Then all five nested fetches (`test.setup`, `verify.bench`,
+`verify.bench_compile`, `verify.example`, `verify.hex_evaluator`) run `mix deps.get` with no
+retry. Every REL-03 rule and the "exactly 5 wrapped" inventory still pass. Before this
+round, the
+checked text (`#{retry_network()}`) named the function that built the real path, so the
+inventory meant something. Now the inventory is one level removed. The test header still
+says the contract "pins every nested fetch behind it".
+
+A typo in the path (`bin/retry_network`) would fail loudly with 127. The silent case needs
+an executable stand-in, which is why this is a warning and not a blocker.
+**Fix:** Pin the binding itself. For example:
+```elixir
+test "rule=retry-env-target: RETRY_NETWORK is bin/retry-network under __DIR__", %{live: live} do
+  [body] = Regex.run(~r/defp retry_network_env\(env \\\\ \[\]\) do\n(.*?)\n  end/s, live[@mix_exs], capture: :all_but_first)
+  assert String.trim(body) == ~S|[{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry-network")} \| env]|
+end
 ```
-Alternatively, correct the header so it describes only the backoff window, and add a test
-that sends TERM while the fake mix is blocked.
-
-### WR-05: The sync job's push step runs git hooks and config that compiled dependency code could have planted, with `PUSH_TOKEN` in its environment and URL (pre-existing; phase 244 makes the job push more often)
-
-**File:** `.github/workflows/release.yml:187-226`
-**Issue:** `persist-credentials: false` keeps the token out of `.git/config` while
-dependency code compiles (`mix deps.get` / `mix release.pins`). Those same steps can still
-write `.git/hooks/pre-commit` or `pre-push`, or set `core.hooksPath` or `url.*.insteadOf`
-in `.git/config`. The push step then runs `git commit` and `git push` with `PUSH_TOKEN` in
-the step environment, and the token is embedded in the push URL that a `pre-push` hook
-receives as `$2`. That means a compromised dependency can read the PAT. Phase 244 makes this
-more likely: the date step now produces a diff on every release-PR regeneration (with
-`always-update: true`, on every push to main), so the commit and push run each time
-instead of only on minor bumps. The new `date-no-token` rule checks the date step and does
-not cover this path.
-**Fix:** Turn off hooks and config indirection for the authenticated commands:
-```bash
-git -c core.hooksPath=/dev/null commit -m "..."
-git -c core.hooksPath=/dev/null -c url.https://github.com/.insteadOf= \
-  push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:...
-```
-A stronger option is to move commit and push into a separate job that downloads only the
-staged files as an artifact and never runs Mix.
+Add a mutation control that swaps the path for `"env"` and expects the rule to fire.
 
 ## Info
 
-### IN-01: `--date` and the derived date are checked for shape only, not for a real calendar date
+### R2-IN-01: verify-deps-audit's hygiene FAIL line blames an empty manager list for every non-zero status
 
-**File:** `bin/date-release-changelog:44`, `bin/date-release-changelog:73-75`, `bin/date-release-changelog:100`
-**Issue:** `2026-13-45` passes `DATE_RE` and would be written as the release heading.
-**Fix:** Also run `date -u -d "$DATE" +%F` (GNU) and require the output to equal `$DATE`,
-or do the same check in perl.
+**File:** `bin/verify-deps-audit:338-341`
+**Issue:** The FAIL line always says "an empty build-manager list in mix.lock passes
+against a warm deps/ ...". That is also printed for exit 2 (a parse error or unreadable
+lock), for 127 (`elixir` not on PATH, because the script's shebang is
+`#!/usr/bin/env elixir`), and for an exit-1 crash (R2-WR-02). The hygiene output above it
+shows the real cause, but the summary line points the operator at the wrong fix.
+**Fix:** Branch on the status:
+```bash
+case "$hygiene_status" in
+  1) why="an empty build-manager list in mix.lock passes against a warm deps/ and fails CI's cold fetch" ;;
+  *) why="the lock could not be checked (malformed, unreadable, or elixir missing)" ;;
+esac
+FAILURES+=("FAIL $d: lock hygiene exited $hygiene_status ($why; see the lines above)")
+```
 
-### IN-02: `--check` uses exit 1 both for "rename pending" and for every refusal
+### R2-IN-02: No test covers a signal during an attempt (the WR-04 header claim)
 
-**File:** `bin/date-release-changelog:122-144`
-**Issue:** A caller using `--check` cannot tell "would date" apart from "ambiguous or
-empty CHANGELOG". Both exit 1.
-**Fix:** Use a separate status for "rename pending", for example 3, and document it in
-the exit-status header.
+**File:** `bin/retry-network:28-32`; `test/threadline/retry_network_contract_test.exs:236`
+**Issue:** The only signal test sends TERM during the backoff. The new header sentence
+says a process-group signal during an attempt exits with no retry. This review confirmed
+that by hand, but nothing in the suite would catch a regression. The header also gives a
+slightly wrong reason. A BEAM that gets SIGTERM shuts down gracefully, so mix does not
+necessarily exit 130/143. What prevents the retry is the wrapper's own deferred trap,
+which runs once the pipeline returns.
+**Fix:** Add a test that starts the wrapper in its own process group (`bash -c 'set -m;
+... & kill -TERM -- -$!'`), with a fake mix that sleeps. Assert exit 143, exactly one call
+and no temp file left behind. Reword the header: "the wrapper's trap runs when the attempt
+returns, so no further attempt starts."
 
-### IN-03: `bin/retry-network`'s `basename == mix` check couples the `MIX_BIN` hook used by two scripts
+### R2-IN-03: Stale `verify.deps_audit` alias comment
 
-**File:** `bin/retry-network:78-81`; `bin/verify-deps-audit:335`; `bin/deps-health-report:246`
-**Issue:** Both scripts now pass `"$MIX_BIN"` to the wrapper. A `MIX_BIN` whose file
-name is not exactly `mix` (for example a versioned shim such as `mix-1.17`) is now
-refused with exit 2 and reported as a fetch failure. Before this phase it worked.
-**Fix:** Document the constraint next to `MIX_BIN=` in both scripts, or add an explicit
-`RETRY_NETWORK_ALLOW_MIX_BIN` escape that still requires `deps.get` / `local.hex` as the
-subcommand.
+**File:** `mix.exs:190-194`
+**Issue:** The comment says the gate "asserts Hex >= 2.6.0, then runs `deps.unlock
+--check-unused` + `hex.audit`". It leaves out the new lock-hygiene step, the
+`deps.get --check-locked` step and the global hex.config refusal. The script header was
+updated. This comment was not.
+**Fix:** Point to the script header instead of listing the steps, or list all of them.
 
-### IN-04: A placeholder-only Unreleased block also stops the install-pin sync
+### R2-IN-04: The CR-01 load tests cover only a space and a single quote
 
-**File:** `.github/workflows/release.yml:199-205`
-**Issue:** The date step runs before the push step, so when it fails, the pins that
-`mix release.pins` already rewrote are never pushed either. The release PR then fails
-twice: on `verify-release-shape`, and on the pin contract when it is a minor bump. The
-second failure hides the actual cause. CONTRIBUTING only mentions the CHANGELOG failure.
-**Fix:** Either push the pins before dating, or add `continue-on-error` and fail the job
-after the push. Or document in CONTRIBUTING that the pins also go stale in this state.
+**File:** `test/threadline/retry_network_contract_test.exs:1315-1328`
+**Issue:** Round 1's guard rejected whitespace, `'`, `"`, a backtick and `\`. The new tests
+cover only the first two. `rule=alias-load-pure` only looks for `#{` inside `aliases/0`.
+A non-interpolating load-time call (`[some_guard(), "test"]`) or a check added to
+`project/0`, `docs/0` or `package/0` would get past it. The load tests catch those only
+when the directory name contains one of the characters tested. This review loaded
+`mix.exs` from directories containing `"`, a backtick and `\`, and all exit 0 today.
+**Fix:** Turn the load tests into a table over `["a b", "a'b", ~S(a"b), "a`b", ~S(a\b)]`.
 
 ---
 
-_Reviewed: 2026-10-25T15:33:04Z_
+_Reviewed: 2026-10-25T16:35:55Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
