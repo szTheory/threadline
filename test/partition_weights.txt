@@ -65,9 +65,6 @@
 33 test/threadline/community_health_render_contract_test.exs
 343 test/threadline/continuity_brownfield_test.exs
 69 test/threadline/credo_config_contract_test.exs
-3 test/threadline/critic_iteration_runbook_doc_contract_test.exs
-1 test/threadline/critic_pair_labeling_contract_test.exs
-1 test/threadline/critic_shell_safety_contract_test.exs
 800 test/threadline/date_release_changelog_test.exs
 237 test/threadline/db_property_harness_test.exs
 15 test/threadline/dep_floor_guard_test.exs
@@ -264,6 +261,7 @@
 229 test/threadline/temp_leak_check_test.exs
 76 test/threadline/test_structure_contract_test.exs
 1732 test/threadline/transaction_lookup_test.exs
+3 test/threadline/ui_critic_retirement_doc_contract_test.exs
 912 test/threadline/upgrade_backfill_test.exs
 1 test/threadline/upgrade_path_doc_contract_test.exs
 290 test/threadline/upgrade_rollback_test.exs
