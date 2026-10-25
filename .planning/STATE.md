@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Completed 244-09-PLAN.md
-last_updated: "2026-10-25T16:15:01.578Z"
+stopped_at: Completed 244-10-PLAN.md
+last_updated: "2026-10-25T16:28:45.534Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-09 complete (CR-01 mix.exs loads from spaced/quoted paths via lazy RETRY_NETWORK; WR-01/03/04 in bin/retry-network); 244-10 next
-state_head: 489645772e57c6edc60dcfca707a2f11fa83dab4
+last_activity_desc: Plan 244-10 complete (CI=true mix ci.all exit 0 on ephemeral postgres:16 over 244-08 + 244-09; 244-REVIEW 4 fixed / 6 deferred / 0 open); phase 244 ready for re-verification
+state_head: 804f948214865093f800b4c12cd8b46f7277b285
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 milestone_name: Release on autopilot
 ---
 
@@ -29,11 +29,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 244 (Release flow) — READY TO EXECUTE
-Plan: 9 of 10 complete (gap plan 10 ready)
-Status: Phase 244 gap closure planned — next /gsd-execute-phase 244 --gaps-only
-Last activity: 2026-10-25 — Plan 244-09 complete (mix.exs no longer computes the bin/retry-network path at project load: retry_network_env/1 passes it as RETRY_NETWORK to the 5 fetching task functions, test.setup fetch is a function alias; spaced/quoted path load tests + eager-guard mutant, rule=alias-load-pure, rule=retry-env-pairing; bin/retry-network matches Hex's real `dependency resolution failed` case-insensitively, caps delays at 60s, BASE max 30, honest signal header). Earlier: Plan 244-08 complete (bin/verify-lock-hygiene rejects an empty :hex build-manager list without fetching, run per dir by bin/verify-deps-audit; a3301bed mutation control + live-tree tests; CONTRIBUTING records the cold/warm deps/ mechanism, Hex pin = determinism; mix verify.deps_audit audit clean). Earlier: Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 9/10 Phase 244 plans complete (later phases TBD)
+Phase: 244 (Release flow) — READY FOR RE-VERIFICATION
+Plan: 10 of 10 complete (all gap-closure plans executed)
+Status: Phase 244 gap closure executed — next /gsd-verify-work 244 (re-verification)
+Last activity: 2026-10-25 — Plan 244-10 complete (CI=true mix ci.all exit 0 on ephemeral postgres:16 over the combined 244-08 + 244-09 tree: verify-deps-audit 3 lockfile(s) audit clean (Hex 2.6.0), ExUnit 3278/0, example 132/0, credo no issues, Dialyzer Total errors: 0, Playwright 417 passed/64 skipped/0 failed (1 flaky); repo hygiene clean; 244-REVIEW-DISPOSITION 4 fixed / 6 deferred / 0 open). Earlier: Plan 244-09 complete (mix.exs no longer computes the bin/retry-network path at project load: retry_network_env/1 passes it as RETRY_NETWORK to the 5 fetching task functions, test.setup fetch is a function alias; spaced/quoted path load tests + eager-guard mutant, rule=alias-load-pure, rule=retry-env-pairing; bin/retry-network matches Hex's real `dependency resolution failed` case-insensitively, caps delays at 60s, BASE max 30, honest signal header). Earlier: Plan 244-08 complete (bin/verify-lock-hygiene rejects an empty :hex build-manager list without fetching, run per dir by bin/verify-deps-audit; a3301bed mutation control + live-tree tests; CONTRIBUTING records the cold/warm deps/ mechanism, Hex pin = determinism; mix verify.deps_audit audit clean). Earlier: Plan 244-07 complete (mix verify.bump_rehearsal green from a plain clone, dated [1.2.0]; CI=true mix ci.all: ExUnit 3250/0, credo, format, dialyzer clean, verify.example + browser lane blocked by shared local Postgres too_many_connections; REL-04 reproduction: Hex 2.5.1 and 2.6.0 both reject the [] lock on a fresh deps/, so drift is not the cause; REL-02 evidence Status pending)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 10/10 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -313,6 +313,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P07 | 16 min | 2 tasks | 2 files |
 | Phase 244 P08 | 25 min | 3 tasks | 6 files |
 | Phase 244 P09 | 25min | 3 tasks | 3 files |
+| Phase 244 P10 | 25min | 2 tasks | 3 files |
 
 ## Deferred Items
 
@@ -1123,6 +1124,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-09: CR-01 fix — bin/retry-network path travels in RETRY_NETWORK, resolved only in fetching task functions; project/0 and aliases/0 compute nothing a checkout path can break
 - [Phase 244]: 244-09: WR-04 fixed by correcting the header, not signal forwarding (process-group signals already reach mix; 130/143 never retried)
 - [Phase 244]: 244-09: real Hex marker is 'Hex dependency resolution failed' (hex 2.6.0 RemoteConverger), matched case-insensitively; backoff capped 60s, BASE max 30
+- [Phase 244]: 244-REVIEW final: CR-01/WR-01/WR-03/WR-04 fixed by 244-09; WR-02, WR-05, IN-01..04 deferred with rationale (0 open)
 
 ### Blockers
 
@@ -1143,8 +1145,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T16:15:01.547Z
-**Stopped at:** Completed 244-09-PLAN.md
+**Last session:** 2026-10-25T16:28:45.504Z
+**Stopped at:** Completed 244-10-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

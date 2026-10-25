@@ -43,7 +43,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
   3. `mix deps.get` and the hex-evaluator resolve retry with backoff on a transient network failure, and a contract test fails if any test step is wrapped in a retry.
   4. The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is recorded with evidence; if Hex version drift is the cause, CI pins the Hex version so the mismatch cannot recur silently.
 
-**Plans**: 9/10 plans executed (3 gap-closure plans added)
+**Plans**: 10/10 plans executed (3 gap-closure plans added)
 
 Plans:
 **Wave 1**
@@ -72,7 +72,7 @@ Plans:
 - [x] 244-09-PLAN.md — CR-01 gap: mix.exs resolves bin/retry-network lazily via RETRY_NETWORK; spaced-path load test; WR-01/03/04
 
 **Gap closure, wave 2** *(blocked on 244-08 and 244-09)*
-- [ ] 244-10-PLAN.md — CI=true ci.all on ephemeral postgres:16 over both fixes; repo-hygiene evidence; final review dispositions
+- [x] 244-10-PLAN.md — CI=true ci.all on ephemeral postgres:16 over both fixes; repo-hygiene evidence; final review dispositions
 
 ### Phase 245: Supply chain
 
@@ -119,7 +119,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 244. Release flow | 9/10 | In Progress | - |
+| 244. Release flow | 10/10 | In Progress | - |
 | 245. Supply chain | 0/TBD | Not started | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
