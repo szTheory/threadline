@@ -1262,6 +1262,35 @@ defmodule Threadline.RetryNetworkContractTest do
     end
   end
 
+  # R2-WR-03: what `RETRY_NETWORK` resolves to. The wrapper-prefix and
+  # env-pairing rules only see the variable name, so without this pin a
+  # retry_network_env/1 that bound RETRY_NETWORK to `env` (or any exec-only
+  # stand-in) would run all five nested fetches with no retry and stay green.
+  # The binding must be exactly bin/retry-network under __DIR__: the script the
+  # behaviour half of this file drives.
+  @retry_env_binding ~S<[{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry-network")} | env]>
+
+  defp retry_env_target_errors(files) do
+    code = files |> Map.fetch!(@mix_exs) |> strip_comment_lines()
+
+    case Regex.run(~r/\n  defp retry_network_env\(env \\\\ \[\]\) do\n(.*?)\n  end\n/s, code,
+           capture: :all_but_first
+         ) do
+      [body] ->
+        if String.trim(body) == @retry_env_binding do
+          []
+        else
+          [
+            "rule=retry-env-target mix.exs retry_network_env/1 must bind RETRY_NETWORK to " <>
+              "bin/retry-network under __DIR__ (#{@retry_env_binding}), got: #{String.trim(body)}"
+          ]
+        end
+
+      nil ->
+        ["rule=retry-env-target mix.exs: defp retry_network_env(env \\\\ []) not found"]
+    end
+  end
+
   describe "mix.exs loads from any checkout path (CR-01)" do
     setup do
       %{live: nested_sources()}
@@ -1310,6 +1339,53 @@ defmodule Threadline.RetryNetworkContractTest do
       errors = env_pairing_errors(mutated)
       assert [error] = errors, inspect(errors)
       assert error =~ "rule=retry-env-pairing mix.exs defp verify_bench_compile", error
+    end
+
+    test "rule=retry-env-target: RETRY_NETWORK is bin/retry-network under __DIR__",
+         %{live: live} do
+      errors = retry_env_target_errors(live)
+      assert errors == [], Enum.join(errors, "\n")
+
+      # The bound path is the wrapper the behaviour tests above exercise.
+      assert Path.join(@repo_root, "bin/retry-network") == @script
+      assert File.regular?(@script)
+      assert {:ok, %File.Stat{mode: mode}} = File.stat(@script)
+      assert Bitwise.band(mode, 0o111) != 0, "bin/retry-network is not executable"
+    end
+
+    for {label, to} <- [
+          {"env", ~S<[{"RETRY_NETWORK", "env"} | env]>},
+          {"command", ~S<[{"RETRY_NETWORK", "command"} | env]>},
+          {"a misspelled path",
+           ~S<[{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry_network")} | env]>}
+        ] do
+      test "mutation control: binding RETRY_NETWORK to #{label} fires rule=retry-env-target",
+           %{live: live} do
+        mutated = mutate_source(live, @mix_exs, @retry_env_binding, unquote(to))
+
+        errors = retry_env_target_errors(mutated)
+        assert [error] = errors, inspect(errors)
+        assert error =~ "rule=retry-env-target", error
+
+        # The name-only rules stay green on the same mutant, which is the gap
+        # this rule closes.
+        assert env_pairing_errors(mutated) == []
+      end
+    end
+
+    test "mutation control: removing retry_network_env/1 fires rule=retry-env-target",
+         %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          "defp retry_network_env(env \\\\ []) do",
+          "defp retry_net_env(env \\\\ []) do"
+        )
+
+      assert [error] = retry_env_target_errors(mutated)
+      assert error =~ "rule=retry-env-target", error
+      assert error =~ "not found", error
     end
 
     test "a directory name with a space loads" do

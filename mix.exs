@@ -274,8 +274,9 @@ defmodule Threadline.MixProject do
   # adopter, so nothing evaluated at project load may compute or validate a path
   # that a directory name with a space or quote could break. The path is resolved
   # only here, inside the task functions that fetch, and never spliced into shell
-  # text. test/threadline/retry_network_contract_test.exs pins every nested fetch
-  # behind it, every test tail outside it, and the load-time purity of aliases/0.
+  # text. test/threadline/retry_network_contract_test.exs pins this binding
+  # (rule=retry-env-target), every nested fetch behind it, every test tail
+  # outside it, and the load-time purity of aliases/0.
   defp retry_network_env(env \\ []) do
     [{"RETRY_NETWORK", Path.join(__DIR__, "bin/retry-network")} | env]
   end
