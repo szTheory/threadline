@@ -7,8 +7,10 @@ defmodule Threadline.DepsHealthDocContractTest do
   (least-privilege permissions, non-required status, label distinctness).
 
   Every fact is DERIVED from source with a regex — never restated as a
-  literal expectation — except the two policy sentences REQUIREMENTS.md makes
-  mandatory verbatim (the Dependabot sentence and "release train"). This
+  literal expectation — except the mandatory policy terms (245 D-06: the
+  Dependabot role, "one grouped monthly pull request", "does not support Hex
+  security updates", `mix verify.deps_audit`, "never auto-merge", and
+  "release train"). This
   keeps the test unable to drift silently: if the workflow's cron, label, or
   lockfile list ever changes, this test fails until CONTRIBUTING.md is
   updated to match, rather than the two files quietly diverging.
@@ -166,7 +168,10 @@ defmodule Threadline.DepsHealthDocContractTest do
   test "the policy section states the mandatory sentences and terms" do
     section = policy_section()
 
-    assert section =~ "This repository does not use Dependabot version-update pull requests."
+    assert section =~ "one grouped monthly pull request"
+    assert section =~ "does not support Hex security updates"
+    assert section =~ "mix verify.deps_audit"
+    assert section =~ "never auto-merge"
     assert section =~ "hex.audit"
     assert section =~ "release train"
     assert section =~ "verify-deps-audit"
@@ -245,8 +250,8 @@ defmodule Threadline.DepsHealthDocContractTest do
     refute policy_section() =~ "alone stays green"
   end
 
-  test "no Dependabot version-update config file exists" do
-    refute File.exists?(Path.join([@repo_root, ".github", "dependabot.yml"]))
+  test ".github/dependabot.yml exists and is the only Dependabot config" do
+    assert File.exists?(Path.join([@repo_root, ".github", "dependabot.yml"]))
     refute File.exists?(Path.join([@repo_root, ".github", "dependabot.yaml"]))
   end
 
