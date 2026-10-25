@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 245
 current_phase_name: Supply chain
 status: executing
-stopped_at: Completed 245-01-PLAN.md
-last_updated: "2026-10-25T18:44:53.418Z"
+stopped_at: Completed 245-02-PLAN.md
+last_updated: "2026-10-25T19:06:59.866Z"
 last_activity: 2026-10-25
-last_activity_desc: Phase 245 execution started
-state_head: 4b416714612323f83cc70dcdcca45ba980fd2551
+last_activity_desc: 245-02 complete (SUP-03 tiered gate)
+state_head: ad10eb4777d447ecf87d62f5a8566d4a123e54fa
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 12
   percent: 25
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 245 (Supply chain) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
-Last activity: 2026-10-25 — 245-01 complete (SUP-04 four-class self-closing deps-health lane + D-01 rewording; 657aa51a, b2b152a1, 4b416714); next 245-02 (SUP-03 tiering). Phase 245 executing sequentially on the main tree, 5 plans in 5 serialized waves. Prior: Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 review advisories R2-WR-01..03 / R2-IN-01..04; REL-02 observed run, REL-01 live release PR and A3 matrix lanes deferred to landing
-Progress: [███░░░░░░░] 1 of 4 v1.47 phases complete (25%); 10/10 Phase 244 plans complete; Phase 245 1/5 plans complete (later phases TBD)
+Last activity: 2026-10-25 — 245-02 complete (SUP-03 tiered verify-deps-audit + deps-health tier sections + CONTRIBUTING D-16 policy; c173c9bf, 4db7b364, 948b5b15, ad10eb47); next 245-03. Prior: 245-01 complete (SUP-04 four-class self-closing deps-health lane + D-01 rewording; 657aa51a, b2b152a1, 4b416714). Phase 245 executing sequentially on the main tree, 5 plans in 5 serialized waves. Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 review advisories R2-WR-01..03 / R2-IN-01..04 (R2-IN-01 folded into 245-02); REL-02 observed run, REL-01 live release PR and A3 matrix lanes deferred to landing
+Progress: [███░░░░░░░] 1 of 4 v1.47 phases complete (25%); 10/10 Phase 244 plans complete; Phase 245 2/5 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -315,6 +315,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P09 | 25min | 3 tasks | 3 files |
 | Phase 244 P10 | 25min | 2 tasks | 3 files |
 | Phase 245 P01 | 16min | 3 tasks | 19 files |
+| Phase 245 P02 | 18min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -1128,6 +1129,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-REVIEW final: CR-01/WR-01/WR-03/WR-04 fixed by 244-09; WR-02, WR-05, IN-01..04 deferred with rationale (0 open)
 - [Phase 245]: 245-01: SARIF half of bin/deps-audit-tier lands in 245-01 (D-30 ordering refinement); jq capture()? non-match must be wrapped as [..]|.[0] or rows vanish
 - [Phase 245]: 245-01: no hex.outdated summary step (D-24 discretion); issue #61 left to self-close (D-28)
+- [Phase 245]: 245-02: tier role from resolved path only; tests copy bin/ into a temp root (no role seam)
+- [Phase 245]: 245-02: root dev/test-only advisories no longer block (D-16), stated in CONTRIBUTING
 
 ### Blockers
 
@@ -1148,8 +1151,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T18:44:53.299Z
-**Stopped at:** Completed 245-01-PLAN.md
+**Last session:** 2026-10-25T19:06:59.736Z
+**Stopped at:** Completed 245-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

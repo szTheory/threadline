@@ -85,14 +85,14 @@ Plans:
   3. A test pins both audit tiers: a new advisory in a shipped runtime dependency fails required CI, while a new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green.
   4. The scheduled deps-health report opens or updates an issue for advisories, retirements or an unknown audit state and closes it only when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` classification is covered by a test.
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 - [x] 245-01-PLAN.md — SUP-04 (+ D-01 rewording): four-class SARIF classifier, hex.outdated dropped, retitling upsert, daily/push-triggered self-closing deps-health issue
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 245-02-PLAN.md — SUP-03: shared bin/deps-audit-tier tiering (directory role + post-fetch --only prod closure), tiered verify-deps-audit, self-test case (e), tier sections in the issue
+- [x] 245-02-PLAN.md — SUP-03: shared bin/deps-audit-tier tiering (directory role + post-fetch --only prod closure), tiered verify-deps-audit, self-test case (e), tier sections in the issue
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 245-03-PLAN.md — SUP-02: one atomic commit SHA-pinning all 79 refs, setup-node from .tool-versions, pin contract, {action, major} runtime allowlist
@@ -136,7 +136,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
-| 245. Supply chain | 1/5 | In Progress | - |
+| 245. Supply chain | 2/5 | In Progress | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
 
