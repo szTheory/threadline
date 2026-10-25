@@ -662,7 +662,7 @@ Dependabot *alerts* are a separate repository setting the maintainer controls
 independently of this policy.
 
 Every pull request runs the required `verify-deps-audit` job (`mix
-verify.deps_audit`): it asserts Hex 2.5.1 or newer, fetches with `mix
+verify.deps_audit`): it asserts Hex 2.6.0 or newer, fetches with `mix
 deps.get --check-locked`, runs `mix deps.unlock --check-unused`, and runs
 `mix hex.audit` over all three lockfiles above. `--check-locked` means the
 lock actually audited is the one committed to the repo: a `mix.lock` that no
@@ -712,6 +712,43 @@ This section is not documentation-on-trust:
 label and the three lockfile paths from `.github/workflows/deps-health.yml`
 and `bin/deps-health-report`, and fails if this section drops one.
 
+### Why Hex is pinned in CI
+
+The same `mix.lock` can pass under one Hex version and fail under another,
+so CI and contributors run one Hex version, chosen on purpose.
+
+What happened: the 1.1.0 landing PR's `Dependency audit (Mix lockfiles)` job
+failed in run 40028641095 with `Your mix.lock is out of date and must be
+updated without the --check-locked flag` in all three lock directories.
+Commit a3301bed had written plug_crypto 2.2.1's build-manager list as `[]`;
+commit f7fdcaca restored `[:mix]` (what hex.pm lists for that release). CI
+had floated to Hex 2.6.0, published 2026-10-23T11:57Z, about ten hours
+earlier, while maintainers ran Hex 2.5.1. An isolated reproduction showed
+Hex 2.5.1 accepts the `[]` lock and Hex 2.6.0 rejects it, so version drift
+explains why the defect surfaced only in CI. What wrote `[]` was not
+reproduced: neither version writes it through `deps.get` or `deps.update`,
+so it is presumed a hand or tool edit of the lock.
+
+The rule:
+
+- Every workflow's `erlef/setup-beam` step sets `install-hex: false`, and
+  the next step installs exactly `mix local.hex 2.6.0 --force`, retried
+  (through `bin/retry-network`, or an inline bounded retry where `bin/` is
+  not checked out yet).
+- `MIN_HEX` in `bin/verify-deps-audit` equals that pin, so a local run
+  refuses a Hex that would judge the lock differently from CI.
+- `test/threadline/hex_pin_contract_test.exs` enforces both. A Hex bump
+  changes `MIN_HEX` and every workflow pin in one commit.
+
+If `mix verify.deps_audit` tells you `requires Hex >= 2.6.0`, upgrade with:
+
+```bash
+mix local.hex 2.6.0 --force
+```
+
+This replaces the Hex archive in your Mix home, so it applies to every
+project on the machine (`mix local.hex 2.5.1 --force` reverses it).
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
@@ -729,7 +766,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
-| `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
+| `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.6.0 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
 | `verify-repo-hygiene` | `bin/verify-repo-hygiene` (also `mix verify.repo_hygiene` in `ci.all`): scans tracked text files only for machine-local paths (user homes, home-relative paths, macOS temp roots) against the scoped, reason-carrying `.github/repo-hygiene-allowlist.tsv`, and fails on any unused allowlist entry; then `bin/verify-repo-hygiene --self-test` proves it goes red on runtime-built fixtures |
 
 ### Removed CI proofs and what still catches them
