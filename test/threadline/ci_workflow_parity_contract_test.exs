@@ -346,6 +346,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
            "          version-type: strict\n",
            "          version-type: strict\n          rebar3-version: ${{ matrix.rebar3 }}\n"
          )},
+        {"install-hex left on (only `install-hex: false` is admitted)",
+         String.replace(job, "          install-hex: false\n", "          install-hex: true\n")},
+        {"extra unknown input beside install-hex",
+         String.replace(
+           job,
+           "          install-hex: false\n",
+           "          install-hex: false\n          install-rebar: false\n"
+         )},
         {"literal OTP input instead of the matrix value",
          String.replace(job, "otp-version: ${{ matrix.otp }}", ~s(otp-version: "26"))},
         {"legacy matrix-value deps key",
