@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Per-PR supply-chain gate (SUP-02): asserts a minimum Hex client version, then
-# runs `mix deps.get --check-locked` + `mix deps.unlock --check-unused` +
-# `mix hex.audit` over every lockfile this repository maintains (root, bench,
-# examples/threadline_phoenix), in that fixed order. `--check-locked` means
+# runs `bin/verify-lock-hygiene` (REL-04, a static check that rejects an empty
+# build-manager list without fetching) + `mix deps.get --check-locked` +
+# `mix deps.unlock --check-unused` + `mix hex.audit` over every lockfile this
+# repository maintains (root, bench, examples/threadline_phoenix), in that
+# fixed order. `--check-locked` means
 # the lock actually audited is the one committed to the repo: if mix.lock no
 # longer matches mix.exs, `deps.get` fails that directory instead of silently
 # re-resolving and auditing a lock other than the one on disk. Aggregates
@@ -321,6 +323,20 @@ for d in "${DIRS[@]}"; do
   if [ ! -d "$resolved" ] || [ ! -f "$resolved/mix.exs" ] || [ ! -f "$resolved/mix.lock" ]; then
     FAILURES+=("FAIL $d: missing directory, mix.exs, or mix.lock at $resolved")
     continue
+  fi
+
+  # REL-04: a static lock check that never fetches, so a warm deps/ cannot
+  # hide an empty build-manager list that CI's cold fetch would reject. A
+  # failure here is recorded and the directory still runs its fetch and
+  # audit, so one run reports everything.
+  set +e
+  hygiene_output="$("$SCRIPT_DIR/verify-lock-hygiene" "$resolved/mix.lock" 2>&1)"
+  hygiene_status=$?
+  set -e
+
+  if [ "$hygiene_status" -ne 0 ]; then
+    printf '%s\n' "$hygiene_output"
+    FAILURES+=("FAIL $d: lock hygiene exited $hygiene_status (an empty build-manager list in mix.lock passes against a warm deps/ and fails CI's cold fetch; see the lines above)")
   fi
 
   # REL-03: bin/retry-network retries a transient fetch failure with backoff
