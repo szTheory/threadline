@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 245
 current_phase_name: Supply chain
-status: executing
-stopped_at: Completed 245-04-PLAN.md
-last_updated: "2026-10-25T19:50:46.162Z"
+status: verifying
+stopped_at: Completed 245-05-PLAN.md
+last_updated: "2026-10-25T20:38:14.986Z"
 last_activity: 2026-10-25
-last_activity_desc: 245-04 complete (SUP-02 D-14b action pin provenance in deps-health)
-state_head: e29ba71f47506e45f562204b4264348c30e2d028
+last_activity_desc: 245-05 complete (SUP-01 grouped monthly Dependabot for actions + phase gate green)
+state_head: 20d7bec0aa2f58fddde201371f8540e0e2d172d5
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
   percent: 25
 milestone_name: Release on autopilot
 ---
@@ -31,9 +31,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 Phase: 245 (Supply chain) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-10-25 — 245-04 complete (SUP-02 D-14b: bin/verify-action-pins fail-closed pin-to-tag provenance check with 20-row fake-gh table test, live run 8/8 pins match; wired into bin/deps-health-report via VERIFY_ACTION_PINS_BIN, a mismatch is unknown with `## Action pin provenance` on top; deps-health report step GH_TOKEN; CONTRIBUTING + doc contract; a36716cd, e29ba71f; full mix test 3409/0); next 245-05. Prior: 245-03 complete (SUP-02 one atomic commit b7b80289: 79 action refs SHA-pinned with exact-tag comments, setup-node from .tool-versions, ci_action_pin_contract_test PIN-*/NODE-* rules with mutation controls, {action, major} runtime allowlist, release.yml RELEASE_SHA env; full mix test 3381/0; sha_pinning_required is a maintainer action after landing). Prior: 245-02 complete (SUP-03 tiered verify-deps-audit + deps-health tier sections + CONTRIBUTING D-16 policy; c173c9bf, 4db7b364, 948b5b15, ad10eb47). Prior: 245-01 complete (SUP-04 four-class self-closing deps-health lane + D-01 rewording; 657aa51a, b2b152a1, 4b416714). Phase 245 executing sequentially on the main tree, 5 plans in 5 serialized waves. Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 review advisories R2-WR-01..03 / R2-IN-01..04 (R2-IN-01 folded into 245-02); REL-02 observed run, REL-01 live release PR and A3 matrix lanes deferred to landing
-Progress: [███░░░░░░░] 1 of 4 v1.47 phases complete (25%); 10/10 Phase 244 plans complete; Phase 245 4/5 plans complete (later phases TBD)
+Status: Phase complete — ready for verification
+Last activity: 2026-10-25 — 245-05 complete (SUP-01: .github/dependabot.yml github-actions only, monthly, 7-day cooldown, one group, ci(deps) prefix; dependabot_config_contract_test 13 rules with mutation controls; D-06 doc guards flipped (supersedes v1.43 T-215-19) + D-07 merge policy in CONTRIBUTING; 450c5cc3, 20d7bec0; phase gate CI=true mix ci.all on ephemeral postgres:16 green on re-run (run 1 red on unrelated TriggerRerunPropertyTest flake, not reproducible, logged in deferred-items.md); next verify phase 245. Prior: 245-04 complete (SUP-02 D-14b: bin/verify-action-pins fail-closed pin-to-tag provenance check with 20-row fake-gh table test, live run 8/8 pins match; wired into bin/deps-health-report via VERIFY_ACTION_PINS_BIN, a mismatch is unknown with `## Action pin provenance` on top; deps-health report step GH_TOKEN; CONTRIBUTING + doc contract; a36716cd, e29ba71f; full mix test 3409/0); next 245-05. Prior: 245-03 complete (SUP-02 one atomic commit b7b80289: 79 action refs SHA-pinned with exact-tag comments, setup-node from .tool-versions, ci_action_pin_contract_test PIN-*/NODE-* rules with mutation controls, {action, major} runtime allowlist, release.yml RELEASE_SHA env; full mix test 3381/0; sha_pinning_required is a maintainer action after landing). Prior: 245-02 complete (SUP-03 tiered verify-deps-audit + deps-health tier sections + CONTRIBUTING D-16 policy; c173c9bf, 4db7b364, 948b5b15, ad10eb47). Prior: 245-01 complete (SUP-04 four-class self-closing deps-health lane + D-01 rewording; 657aa51a, b2b152a1, 4b416714). Phase 245 executing sequentially on the main tree, 5 plans in 5 serialized waves. Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 review advisories R2-WR-01..03 / R2-IN-01..04 (R2-IN-01 folded into 245-02); REL-02 observed run, REL-01 live release PR and A3 matrix lanes deferred to landing
+Progress: [███░░░░░░░] 1 of 4 v1.47 phases complete (25%); 10/10 Phase 244 plans complete; Phase 245 5/5 plans complete, awaiting verification (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -318,6 +318,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 245 P02 | 18min | 3 tasks | 8 files |
 | Phase 245 P03 | 45min | 3 tasks | 16 files |
 | Phase 245 P04 | 50min | 2 tasks | 8 files |
+| Phase 245 P05 | 75min | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1136,6 +1137,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 245]: 245-03: action pins keyed {action, major} from the # vX.Y.Z comment; pin contract parity-checks parsed YAML vs raw lines
 - [Phase 245]: verify-action-pins fails closed and counts distinct (repo, tag, sha) triples; 8 today
 - [Phase 245]: Pin provenance is an independent unknown source in deps-health; a suppression does not skip it and a finding still outranks it
+- [Phase 245]: D-06 supersedes v1.43 T-215-19: .github/dependabot.yml now exists (github-actions only, grouped monthly, 7-day cooldown, ci(deps) prefix)
 
 ### Blockers
 
@@ -1156,8 +1158,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T19:50:46.043Z
-**Stopped at:** Completed 245-04-PLAN.md
+**Last session:** 2026-10-25T20:38:14.822Z
+**Stopped at:** Completed 245-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
