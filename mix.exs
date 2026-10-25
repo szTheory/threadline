@@ -223,7 +223,10 @@ defmodule Threadline.MixProject do
       # examples/threadline_phoenix (test/threadline/operator_surface/stress_router_test.exs)
       # and cannot boot that router without them. Everything else the suite needs —
       # creating and migrating the test database — test/test_helper.exs already does.
-      "test.setup": ["cmd --cd examples/threadline_phoenix mix deps.get", "test"],
+      "test.setup": [
+        "cmd --cd examples/threadline_phoenix #{retry_network()} mix deps.get",
+        "test"
+      ],
       # Restore a recreate-by-default posture. Threadline's effective
       # default is --keepdb with NO staleness check, which is exactly how a database
       # predating the storage-schema migration produced ~81 misleading failures. Only the
@@ -267,9 +270,27 @@ defmodule Threadline.MixProject do
     ]
   end
 
+  # REL-03: the absolute path of bin/retry-network, for the nested `mix deps.get`
+  # calls below. Absolute because each alias `cd`s before fetching; refused if it
+  # holds whitespace or a quote, since it is interpolated into `bash -lc '...'`
+  # scripts. test/threadline/retry_network_contract_test.exs pins every nested
+  # fetch behind it and every test tail outside it.
+  defp retry_network do
+    path = Path.join(__DIR__, "bin/retry-network")
+
+    if String.match?(path, ~r/[\s'"`\\]/) do
+      Mix.raise(
+        "the checkout path #{inspect(path)} contains whitespace or a quote; " <>
+          "bin/retry-network cannot be interpolated into a shell command"
+      )
+    end
+
+    path
+  end
+
   defp verify_bench(_args) do
     cmd =
-      "bash -lc 'set -euo pipefail && cd bench && mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs && MIX_ENV=test mix run pk_capture_bench.exs'"
+      "bash -lc 'set -euo pipefail && cd bench && #{retry_network()} mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs && MIX_ENV=test mix run pk_capture_bench.exs'"
 
     case Mix.shell().cmd(cmd) do
       0 -> :ok
@@ -282,7 +303,7 @@ defmodule Threadline.MixProject do
     # `MIX_ENV=test mix ci.all` — the point is proving bare `mix compile` works via
     # bench/mix.exs's own `preferred_envs`, not whatever the parent shell exports.
     cmd =
-      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && mix deps.get && mix compile --warnings-as-errors'"
+      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && #{retry_network()} mix deps.get && mix compile --warnings-as-errors'"
 
     case Mix.shell().cmd(cmd) do
       0 -> :ok
@@ -340,9 +361,11 @@ defmodule Threadline.MixProject do
   end
 
   defp verify_example(_args) do
-    # Decline interactive Hex re-auth when nested `mix deps.get` runs without cached Hex token.
+    # Only the fetch retries (REL-03); compile and test never do. bin/retry-network
+    # answers `n` to the interactive Hex re-auth prompt a nested `mix deps.get` raises
+    # without a cached Hex token.
     cmd =
-      "bash -lc 'set -euo pipefail && cd examples/threadline_phoenix && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r ThreadlinePhoenix.Repo && mix test'"
+      "bash -lc 'set -euo pipefail && cd examples/threadline_phoenix && #{retry_network()} mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r ThreadlinePhoenix.Repo && mix test'"
 
     case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
       0 -> :ok
@@ -466,8 +489,11 @@ defmodule Threadline.MixProject do
     #     hexpm, so the run must NOT be wrapped.
     #
     # `mix verify.hex_evaluator` stays the single named entrypoint either way.
+    #
+    # Only the resolve retries a transient hex.pm blip (REL-03); the compile,
+    # ecto and test tail never does, so a flaky test cannot hide behind a retry.
     steps =
-      "printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
+      "#{retry_network()} mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
 
     # Rehearsal mode must re-resolve `:threadline` on EVERY run. The rehearsal
     # tarball's version does not change when the tree does, so a lock entry
