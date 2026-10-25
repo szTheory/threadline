@@ -22,7 +22,12 @@
 #   0  every lock is clean
 #   1  at least one `:hex` entry has an empty build-manager list
 #   2  usage error, missing or unreadable file, parse error, a top level that
-#      is not a map literal, or a malformed `:hex` entry (fail closed)
+#      is not a map literal, or a malformed `:hex` entry, including a
+#      non-literal name or a non-string version (fail closed)
+#
+# Every lock is checked before the status is chosen: each violation and each
+# malformed reason is printed, then the exit is 2 if any lock was malformed,
+# else 1 if any violation was found, else 0.
 #
 # bin/verify-deps-audit runs this on every audited directory before its fetch.
 
@@ -34,30 +39,47 @@ defmodule VerifyLockHygiene do
   end
 
   def main(paths) do
+    # Every lock is checked before the exit status is chosen, so a malformed
+    # lock later in the list cannot hide a violation found earlier (or the
+    # reverse). check/1 returns {:malformed, path, reason} instead of halting.
     results = Enum.map(paths, &check/1)
 
-    violations = Enum.flat_map(results, fn {_path, _count, violations} -> violations end)
-    total = Enum.reduce(results, 0, fn {_path, count, _}, acc -> acc + count end)
+    # A path is always a string, so only a malformed result has the atom tag.
+    {broken, clean} = Enum.split_with(results, &match?({:malformed, _path, _reason}, &1))
 
-    if violations == [] do
-      IO.puts("verify-lock-hygiene: #{length(paths)} lock(s), #{total} :hex entries clean")
-      System.halt(0)
-    else
-      Enum.each(violations, fn {path, name, version} ->
-        IO.puts(
-          "verify-lock-hygiene: FAIL #{path}: :hex entry #{name} #{version} " <>
-            "has an empty build-manager list ([])"
-        )
-      end)
+    violations = Enum.flat_map(clean, fn {_path, _count, violations} -> violations end)
+    total = Enum.reduce(clean, 0, fn {_path, count, _}, acc -> acc + count end)
 
+    Enum.each(violations, fn {path, name, version} ->
+      IO.puts(
+        "verify-lock-hygiene: FAIL #{path}: :hex entry #{name} #{version} " <>
+          "has an empty build-manager list ([])"
+      )
+    end)
+
+    if violations != [] do
       IO.puts(
         "verify-lock-hygiene: a fetch into a cold deps/ rewrites `[]` to the manager the " <>
           "package declares (for example `[:mix]`), so `deps.get --check-locked` fails in CI " <>
           "while a warm deps/ hides it locally. Fix: restore the manager list hex.pm records " <>
           "for that release (re-lock from an empty deps/)."
       )
+    end
 
-      System.halt(1)
+    Enum.each(broken, fn {:malformed, path, reason} ->
+      IO.puts(:stderr, "verify-lock-hygiene: #{path}: #{reason}")
+    end)
+
+    cond do
+      broken != [] ->
+        System.halt(2)
+
+      violations != [] ->
+        System.halt(1)
+
+      true ->
+        IO.puts("verify-lock-hygiene: #{length(paths)} lock(s), #{total} :hex entries clean")
+        System.halt(0)
     end
   end
 
@@ -73,6 +95,8 @@ defmodule VerifyLockHygiene do
     else
       text |> parse(path) |> entries(path) |> scan(path)
     end
+  catch
+    {:malformed, ^path, _reason} = malformed -> malformed
   end
 
   defp parse(text, path) do
@@ -100,7 +124,21 @@ defmodule VerifyLockHygiene do
       malformed(path, ":hex entry #{inspect(name)} has #{length(elems)} elements, expected at least 5")
     end
 
+    # Name and version reach the FAIL line through String.Chars, so anything
+    # other than an atom/string name or a string version is malformed: an AST
+    # there would crash the script with exit 1 instead of failing closed.
+    unless is_atom(name) or is_binary(name) do
+      malformed(path, ":hex entry has a non-literal name: #{Macro.to_string(name)}")
+    end
+
     version = Enum.at(elems, 2)
+
+    unless is_binary(version) do
+      malformed(
+        path,
+        ":hex entry #{inspect(name)} has a non-string version: #{Macro.to_string(version)}"
+      )
+    end
 
     case Enum.at(elems, 4) do
       [] ->
@@ -121,10 +159,9 @@ defmodule VerifyLockHygiene do
   defp hex_entry({_name, _value}, _path), do: :skip
   defp hex_entry(other, path), do: malformed(path, "not a key/value pair: #{Macro.to_string(other)}")
 
-  defp malformed(path, reason) do
-    IO.puts(:stderr, "verify-lock-hygiene: #{path}: #{reason}")
-    System.halt(2)
-  end
+  # Unwinds to check/1, which turns it into {:malformed, path, reason}; main/1
+  # reports it and exits 2 after every lock has been checked.
+  defp malformed(path, reason), do: throw({:malformed, path, reason})
 
   defp usage_error(message) do
     IO.puts(:stderr, "verify-lock-hygiene: #{message}")

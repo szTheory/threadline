@@ -662,7 +662,16 @@ defmodule Threadline.DepsAuditGateTest do
           {"a :hex entry with an atom manager slot",
            ~s(%{\n  "x": {:hex, :x, "1.0.0", "abc", :mix, [], "hexpm", "def"},\n}\n)},
           {"a :hex entry with too few elements", ~s(%{\n  "x": {:hex, :x, "1.0.0"},\n}\n)},
-          {"a two-element :hex entry", ~s(%{\n  "x": {:hex, :x},\n}\n)}
+          {"a two-element :hex entry", ~s(%{\n  "x": {:hex, :x},\n}\n)},
+          # R2-WR-02: a non-string version (or name) used to reach String.Chars
+          # in the FAIL line and crash the script with exit 1, reporting a
+          # malformed lock as a hygiene violation.
+          {"a :hex entry with [] managers and a non-string version",
+           ~s(%{\n  "x": {:hex, :x, {:a, :b}, "a", [], [], "hexpm", "b"},\n}\n)},
+          {"a :hex entry with [:mix] managers and a non-string version",
+           ~s(%{\n  "x": {:hex, :x, {:a, :b}, "a", [:mix], [], "hexpm", "b"},\n}\n)},
+          {"a :hex entry with [] managers and a non-literal name",
+           ~s(%{\n  {:a, :b} => {:hex, :x, "1.0.0", "a", [], [], "hexpm", "b"},\n}\n)}
         ] do
       test "#{label} fails closed (exit 2), naming the path" do
         root = tmp_root()
@@ -672,7 +681,35 @@ defmodule Threadline.DepsAuditGateTest do
 
         assert status == 2, out
         assert out =~ lock
+        refute out =~ "** (", "the hygiene check crashed instead of failing closed:\n#{out}"
       end
+    end
+
+    # R2-WR-02: every lock is checked before the exit status is chosen, so a
+    # malformed later lock cannot hide a violation in an earlier one.
+    test "a violation in the 1st lock is still reported when the 2nd lock is missing (exit 2)" do
+      root = tmp_root()
+      bad = write_lock(root, "a3301bed.lock", lock_text(@a3301bed_entry))
+      missing = Path.join(root, "absent.lock")
+
+      {out, status} = hygiene([bad, missing])
+
+      assert status == 2, out
+      assert out =~ "FAIL #{bad}"
+      assert out =~ "plug_crypto 2.2.1 has an empty build-manager list"
+      assert out =~ missing
+    end
+
+    test "a missing 1st lock does not stop the 2nd lock's violation from being reported (exit 2)" do
+      root = tmp_root()
+      missing = Path.join(root, "absent.lock")
+      bad = write_lock(root, "a3301bed.lock", lock_text(@a3301bed_entry))
+
+      {out, status} = hygiene([missing, bad])
+
+      assert status == 2, out
+      assert out =~ missing
+      assert out =~ "FAIL #{bad}"
     end
 
     test "a missing file fails closed (exit 2), naming the path" do
