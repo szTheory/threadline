@@ -21,7 +21,6 @@ defmodule Threadline.MixProject do
         # fails with `Could not load Threadline.Test.Repo, error: :nofile`.
         "test.reset": :test,
         "test.setup": :test,
-        "verify.mechanical": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
         "verify.example": :test,
@@ -161,12 +160,6 @@ defmodule Threadline.MixProject do
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.operator_stress": &verify_operator_stress/1,
-      # Deterministic mechanical gate. Pure-Elixir arithmetic over
-      # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
-      # violation or MODE-B ratchet regression blocks the change. A focused maintainer
-      # command: its test file already runs in `verify.test` (and so in ci.all and in
-      # the verify-test CI job), which keeps ci.all from running it twice.
-      "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
@@ -499,7 +492,7 @@ defmodule Threadline.MixProject do
       files:
         ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
       # Maintainer-only tooling must never cross into the published package.
-      # The stress and mechanical harness and the release pin rewriter are
+      # The stress harness and the release pin rewriter are
       # repository instruments with no meaning inside a host application, and a
       # shipped maintainer task would appear in every adopter's `mix help`. Expressed as patterns rather than by converting `files:`
       # into a file-granular enumeration of `lib/`, because an allowlist of
@@ -510,7 +503,6 @@ defmodule Threadline.MixProject do
       exclude_patterns: [
         ~r{^lib/mix/tasks/release\.pins\.ex$},
         ~r{^lib/threadline/operator_surface/live/stress_live(\.ex$|/)},
-        ~r{^lib/threadline/operator_surface/mechanical_checker(\.ex$|/)},
         ~r{^lib/threadline/operator_surface/stress_fixtures\.ex$},
         ~r{^lib/threadline/operator_surface/stress_router\.ex$}
       ]
