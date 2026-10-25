@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Completed 244-01-PLAN.md
-last_updated: "2026-10-25T13:48:21.138Z"
+stopped_at: Completed 244-02-PLAN.md
+last_updated: "2026-10-25T13:54:20.778Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-01 complete (changelog dating + always-update)
-state_head: 7b60aab8954b62885571ef656bb5fa783406ddc1
+last_activity_desc: Plan 244-02 complete (rehearsal runs the real rename script; release-flow docs)
+state_head: 8da12920dc82c7a226d705508b950df5a7ec177b
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 1
-  percent: 14
+  completed_plans: 2
+  percent: 29
 milestone_name: Release on autopilot
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 244 (Release flow) — EXECUTING
-Plan: 1 of 7 complete (244-02 next)
+Plan: 2 of 7 complete (244-03 next)
 Status: Executing Phase 244
-Last activity: 2026-10-25 — Plan 244-01 complete (bin/date-release-changelog in the sync job, always-update)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 1/7 Phase 244 plans complete (later phases TBD)
+Last activity: 2026-10-25 — Plan 244-02 complete (rehearsal runs bin/date-release-changelog in release order; CONTRIBUTING/CHANGELOG/workflow docs)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 2/7 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -305,6 +305,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 243 P03 | 17min | 2 tasks | 4 files |
 | Phase 243 P4 | 4h 26m | 3 tasks | 7 files |
 | Phase 244 P01 | 25min | 2 tasks | 6 files |
+| Phase 244 P02 | 15min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1102,6 +1103,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 243]: Preserved :could_not_introspect while using plain-language rendered copy, and used existing spacing tokens for bounded fixes.
 - [Phase 244]: date-release-changelog runs in sync-release-pr-pins after mix release.pins --check and stages CHANGELOG.md; em dash as \x{2014} under perl -CSD
 - [Phase 244]: release-please-config.json always-update: true regenerates the stale release PR with the PAT (A1 observed run deferred to 244-07)
+- [Phase 244]: 244-02: rehearsal seeds stand-in prose only when Unreleased is placeholder-only, then dates via the real bin/date-release-changelog after the generated-changelog simulation
 
 ### Blockers
 
@@ -1122,8 +1124,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T13:48:21.108Z
-**Stopped at:** Completed 244-01-PLAN.md
+**Last session:** 2026-10-25T13:54:20.748Z
+**Stopped at:** Completed 244-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
