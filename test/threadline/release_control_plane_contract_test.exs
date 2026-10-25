@@ -539,10 +539,6 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     date_steps =
       sync |> job_steps() |> Enum.filter(&(run_scripts(&1) == "bin/date-release-changelog"))
 
-    date_at = position(sync, "run: bin/date-release-changelog\n")
-    check_at = position(sync, "run: mix release.pins --check\n")
-    add_at = position(sync, "git add --")
-
     staged =
       case Regex.run(~r/^\s*git add -- (.*?)\s*$/m, sync) do
         [_, paths] -> String.split(paths)
@@ -553,8 +549,11 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
        {length(date_steps) == 1,
         "rule=date-step: sync-release-pr-pins must carry exactly one step whose run is " <>
           "`bin/date-release-changelog` (found #{length(date_steps)})"},
-       {date_at != nil and check_at != nil and add_at != nil and check_at < date_at and
-          date_at < add_at,
+       {in_order?(sync, [
+          "run: mix release.pins --check\n",
+          "run: bin/date-release-changelog\n",
+          "git add --"
+        ]),
         "rule=date-order: the date step must run after `mix release.pins --check` and " <>
           "before the push step's `git add --` line"},
        {Enum.all?(["README.md", "guides/", "CHANGELOG.md"], &(&1 in staged)),
@@ -562,7 +561,7 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
           "and CHANGELOG.md (found #{inspect(staged)})"}
      ] ++
        for step <- date_steps do
-         {not (step =~ ~r/^\s+env:/m or step =~ "PUSH_TOKEN" or step =~ "secrets."),
+         {not Regex.match?(~r/^\s+env:|PUSH_TOKEN|secrets\./m, step),
           "rule=date-no-token: the date step must carry no env: and no token; PUSH_TOKEN is " <>
             "bound to the push step alone (T-244-02)"}
        end)
@@ -613,11 +612,17 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
 
   defp release_please_config, do: File.read!(Path.join(@root, "release-please-config.json"))
 
-  defp position(text, needle) do
-    case :binary.match(text, needle) do
-      {at, _len} -> at
-      :nomatch -> nil
-    end
+  # True when every needle occurs in `text`, first occurrences in the given order.
+  defp in_order?(text, needles) do
+    positions =
+      Enum.map(needles, fn needle ->
+        case :binary.match(text, needle) do
+          {at, _len} -> at
+          :nomatch -> nil
+        end
+      end)
+
+    nil not in positions and positions == Enum.sort(positions)
   end
 
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))
