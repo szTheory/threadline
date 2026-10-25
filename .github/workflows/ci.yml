@@ -105,6 +105,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # CACHE KEY CONTRACT (Phase 198 D-19, Phase 219 CACHE-01) — read before adding any cache.
       #
@@ -206,6 +210,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Install dependencies
         run: bin/retry-network mix deps.get
@@ -245,6 +253,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Ensure hex_evaluator_test database exists
         env:
@@ -294,6 +306,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Restore deps-only build cache
         id: build-restore
@@ -365,6 +381,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Cache deps
         uses: actions/cache@v5
@@ -420,6 +440,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # Deliberately NO `deps` cache here. The rehearsal fetches dependencies
       # inside its own throwaway clone, so this job's `deps/` directory is never
@@ -466,6 +490,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Cache deps
         uses: actions/cache@v5
@@ -668,6 +696,10 @@ jobs:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Restore deps-only build cache
         id: build-restore
@@ -847,6 +879,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - uses: actions/setup-node@v5
         with:
@@ -1006,6 +1042,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - uses: actions/setup-node@v5
         with:

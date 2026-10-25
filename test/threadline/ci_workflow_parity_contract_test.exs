@@ -3311,11 +3311,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # values, and only through exactly these inputs. Each matrix row sets either
   # `version-file` or the `otp`/`elixir` pins (see verify_test_matrix_errors/2);
   # an absent matrix key renders as an empty input, which setup-beam ignores.
+  # `install-hex: false` hands Hex to the pin step that follows (REL-04,
+  # hex_pin_contract_test.exs); no other input is admitted.
   @matrix_beam_inputs [
     "version-file: ${{ matrix.version-file }}",
     "otp-version: ${{ matrix.otp }}",
     "elixir-version: ${{ matrix.elixir }}",
-    "version-type: strict"
+    "version-type: strict",
+    "install-hex: false"
   ]
 
   defp matrix_setup_beam_errors(path, job_id, step) do
