@@ -120,11 +120,16 @@ defmodule Threadline.DepsAuditGateTest do
       done
       # FAKE_SARIF_<base>: `kind:package:id;...` (kind advisory, retired or
       # any other word; `raw:<fingerprint>` writes that fingerprint verbatim),
-      # or `__NOFILE__` (a registry failure: no file, exit 1) or
+      # or `__NOFILE__` (a registry failure: no file, exit 1), `__NOJSON__`
+      # (OTP below 27: no file, exit 1) or
       # `__MALFORMED__` (unparseable JSON, exit 1). FAKE_AUDIT_EXIT_<base>
       # overrides the exit status (default: 1 when any result exists).
       spec="$(knob FAKE_SARIF)"
       forced="$(knob FAKE_AUDIT_EXIT)"
+      if [ "$spec" = "__NOJSON__" ]; then
+        printf '** (Mix) SARIF output requires OTP 27+: the :json module is not available\n'
+        exit 1
+      fi
       if [ "$spec" = "__NOFILE__" ]; then
         printf 'Failed to fetch record for plug from registry\n'
         exit 1
@@ -859,5 +864,421 @@ defmodule Threadline.DepsAuditGateTest do
       assert status == 0, out
       assert out =~ "verify-lock-hygiene: 1 lock(s), 0 :hex entries clean"
     end
+  end
+
+  describe "SUP-03 tiered findings (D-23)" do
+    @tier_scripts ["verify-deps-audit", "deps-audit-tier", "retry-network", "verify-lock-hygiene"]
+
+    # PATTERNS hazard 4: the gate decides a directory's role only from its
+    # resolved path, with no seam. Cases 5 and 6 therefore run a copy of the
+    # bin/ scripts inside a temp root, so the literal `bench` and
+    # `examples/threadline_phoenix` arguments resolve to `<root>/bench` and
+    # `<root>/examples/threadline_phoenix`, exactly as in the real tree.
+    defp copied_bin_root do
+      root = tmp_root()
+      bin = Path.join(root, "bin")
+      File.mkdir_p!(bin)
+
+      for script <- @tier_scripts do
+        dest = Path.join(bin, script)
+        File.cp!(Path.join([@real_root, "bin", script]), dest)
+        File.chmod!(dest, 0o755)
+      end
+
+      File.write!(Path.join(root, "mix.exs"), "")
+      File.write!(Path.join(root, "mix.lock"), "")
+      project_dir(root, "bench")
+      project_dir(Path.join(root, "examples"), "threadline_phoenix")
+      root
+    end
+
+    defp run_copied(root, args, env) do
+      mix = fake_mix(root)
+      log = call_log(root)
+
+      base_env = [
+        {"MIX_BIN", mix},
+        {"CALL_LOG", log},
+        {"FAKE_HEX_INFO", "Hex:    2.6.0"},
+        {"FAKE_FAIL", ""},
+        {"HEX_IGNORE_ADVISORIES", ""},
+        {"HEX_IGNORE_RETIREMENTS", ""},
+        {"RETRY_NETWORK_BASE_DELAY", "0"}
+      ]
+
+      full_env =
+        Enum.reduce(env, base_env, fn {k, v}, acc ->
+          [{k, v} | Enum.reject(acc, fn {ek, _} -> ek == k end)]
+        end)
+
+      {out, status} =
+        System.cmd(Path.join([root, "bin", "verify-deps-audit"]), args,
+          env: full_env,
+          cd: root,
+          stderr_to_stdout: true
+        )
+
+      {out, status, File.read!(log)}
+    end
+
+    for {label, pkg, tree} <- [
+          {"case 1: root plug", "plug", "plug,plug_crypto,telemetry"},
+          {"case 2: root transitive plug_crypto", "plug_crypto", "plug,plug_crypto,telemetry"},
+          {"case 3: root optional oban", "oban", "ecto,oban,telemetry"}
+        ] do
+      test "#{label} advisory in the runtime closure blocks (exit 1, tier=blocking)" do
+        root = tmp_root()
+        d1 = project_dir(root, "one")
+        pkg = unquote(pkg)
+
+        {out, status, _log} =
+          run(
+            [d1],
+            [
+              {"FAKE_TREE_one", unquote(tree)},
+              {"FAKE_SARIF_one", "advisory:#{pkg}:EEF-CVE-2026-0001"}
+            ],
+            root
+          )
+
+        assert status == 1, out
+
+        assert out =~
+                 "deps-audit-finding tier=blocking dir=#{d1} kind=advisory package=#{pkg} id=EEF-CVE-2026-0001"
+
+        assert out =~ "FAIL #{d1}: blocking advisory #{pkg} EEF-CVE-2026-0001"
+        assert out =~ "#{pkg} is in the shipped runtime closure"
+      end
+    end
+
+    test "case 4: a root dev-only ex_doc advisory is non-blocking (exit 0, ::warning::)" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, _log} =
+        run(
+          [d1],
+          [
+            {"FAKE_TREE_one", "plug,telemetry"},
+            {"FAKE_SARIF_one", "advisory:ex_doc:EEF-CVE-2026-0002"}
+          ],
+          root
+        )
+
+      assert status == 0, out
+
+      assert out =~
+               "deps-audit-finding tier=non-blocking dir=#{d1} kind=advisory package=ex_doc id=EEF-CVE-2026-0002"
+
+      assert out =~ "::warning::ex_doc is not in the --only prod closure of #{d1}; dev/test only"
+      refute out =~ "FAIL "
+      assert out =~ "1 lockfile(s) audit clean (Hex 2.6.0; 1 non-blocking finding(s))"
+    end
+
+    test "case 5: a bench benchee advisory is non-blocking, and bench never reads a closure" do
+      root = copied_bin_root()
+
+      {out, status, log} =
+        run_copied(root, ["bench"], [{"FAKE_SARIF_bench", "advisory:benchee:EEF-CVE-2026-0003"}])
+
+      assert status == 0, out
+
+      assert out =~
+               "deps-audit-finding tier=non-blocking dir=bench kind=advisory package=benchee id=EEF-CVE-2026-0003"
+
+      assert out =~ "benchee is only in bench/mix.lock; not shipped in the Hex package"
+      refute log =~ "deps.tree"
+    end
+
+    test "case 6: an example plug advisory is non-blocking even with plug in that dir's tree" do
+      root = copied_bin_root()
+
+      {out, status, _log} =
+        run_copied(root, ["examples/threadline_phoenix"], [
+          {"FAKE_TREE_threadline_phoenix", "plug,telemetry"},
+          {"FAKE_SARIF_threadline_phoenix", "advisory:plug:EEF-CVE-2026-54892"}
+        ])
+
+      assert status == 0, out
+
+      assert out =~
+               "deps-audit-finding tier=non-blocking dir=examples/threadline_phoenix kind=advisory package=plug id=EEF-CVE-2026-54892"
+
+      assert out =~ "plug is only in examples/threadline_phoenix/mix.lock"
+    end
+
+    test "control for cases 5/6: the copied root `.` still uses the closure rule and blocks" do
+      root = copied_bin_root()
+
+      {out, status, _log} =
+        run_copied(root, ["."], [
+          {"FAKE_TREE_" <> Path.basename(root), "plug"},
+          {"FAKE_SARIF_" <> Path.basename(root), "advisory:plug:EEF-CVE-2026-54892"}
+        ])
+
+      assert status == 1, out
+      assert out =~ "deps-audit-finding tier=blocking dir=. kind=advisory package=plug"
+      assert out =~ "plug is in the shipped runtime closure (root mix.lock)"
+    end
+
+    test "case 7: a retirement of a closure package blocks with the SARIF ruleId as id" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, _log} =
+        run([d1], [{"FAKE_TREE_one", "plug"}, {"FAKE_SARIF_one", "retired:plug:HEX0002"}], root)
+
+      assert status == 1, out
+
+      assert out =~
+               "deps-audit-finding tier=blocking dir=#{d1} kind=retirement package=plug id=HEX0002"
+
+      assert out =~ "FAIL #{d1}: blocking retirement plug HEX0002"
+    end
+
+    test "case 7: a retirement of a dev-only package is non-blocking" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, _log} =
+        run([d1], [{"FAKE_TREE_one", "plug"}, {"FAKE_SARIF_one", "retired:credo:HEX0001"}], root)
+
+      assert status == 0, out
+
+      assert out =~
+               "deps-audit-finding tier=non-blocking dir=#{d1} kind=retirement package=credo id=HEX0001"
+    end
+
+    for {label, env, text} <- [
+          {"no SARIF file (registry failure)", [{"FAKE_SARIF_one", "__NOFILE__"}],
+           "SARIF output missing"},
+          {"a non-zero exit with zero results", [{"FAKE_AUDIT_EXIT_one", "1"}],
+           "hex.audit exited 1 with no SARIF results"},
+          {"malformed SARIF JSON", [{"FAKE_SARIF_one", "__MALFORMED__"}],
+           "SARIF output unparseable"},
+          {"exit 0 with results",
+           [{"FAKE_SARIF_one", "advisory:ex_doc:EEF-X"}, {"FAKE_AUDIT_EXIT_one", "0"}],
+           "hex.audit exited 0 with findings (unclassifiable)"},
+          {"an unparseable fingerprint", [{"FAKE_SARIF_one", "raw:advisory:hexpm"}],
+           "unparseable fingerprint"},
+          {"a denied finding kind", [{"FAKE_SARIF_one", "denied:plug:HEX0005"}],
+           "unknown finding kind denied"},
+          {"OTP below 27", [{"FAKE_SARIF_one", "__NOJSON__"}], "SARIF needs OTP 27+"}
+        ] do
+      test "case 8 (D-19): #{label} is its own FAIL line (exit 1)" do
+        root = tmp_root()
+        d1 = project_dir(root, "one")
+
+        {out, status, _log} = run([d1], [{"FAKE_TREE_one", "plug"} | unquote(env)], root)
+
+        assert status == 1, out
+        assert out =~ "FAIL #{d1}: #{unquote(text)}"
+        refute out =~ "audit clean"
+      end
+    end
+
+    test "case 9: a failing deps.tree is a FAIL line and the audit is not trusted" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, log} = run([d1], [{"FAKE_FAIL", "one:deps.tree"}], root)
+
+      assert status == 1, out
+      assert out =~ "FAIL #{d1}: deps.tree --only prod exited 1"
+      refute log =~ "hex.audit"
+    end
+
+    test "case 9: an empty closure in a closure-rule directory is a FAIL line" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, log} = run([d1], [{"FAKE_TREE_one", "__EMPTY__"}], root)
+
+      assert status == 1, out
+      assert out =~ "FAIL #{d1}: empty runtime closure"
+      refute log =~ "hex.audit"
+    end
+
+    test "deps.tree runs only after that dir's successful --check-locked fetch" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      d2 = project_dir(root, "two")
+
+      {_out, status, log} = run([d1, d2], [{"FAKE_LOCK_DRIFT", "one"}], root)
+
+      assert status == 1
+      refute log =~ "#{d1}|deps.tree"
+      assert log =~ "#{d2}|deps.tree"
+    end
+
+    test "case 10: a non-blocking finding plus bench lock drift still exits 1 (D-20)" do
+      root = copied_bin_root()
+      base = Path.basename(root)
+
+      {out, status, _log} =
+        run_copied(root, [".", "bench"], [
+          {"FAKE_TREE_" <> base, "plug"},
+          {"FAKE_SARIF_" <> base, "advisory:ex_doc:EEF-CVE-2026-0002"},
+          {"FAKE_LOCK_DRIFT", "bench"}
+        ])
+
+      assert status == 1, out
+      assert out =~ "deps-audit-finding tier=non-blocking dir=. kind=advisory package=ex_doc"
+      assert out =~ "FAIL bench: deps.get --check-locked exited 1"
+    end
+
+    test "case 11: a clean run reports the non-blocking finding count" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, status, _log} =
+        run(
+          [d1],
+          [
+            {"FAKE_TREE_one", "plug"},
+            {"FAKE_SARIF_one", "advisory:ex_doc:EEF-CVE-2026-0002;retired:credo:HEX0001"}
+          ],
+          root
+        )
+
+      assert status == 0, out
+
+      assert out =~
+               "verify-deps-audit: 1 lockfile(s) audit clean (Hex 2.6.0; 2 non-blocking finding(s))"
+    end
+
+    test "a clean run with no findings reports 0 non-blocking findings" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, 0, _log} = run([d1], [], root)
+
+      assert out =~ "1 lockfile(s) audit clean (Hex 2.6.0; 0 non-blocking finding(s))"
+    end
+
+    test "GITHUB_STEP_SUMMARY gains one table row per finding with tier and reason" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      summary = Path.join(root, "step_summary.md")
+      File.write!(summary, "prior content\n")
+
+      {_out, 1, _log} =
+        run(
+          [d1],
+          [
+            {"FAKE_TREE_one", "plug"},
+            {"FAKE_SARIF_one",
+             "advisory:plug:EEF-CVE-2026-54892;advisory:ex_doc:EEF-CVE-2026-0002"},
+            {"GITHUB_STEP_SUMMARY", summary}
+          ],
+          root
+        )
+
+      body = File.read!(summary)
+      assert body =~ "prior content\n"
+
+      assert length(Regex.scan(~r/^\| dir \| package \| kind \| id \| tier \| why \|$/m, body)) ==
+               1
+
+      assert body =~
+               "| #{d1} | plug | advisory | EEF-CVE-2026-54892 | blocking | plug is in the shipped runtime closure (#{d1}/mix.lock) |"
+
+      assert body =~
+               "| #{d1} | ex_doc | advisory | EEF-CVE-2026-0002 | non-blocking | ex_doc is not in the --only prod closure of #{d1}; dev/test only |"
+    end
+
+    test "every finding prints exactly one machine line" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      {out, _status, _log} =
+        run(
+          [d1],
+          [
+            {"FAKE_TREE_one", "plug"},
+            {"FAKE_SARIF_one", "advisory:plug:A;advisory:ex_doc:B;retired:credo:HEX0001"}
+          ],
+          root
+        )
+
+      assert length(Regex.scan(~r/^deps-audit-finding /m, out)) == 3
+    end
+  end
+
+  describe "lock hygiene FAIL reason (D-20, 244 R2-IN-01)" do
+    test "exit 1 names the empty build-manager list" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      File.write!(
+        Path.join(d1, "mix.lock"),
+        ~s(%{\n  "x": {:hex, :x, "1.0.0", "abc", [], [], "hexpm", "def"},\n}\n)
+      )
+
+      {out, 1, _log} = run([d1], [], root)
+
+      assert out =~ "FAIL #{d1}: lock hygiene exited 1 (an empty build-manager list"
+    end
+
+    test "exit 2 names usage, missing file, parse error or malformed entry" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      File.write!(Path.join(d1, "mix.lock"), "not a lock {")
+
+      {out, 1, _log} = run([d1], [], root)
+
+      assert out =~
+               "FAIL #{d1}: lock hygiene could not check mix.lock (usage, missing file, parse error or malformed entry; see the lines above)"
+
+      refute out =~ "empty build-manager list in mix.lock passes"
+    end
+  end
+
+  describe "live tree: the root --only prod runtime closure (D-23)" do
+    @dev_test_only ~w(credo dialyxir ex_doc lazy_html stream_data yaml_elixir)a
+
+    test "contains every root dep declared without only: and none of the dev/test tools" do
+      {out, status} =
+        System.cmd("mix", ["deps.tree", "--only", "prod", "--format", "plain"],
+          cd: @real_root,
+          stderr_to_stdout: true
+        )
+
+      assert status == 0, out
+
+      closure =
+        out
+        |> String.split("\n")
+        |> Enum.drop(1)
+        |> Enum.map(fn line ->
+          line |> String.replace(~r/^[|` -]*/, "") |> String.split(" ") |> hd()
+        end)
+        |> Enum.reject(&(&1 == ""))
+        |> MapSet.new()
+
+      assert MapSet.size(closure) > 0, out
+
+      runtime =
+        for dep <- Mix.Project.config()[:deps],
+            opts = dep_opts(dep),
+            not Keyword.has_key?(opts, :only),
+            do: dep |> elem(0) |> Atom.to_string()
+
+      assert runtime != []
+
+      for name <- runtime do
+        assert MapSet.member?(closure, name),
+               "#{name} (no only:) missing from the closure:\n#{out}"
+      end
+
+      for name <- @dev_test_only do
+        refute MapSet.member?(closure, Atom.to_string(name)),
+               "#{name} is dev/test only but appears in the --only prod closure"
+      end
+    end
+
+    defp dep_opts({_name, opts}) when is_list(opts), do: opts
+    defp dep_opts({_name, _req}), do: []
+    defp dep_opts({_name, _req, opts}) when is_list(opts), do: opts
   end
 end
