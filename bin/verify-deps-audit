@@ -60,7 +60,8 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
 # The floor is a literal, never environment-overridable. Bumping it is a
 # deliberate, reviewed edit to this file. It must equal the CI Hex pin
-# (`mix local.hex X.Y.Z --force`), enforced by hex_pin_contract_test.exs.
+# (`mix local.hex X.Y.Z --force`), enforced by hex_pin_contract_test.exs, so
+# local runs and CI use one Hex version (toolchain determinism).
 MIN_HEX="2.6.0"
 
 # --- Refuse the env-var bypass before any mix call ---------------------------

@@ -180,10 +180,10 @@ jobs:
           version-type: strict
           install-hex: false
 
-      # REL-04: setup-beam's own Hex install floats to the newest release, and a
-      # newer Hex can judge the same mix.lock differently (1.1.0: Hex 2.6.0
-      # rejected a lock 2.5.1 accepted). Pin one version, equal to MIN_HEX in
-      # bin/verify-deps-audit; hex_pin_contract_test.exs enforces both.
+      # REL-04: setup-beam's own Hex install floats to the newest release. Pin
+      # one version for toolchain determinism, equal to MIN_HEX in
+      # bin/verify-deps-audit; hex_pin_contract_test.exs enforces both. The
+      # 1.1.0 `[]` lock defect is caught by bin/verify-lock-hygiene, not this pin.
       - name: Pin Hex (CI and local must agree)
         run: bin/retry-network mix local.hex 2.6.0 --force
 
