@@ -1,22 +1,26 @@
 defmodule Threadline.DepsHealthReportTest do
   @moduledoc """
-  SUP-04: `bin/deps-health-report` is the weekly deps-health lane's
-  classification engine, extracted into a standalone script (the same idiom
-  as `bin/classify-flake-run`) so its behavior is unit-tested offline via a
-  fake `MIX_BIN`, rather than living as untested inline workflow shell.
+  SUP-04: `bin/deps-health-report` is the deps-health lane's classification
+  engine, extracted into a standalone script (the same idiom as
+  `bin/classify-flake-run`) so its behavior is unit-tested offline via a fake
+  `MIX_BIN`, rather than living as untested inline workflow shell.
 
-  Classification precedence (highest wins, across all three canonical
-  lockfile directories): `advisory` > `unknown` > `outdated` > `clean`. A real
-  advisory anywhere in the fan-out always outranks a fetch failure elsewhere
-  (Threat T-215-17: an advisory must never be silently swallowed by an
-  unrelated `unknown`).
+  Classification precedence (D-25, highest wins, across all three canonical
+  lockfile directories): `advisory` > `retirement` > `unknown` > `clean`. A
+  confirmed finding anywhere in the fan-out always outranks an unrelated
+  `unknown` elsewhere (Threat T-215-17), and `unknown` never reads as `clean`.
+  Findings come only from Hex 2.6.0 SARIF fixtures under
+  `test/fixtures/deps_audit/sarif/`, which the fake `hex.audit` copies to the
+  `--output` path per directory (`FAKE_SARIF_ROOT`, `FAKE_SARIF_BENCH`,
+  `FAKE_SARIF_EXAMPLE`). The fake `hex.outdated` exits 1 by default: the
+  classifier must never run it (D-24).
 
-  Tests 1-8 drive the script directly through a fake `mix` binary (the
-  `MIX_BIN` seam, same pattern as `bin/verify-deps-audit`'s own tests) —
-  fully offline, no network, no real Hex call. Tests 9-13 assert the
+  The classification tests drive the script directly through a fake `mix`
+  binary (the `MIX_BIN` seam, same pattern as `bin/verify-deps-audit`'s own
+  tests), fully offline. The workflow tests assert the
   `.github/workflows/deps-health.yml` shape that wires this script to a
-  single `ci-deps` issue upsert, so the script and the workflow that calls it
-  cannot drift apart.
+  single `ci-deps` issue lifecycle, so the script and the workflow that calls
+  it cannot drift apart.
   """
 
   use ExUnit.Case, async: true
@@ -62,6 +66,7 @@ defmodule Threadline.DepsHealthReportTest do
         if [ -n "${FAKE_MIX_STDIN_LOG:-}" ]; then
           cat >> "$FAKE_MIX_STDIN_LOG"
         fi
+        if should_match "${FAKE_HUGE:-}"; then emit_huge; fi
         if should_match "${FAKE_LOCK_DRIFT:-}"; then
           case " $* " in
             *" --check-locked "*)
@@ -74,7 +79,7 @@ defmodule Threadline.DepsHealthReportTest do
           echo "deps.get failed for $REL"
           exit 1
         fi
-        if should_match "${FAKE_HUGE:-}"; then emit_huge; fi
+        echo "deps.get ok for $REL"
         exit 0
         ;;
       hex.audit)
@@ -100,6 +105,8 @@ defmodule Threadline.DepsHealthReportTest do
         if [ -n "$sarif_out" ]; then
           cp "${FAKE_SARIF_DIR:?FAKE_SARIF_DIR must be set}/$fixture" "$sarif_out"
         fi
+        if should_match "${FAKE_AUDIT_FORCE_NONZERO:-}"; then exit 1; fi
+        if should_match "${FAKE_AUDIT_FORCE_ZERO:-}"; then exit 0; fi
         if [ "$fixture" = "clean.json" ]; then
           echo "No retired or security advisory packages found"
           exit 0
@@ -108,13 +115,10 @@ defmodule Threadline.DepsHealthReportTest do
         exit 1
         ;;
       hex.outdated)
-        if should_match "${FAKE_HUGE:-}"; then emit_huge; fi
-        if should_match "${FAKE_FAIL_HEX_OUTDATED:-}"; then
-          echo "some outdated packages for $REL"
-          exit 1
-        fi
-        echo "All dependencies up to date"
-        exit 0
+        # Regression bait (D-24): real hex.outdated exits 1 whenever anything
+        # is outdated. The classifier must never call it.
+        echo "some outdated packages for $REL"
+        exit 1
         ;;
       hex.config)
         key="${2:-}"
@@ -272,6 +276,143 @@ defmodule Threadline.DepsHealthReportTest do
     end
   end
 
+  describe "every class arm, one directory at a time" do
+    for {name, env, expected} <- [
+          {"advisory SARIF in bench", [{"FAKE_SARIF_BENCH", "advisory_plug.json"}], "advisory"},
+          {"retired SARIF in the example", [{"FAKE_SARIF_EXAMPLE", "retired_plug.json"}],
+           "retirement"},
+          {"retired + advisory (plug 1.20.0) in root", [{"FAKE_SARIF_ROOT", "plug_1_20_0.json"}],
+           "advisory"},
+          {"the real vulnerable-fixture fingerprints in root",
+           [{"FAKE_SARIF_ROOT", "vulnerable_lock.json"}], "advisory"},
+          {"no SARIF file written in root", [{"FAKE_SARIF_NO_FILE", "."}], "unknown"},
+          {"an unparseable fingerprint in bench",
+           [{"FAKE_SARIF_BENCH", "unparseable_fingerprint.json"}], "unknown"},
+          {"a denied finding in bench", [{"FAKE_SARIF_BENCH", "denied_plug.json"}], "unknown"},
+          {"a non-zero exit with zero results in the example",
+           [{"FAKE_AUDIT_FORCE_NONZERO", "examples/threadline_phoenix"}], "unknown"},
+          {"exit 0 with results in root",
+           [{"FAKE_SARIF_ROOT", "advisory_plug.json"}, {"FAKE_AUDIT_FORCE_ZERO", "."}],
+           "unknown"},
+          {"a drifted lock in bench", [{"FAKE_LOCK_DRIFT", "bench"}], "unknown"},
+          {"an active suppression", [{"HEX_IGNORE_ADVISORIES", "x"}], "unknown"},
+          {"every directory clean", [], "clean"}
+        ] do
+      @env env
+      @expected expected
+      test "#{name} -> #{expected}" do
+        out_dir = tmp_out_dir()
+        {output, status, _calls} = run_report(out_dir, @env)
+
+        assert status == 0
+        assert output =~ ~r/^classification=#{@expected}$/m, diag(out_dir, output)
+      end
+    end
+
+    test "unparseable and denied shapes name their reason in the report" do
+      for {fixture, reason} <- [
+            {"unparseable_fingerprint.json",
+             "- audit: unknown (unparseable hexAudit/v1 fingerprint: advisory:hexpm)"},
+            {"denied_plug.json", "- audit: unknown (unexpected hex.audit finding kind: denied)"}
+          ] do
+        out_dir = tmp_out_dir()
+        {output, 0, _calls} = run_report(out_dir, [{"FAKE_SARIF_BENCH", fixture}])
+        assert File.read!(Path.join(out_dir, "report.md")) =~ reason, diag(out_dir, output)
+      end
+    end
+
+    test "a missing directory (no examples/threadline_phoenix) -> unknown" do
+      root =
+        Path.join(System.tmp_dir!(), "deps-health-root-#{System.unique_integer([:positive])}")
+
+      on_exit(fn -> File.rm_rf!(root) end)
+      File.mkdir_p!(Path.join(root, "bin"))
+      File.mkdir_p!(Path.join(root, "bench"))
+
+      for script <- ["deps-health-report", "deps-audit-tier", "retry-network"] do
+        File.cp!(Path.join(@repo_root, "bin/#{script}"), Path.join(root, "bin/#{script}"))
+      end
+
+      File.write!(Path.join(root, "mix.exs"), "")
+      File.write!(Path.join(root, "bench/mix.exs"), "")
+      out_dir = tmp_out_dir()
+
+      {output, status} =
+        System.cmd(Path.join(root, "bin/deps-health-report"), [out_dir],
+          env: [
+            {"MIX_BIN", fake_mix()},
+            {"FAKE_MIX_ROOT", root},
+            {"FAKE_SARIF_DIR", @sarif_dir},
+            {"RETRY_NETWORK_BASE_DELAY", "0"}
+          ],
+          stderr_to_stdout: true
+        )
+
+      assert status == 0
+      assert output =~ "classification=unknown", diag(out_dir, output)
+
+      assert File.read!(Path.join(out_dir, "report.md")) =~
+               "missing directory or mix.exs"
+    end
+  end
+
+  describe "precedence across directories" do
+    test "advisory (example) + retirement (bench) -> advisory" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_SARIF_EXAMPLE", "advisory_plug.json"},
+          {"FAKE_SARIF_BENCH", "retired_plug.json"}
+        ])
+
+      assert output =~ "classification=advisory", diag(out_dir, output)
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "- retirement plug HEX0002:"
+      assert body =~ "- advisory plug EEF-CVE-2026-56813:"
+    end
+
+    test "retirement (root) + fetch failure (bench) -> retirement" do
+      out_dir = tmp_out_dir()
+
+      {output, 0, _calls} =
+        run_report(out_dir, [
+          {"FAKE_SARIF_ROOT", "retired_plug.json"},
+          {"FAKE_FAIL_DEPS_GET", "bench"}
+        ])
+
+      assert output =~ "classification=retirement", diag(out_dir, output)
+    end
+
+    test "unknown (bench) + clean elsewhere -> unknown" do
+      out_dir = tmp_out_dir()
+      {output, 0, _calls} = run_report(out_dir, [{"FAKE_SARIF_NO_FILE", "bench"}])
+      assert output =~ "classification=unknown", diag(out_dir, output)
+    end
+  end
+
+  describe "hex.outdated is never invoked (D-24)" do
+    test "with the fake hex.outdated exiting 1, an all-clean tree still classifies clean" do
+      out_dir = tmp_out_dir()
+      {output, 0, calls} = run_report(out_dir)
+
+      assert output =~ "classification=clean", diag(out_dir, output)
+      assert calls =~ "hex.audit"
+      refute calls =~ "hex.outdated"
+    end
+  end
+
+  describe "deps.get output (D-26 noise trim)" do
+    test "appears only for the directory whose fetch failed" do
+      out_dir = tmp_out_dir()
+      {output, 0, _calls} = run_report(out_dir, [{"FAKE_FAIL_DEPS_GET", "bench"}])
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "deps.get failed for bench", diag(out_dir, output)
+      refute body =~ "deps.get ok for"
+    end
+  end
+
   describe "report body" do
     test "has one ## <dir> section per canonical dir, in canonical order" do
       out_dir = tmp_out_dir()
@@ -305,15 +446,18 @@ defmodule Threadline.DepsHealthReportTest do
 
         assert section =~ ~r/fetch/i
         assert section =~ ~r/audit/i
-        assert section =~ ~r/outdated/i
       end
     end
 
     test "is capped at 60000 bytes with a trailing truncation marker when oversized" do
       out_dir = tmp_out_dir()
 
+      # deps.get output reaches the body only for a failed fetch (D-26).
       {_output, status, _calls} =
-        run_report(out_dir, [{"FAKE_HUGE", ".,bench,examples/threadline_phoenix"}])
+        run_report(out_dir, [
+          {"FAKE_HUGE", ".,bench,examples/threadline_phoenix"},
+          {"FAKE_FAIL_DEPS_GET", ".,bench,examples/threadline_phoenix"}
+        ])
 
       assert status == 0
 
@@ -346,6 +490,42 @@ defmodule Threadline.DepsHealthReportTest do
       assert contents =~ "pre_existing=value"
       assert contents =~ ~r/^classification=clean$/m, diag(out_dir, output)
       assert contents =~ ~r/^report=.*report\.md$/m
+    end
+  end
+
+  describe "GITHUB_OUTPUT classification values" do
+    test "only ever hold a value from {clean, unknown, retirement, advisory}" do
+      arms = [
+        [],
+        [{"FAKE_SARIF_ROOT", "advisory_plug.json"}],
+        [{"FAKE_SARIF_ROOT", "retired_plug.json"}],
+        [{"FAKE_SARIF_NO_FILE", "."}],
+        [{"FAKE_SARIF_BENCH", "unparseable_fingerprint.json"}],
+        [{"FAKE_SARIF_BENCH", "denied_plug.json"}],
+        [{"FAKE_AUDIT_FORCE_NONZERO", "bench"}],
+        [{"FAKE_LOCK_DRIFT", "bench"}],
+        [{"FAKE_FAIL_DEPS_GET", "."}],
+        [{"HEX_IGNORE_RETIREMENTS", "x"}]
+      ]
+
+      values =
+        for env <- arms do
+          out_dir = tmp_out_dir()
+
+          output_path =
+            Path.join(System.tmp_dir!(), "github-output-#{System.unique_integer([:positive])}")
+
+          on_exit(fn -> File.rm(output_path) end)
+          {_output, 0, _calls} = run_report(out_dir, [{"GITHUB_OUTPUT", output_path} | env])
+
+          lines = output_path |> File.read!() |> String.split("\n", trim: true)
+          [value] = for "classification=" <> v <- lines, do: v
+          value
+        end
+
+      allowed = MapSet.new(["clean", "unknown", "retirement", "advisory"])
+      assert MapSet.subset?(MapSet.new(values), allowed), inspect(values)
+      assert MapSet.new(values) == allowed, "every class should be exercised: #{inspect(values)}"
     end
   end
 
@@ -466,7 +646,7 @@ defmodule Threadline.DepsHealthReportTest do
   end
 
   describe "committed lock (WR-02)" do
-    test "a drifted lock in bench -> unknown, bench's audit/outdated skipped, root and example still run hex.audit" do
+    test "a drifted lock in bench -> unknown, bench's audit skipped, root and example still run hex.audit" do
       out_dir = tmp_out_dir()
 
       {output, status, calls} = run_report(out_dir, [{"FAKE_LOCK_DRIFT", "bench"}])
@@ -543,14 +723,54 @@ defmodule Threadline.DepsHealthReportTest do
              "the upsert step must be gated on classification != 'clean'"
     end
 
-    test "the fail step exempts only 'clean' and 'outdated'" do
+    test "the fail step exempts only 'clean'" do
       yaml = File.read!(@workflow_path)
 
       [_, after_fail] = String.split(yaml, "Fail the job", parts: 2)
       step_body = after_fail |> String.split(~r/\n\s{6}- name:/, parts: 2) |> hd()
 
-      assert step_body =~ ~r/!=\s*'clean'/
-      assert step_body =~ ~r/!=\s*'outdated'/
+      [if_line] = Regex.run(~r/^\s*if:.*$/m, step_body)
+      assert if_line =~ ~r/!=\s*'clean'/
+      assert length(Regex.scan(~r/!=/, if_line)) == 1, "the fail step must exempt only 'clean'"
+
+      assert step_body =~
+               ~r/CLASSIFICATION:\s*\$\{\{\s*steps\.report\.outputs\.classification\s*\}\}/
+
+      [_, run_block] = String.split(step_body, "run: |", parts: 2)
+      refute run_block =~ "${{", "the classification must reach run: through env:, not ${{ }}"
+    end
+
+    test "the close step fires on == 'clean' only" do
+      yaml = File.read!(@workflow_path)
+
+      [_, after_close] =
+        String.split(yaml, "Close the dependency health issue on a clean run", parts: 2)
+
+      step_body = after_close |> String.split(~r/\n\s{6}- name:/, parts: 2) |> hd()
+      [if_line] = Regex.run(~r/^\s*if:.*$/m, step_body)
+      assert if_line =~ ~r/^\s*if:\s*steps\.report\.outputs\.classification == 'clean'\s*$/
+      assert step_body =~ "--close"
+    end
+
+    test "push to main is path-filtered to exactly the canonical mix.exs/mix.lock pairs, and a cron is daily" do
+      parsed = YamlElixir.read_from_file!(@workflow_path)
+      triggers = parsed["on"] || parsed[true]
+
+      expected =
+        for dir <- @canonical_dirs, file <- ["mix.exs", "mix.lock"] do
+          if dir == ".", do: file, else: "#{dir}/#{file}"
+        end
+
+      assert triggers["push"]["branches"] == ["main"]
+      assert Enum.sort(triggers["push"]["paths"]) == Enum.sort(expected)
+      assert Map.has_key?(triggers, "workflow_dispatch")
+
+      crons = Enum.map(triggers["schedule"], & &1["cron"])
+
+      assert Enum.any?(crons, &(&1 =~ ~r/^\S+ \S+ \* \* \*$/)),
+             "expected a daily cron, got #{inspect(crons)}"
+
+      assert parsed["concurrency"] == %{"group" => "deps-health", "cancel-in-progress" => false}
     end
 
     test "the title is built from $TITLE_PREFIX, the same value used as --marker" do

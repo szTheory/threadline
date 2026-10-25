@@ -674,24 +674,37 @@ environment, or a non-empty global Hex `ignore_advisories` /
 unaccountable bypass would defeat the point of a required gate. Run it
 locally (`mix verify.deps_audit`) before touching a lockfile.
 
-The weekly, non-required `.github/workflows/deps-health.yml` lane runs
-Mondays 08:00 UTC (`0 8 * * 1`), plus manual dispatch, and also runs `mix
-hex.audit` and `mix hex.outdated` over the same three lockfiles. It is *not*
-a required check. When the result is anything other than clean it opens or
-comments on a single issue labelled `ci-deps` — a label kept distinct from
-`ci-flake` and `ci-browser-full` so the three dedup streams never merge into
-one issue and mask each other. The lane goes red on an `advisory` (a
-`hex.audit` finding) or an `unknown` result (a fetch failure that prevented
-an audit from running at all); an `outdated` result alone stays green — it is
-informational only, reported on the issue but not a merge-style gate.
-Like the required gate above, this lane fetches with `mix deps.get
---check-locked`: a `mix.lock` that no longer matches `mix.exs` is reported
-`unknown` for that directory rather than silently re-resolved and audited
-under a fresh lock. And like the required gate, an active Hex advisory
-suppression — `HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the
-environment, or a non-empty global `mix hex.config ignore_advisories` /
-`ignore_retirements` (any Hex home) — is reported `unknown` for the whole
-run without running any audit; the report names the reason.
+The non-required `.github/workflows/deps-health.yml` lane runs daily at
+08:00 UTC (`0 8 * * *`), on every push to `main` that touches one of the
+three `mix.exs`/`mix.lock` pairs above (so the issue closes as soon as a fix
+lands), and on manual dispatch. It is *not* a required check. It runs `mix
+hex.audit --format sarif` over the same three lockfiles and classifies the
+run from the SARIF findings alone as one of four classes, highest wins
+across all three directories: `advisory` (a security advisory) >
+`retirement` (a retired package) > `unknown` > `clean`. `unknown` means the
+lane could not vouch for a directory: a missing directory or `mix.exs`, a
+failed `mix deps.get --check-locked`, an audit whose result cannot be
+classified (no SARIF file, unparseable SARIF or fingerprint, or an exit
+status that disagrees with the findings), or an active advisory suppression
+(below). A confirmed finding outranks an unrelated `unknown` elsewhere, and
+the report still lists every directory's state. `hex.outdated` is not part
+of this lane: it fails whenever anything is outdated, so it cannot tell a
+real problem from routine drift; outdated dependencies are reviewed per
+release train as described above.
+
+Any non-clean class opens or updates a single issue labelled `ci-deps`,
+retitled to the current class, and turns the job red. A label kept distinct
+from `ci-flake` and `ci-browser-full` stops the three dedup streams from
+merging into one issue and masking each other. Only a `clean` run comments
+on and then closes that issue; `unknown` never closes it. Like the required
+gate above, this lane fetches with `mix deps.get --check-locked`: a
+`mix.lock` that no longer matches `mix.exs` is reported `unknown` for that
+directory rather than silently re-resolved and audited under a fresh lock.
+And like the required gate, an active Hex advisory suppression —
+`HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the environment, or a
+non-empty global `mix hex.config ignore_advisories` / `ignore_retirements`
+(any Hex home) — is reported `unknown` for the whole run without running any
+audit; the report names the reason.
 
 Ignoring an advisory is only ever done through a documented convention, never
 the environment-variable bypass above: define `hex_audit_ignores/0` on the

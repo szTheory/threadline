@@ -1,36 +1,41 @@
 #!/usr/bin/env bash
-# SUP-04: weekly dependency-health lane classifier. Extracted out of
+# SUP-04: dependency-health lane classifier. Extracted out of
 # .github/workflows/deps-health.yml so the classification logic is a
 # committed, directly executable, and unit-tested artifact rather than
-# inline workflow shell reachable only by a weekly cron nobody watches — the
-# same idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit
-# (SUP-02).
+# inline workflow shell reachable only by a cron nobody watches — the same
+# idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit (SUP-02).
 #
 # Runs, for each of the three lockfile directories this repo maintains, in
 # the fixed order `.  bench  examples/threadline_phoenix` (matching
 # bin/verify-deps-audit's own canonical order): `mix deps.get --check-locked`,
-# then (only on a successful fetch) `mix hex.audit` and `mix hex.outdated`.
-# `--check-locked` means the lock actually reported on is the one committed
-# to the repo: a `mix.lock` that no longer matches `mix.exs` fails that
-# directory's fetch instead of being silently re-resolved and audited under
-# a fresh lock (WR-02). It classifies the overall result and writes a report
-# body other tooling can post as a GitHub issue.
+# then (only on a successful fetch) `mix hex.audit --format sarif` through
+# the shared bin/deps-audit-tier library. `--check-locked` means the lock
+# actually reported on is the one committed to the repo: a `mix.lock` that no
+# longer matches `mix.exs` fails that directory's fetch instead of being
+# silently re-resolved and audited under a fresh lock (WR-02). It classifies
+# the overall result and writes a report body other tooling can post as a
+# GitHub issue.
 #
-# Classification precedence (highest wins, checked across ALL three dirs):
-#   an active Hex advisory suppression (see below)                  -> unknown
-#   any dir's hex.audit exits non-zero after a successful deps.get -> advisory
-#   any dir's deps.get exits non-zero                              -> unknown
-#   any dir's hex.outdated exits non-zero                          -> outdated
-#   everything succeeds                                            -> clean
+# Classification precedence (D-25, highest wins, max rank across ALL dirs):
+#   any SARIF advisory finding                                     -> advisory
+#   any SARIF retirement finding                                   -> retirement
+#   anything this script cannot vouch for                          -> unknown
+#   every directory audited with zero SARIF results                -> clean
 #
-# A real advisory always outranks an unrelated fetch failure elsewhere: a
-# confirmed finding must never be silently masked because some other
-# directory could not be fetched. `unknown` is the default arm otherwise — a
-# fetch failure is never quietly reported as `clean` or `outdated`. When a
-# directory's `deps.get --check-locked` fails (a missing or drifted
-# mix.lock), its `hex.audit`/`hex.outdated` are skipped entirely (a vacuous
-# audit over unfetched or re-resolved deps is not trusted), matching
-# bin/verify-deps-audit's own "skip on fetch failure" behavior.
+# `unknown` covers: an active Hex advisory suppression (see below), a
+# missing directory or mix.exs, a failed `deps.get --check-locked` (that
+# directory's audit is skipped), and an unclassifiable audit (no SARIF file,
+# unparseable SARIF, non-zero exit with zero results, exit 0 with results, an
+# unparseable fingerprint, or a denied/other finding kind). A confirmed
+# finding outranks an unrelated unknown elsewhere, and the body still lists
+# every directory's state; `unknown` is never quietly reported as `clean`.
+#
+# Findings come only from the SARIF `hexAudit/v1` fingerprint (D-18). Human
+# hex.audit output and deps.get output are never parsed for classification
+# (deps.get prints advisories and still exits 0); deps.get output appears in
+# the report only for a directory whose fetch failed. hex.outdated is
+# deliberately not run (D-24): it exits 1 whenever anything is outdated, a
+# permanent state, and also on crashes, so it cannot classify a run.
 #
 # Hex advisory suppression (CR-01): before touching any directory, this
 # script checks HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS in the
@@ -46,7 +51,7 @@
 #
 # Writes <out-dir>/report.md (capped at 60000 bytes — GitHub's own issue body
 # limit is 65536) and, when $GITHUB_OUTPUT is set, appends
-#   classification=<clean|outdated|advisory|unknown>
+#   classification=<clean|unknown|retirement|advisory>
 #   report=<out-dir>/report.md
 # to it (append, never overwrite — existing content is preserved). Always
 # echoes `classification=<value>` to stdout and exits 0: reporting is not the
@@ -223,7 +228,6 @@ for d in "${CANONICAL_DIRS[@]}"; do
     {
       printf -- '- fetch exit: skipped (Hex advisory suppression active)\n\n'
       printf -- '- audit exit: skipped (Hex advisory suppression active)\n\n'
-      printf -- '- outdated exit: skipped (Hex advisory suppression active)\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
@@ -233,7 +237,6 @@ for d in "${CANONICAL_DIRS[@]}"; do
     {
       printf -- '- fetch exit: unknown (missing directory or mix.exs at %s)\n\n' "$resolved"
       printf -- '- audit exit: skipped (fetch failed)\n\n'
-      printf -- '- outdated exit: skipped (fetch failed)\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
@@ -251,16 +254,14 @@ for d in "${CANONICAL_DIRS[@]}"; do
   deps_get_status=$?
   set -e
 
-  {
-    printf -- '- fetch exit: %s\n\n' "$deps_get_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
+  printf -- '- fetch exit: %s\n\n' "$deps_get_status" >>"$SECTIONS_FILE"
 
   if [ "$deps_get_status" -ne 0 ]; then
     bump unknown
     {
+      # D-26 noise trim: deps.get output only for a failed fetch.
+      printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
       printf -- '- audit exit: skipped (fetch failed)\n\n'
-      printf -- '- outdated exit: skipped (fetch failed)\n\n'
       printf -- '- note: deps.get --check-locked failed — the committed mix.lock is missing or does not match mix.exs, so this directory was not audited\n\n'
     } >>"$SECTIONS_FILE"
     continue
@@ -306,20 +307,6 @@ $findings
 EOF
       printf '\n' >>"$SECTIONS_FILE"
     fi
-  fi
-
-  set +e
-  outdated_output="$(cd "$resolved" && "$MIX_BIN" hex.outdated 2>&1)"
-  outdated_status=$?
-  set -e
-
-  {
-    printf -- '- outdated exit: %s\n\n' "$outdated_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$outdated_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
-
-  if [ "$outdated_status" -ne 0 ]; then
-    bump outdated
   fi
 done
 

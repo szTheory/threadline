@@ -24,7 +24,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
 **v1.47 Release on autopilot.** Goal: a release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
 
 - [x] **Phase 244: Release flow** - The release workflow dates the CHANGELOG and refreshes stale release PRs; network fetches retry; Hex lock drift cannot recur silently (completed 2026-10-25)
-- [ ] **Phase 245: Supply chain** - Dependabot security updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue
+- [ ] **Phase 245: Supply chain** - grouped monthly Dependabot for SHA-pinned actions, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue
 - [ ] **Phase 246: Debt closeout and critic retirement** - Every carried-debt row has a disposition, and the parked UI-critic loop is removed from main and tagged for restoration
 - [ ] **Phase 247: CI critical path and suite lanes** - Browser-spec timing visibility, then a per-project browser split, contract tests on one lane, rebalanced partitions, and hang-proof partitions
 
@@ -80,10 +80,10 @@ Plans:
 **Depends on**: Phase 244 (both edit ci.yml and release.yml; sequential to avoid workflow conflicts, and SUP-03's green release lane builds on Phase 244's release flow)
 **Requirements**: SUP-01, SUP-02, SUP-03, SUP-04
 **Success Criteria** (what must be TRUE):
-  1. `.github/dependabot.yml` enables security-update PRs for the mix ecosystem at root, bench and example and for github-actions, with routine version updates disabled; a contract test pins this.
+  1. `.github/dependabot.yml` keeps SHA-pinned GitHub Actions current through one grouped monthly version-update PR with a 7-day cooldown and no mix or npm entry, because Dependabot does not serve Hex; a contract test pins this.
   2. Every third-party `uses:` reference is a full commit SHA with a version comment, setup-node reads its version from `.tool-versions`, and a contract test rejects a tag-only ref, with a negative control proving it fails.
   3. A test pins both audit tiers: a new advisory in a shipped runtime dependency fails required CI, while a new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green.
-  4. The scheduled deps-health report opens or updates an issue only for advisories or retirements and closes it when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` exit-code classification is covered by a test.
+  4. The scheduled deps-health report opens or updates an issue for advisories, retirements or an unknown audit state and closes it only when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` classification is covered by a test.
 
 **Plans**: 5 plans
 
