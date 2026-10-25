@@ -137,7 +137,6 @@ Threadline repository.
 | `mix verify.example_browser` | Run the reference application's voting browser projects. |
 | `mix verify.example_browser_light` | Run the focused light/system-theme browser lane. |
 | `mix verify.operator_stress` | Run the operator-surface stress browser specification. |
-| `mix verify.mechanical` | Check deterministic operator-surface mechanical constraints. |
 | `mix verify.hex_evaluator` | Compile, migrate, and test the isolated Hex evaluator. |
 | `mix verify.bench` | Run the repository benchmark scripts. |
 | `mix verify.compile_no_optional` | Compile without optional dependencies and treat warnings as errors. |

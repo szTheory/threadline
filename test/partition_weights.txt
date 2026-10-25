@@ -160,7 +160,6 @@
 169 test/threadline/operator_surface/live/row_history_live_test.exs
 849 test/threadline/operator_surface/live/start_live_test.exs
 3770 test/threadline/operator_surface/live/timeline_live_test.exs
-310 test/threadline/operator_surface/mechanical_checker_test.exs
 200 test/threadline/operator_surface/operator_evidence_contract_test.exs
 414 test/threadline/operator_surface/operator_surface_fixture_contract_test.exs
 0 test/threadline/operator_surface/page_header_test.exs
@@ -168,7 +167,6 @@
 5 test/threadline/operator_surface/policy_show_doc_contract_test.exs
 383 test/threadline/operator_surface/policy_show_mix_test.exs
 0 test/threadline/operator_surface/presentation_test.exs
-64 test/threadline/operator_surface/refute_partition_test.exs
 875 test/threadline/operator_surface/rendered_output_contract_test.exs
 970 test/threadline/operator_surface/router_test.exs
 340 test/threadline/operator_surface/row_history_component_test.exs
