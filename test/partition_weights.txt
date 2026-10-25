@@ -48,6 +48,7 @@
 376 test/threadline/change_diff_property_test.exs
 542 test/threadline/change_diff_test.exs
 3 test/threadline/changelog_contract_test.exs
+101 test/threadline/ci_action_pin_contract_test.exs
 8 test/threadline/ci_action_runtime_contract_test.exs
 7 test/threadline/ci_all_dedup_contract_test.exs
 77 test/threadline/ci_attestation_contract_test.exs

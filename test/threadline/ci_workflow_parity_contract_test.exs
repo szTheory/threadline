@@ -710,7 +710,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"uses replaced by run",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40} # v\d+\.\d+\.\d+\n/m,
              &1,
              "        run: echo ok\n"
            )
@@ -719,7 +719,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"alls-green pinned to a mutable tag",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40} # v\d+\.\d+\.\d+\n/m,
              &1,
              "        uses: re-actors/alls-green@release/v1\n"
            )
@@ -727,9 +727,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"a different owner's alls-green at a full SHA",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40})\n/m,
+             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)\n/m,
              &1,
-             "        uses: evil/alls-green@\\1\n"
+             "        uses: evil/alls-green@\\1 # \\2\n"
            )
          ), "rule=gate-pin"},
         {"strategy added to ci-required",
@@ -2333,8 +2333,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml caches deps and the e2e npm lockfile" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert String.contains?(yaml, "actions/cache@v5"),
-             "ci.yml must use actions/cache@v5 for the deps cache"
+      assert Regex.match?(~r/uses: actions\/cache@[0-9a-f]{40} # v5\.\d+\.\d+$/m, yaml),
+             "ci.yml must use a SHA-pinned actions/cache v5 for the deps cache"
 
       assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
              "ci.yml must cache the `deps` directory"
@@ -2799,7 +2799,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
           nil -> flunk("verify-format must carry a `Cache deps` step")
         end
 
-      setup_line = "      - uses: erlef/setup-beam@v1"
+      setup_line = "      - uses: erlef/setup-beam@"
 
       controls = [
         {"id beam removed", String.replace(job, "        id: beam\n", "")},
@@ -4103,7 +4103,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "rule=combined-action",
         "caches `_build` with the combined actions/cache action",
         "the combined action saves at job end, after the own build exists (CACHE-01, D-14)",
-        "use actions/cache/restore@v5 and actions/cache/save@v5"
+        "use actions/cache/restore and actions/cache/save"
       )
     end
   end
@@ -4201,7 +4201,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     key = yaml_value(stripped, "key") || ""
     where = where(job, restore)
 
-    split_action_errors(where, stripped, "uses: actions/cache/restore@v5") ++
+    split_action_errors(where, stripped, "uses: actions/cache/restore@") ++
       restore_keys_errors(where, stripped) ++
       key_segment_errors(where, project, key) ++ key_forbidden_errors(where, project, key)
   end
@@ -4293,8 +4293,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     guards = cache_miss_guards(job.id, project, id)
 
     [
-      {String.contains?(stripped, "uses: actions/cache/save@v5"),
-       {"rule=combined-action", "a `_build` save must carry `uses: actions/cache/save@v5`",
+      {String.contains?(stripped, "uses: actions/cache/save@"),
+       {"rule=combined-action", "a `_build` save must carry `uses: actions/cache/save@`",
         "only the split save runs before the own build exists (D-14)",
         "use actions/cache/save@v5"}},
       {yaml_value(stripped, "key") == primary,
@@ -5262,8 +5262,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
           &1,
           "verify-test",
           @root_restore,
-          "actions/cache/restore@v5",
-          "actions/cache@v5"
+          "actions/cache/restore@",
+          "actions/cache@"
         )
       ),
       ci_control(
@@ -5819,27 +5819,27 @@ defmodule Threadline.CIWorkflowParityContractTest do
     header <>
       ~S"""
           steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       """ <>
       @fixture_beam_step <>
       ~S"""
 
-            - uses: actions/setup-node@v5
+            - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
               with:
-                node-version: "22"
+                node-version-file: .tool-versions
                 cache: npm
                 cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
             - name: Cache deps
-              uses: actions/cache@v5
+              uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
               with:
                 path: deps
                 key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
                 restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
             - name: Cache Playwright browsers
-              uses: actions/cache@v5
+              uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
               with:
                 path: ~/.cache/ms-playwright
                 key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
@@ -5879,7 +5879,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
            - name: Upload Playwright traces and e2e boot log on failure
              if: failure()
-             uses: actions/upload-artifact@v7
+             uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
              with:
                name: example-browser-e2e-diagnostics
                path: |
