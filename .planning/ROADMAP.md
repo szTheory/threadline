@@ -85,7 +85,7 @@ Plans:
   3. A test pins both audit tiers: a new advisory in a shipped runtime dependency fails required CI, while a new advisory confined to dev/test/bench/example dependencies files or updates an issue and leaves the release lane green.
   4. The scheduled deps-health report opens or updates an issue for advisories, retirements or an unknown audit state and closes it only when clean (a permanently "outdated" issue like #61 no longer stays open); `bin/deps-health-report` classification is covered by a test.
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -98,7 +98,7 @@ Plans:
 - [x] 245-03-PLAN.md — SUP-02: one atomic commit SHA-pinning all 79 refs, setup-node from .tool-versions, pin contract, {action, major} runtime allowlist
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 245-04-PLAN.md — SUP-02 (D-14b): bin/verify-action-pins in the scheduled lane; a pin mismatch makes the run unknown
+- [x] 245-04-PLAN.md — SUP-02 (D-14b): bin/verify-action-pins in the scheduled lane; a pin mismatch makes the run unknown
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 245-05-PLAN.md — SUP-01: .github/dependabot.yml and its contract, D-06/D-07 docs, phase gate (CI=true mix ci.all on ephemeral postgres:16)
@@ -136,7 +136,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
-| 245. Supply chain | 3/5 | In Progress | - |
+| 245. Supply chain | 4/5 | In Progress | - |
 | 246. Debt closeout and critic retirement | 0/TBD | Not started | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
 
