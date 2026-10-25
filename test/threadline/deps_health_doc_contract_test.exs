@@ -173,6 +173,31 @@ defmodule Threadline.DepsHealthDocContractTest do
     assert section =~ "hex_audit_ignores"
   end
 
+  @tier_sections ["Blocking — shipped runtime", "Non-blocking — dev/test/bench/example"]
+
+  test "the policy section states the SUP-03 tier rule and the D-16 policy change" do
+    section = policy_section()
+
+    assert section =~ "--only prod"
+
+    assert section =~
+             "Advisories in root dev/test-only dependencies no longer block a pull request or a release"
+
+    assert section =~ "no longer block"
+
+    for title <- @tier_sections do
+      assert section =~ title, "CONTRIBUTING.md's #{@policy_heading} section must name #{title}"
+    end
+  end
+
+  test "bin/deps-health-report writes both tier section titles CONTRIBUTING names" do
+    report = File.read!(@deps_health_report)
+
+    for title <- @tier_sections do
+      assert report =~ title, "bin/deps-health-report must write the section #{title}"
+    end
+  end
+
   test "the class set CONTRIBUTING names equals bin/deps-health-report's RANK_NAMES (D-29)" do
     names = rank_names!(@deps_health_report)
 
