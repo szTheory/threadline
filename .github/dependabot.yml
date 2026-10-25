@@ -1,0 +1,19 @@
+# Keeps SHA-pinned GitHub Actions current (SUP-01). Hex is not served by
+# Dependabot; Hex advisories come from mix verify.deps_audit and the
+# deps-health issue. Contract: test/threadline/dependabot_config_contract_test.exs
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    commit-message:
+      prefix: ci
+      include: scope

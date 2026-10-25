@@ -74,6 +74,7 @@
 800 test/threadline/date_release_changelog_test.exs
 237 test/threadline/db_property_harness_test.exs
 15 test/threadline/dep_floor_guard_test.exs
+439 test/threadline/dependabot_config_contract_test.exs
 6893 test/threadline/deprecation_parity_test.exs
 7 test/threadline/deps_audit_contract_test.exs
 2960 test/threadline/deps_audit_gate_test.exs

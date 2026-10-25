@@ -657,9 +657,23 @@ single-package bumps. Before a release the maintainer reviews `mix
 hex.outdated` and runs `mix deps.update` across `mix.lock`, `bench/mix.lock`
 and `examples/threadline_phoenix/mix.lock` together.
 
-This repository does not use Dependabot version-update pull requests.
-Dependabot *alerts* are a separate repository setting the maintainer controls
-independently of this policy.
+Dependabot keeps GitHub Actions pins current with
+one grouped monthly pull request (`.github/dependabot.yml`, 7-day cooldown,
+`ci(deps):` titles that never trigger a release). It opens no Hex pull
+requests, because GitHub does not support Hex security updates; Hex
+advisories come from `mix verify.deps_audit` and the deps-health issue.
+`test/threadline/dependabot_config_contract_test.exs` pins that config.
+
+Claude or the maintainer may merge a Dependabot grouped actions pull request
+only when required CI is green, the 7-day cooldown has elapsed, and, if it
+touches `release.yml`, `bin/verify-release-shape` and
+`bin/verify-bump-rehearsal` were run first, because `release.yml`'s bumped
+actions are not exercised on the pull request and only run after merge.
+Dependabot pull requests are reviewed and merged by hand: never auto-merge.
+A major-version bump fails the `{action, major}` runtime allowlist in
+`test/threadline/ci_action_runtime_contract_test.exs` on purpose; handle it
+by checking the new major's `runs.using` and adding the allowlist entry,
+never by ignoring the update.
 
 Every pull request runs the required `verify-deps-audit` job (`mix
 verify.deps_audit`): it asserts Hex 2.6.0 or newer, fetches with `mix
