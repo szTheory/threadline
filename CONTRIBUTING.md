@@ -282,38 +282,35 @@ assertion in it is cut.
 The convention: every new `*_contract_test.exs` moduledoc names, in one
 sentence, which keep criterion above it satisfies.
 
-## Local-only critic (verify.ui_critique)
+## Local-only critic (critic:score)
 
-`mix verify.ui_critique` runs the adversarial critic runner against the
+`npm run critic:score` (in `examples/threadline_phoenix/e2e`) runs the adversarial critic runner against the
 operator-surface scorecard cells. It calls an external AI API and is therefore
 **local-only** — it requires an API key set in the environment (`ANTHROPIC_API_KEY`)
 and is **excluded from `ci.all`** (same precedent as `verify.flake`).
 
 ```bash
-ANTHROPIC_API_KEY="sk-ant-..." mix verify.ui_critique
+ANTHROPIC_API_KEY="sk-ant-..." npm run critic:score
 ```
 
-When `ANTHROPIC_API_KEY` is absent or empty, `mix verify.ui_critique` exits 0
-with a skip message. Contributors and CI without a key are completely unaffected.
+Nothing in `mix verify.test` or CI calls it, so contributors and CI without a key
+are completely unaffected.
 
-The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
-AI), runs in `mix verify.test` (and so in `ci.all`), and asserts that every validated
-critic lens meets its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
+A validated critic lens must meet its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
 correlation of oracle severity vs critic score, the validated ranking signal);
 with n ≥ 20. Krippendorff α, AUC, and raw agreement are recorded as reported-only
 companions and never gate (the lenses rank well even where their absolute scale is
 compressed). All lenses seed as `validated: false` until the trust run promotes
-them; the gate passes vacuously on the empty skeleton.
+them.
 
 > **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
-> the environment only; `mix verify.ui_critique` never writes it to files.
+> the environment only; the critic runner never writes it to files.
 
 ## Maintainer: building and validating the golden oracle
 
 This section is **maintainer-only** — it requires `ANTHROPIC_API_KEY` and human judgment.
-Contributors do not need to run any of these steps; the `verify.critic_trust` gate runs in
-`mix verify.test` (and so in `ci.all`) without an API key and passes vacuously until the
-maintainer has populated the golden set.
+Contributors do not need to run any of these steps; none of them runs in `mix verify.test`
+or `ci.all`.
 
 ### Prerequisites
 
@@ -344,7 +341,6 @@ cd examples/threadline_phoenix/e2e
 npm run capture:graded                             # shoot the graded rung cells (needs dev server)
 npm run critic:score -- --synthetic                # score exactly the graded (cell, lens) pairs
 cd ../../.. && mix critic.measure --source synthetic  # α + n + raw per lens; writes honest provenance
-mix verify.critic_trust                            # gate re-asserts what was recorded
 ```
 
 #### Step 1b (optional, stronger claim) — Human golden set (blind test-retest)
@@ -446,9 +442,8 @@ Verify `test/generated/operator_surface/reports/CRITIQUE.md` is fresh — it sho
 mix ci.all
 ```
 
-`mix verify.critic_trust` (its test file runs in `mix verify.test`, and so in `ci.all`) enforces whatever was recorded in
-`critic_trust`. All other gates (`verify.mechanical`, `verify.test`, etc.) must stay green.
-`mix verify.ui_critique` itself is excluded from `ci.all` — it is local-only.
+All gates (`verify.mechanical`, `verify.test`, etc.) must stay green. The critic runner
+itself is excluded from `ci.all` — it is local-only.
 
 ### Step 6 — Commit as one reviewed commit
 
@@ -488,8 +483,7 @@ accepted only if it moves the targeted **blocking** lens in the right direction 
 regression** anywhere on the blocking panel, and only after the deterministic mechanical /
 a11y floor still passes. Like the oracle steps above it is **local-only** (needs
 `ANTHROPIC_API_KEY`) and **never runs in CI** — CI runs only the deterministic guards
-(`verify.critic_trust`, `verify.mechanical`), whose test files run in `mix verify.test` (and
-so in `ci.all`).
+(`verify.mechanical`), whose test file runs in `mix verify.test` (and so in `ci.all`).
 
 The loop operates on the real seeded `route.*` cells, never the `page.*`
 stress-lab chrome and never the isolated `story.*` fixtures. Each `route.*` cell has a
@@ -541,8 +535,8 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 ### Invariants (do not violate)
 
 - **LLM stays local-only and out of CI** (196-D9). The gate's scoring/re-eval calls the
-  external AI API; only the deterministic `verify.critic_trust` + `verify.mechanical` guards
-  run, in `mix verify.test` (and so in `ci.all`).
+  external AI API; only the deterministic `verify.mechanical` guard
+  runs, in `mix verify.test` (and so in `ci.all`).
 - **Only the four validated lenses block**: `brand_fidelity`, `density`, `typography`,
   `rhythm`. `hierarchy` and `color_contrast` are **advisory only** — reported under an
   advisory badge, **never** auto-block, and their findings must be **verified against ground
@@ -887,7 +881,7 @@ synthetic PLT-build values.
 After the analysis step, the job runs `mix verify.dialyzer_slice` under
 `MIX_ENV=test` against a `postgres:16` service (the test helper starts the
 repo). That alias runs the one `live_dialyzer` test, which shells out to
-`bin/verify-dialyzer-slice` over the committed critic-tooling fixture. The
+`bin/verify-dialyzer-slice` over the committed query-storage fixture. The
 verifier fails closed: `--ignore-exit-status` turns a Dialyzer error (a missing
 or unreadable PLT, a crash) into exit 0 with zero warn lines, so the verifier
 requires exactly one dialyxir completion marker (`done (passed successfully)`

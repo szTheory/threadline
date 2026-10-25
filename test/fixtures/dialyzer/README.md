@@ -1,10 +1,9 @@
 # Dialyzer warning fixtures
 
-These five JSON fixtures are the source-owned audit record for the Phase 199 Dialyzer cleanup. Together they preserve the sealed partition of exactly **40 warnings** across **22 distinct warning origins**:
+These four JSON fixtures are the source-owned audit record for the Phase 199 Dialyzer cleanup. The sealed run recorded 40 warnings; together the fixtures preserve the exactly **37 warnings** across **19 distinct warning origins** whose source is still in the repository. The other three (W01, W02, W05) belonged to maintainer tooling that has since been deleted, and their fixture left with it:
 
 | Fixture | Warning IDs | Count |
 | --- | --- | ---: |
-| `critic-tooling.json` | W01, W02, W05 | 3 |
 | `query-storage.json` | W03, W04, W33-W40 | 10 |
 | `export-investigation.json` | W06-W20 | 15 |
 | `operator-boundaries.json` | W21, W27-W32 | 7 |
@@ -14,7 +13,7 @@ Every fixture records the slice name, original raw-output hash and warning count
 
 ## Ignore ratchet
 
-The repository-wide ignore ceiling is zero because all 40 sealed warnings are fixed. The ceiling may only decrease after an approved exact filter is removed; it must never increase. A fixed warning must never receive an ignore entry.
+The repository-wide ignore ceiling is zero because all 37 recorded warnings are fixed. The ceiling may only decrease after an approved exact filter is removed; it must never increase. A fixed warning must never receive an ignore entry.
 
 If a warning is proven irreducible, its fixture record must first change to `irreducible` and include one exact `ignore_tuple`, a non-empty `rationale`, and a concrete `removal_trigger`. The matching tuple in `.dialyzer_ignore.exs` must have that rationale and removal trigger in the immediately preceding comment. Regexes, globs, message-only filters, duplicate tuples, helper-generated filters, unknown warnings, and unused filters all fail closed.
 
@@ -25,14 +24,13 @@ If a warning is proven irreducible, its fixture record must first change to `irr
 3. Verify every fixture independently:
 
    ```sh
-   bin/verify-dialyzer-slice --fixture test/fixtures/dialyzer/critic-tooling.json
    bin/verify-dialyzer-slice --fixture test/fixtures/dialyzer/query-storage.json
    bin/verify-dialyzer-slice --fixture test/fixtures/dialyzer/export-investigation.json
    bin/verify-dialyzer-slice --fixture test/fixtures/dialyzer/operator-boundaries.json
    bin/verify-dialyzer-slice --fixture test/fixtures/dialyzer/operator-liveviews.json
    ```
 
-4. Run `mix test test/threadline/dialyzer_ignore_contract_test.exs` to prove the global 40-warning/22-origin partition and the exact ignore contract.
+4. Run `mix test test/threadline/dialyzer_ignore_contract_test.exs` to prove the global 37-warning/19-origin partition and the exact ignore contract.
 5. Run the strict analyzer with `mix dialyzer --list-unused-filters`. Any new warning or unused filter blocks the change.
 
 ## Full analyzer handoff

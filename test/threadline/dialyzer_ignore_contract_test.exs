@@ -8,7 +8,6 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   @readme_path Path.join(@fixture_dir, "README.md")
 
   @fixture_specs [
-    {"critic-tooling.json", "critic-tooling", ~w(W01 W02 W05)},
     {"query-storage.json", "query-storage", ~w(W03 W04 W33 W34 W35 W36 W37 W38 W39 W40)},
     {"export-investigation.json", "export-investigation",
      ~w(W06 W07 W08 W09 W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20)},
@@ -22,7 +21,7 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   @raw_command "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status"
   @warning_ceiling 0
 
-  test "five source fixtures form the exact 40-warning and 22-origin partition" do
+  test "four source fixtures form the exact 37-warning and 19-origin partition" do
     fixtures = load_fixtures!()
 
     assert :ok = validate_contract(fixtures, File.read!(@ignore_path), @warning_ceiling)
@@ -30,8 +29,8 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     warning_ids = for fixture <- fixtures, warning <- fixture["warnings"], do: warning["id"]
     origins = Enum.flat_map(fixtures, & &1["authorized_origins"])
 
-    assert Enum.sort(warning_ids) == Enum.map(1..40, &"W#{String.pad_leading("#{&1}", 2, "0")}")
-    assert length(origins) == 22
+    assert Enum.sort(warning_ids) == expected_warning_ids()
+    assert length(origins) == 19
 
     assert Enum.all?(fixtures, fn fixture ->
              Enum.all?(fixture["warnings"], &(&1["disposition"] == "fixed"))
@@ -104,8 +103,8 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     readme = File.read!(@readme_path)
 
     for phrase <- [
-          "40 warnings",
-          "22 distinct warning origins",
+          "37 warnings",
+          "19 distinct warning origins",
           "may only decrease",
           "must never increase",
           @raw_command,
@@ -117,7 +116,7 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   end
 
   test "duplicate, uncommented, malformed, and over-ceiling filters fail closed" do
-    fixtures = make_irreducible(load_fixtures!(), "W01")
+    fixtures = make_irreducible(load_fixtures!(), "W03")
     source = ignore_source(fixtures)
     [entry] = ignore_entries(fixtures)
 
@@ -143,11 +142,11 @@ defmodule Threadline.DialyzerIgnoreContractTest do
 
   test "fixed-warning and unknown-warning filters are forbidden" do
     fixtures = load_fixtures!()
-    warning = find_warning!(fixtures, "W01")
+    warning = find_warning!(fixtures, "W03")
     fixed_entry = {warning["origin"]["path"], warning["raw_line"]}
 
     assert {:error, message} = validate_contract(fixtures, commented_source([fixed_entry]), 1)
-    assert message =~ "fixed warning W01"
+    assert message =~ "fixed warning W03"
 
     unknown_entry = {"lib/not_authorized.ex", "unknown warning"}
 
@@ -174,14 +173,14 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     fixtures = load_fixtures!()
     assert :ok = validate_contract(fixtures, "[]", @warning_ceiling)
 
-    fixtures = make_irreducible(fixtures, "W01")
+    fixtures = make_irreducible(fixtures, "W03")
 
     assert {:error, message} = validate_contract(fixtures, "[]", 1)
-    assert message =~ "missing exact filter for irreducible warning W01"
+    assert message =~ "missing exact filter for irreducible warning W03"
   end
 
   test "irreducible filters require exact tuples and actionable adjacent comments" do
-    fixtures = make_irreducible(load_fixtures!(), "W01")
+    fixtures = make_irreducible(load_fixtures!(), "W03")
     source = ignore_source(fixtures)
 
     assert :ok = validate_contract(fixtures, source, 1)
@@ -194,6 +193,13 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     duplicate_comment = String.replace(source, "  # Rationale:", "  # duplicate\n  # Rationale:")
     assert {:error, message} = validate_contract(fixtures, duplicate_comment, 1)
     assert message =~ "exactly one comment"
+  end
+
+  # The sealed run recorded W01-W40. W01, W02 and W05 were owned by source that
+  # has since been deleted from the repository, so their fixture left with it;
+  # the sealed provenance (warning_count 40, output hash) is unchanged.
+  defp expected_warning_ids do
+    ~w(W03 W04) ++ Enum.map(6..40, &"W#{String.pad_leading("#{&1}", 2, "0")}")
   end
 
   defp load_fixtures! do
@@ -227,7 +233,7 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   end
 
   defp validate_fixtures!(fixtures) do
-    demand!(length(fixtures) == length(@fixture_specs), "exactly five fixtures are required")
+    demand!(length(fixtures) == length(@fixture_specs), "exactly four fixtures are required")
 
     Enum.zip(fixtures, @fixture_specs)
     |> Enum.each(fn {fixture, {_filename, expected_slice, expected_ids}} ->
@@ -278,15 +284,14 @@ defmodule Threadline.DialyzerIgnoreContractTest do
 
     warnings = Enum.flat_map(fixtures, & &1["warnings"])
     origins = Enum.flat_map(fixtures, & &1["authorized_origins"])
-    expected_ids = Enum.map(1..40, &"W#{String.pad_leading("#{&1}", 2, "0")}")
 
     demand!(
-      Enum.sort(Enum.map(warnings, & &1["id"])) == expected_ids,
-      "warning IDs must be W01-W40"
+      Enum.sort(Enum.map(warnings, & &1["id"])) == expected_warning_ids(),
+      "warning IDs must be W03, W04 and W06-W40"
     )
 
-    demand!(length(warnings) == 40, "fixture union must contain exactly 40 warnings")
-    demand!(length(origins) == 22, "fixture union must contain exactly 22 authorized origins")
+    demand!(length(warnings) == 37, "fixture union must contain exactly 37 warnings")
+    demand!(length(origins) == 19, "fixture union must contain exactly 19 authorized origins")
 
     demand!(
       length(origins) == length(Enum.uniq(origins)),

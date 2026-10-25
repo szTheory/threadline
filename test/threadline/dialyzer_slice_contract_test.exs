@@ -2,35 +2,35 @@ defmodule Threadline.DialyzerSliceContractTest do
   use ExUnit.Case, async: false
 
   @script Path.expand("../../bin/verify-dialyzer-slice", __DIR__)
-  @fixture Path.expand("../fixtures/dialyzer/critic-tooling.json", __DIR__)
+  @fixture Path.expand("../fixtures/dialyzer/query-storage.json", __DIR__)
   @raw_command "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status"
 
   @tag :live_dialyzer
   # This test intentionally shells out to the same cold Dialyzer workload whose
   # hosted-CI budget is nine minutes. Keep that allowance local to this test.
   @tag timeout: 540_000
-  test "committed critic-tooling slice has no live warnings" do
+  test "committed query-storage slice has no live warnings" do
     {output, status} = System.cmd(@script, ["--fixture", @fixture], stderr_to_stdout: true)
 
     assert status == 0, output
-    assert output =~ "verified slice critic-tooling: 3/40 sealed warnings"
+    assert output =~ "verified slice query-storage: 10/40 sealed warnings"
     assert output =~ "0 live warnings"
   end
 
   test "synthetic raw output verifies a bounded fixed slice" do
     raw =
-      ~S|{:warn_unknown, {~c"lib/threadline/query.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
+      ~S|{:warn_unknown, {~c"lib/threadline/retention.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
       |> Kernel.<>("\n")
 
     assert {output, 0} = run_fixture(with_post_hash(committed_fixture(), raw), raw)
-    assert output =~ "3/40 sealed warnings"
-    assert output =~ "3 authorized origins"
+    assert output =~ "10/40 sealed warnings"
+    assert output =~ "5 authorized origins"
     assert output =~ "0 live warnings"
   end
 
   test "duplicate warning IDs are rejected" do
     fixture = committed_fixture()
-    warning = warning!(fixture, "W05")
+    warning = warning!(fixture, "W03")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning, warning]}, "")
     assert output =~ "warning IDs must be unique"
@@ -41,8 +41,8 @@ defmodule Threadline.DialyzerSliceContractTest do
 
     warning =
       fixture
-      |> warning!("W05")
-      |> put_in(["origin", "path"], "lib/threadline/query.ex")
+      |> warning!("W03")
+      |> put_in(["origin", "path"], "lib/threadline/retention.ex")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning]}, "")
     assert output =~ "origin is outside authorized_origins"
@@ -50,18 +50,18 @@ defmodule Threadline.DialyzerSliceContractTest do
 
   test "a surviving fixed warning is rejected" do
     fixture = committed_fixture()
-    warning = warning!(fixture, "W05")
+    warning = warning!(fixture, "W03")
     raw = warning["raw_line"] <> "\n"
 
     assert {output, 1} = run_fixture(with_post_hash(fixture, raw), raw)
-    assert output =~ "fixed warning W05 still survives"
+    assert output =~ "fixed warning W03 still survives"
   end
 
   test "an unrecorded live warning in an authorized origin is rejected" do
     fixture = committed_fixture()
 
     raw =
-      ~S|{:warn_matching, {~c"lib/threadline/critic_trust/measure.ex", {101, 7}}, {:pattern_match, [~c"pattern _", ~c"term()"]}}|
+      ~S|{:warn_matching, {~c"lib/threadline/query.ex", {101, 7}}, {:pattern_match, [~c"pattern _", ~c"term()"]}}|
       |> Kernel.<>("\n")
 
     assert {output, 1} = run_fixture(with_post_hash(fixture, raw), raw)
@@ -70,7 +70,7 @@ defmodule Threadline.DialyzerSliceContractTest do
 
   test "irreducible residue requires an exact tuple, rationale, and removal trigger" do
     fixture = committed_fixture()
-    warning = warning!(fixture, "W05")
+    warning = warning!(fixture, "W03")
 
     complete =
       warning
@@ -100,7 +100,7 @@ defmodule Threadline.DialyzerSliceContractTest do
 
     warning =
       fixture
-      |> warning!("W05")
+      |> warning!("W03")
       |> Map.put("class", "warn_matching")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning]}, "")
@@ -189,7 +189,7 @@ defmodule Threadline.DialyzerSliceContractTest do
   @tag :tmp_dir
   test "an error line alongside stray warn lines fails closed", %{tmp_dir: tmp_dir} do
     raw =
-      ~S|{:warn_unknown, {~c"lib/threadline/query.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
+      ~S|{:warn_unknown, {~c"lib/threadline/retention.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
       |> Kernel.<>("\n")
       |> Kernel.<>(
         @dialyzer_error_prefix <>
@@ -220,7 +220,7 @@ defmodule Threadline.DialyzerSliceContractTest do
   @tag :tmp_dir
   test "the warnings-emitted marker is accepted as completion", %{tmp_dir: tmp_dir} do
     raw =
-      ~S|{:warn_unknown, {~c"lib/threadline/query.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
+      ~S|{:warn_unknown, {~c"lib/threadline/retention.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
       |> Kernel.<>("\n")
       |> Kernel.<>("\e[33m" <> @warnings_marker <> "\e[0m\n")
 
