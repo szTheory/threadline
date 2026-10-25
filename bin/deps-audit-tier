@@ -184,7 +184,7 @@ dat_role() {
 }
 
 # dat_closure DIR OUTFILE: writes the sorted `--only prod` closure of DIR, one
-# package name per line, to OUTFILE. Must run only after that directory's
+# app name per line plus the Hex package name of every renamed app, to OUTFILE. Must run only after that directory's
 # `deps.get --check-locked` succeeded: before a fetch, deps.tree exits 0 and
 # prints only the top-level deps (RESEARCH correction 2). Stores combined
 # output in DAT_TREE_OUTPUT and the mix status in DAT_TREE_STATUS. Returns 1
@@ -204,6 +204,19 @@ $err}"
   printf '%s\n' "$tree" | tail -n +2 | sed -E 's/^[|` -]*//; s/ .*//' | sed '/^$/d' | sort -u >"$out"
   if [ ! -s "$out" ]; then
     return 3
+  fi
+  # deps.tree prints app names, but SARIF names the Hex package (WR-01): for an
+  # app declared with `hex: :pkg`, add the package its mix.lock entry names, so
+  # a renamed runtime dep stays blocking.
+  if [ -f "$dir/mix.lock" ]; then
+    sed -nE 's/^[[:space:]]*"([a-z0-9_]+)": \{:hex, :([a-z0-9_]+),.*/\1 \2/p' "$dir/mix.lock" |
+      while read -r app pkg; do
+        if [ "$app" != "$pkg" ] && grep -Fxq -- "$app" "$out"; then
+          printf '%s\n' "$pkg"
+        fi
+      done >"$out.pkgs"
+    sort -u "$out" "$out.pkgs" -o "$out"
+    rm -f "$out.pkgs"
   fi
   return 0
 }
