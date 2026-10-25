@@ -1,7 +1,8 @@
 # shellcheck shell=bash
 # Sourced library (no shebang, not executable on its own): the one SARIF
 # parser for `mix hex.audit` (D-18, D-19). Consumers: bin/deps-health-report
-# (SUP-04) and, from plan 245-02, bin/verify-deps-audit (SUP-03).
+# (SUP-04) and bin/verify-deps-audit (SUP-03), which also share the tier
+# functions below.
 #
 # Contract (Hex 2.6.0, lib/hex/sarif.ex): every result carries
 # partialFingerprints["hexAudit/v1"] shaped
@@ -27,6 +28,7 @@
 
 DAT_TMP_DIRS=()
 DAT_AUDIT_OUTPUT=""
+DAT_SARIF_PATH=""
 
 dat_cleanup() {
   local d
@@ -36,15 +38,19 @@ dat_cleanup() {
   DAT_TMP_DIRS=()
 }
 
-# Prints a fresh, never-created SARIF path inside a new registered temp dir.
+# Sets DAT_SARIF_PATH to a fresh, never-created SARIF path inside a new
+# registered temp dir. Call it directly, never as `$(dat_new_sarif_path)`: a
+# command substitution is a subshell, so the registration in DAT_TMP_DIRS
+# would be lost and dat_cleanup would leak the directory.
 dat_new_sarif_path() {
   local dir st
+  DAT_SARIF_PATH=""
   mkdir -p "$ROOT/tmp" && st=0 || st=$?
   [ "$st" -eq 0 ] || return "$st"
   dir="$(mktemp -d "$ROOT/tmp/deps-audit-sarif.XXXXXX")" && st=0 || st=$?
   [ "$st" -eq 0 ] || return "$st"
   DAT_TMP_DIRS+=("$dir")
-  printf '%s/audit.sarif\n' "$dir"
+  DAT_SARIF_PATH="$dir/audit.sarif"
 }
 
 # dat_audit DIR SARIF_PATH: runs hex.audit in DIR, stores combined output in
@@ -142,4 +148,95 @@ EOF
   fi
 
   return 0
+}
+
+# --- Tiering (SUP-03, D-16) ---------------------------------------------------
+#
+# A finding is blocking if and only if its directory uses the closure rule and
+# its package is in that directory's `mix deps.tree --only prod --format plain`
+# closure. The closure includes optional and transitive deps and never
+# consults `runtime: false` (a `runtime: false` dep without `only:` still ships
+# as a requirement). Role comes only from the resolved path (RESEARCH
+# correction 4): `$ROOT/bench` and `$ROOT/examples/threadline_phoenix` are
+# never shipped, so every finding there is non-blocking; the root and every
+# other directory (self-test projects, test temp dirs) use the closure rule.
+# There is deliberately no environment or flag seam that changes a role: any
+# such seam would be a downgrade switch for the required gate.
+
+DAT_TREE_OUTPUT=""
+DAT_TREE_STATUS=0
+
+# dat_role RESOLVED_DIR: prints `always-non-blocking` or `closure`.
+dat_role() {
+  local dir="$1" real bench example st
+  real="$(cd "$dir" 2>/dev/null && pwd -P)" && st=0 || st=$?
+  if [ "$st" -ne 0 ] || [ -z "$real" ]; then
+    printf 'closure\n'
+    return 0
+  fi
+  bench="$(cd "$ROOT/bench" 2>/dev/null && pwd -P)" || bench="$ROOT/bench"
+  example="$(cd "$ROOT/examples/threadline_phoenix" 2>/dev/null && pwd -P)" || example="$ROOT/examples/threadline_phoenix"
+  if [ "$real" = "$bench" ] || [ "$real" = "$example" ]; then
+    printf 'always-non-blocking\n'
+  else
+    printf 'closure\n'
+  fi
+}
+
+# dat_closure DIR OUTFILE: writes the sorted `--only prod` closure of DIR, one
+# package name per line, to OUTFILE. Must run only after that directory's
+# `deps.get --check-locked` succeeded: before a fetch, deps.tree exits 0 and
+# prints only the top-level deps (RESEARCH correction 2). Stores combined
+# output in DAT_TREE_OUTPUT and the mix status in DAT_TREE_STATUS. Returns 1
+# when the command fails and 3 when the closure is empty.
+dat_closure() {
+  local dir="$1" out="$2" st tree err
+  tree="$(cd "$dir" && "$MIX_BIN" deps.tree --only prod --format plain 2>"$out.stderr")" && st=0 || st=$?
+  err="$(cat "$out.stderr" 2>/dev/null)"
+  rm -f "$out.stderr"
+  DAT_TREE_STATUS="$st"
+  DAT_TREE_OUTPUT="$tree${err:+
+$err}"
+  if [ "$st" -ne 0 ]; then
+    return 1
+  fi
+  # Drop the project line, strip the tree glyphs, keep the app name.
+  printf '%s\n' "$tree" | tail -n +2 | sed -E 's/^[|` -]*//; s/ .*//' | sed '/^$/d' | sort -u >"$out"
+  if [ ! -s "$out" ]; then
+    return 3
+  fi
+  return 0
+}
+
+# dat_tier ROLE PACKAGE CLOSURE_FILE: prints `blocking` or `non-blocking`.
+dat_tier() {
+  local role="$1" pkg="$2" closure="$3"
+  if [ "$role" = "closure" ] && [ -n "$closure" ] && grep -Fxq -- "$pkg" "$closure"; then
+    printf 'blocking\n'
+  else
+    printf 'non-blocking\n'
+  fi
+}
+
+# dat_reason TIER ROLE PACKAGE DIR: the human why-string for one finding.
+dat_reason() {
+  local tier="$1" role="$2" pkg="$3" dir="$4" lock
+  if [ "$dir" = "." ]; then
+    lock="root mix.lock"
+  else
+    lock="$dir/mix.lock"
+  fi
+  if [ "$tier" = "blocking" ]; then
+    printf '%s is in the shipped runtime closure (%s)\n' "$pkg" "$lock"
+  elif [ "$role" = "closure" ]; then
+    printf '%s is not in the --only prod closure of %s; dev/test only\n' "$pkg" "$dir"
+  else
+    printf '%s is only in %s/mix.lock; not shipped in the Hex package\n' "$pkg" "$dir"
+  fi
+}
+
+# dat_machine_line TIER DIR KIND PACKAGE ID: the one machine line per finding
+# (D-18). ID is the advisory id, or the SARIF ruleId for a retirement.
+dat_machine_line() {
+  printf 'deps-audit-finding tier=%s dir=%s kind=%s package=%s id=%s\n' "$1" "$2" "$3" "$4" "$5"
 }

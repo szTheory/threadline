@@ -58,6 +58,20 @@ die() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
+# shellcheck source=bin/deps-audit-tier
+source "$SCRIPT_DIR/deps-audit-tier"
+
+# The one EXIT trap (PATTERNS hazard 2): every temp path this script creates
+# is registered here, never through a second trap that would replace it.
+SELF_TEST_DIR=""
+NEUTRAL_HEX_CONFIG_DIR=""
+cleanup_all() {
+  [ -z "$SELF_TEST_DIR" ] || rm -rf "$SELF_TEST_DIR"
+  [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+  dat_cleanup
+}
+trap cleanup_all EXIT
+
 # The floor is a literal, never environment-overridable. Bumping it is a
 # deliberate, reviewed edit to this file. It must equal the CI Hex pin
 # (`mix local.hex X.Y.Z --force`), enforced by hex_pin_contract_test.exs. CI
@@ -102,11 +116,8 @@ if [ "${1:-}" = "--self-test" ]; then
     die "self-test fixture missing at $fixture_dir"
 
   mkdir -p "$ROOT/tmp"
-  self_test_dir="$(mktemp -d "$ROOT/tmp/deps-audit-self-test.XXXXXX")"
-  cleanup_self_test() {
-    rm -rf "$self_test_dir"
-  }
-  trap cleanup_self_test EXIT
+  SELF_TEST_DIR="$(mktemp -d "$ROOT/tmp/deps-audit-self-test.XXXXXX")"
+  self_test_dir="$SELF_TEST_DIR"
 
   project_dir="$self_test_dir/project"
   mkdir -p "$project_dir"
@@ -290,8 +301,8 @@ read_global_hex_ignore() {
 refuse_global_hex_ignores() {
   mkdir -p "$ROOT/tmp"
   local neutral_dir
-  neutral_dir="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
-  trap 'rm -rf "$neutral_dir"' EXIT
+  NEUTRAL_HEX_CONFIG_DIR="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
+  neutral_dir="$NEUTRAL_HEX_CONFIG_DIR"
 
   local key
   for key in ignore_advisories ignore_retirements; do
@@ -310,7 +321,7 @@ refuse_global_hex_ignores() {
   done
 
   rm -rf "$neutral_dir"
-  trap - EXIT
+  NEUTRAL_HEX_CONFIG_DIR=""
 }
 
 refuse_global_hex_ignores
@@ -318,6 +329,48 @@ refuse_global_hex_ignores
 # --- Per-directory audit, aggregated (never fail-fast) ------------------------
 
 FAILURES=()
+NON_BLOCKING_COUNT=0
+SUMMARY_HEADER_WRITTEN=0
+
+# shape_fail_label REASON: the distinct D-19 FAIL text for one audit shape
+# error reported by dat_audit_shape_error.
+shape_fail_label() {
+  case "$1" in
+    "SARIF needs OTP 27+"*) printf 'SARIF needs OTP 27+' ;;
+    "hex.audit exited "*" and wrote no SARIF file") printf 'SARIF output missing' ;;
+    "SARIF file could not be parsed"* | "SARIF results could not be parsed"* | "parsed "*" findings from "*)
+      printf 'SARIF output unparseable'
+      ;;
+    "hex.audit exited 0 with "*) printf 'hex.audit exited 0 with findings (unclassifiable)' ;;
+    "hex.audit exited "*" with zero SARIF results")
+      local n="${1#hex.audit exited }"
+      printf 'hex.audit exited %s with no SARIF results' "${n%% *}"
+      ;;
+    "unparseable hexAudit/v1 fingerprint"*) printf 'unparseable fingerprint' ;;
+    "unexpected hex.audit finding kind: "*) printf 'unknown finding kind %s' "${1#unexpected hex.audit finding kind: }" ;;
+    *) printf 'unclassifiable hex.audit result' ;;
+  esac
+}
+
+# summary_row DIR PACKAGE KIND ID TIER REASON: one $GITHUB_STEP_SUMMARY table
+# row per finding (D-18), header written once. SARIF-derived text only ever
+# reaches printf as a %s argument; `|` is escaped so a cell cannot split.
+summary_row() {
+  [ -n "${GITHUB_STEP_SUMMARY:-}" ] || return 0
+  if [ "$SUMMARY_HEADER_WRITTEN" -eq 0 ]; then
+    {
+      printf '### verify-deps-audit findings\n\n'
+      printf '| dir | package | kind | id | tier | why |\n'
+      printf '|---|---|---|---|---|---|\n'
+    } >>"$GITHUB_STEP_SUMMARY"
+    SUMMARY_HEADER_WRITTEN=1
+  fi
+  local cells=() cell
+  for cell in "$@"; do
+    cells+=("${cell//|/\\|}")
+  done
+  printf '| %s | %s | %s | %s | %s | %s |\n' "${cells[@]}" >>"$GITHUB_STEP_SUMMARY"
+}
 
 for d in "${DIRS[@]}"; do
   resolved="$(resolve_dir "$d")"
@@ -372,15 +425,69 @@ for d in "${DIRS[@]}"; do
     FAILURES+=("FAIL $d: deps.unlock --check-unused exited $unlock_status")
   fi
 
-  set +e
-  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
-  audit_status=$?
-  set -e
-
-  if [ "$audit_status" -ne 0 ]; then
-    printf '%s\n' "$audit_output"
-    FAILURES+=("FAIL $d: hex.audit exited $audit_status")
+  # SUP-03 tiering. A fresh, registered temp dir per directory holds both the
+  # never-pre-created SARIF path and the closure file, so parallel or
+  # interrupted runs never read a stale or foreign SARIF (D-19).
+  dat_new_sarif_path && sarif_status=0 || sarif_status=$?
+  sarif_path="$DAT_SARIF_PATH"
+  if [ "$sarif_status" -ne 0 ] || [ -z "$sarif_path" ]; then
+    FAILURES+=("FAIL $d: could not create a SARIF temp directory under $ROOT/tmp")
+    continue
   fi
+
+  role="$(dat_role "$resolved")"
+  closure_file=""
+  if [ "$role" = "closure" ]; then
+    # Only after a successful --check-locked fetch (RESEARCH correction 2).
+    closure_file="$(dirname "$sarif_path")/closure.txt"
+    dat_closure "$resolved" "$closure_file" && tree_status=0 || tree_status=$?
+    if [ "$tree_status" -eq 1 ]; then
+      printf '%s\n' "$DAT_TREE_OUTPUT"
+      FAILURES+=("FAIL $d: deps.tree --only prod exited $DAT_TREE_STATUS (the runtime closure decides which findings block; no audit was trusted)")
+      continue
+    fi
+    if [ "$tree_status" -ne 0 ]; then
+      printf '%s\n' "$DAT_TREE_OUTPUT"
+      FAILURES+=("FAIL $d: empty runtime closure (mix deps.tree --only prod --format plain listed no packages; no audit was trusted)")
+      continue
+    fi
+  fi
+
+  # Findings come only from the SARIF hexAudit/v1 fingerprint (D-18). Not
+  # wrapped in bin/retry-network: real findings also exit 1 (D-19).
+  dat_audit "$resolved" "$sarif_path" && audit_status=0 || audit_status=$?
+  shape_error="$(dat_audit_shape_error "$audit_status" "$sarif_path")" && shape_ok=1 || shape_ok=0
+
+  if [ "$shape_ok" -ne 1 ]; then
+    printf '%s\n' "$DAT_AUDIT_OUTPUT"
+    FAILURES+=("FAIL $d: $(shape_fail_label "$shape_error") ($shape_error)")
+    continue
+  fi
+
+  findings="$(dat_findings "$sarif_path")" && findings_status=0 || findings_status=$?
+  if [ "$findings_status" -ne 0 ]; then
+    FAILURES+=("FAIL $d: SARIF output unparseable (jq exited $findings_status)")
+    continue
+  fi
+
+  [ -z "$findings" ] || printf '%s\n' "$DAT_AUDIT_OUTPUT"
+
+  while IFS="$(printf '\t')" read -r f_kind f_pkg f_id _f_msg; do
+    [ -n "$f_kind" ] || continue
+    tier="$(dat_tier "$role" "$f_pkg" "$closure_file")"
+    reason="$(dat_reason "$tier" "$role" "$f_pkg" "$d")"
+    dat_machine_line "$tier" "$d" "$f_kind" "$f_pkg" "$f_id"
+    if [ "$tier" = "blocking" ]; then
+      printf '::error::%s: %s %s %s\n' "$reason" "$f_kind" "$f_pkg" "$f_id"
+      FAILURES+=("FAIL $d: blocking $f_kind $f_pkg $f_id ($reason)")
+    else
+      printf '::warning::%s: %s %s %s\n' "$reason" "$f_kind" "$f_pkg" "$f_id"
+      NON_BLOCKING_COUNT=$((NON_BLOCKING_COUNT + 1))
+    fi
+    summary_row "$d" "$f_pkg" "$f_kind" "$f_id" "$tier" "$reason"
+  done <<EOF
+$findings
+EOF
 done
 
 if [ ${#FAILURES[@]} -gt 0 ]; then
@@ -388,5 +495,5 @@ if [ ${#FAILURES[@]} -gt 0 ]; then
   exit 1
 fi
 
-printf 'verify-deps-audit: %d lockfile(s) audit clean (Hex %s)\n' "${#DIRS[@]}" "$hex_version"
+printf 'verify-deps-audit: %d lockfile(s) audit clean (Hex %s; %d non-blocking finding(s))\n' "${#DIRS[@]}" "$hex_version" "$NON_BLOCKING_COUNT"
 exit 0
