@@ -101,13 +101,27 @@ defmodule Threadline.DepsAuditGateTest do
     if [ "$cmd" = "deps.tree" ]; then
       # FAKE_TREE_<base>: package names (newline, comma or space separated),
       # rendered under a project line; default `telemetry`; `__EMPTY__`
-      # prints only the project line (an empty closure).
+      # prints only the project line (an empty closure). The first name is a
+      # top-level `|-- ` dep and every later one is its nested child
+      # (`|   |-- `, the last `|   `-- `), as real deps.tree prints
+      # transitive deps, so the bash closure parser is exercised on both.
       spec="$(knob FAKE_TREE)"
       [ -n "$spec" ] || spec="telemetry"
       printf '%s\n' "$base"
       [ "$spec" = "__EMPTY__" ] && exit 0
-      printf '%s\n' "$spec" | tr ', ' '\n\n' | sed '/^$/d' | while IFS= read -r name; do
-        printf '|-- %s ~> 1.0 (Hex package)\n' "$name"
+      names="$(printf '%s\n' "$spec" | tr ', ' '\n\n' | sed '/^$/d')"
+      total=$(printf '%s\n' "$names" | wc -l | tr -d ' ')
+      i=0
+      printf '%s\n' "$names" | while IFS= read -r name; do
+        i=$((i + 1))
+        if [ "$i" -eq 1 ]; then
+          glyph='|-- '
+        elif [ "$i" -eq "$total" ]; then
+          glyph='|   `-- '
+        else
+          glyph='|   |-- '
+        fi
+        printf '%s%s ~> 1.0 (Hex package)\n' "$glyph" "$name"
       done
       exit 0
     fi
@@ -1267,25 +1281,19 @@ defmodule Threadline.DepsAuditGateTest do
     @dev_test_only ~w(credo dialyxir ex_doc lazy_html stream_data yaml_elixir)a
 
     test "contains every root dep declared without only: and none of the dev/test tools" do
-      {out, status} =
-        System.cmd("mix", ["deps.tree", "--only", "prod", "--format", "plain"],
-          cd: @real_root,
-          stderr_to_stdout: true
-        )
+      {out, status} = live_closure(tmp_root())
 
       assert status == 0, out
 
-      closure =
-        out
-        |> String.split("\n")
-        |> Enum.drop(1)
-        |> Enum.map(fn line ->
-          line |> String.replace(~r/^[|` -]*/, "") |> String.split(" ") |> hd()
-        end)
-        |> Enum.reject(&(&1 == ""))
-        |> MapSet.new()
+      closure = out |> String.split("\n", trim: true) |> MapSet.new()
 
       assert MapSet.size(closure) > 0, out
+
+      # Transitive-only deps arrive on nested `|   |-- ` / `|   `-- ` lines.
+      for name <- ~w(db_connection decimal) do
+        assert MapSet.member?(closure, name),
+               "transitive #{name} missing from the closure:\n#{out}"
+      end
 
       runtime =
         for dep <- Mix.Project.config()[:deps],
@@ -1304,6 +1312,28 @@ defmodule Threadline.DepsAuditGateTest do
         refute MapSet.member?(closure, Atom.to_string(name)),
                "#{name} is dev/test only but appears in the --only prod closure"
       end
+    end
+
+    # Runs the real `dat_closure` from bin/deps-audit-tier (the parser that
+    # decides blocking) on the root tree and prints the closure file.
+    defp live_closure(tmp) do
+      script = ~S"""
+      ROOT="$1"
+      MIX_BIN=mix
+      source "$ROOT/bin/deps-audit-tier"
+      dat_closure "$ROOT" "$2" && st=0 || st=$?
+      if [ "$st" -ne 0 ]; then
+        printf 'dat_closure returned %s\n%s\n' "$st" "$DAT_TREE_OUTPUT"
+        exit 1
+      fi
+      cat "$2"
+      """
+
+      System.cmd(
+        "bash",
+        ["-c", script, "live_closure", @real_root, Path.join(tmp, "closure.txt")],
+        stderr_to_stdout: true
+      )
     end
 
     defp dep_opts({_name, opts}) when is_list(opts), do: opts
