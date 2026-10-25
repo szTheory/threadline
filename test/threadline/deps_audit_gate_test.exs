@@ -9,6 +9,7 @@ defmodule Threadline.DepsAuditGateTest do
   use ExUnit.Case, async: true
 
   @script Path.expand("../../bin/verify-deps-audit", __DIR__)
+  @real_root Path.expand("../..", __DIR__)
 
   defp tmp_root do
     root = Path.join(System.tmp_dir!(), "deps_audit_gate_#{System.unique_integer([:positive])}")
@@ -39,52 +40,118 @@ defmodule Threadline.DepsAuditGateTest do
   # out-of-date-lock message and exits 1, while plain `deps.get` (no
   # --check-locked) exits 0 — mirroring real Mix, which silently re-resolves
   # a drifted lock instead of refusing it.
+  #
+  # deps.tree (SUP-03): prints a `--format plain` tree of FAKE_TREE_<base>
+  # (default `telemetry`; `__EMPTY__` for an empty closure); `<base>:deps.tree`
+  # in FAKE_FAIL exits 1. hex.audit --format sarif --output P builds a Hex
+  # 2.6.0-shaped SARIF at P from FAKE_SARIF_<base> (see the inline comment).
+  # <base> is the dir basename with `/`, `.` and `-` mapped to `_`.
   defp fake_mix(root) do
     path = Path.join(root, "mix")
 
-    File.write!(path, """
+    File.write!(path, ~S"""
     #!/usr/bin/env bash
     set -u
-    printf '%s|%s\\n' "$(pwd)" "$*" >> "$CALL_LOG"
+    printf '%s|%s\n' "$(pwd)" "$*" >> "$CALL_LOG"
     cmd="$1"
+    base=$(basename "$(pwd)")
+    # Env-key form of the dir basename: `/`, `.` and `-` become `_`.
+    key_base=$(printf '%s' "$base" | tr '/.-' '___')
+    knob() {
+      eval "printf '%s' \"\${$1_$key_base-}\""
+    }
     if [ "$cmd" = "hex.info" ]; then
       if [ -n "${FAKE_HEX_INFO:-}" ]; then
-        printf '%s\\n' "$FAKE_HEX_INFO"
+        printf '%s\n' "$FAKE_HEX_INFO"
       fi
       exit 0
     fi
     if [ "$cmd" = "hex.config" ]; then
       key="${2:-}"
       if [ -n "${FAKE_HEX_CONFIG_PREFIX:-}" ]; then
-        printf '%s\\n' "$FAKE_HEX_CONFIG_PREFIX"
+        printf '%s\n' "$FAKE_HEX_CONFIG_PREFIX"
       fi
       if [ "$key" = "ignore_advisories" ]; then
         val="${FAKE_HEX_CONFIG_IGNORE_ADVISORIES-[]}"
-        [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
+        [ "$val" = "__NOOUTPUT__" ] || printf '%s\n' "$val"
       elif [ "$key" = "ignore_retirements" ]; then
         val="${FAKE_HEX_CONFIG_IGNORE_RETIREMENTS-[]}"
-        [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
+        [ "$val" = "__NOOUTPUT__" ] || printf '%s\n' "$val"
       fi
       exit "${FAKE_HEX_CONFIG_EXIT:-0}"
     fi
     if [ "$cmd" = "deps.get" ]; then
-      base=$(basename "$(pwd)")
       case ",${FAKE_LOCK_DRIFT:-}," in
         *",$base,"*)
           case " $* " in
             *" --check-locked "*)
-              printf '** (Mix) Your mix.lock is out of date and must be updated without the --check-locked flag\\n'
+              printf '** (Mix) Your mix.lock is out of date and must be updated without the --check-locked flag\n'
               exit 1
               ;;
           esac
           ;;
       esac
     fi
-    base=$(basename "$(pwd)")
-    key="$base:$cmd"
     case ",${FAKE_FAIL:-}," in
-      *",$key,"*) exit 1 ;;
+      *",$base:$cmd,"*)
+        [ "$cmd" = "deps.tree" ] && printf '** (Mix) fake deps.tree failure\n' >&2
+        exit 1
+        ;;
     esac
+    if [ "$cmd" = "deps.tree" ]; then
+      # FAKE_TREE_<base>: package names (newline, comma or space separated),
+      # rendered under a project line; default `telemetry`; `__EMPTY__`
+      # prints only the project line (an empty closure).
+      spec="$(knob FAKE_TREE)"
+      [ -n "$spec" ] || spec="telemetry"
+      printf '%s\n' "$base"
+      [ "$spec" = "__EMPTY__" ] && exit 0
+      printf '%s\n' "$spec" | tr ', ' '\n\n' | sed '/^$/d' | while IFS= read -r name; do
+        printf '|-- %s ~> 1.0 (Hex package)\n' "$name"
+      done
+      exit 0
+    fi
+    if [ "$cmd" = "hex.audit" ]; then
+      out=""
+      prev=""
+      for a in "$@"; do
+        [ "$prev" = "--output" ] && out="$a"
+        prev="$a"
+      done
+      # FAKE_SARIF_<base>: `kind:package:id;...` (kind advisory, retired or
+      # any other word; `raw:<fingerprint>` writes that fingerprint verbatim),
+      # or `__NOFILE__` (a registry failure: no file, exit 1) or
+      # `__MALFORMED__` (unparseable JSON, exit 1). FAKE_AUDIT_EXIT_<base>
+      # overrides the exit status (default: 1 when any result exists).
+      spec="$(knob FAKE_SARIF)"
+      forced="$(knob FAKE_AUDIT_EXIT)"
+      if [ "$spec" = "__NOFILE__" ]; then
+        printf 'Failed to fetch record for plug from registry\n'
+        exit 1
+      fi
+      [ -n "$out" ] || exit 64
+      if [ "$spec" = "__MALFORMED__" ]; then
+        printf 'not json {' > "$out"
+        exit "${forced:-1}"
+      fi
+      printf '%s\n' "$spec" | tr ';' '\n' | sed '/^$/d' | while IFS= read -r e; do
+        kind="${e%%:*}"
+        rest="${e#*:}"
+        pkg="${rest%%:*}"
+        id="${rest#*:}"
+        case "$kind" in
+          advisory) fp="advisory:hexpm/$pkg:$id" ;;
+          raw) fp="$rest"; pkg="?"; id="RAW" ;;
+          *) fp="$kind:hexpm/$pkg" ;;
+        esac
+        printf '%s\t%s\t%s\n' "$fp" "$id" "Dependency '$pkg' has a $kind finding '$id'."
+      done | jq -Rn '[inputs | split("\t") | {ruleId: .[1], level: "warning", message: {text: .[2]}, partialFingerprints: {"hexAudit/v1": .[0]}}] | {version: "2.1.0", runs: [{tool: {driver: {name: "mix hex.audit", version: "2.6.0"}}, results: .}]}' > "$out"
+      count=$(jq '.runs[0].results | length' "$out")
+      if [ -n "$forced" ]; then exit "$forced"; fi
+      [ "$count" -eq 0 ] && exit 0
+      printf 'Found packages with security advisories\n'
+      exit 1
+    fi
     exit 0
     """)
 
@@ -136,7 +203,7 @@ defmodule Threadline.DepsAuditGateTest do
     {out, status, File.read!(log)}
   end
 
-  test "clean run over three dirs: exit 0, CALL_LOG order is hex.info then per-dir deps.get/deps.unlock/hex.audit" do
+  test "clean run over three dirs: exit 0, CALL_LOG order is hex.info then per-dir deps.get/deps.unlock/deps.tree/hex.audit sarif" do
     root = tmp_root()
     d1 = project_dir(root, "one")
     d2 = project_dir(root, "two")
@@ -153,20 +220,64 @@ defmodule Threadline.DepsAuditGateTest do
         args
       end)
 
-    assert calls == [
+    sarif_prefix = Path.join([@real_root, "tmp", "deps-audit-sarif."])
+
+    {per_dir, audits} =
+      calls
+      |> Enum.drop(3)
+      |> Enum.map_reduce([], fn call, acc ->
+        case Regex.run(~r/^hex\.audit --format sarif --output (\S+)$/, call) do
+          [_, path] -> {"hex.audit --format sarif --output <sarif>", [path | acc]}
+          nil -> {call, acc}
+        end
+      end)
+
+    assert Enum.take(calls, 3) == [
              "hex.info",
              "hex.config ignore_advisories",
-             "hex.config ignore_retirements",
-             "deps.get --check-locked",
-             "deps.unlock --check-unused",
-             "hex.audit",
-             "deps.get --check-locked",
-             "deps.unlock --check-unused",
-             "hex.audit",
-             "deps.get --check-locked",
-             "deps.unlock --check-unused",
-             "hex.audit"
+             "hex.config ignore_retirements"
            ]
+
+    per_dir_calls = [
+      "deps.get --check-locked",
+      "deps.unlock --check-unused",
+      "deps.tree --only prod --format plain",
+      "hex.audit --format sarif --output <sarif>"
+    ]
+
+    assert per_dir == per_dir_calls ++ per_dir_calls ++ per_dir_calls
+
+    # A fresh SARIF path per audit call, under tmp/deps-audit-sarif.*, removed
+    # by the single EXIT trap.
+    assert length(Enum.uniq(audits)) == 3
+
+    for path <- audits do
+      assert String.starts_with?(path, sarif_prefix), path
+      refute File.exists?(Path.dirname(path)), "SARIF dir #{path} was not removed"
+    end
+  end
+
+  test "tracer: a root runtime advisory blocks the gate through the shared tier library" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} =
+      run(
+        [d1],
+        [
+          {"FAKE_TREE_one", "plug\nplug_crypto\ntelemetry"},
+          {"FAKE_SARIF_one", "advisory:plug:EEF-CVE-2026-56813"}
+        ],
+        root
+      )
+
+    assert status == 1, out
+    assert out =~ "deps-audit-finding tier=blocking dir=#{d1} kind=advisory"
+    assert out =~ "package=plug id=EEF-CVE-2026-56813"
+    assert out =~ "FAIL #{d1}: blocking advisory plug EEF-CVE-2026-56813"
+    assert out =~ "::error::"
+    assert log =~ "#{d1}|deps.tree --only prod --format plain"
+    refute out =~ "audit clean"
   end
 
   test "Hex 2.10.0 passes the floor check (numeric, not lexical, comparison)" do
@@ -329,8 +440,6 @@ defmodule Threadline.DepsAuditGateTest do
     assert out =~ "HEX_IGNORE_RETIREMENTS"
     assert String.trim(log) == ""
   end
-
-  @real_root Path.expand("../..", __DIR__)
 
   test "a non-empty global hex.config ignore_advisories exits non-zero before any audit call, naming the key" do
     root = tmp_root()
@@ -501,10 +610,23 @@ defmodule Threadline.DepsAuditGateTest do
     lines = contents |> String.trim() |> String.split("\n")
     pwds = Enum.map(lines, fn line -> line |> String.split("|", parts: 2) |> hd() end)
 
-    # First three lines are hex.info + hex.config ignore_advisories +
-    # hex.config ignore_retirements (all run in ROOT); the next three groups
-    # of three (deps.get / deps.unlock / hex.audit) are the canonical dirs.
-    dir_pwds = pwds |> Enum.drop(3) |> Enum.take_every(3)
+    # The first three lines (hex.info, hex.config x2) run in ROOT. Each
+    # directory starts with its own `deps.get --check-locked`; only the root
+    # (a closure-rule dir) also runs deps.tree.
+    dir_pwds =
+      lines
+      |> Enum.filter(&String.ends_with?(&1, "|deps.get --check-locked"))
+      |> Enum.map(fn line -> line |> String.split("|", parts: 2) |> hd() end)
+
+    assert length(dir_pwds) == 3
+    _ = pwds
+
+    tree_pwds =
+      lines
+      |> Enum.filter(&String.contains?(&1, "|deps.tree"))
+      |> Enum.map(fn line -> line |> String.split("|", parts: 2) |> hd() end)
+
+    assert tree_pwds == [real_root]
 
     assert Enum.at(dir_pwds, 0) |> String.ends_with?(real_root)
     assert Enum.at(dir_pwds, 1) |> String.ends_with?("/bench")

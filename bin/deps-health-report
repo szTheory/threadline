@@ -269,7 +269,8 @@ for d in "${CANONICAL_DIRS[@]}"; do
 
   # Findings come only from the SARIF fingerprint (D-18), parsed by the shared
   # bin/deps-audit-tier library; human hex.audit output is never classified.
-  sarif_path="$(dat_new_sarif_path)" && sarif_status=0 || sarif_status=$?
+  dat_new_sarif_path && sarif_status=0 || sarif_status=$?
+  sarif_path="$DAT_SARIF_PATH"
   if [ "$sarif_status" -ne 0 ] || [ -z "$sarif_path" ]; then
     bump unknown
     printf -- '- audit: unknown (could not create a SARIF temp directory)\n\n' >>"$SECTIONS_FILE"
