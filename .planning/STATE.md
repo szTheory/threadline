@@ -4,11 +4,11 @@ milestone: v1.47
 current_phase: 246
 current_phase_name: Debt closeout and critic retirement
 status: planning
-stopped_at: Phase 245 complete, ready to plan Phase 246
-last_updated: "2026-10-25T20:53:31.976Z"
+stopped_at: Phase 246 context gathered
+last_updated: "2026-10-25T21:43:15.317Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 245 complete, transitioned to Phase 246
-state_head: c6e1311105e478eac99674ce6ab6b20b2c7344c4
+state_head: e0f70c66b89e302792ff908ec23f6a249a407cba
 progress:
   total_phases: 4
   completed_phases: 2
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 Phase: 246 — Debt closeout and critic retirement
 Plan: Not started
-Status: Ready to plan
+Status: Context gathered (246-CONTEXT.md, D-00a..D-26, single confirm 2026-10-25); ready to plan
 Last activity: 2026-10-25 — Phase 245 Supply chain verified passed 4/4 (SUP-01..04 Complete; SUP-01 judged against the D-01 rewording). Code review 0 critical / 3 warning / 7 info, all open in 245-REVIEW-DISPOSITION.md — WR-01 (a `hex:`-renamed runtime dep would tier non-blocking; latent, no such dep today) recommended fixed before landing. Regression gate: phase-244 files 341/0. Landing hand-offs in 245-VERIFICATION.md `landing_handoffs:` (Dependabot accepts config, #61 retitles/self-closes, enable sha_pinning_required after pins are on main, first grouped Dependabot PR majors-only red by design; push token needs workflow scope; land 244 before 245). Not yet run: /gsd-validate-phase 245 (VALIDATION.md draft) and /gsd-secure-phase 245 (no SECURITY.md). Deferred: TriggerRerunPropertyTest flake (deferred-items.md). Prior: 245 executed sequentially on the main tree, 5 plans in 5 waves (657aa51a..5d2f785c); Phase 244 complete (re-verification passed 6/7, 0 gaps); open round-2 advisories R2-WR-01..03 / R2-IN-02..04
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
@@ -1158,9 +1158,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T20:38:14.822Z
-**Stopped at:** Phase 245 complete, ready to plan Phase 246
-**Resume file:** None
+**Last session:** 2026-10-25T21:43:15.014Z
+**Stopped at:** Phase 246 context gathered
+**Resume file:** .planning/phases/246-debt-closeout-and-critic-retirement/246-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
