@@ -68,6 +68,8 @@ OUT_DIR="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
+# shellcheck source=bin/deps-audit-tier
+source "$SCRIPT_DIR/deps-audit-tier"
 
 # Canonical audit order (never argument-overridable — this script takes no
 # directory arguments — matches bin/verify-deps-audit's CANONICAL_DIRS).
@@ -81,6 +83,7 @@ NEUTRAL_HEX_CONFIG_DIR=""
 cleanup_sections() {
   rm -f "$SECTIONS_FILE"
   [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+  dat_cleanup
 }
 trap cleanup_sections EXIT
 
@@ -88,20 +91,21 @@ strip_ansi() {
   sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g'
 }
 
-# Rank-based classification: clean=0, outdated=1, unknown=2, advisory=3. The
+# Rank-based classification: clean=0, unknown=1, retirement=2, advisory=3. The
 # overall result is the MAX rank seen across every directory and subcommand —
 # this is what makes "a real advisory outranks an unknown elsewhere" hold
 # without a hand-written precedence table.
-RANK_NAMES=(clean outdated unknown advisory)
+RANK_NAMES=(clean unknown retirement advisory)
 overall_rank=0
 
 rank_of() {
   case "$1" in
     clean) echo 0 ;;
-    outdated) echo 1 ;;
-    unknown) echo 2 ;;
+    unknown) echo 1 ;;
+    retirement) echo 2 ;;
     advisory) echo 3 ;;
-    *) echo 0 ;;
+    # Fail closed: an unrecognised class name is unknown, never clean.
+    *) echo 1 ;;
   esac
 }
 
@@ -262,18 +266,46 @@ for d in "${CANONICAL_DIRS[@]}"; do
     continue
   fi
 
-  set +e
-  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
-  audit_status=$?
-  set -e
+  # Findings come only from the SARIF fingerprint (D-18), parsed by the shared
+  # bin/deps-audit-tier library; human hex.audit output is never classified.
+  sarif_path="$(dat_new_sarif_path)" && sarif_status=0 || sarif_status=$?
+  if [ "$sarif_status" -ne 0 ] || [ -z "$sarif_path" ]; then
+    bump unknown
+    printf -- '- audit: unknown (could not create a SARIF temp directory)\n\n' >>"$SECTIONS_FILE"
+    continue
+  fi
 
-  {
-    printf -- '- audit exit: %s\n\n' "$audit_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$audit_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
+  dat_audit "$resolved" "$sarif_path" && audit_status=0 || audit_status=$?
+  shape_error="$(dat_audit_shape_error "$audit_status" "$sarif_path")" && shape_ok=1 || shape_ok=0
 
-  if [ "$audit_status" -ne 0 ]; then
-    bump advisory
+  if [ "$shape_ok" -ne 1 ]; then
+    bump unknown
+    {
+      printf -- '- audit: unknown (%s)\n\n' "$shape_error"
+      printf '```\n%s\n```\n\n' "$(printf '%s' "$DAT_AUDIT_OUTPUT" | strip_ansi)"
+    } >>"$SECTIONS_FILE"
+  else
+    findings="$(dat_findings "$sarif_path")" && findings_status=0 || findings_status=$?
+    if [ "$findings_status" -ne 0 ]; then
+      bump unknown
+      printf -- '- audit: unknown (SARIF results could not be parsed)\n\n' >>"$SECTIONS_FILE"
+    elif [ -z "$findings" ]; then
+      printf -- '- audit: clean (hex.audit exit %s, no SARIF results)\n\n' "$audit_status" >>"$SECTIONS_FILE"
+    else
+      printf -- '- audit exit: %s\n\n' "$audit_status" >>"$SECTIONS_FILE"
+      while IFS="$(printf '\t')" read -r f_kind f_pkg f_id f_msg; do
+        [ -n "$f_kind" ] || continue
+        case "$f_kind" in
+          advisory) bump advisory ;;
+          retirement) bump retirement ;;
+          *) bump unknown ;;
+        esac
+        printf -- '- %s %s %s: %s\n' "$f_kind" "$f_pkg" "$f_id" "$(printf '%s' "$f_msg" | strip_ansi)" >>"$SECTIONS_FILE"
+      done <<EOF
+$findings
+EOF
+      printf '\n' >>"$SECTIONS_FILE"
+    fi
   fi
 
   set +e
