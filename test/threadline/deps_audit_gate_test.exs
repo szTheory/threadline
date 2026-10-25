@@ -593,5 +593,112 @@ defmodule Threadline.DepsAuditGateTest do
       assert status == 0, out
       refute out =~ "lock hygiene"
     end
+
+    @canonical_locks ["mix.lock", "bench/mix.lock", "examples/threadline_phoenix/mix.lock"]
+
+    defp tracked_locks do
+      {out, 0} = System.cmd("git", ["ls-files", "*mix.lock"], cd: @real_root)
+      String.split(out, "\n", trim: true)
+    end
+
+    defp hex_count(out) do
+      [_, count] = Regex.run(~r/lock\(s\), (\d+) :hex entries clean/, out)
+      String.to_integer(count)
+    end
+
+    test "live tree: every git-tracked mix.lock is clean, and each canonical lock has :hex entries" do
+      locks = tracked_locks()
+
+      for lock <- @canonical_locks, do: assert(lock in locks, "#{lock} is not tracked")
+
+      {out, status} = System.cmd(@hygiene, locks, cd: @real_root, stderr_to_stdout: true)
+      assert status == 0, out
+      assert out =~ "verify-lock-hygiene: #{length(locks)} lock(s)"
+
+      for lock <- @canonical_locks do
+        {out, status} = System.cmd(@hygiene, [lock], cd: @real_root, stderr_to_stdout: true)
+        assert status == 0, out
+        assert hex_count(out) > 0, "#{lock}: hygiene check counted no :hex entries (vacuous)"
+      end
+    end
+
+    test "live-lock mutation: the root mix.lock with plug_crypto's [:mix] set to [] exits 1" do
+      root = tmp_root()
+      live = File.read!(Path.join(@real_root, "mix.lock"))
+
+      anchor =
+        ~s("2.2.1", "bd1d0358a2e2f5ffb818217e64c394f9d24ed191d862b7fa1bcce264ace2b8ea", [:mix])
+
+      assert length(String.split(live, anchor)) == 2, "mutation anchor not unique in mix.lock"
+
+      mutated = String.replace(live, anchor, String.replace(anchor, "[:mix]", "[]"))
+      lock = write_lock(root, "mutated.lock", mutated)
+
+      {out, status} = hygiene([lock])
+
+      assert status == 1, out
+      assert out =~ "plug_crypto 2.2.1 has an empty build-manager list"
+    end
+
+    for {label, content} <- [
+          {"an empty file", ""},
+          {"a whitespace-only file", "  \n"},
+          {"%{}", "%{}\n"}
+        ] do
+      test "#{label} is a clean lock with 0 :hex entries" do
+        root = tmp_root()
+        lock = write_lock(root, "lock", unquote(content))
+
+        {out, status} = hygiene([lock])
+
+        assert status == 0, out
+        assert out =~ "verify-lock-hygiene: 1 lock(s), 0 :hex entries clean"
+      end
+    end
+
+    for {label, content} <- [
+          {"unparseable text", "not a lock {"},
+          {"a top-level list", "[1, 2]\n"},
+          {"a :hex entry with an atom manager slot",
+           ~s(%{\n  "x": {:hex, :x, "1.0.0", "abc", :mix, [], "hexpm", "def"},\n}\n)},
+          {"a :hex entry with too few elements", ~s(%{\n  "x": {:hex, :x, "1.0.0"},\n}\n)},
+          {"a two-element :hex entry", ~s(%{\n  "x": {:hex, :x},\n}\n)}
+        ] do
+      test "#{label} fails closed (exit 2), naming the path" do
+        root = tmp_root()
+        lock = write_lock(root, "lock", unquote(content))
+
+        {out, status} = hygiene([lock])
+
+        assert status == 2, out
+        assert out =~ lock
+      end
+    end
+
+    test "a missing file fails closed (exit 2), naming the path" do
+      root = tmp_root()
+      missing = Path.join(root, "absent.lock")
+
+      {out, status} = hygiene([missing])
+
+      assert status == 2, out
+      assert out =~ missing
+    end
+
+    test "a lock with only a :git entry is clean (non-:hex entries are skipped)" do
+      root = tmp_root()
+
+      lock =
+        write_lock(
+          root,
+          "lock",
+          ~s(%{\n  "dep": {:git, "https://example.com/dep.git", "0123abcd", []},\n}\n)
+        )
+
+      {out, status} = hygiene([lock])
+
+      assert status == 0, out
+      assert out =~ "verify-lock-hygiene: 1 lock(s), 0 :hex entries clean"
+    end
   end
 end
