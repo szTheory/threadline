@@ -91,6 +91,11 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        if: steps.gate.outputs.decision == 'run'
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - uses: actions/setup-node@v5
         if: steps.gate.outputs.decision == 'run'

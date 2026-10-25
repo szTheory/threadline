@@ -112,6 +112,11 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        if: steps.gate.outputs.decision == 'run'
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # Key shape follows the CACHE KEY CONTRACT in ci.yml.
       - name: Cache deps

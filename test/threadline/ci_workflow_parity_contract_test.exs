@@ -2962,8 +2962,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
       smoke = workflow_job(release, "smoke-published")
       sync = workflow_job(release, "sync-release-pr-pins")
 
-      [toolchain_checkout, beam_step | _] =
+      # The Hex pin step (REL-04) sits between setup-beam and the target-ref
+      # checkout; the control below moves setup-beam alone and leaves it there.
+      [toolchain_checkout, beam_step, hex_pin_step | _] =
         smoke |> job_steps() |> Enum.drop_while(&(not String.contains?(&1, "sparse-checkout:")))
+
+      assert String.contains?(hex_pin_step, "mix local.hex"),
+             "smoke-published must pin Hex right after setup-beam, or the control below is stale"
 
       target_checkout =
         smoke
@@ -2979,8 +2984,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"smoke-published", smoke, "setup-beam moved below the target-ref checkout",
          String.replace(
            smoke,
-           toolchain_checkout <> beam_step <> target_checkout,
-           toolchain_checkout <> target_checkout <> beam_step
+           toolchain_checkout <> beam_step <> hex_pin_step <> target_checkout,
+           toolchain_checkout <> hex_pin_step <> target_checkout <> beam_step
          )},
         {"sync-release-pr-pins", sync, "toolchain checkout without persist-credentials: false",
          String.replace(
