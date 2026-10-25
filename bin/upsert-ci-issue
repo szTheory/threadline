@@ -7,6 +7,8 @@
 # Behavior table (open issues whose title starts with --marker, under --label):
 #   upsert mode (default), 0 matches  -> issue create           -> action=create, issue_number=N
 #   upsert mode (default), 1 match    -> issue comment N        -> action=update, issue_number=N
+#   upsert mode, 1 match, title differs -> issue edit N --title, then issue comment N
+#                                                               -> action=update, issue_number=N
 #   close mode (--close),  0 matches  -> no write at all        -> action=none
 #   close mode (--close),  1 match    -> issue comment N, then
 #                                        issue close N --reason completed
@@ -56,6 +58,16 @@ if [ "$close" = 1 ]; then
 fi
 case "$count" in
   0) url=$("$GH_BIN" issue create --title "$title" --label "$label" --body-file "$body_file"); printf 'action=create\nissue_number=%s\n' "${url##*/}" ;;
-  1) number=$(printf '%s' "$matches" | jq -r '.[0].number'); printf '%s' "$number" | grep -Eq '^[0-9]+$' || die "matched issue has invalid number"; "$GH_BIN" issue comment "$number" --body-file "$body_file" >/dev/null; printf 'action=update\nissue_number=%s\n' "$number" ;;
+  1)
+    number=$(printf '%s' "$matches" | jq -r '.[0].number')
+    printf '%s' "$number" | grep -Eq '^[0-9]+$' || die "matched issue has invalid number"
+    # D-26: retitle to the current class (the marker prefix stays stable).
+    current_title=$(printf '%s' "$matches" | jq -r '.[0].title')
+    if [ "$current_title" != "$title" ]; then
+      "$GH_BIN" issue edit "$number" --title "$title" >/dev/null
+    fi
+    "$GH_BIN" issue comment "$number" --body-file "$body_file" >/dev/null
+    printf 'action=update\nissue_number=%s\n' "$number"
+    ;;
   *) die "ambiguous marker matched $count open issues" ;;
 esac

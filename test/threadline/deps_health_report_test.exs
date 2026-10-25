@@ -25,6 +25,7 @@ defmodule Threadline.DepsHealthReportTest do
   @script Path.join(@repo_root, "bin/deps-health-report")
   @workflow_path Path.join(@repo_root, ".github/workflows/deps-health.yml")
   @canonical_dirs [".", "bench", "examples/threadline_phoenix"]
+  @sarif_dir Path.join(@repo_root, "test/fixtures/deps_audit/sarif")
 
   defp fake_mix do
     dir = Path.join(System.tmp_dir!(), "fake-mix-#{System.unique_integer([:positive])}")
@@ -78,12 +79,33 @@ defmodule Threadline.DepsHealthReportTest do
         ;;
       hex.audit)
         if should_match "${FAKE_HUGE:-}"; then emit_huge; fi
-        if should_match "${FAKE_FAIL_HEX_AUDIT:-}"; then
-          echo "Advisories found for $REL"
+        sarif_out=""
+        prev=""
+        for a in "$@"; do
+          [ "$prev" = "--output" ] && sarif_out="$a"
+          prev="$a"
+        done
+        # A registry failure writes no SARIF file at all (Hex 2.6.0).
+        if should_match "${FAKE_SARIF_NO_FILE:-}"; then
+          echo "Failed to fetch record for plug from registry"
+          echo "** (Mix) Could not audit these locked packages:"
           exit 1
         fi
-        echo "No retired or security advisory packages found"
-        exit 0
+        case "$REL" in
+          .) fixture="${FAKE_SARIF_ROOT:-clean.json}" ;;
+          bench) fixture="${FAKE_SARIF_BENCH:-clean.json}" ;;
+          examples/threadline_phoenix) fixture="${FAKE_SARIF_EXAMPLE:-clean.json}" ;;
+          *) fixture="clean.json" ;;
+        esac
+        if [ -n "$sarif_out" ]; then
+          cp "${FAKE_SARIF_DIR:?FAKE_SARIF_DIR must be set}/$fixture" "$sarif_out"
+        fi
+        if [ "$fixture" = "clean.json" ]; then
+          echo "No retired or security advisory packages found"
+          exit 0
+        fi
+        echo "Found packages with security advisories"
+        exit 1
         ;;
       hex.outdated)
         if should_match "${FAKE_HUGE:-}"; then emit_huge; fi
@@ -136,6 +158,7 @@ defmodule Threadline.DepsHealthReportTest do
         {"MIX_BIN", fake_mix()},
         {"FAKE_MIX_ROOT", @repo_root},
         {"FAKE_MIX_LOG", log},
+        {"FAKE_SARIF_DIR", @sarif_dir},
         {"RETRY_NETWORK_BASE_DELAY", "0"}
       ] ++ extra_env
 
@@ -168,27 +191,50 @@ defmodule Threadline.DepsHealthReportTest do
       assert output =~ "classification=clean", diag(out_dir, output)
     end
 
-    test "hex.outdated fails in bench only -> outdated" do
+    test "tracer: a retired:hexpm/plug SARIF result in root -> retirement end to end" do
       out_dir = tmp_out_dir()
 
-      {output, status, _calls} =
-        run_report(out_dir, [{"FAKE_FAIL_HEX_OUTDATED", "bench"}])
+      output_path =
+        Path.join(System.tmp_dir!(), "github-output-#{System.unique_integer([:positive])}")
 
-      assert status == 0
-      assert output =~ "classification=outdated", diag(out_dir, output)
-    end
+      on_exit(fn -> File.rm(output_path) end)
 
-    test "hex.audit fails in the example -> advisory, even if outdated also fails there" do
-      out_dir = tmp_out_dir()
-
-      {output, status, _calls} =
+      {output, status, calls} =
         run_report(out_dir, [
-          {"FAKE_FAIL_HEX_AUDIT", "examples/threadline_phoenix"},
-          {"FAKE_FAIL_HEX_OUTDATED", "examples/threadline_phoenix"}
+          {"FAKE_SARIF_ROOT", "retired_plug.json"},
+          {"GITHUB_OUTPUT", output_path}
         ])
 
       assert status == 0
+      assert output =~ "classification=retirement", diag(out_dir, output)
+      assert File.read!(output_path) =~ ~r/^classification=retirement$/m
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ ~r/\A# Dependency health: retirement\n/
+      assert body =~ "- retirement plug HEX0002: Dependency 'plug' '1.20.0' is retired"
+      assert calls =~ ~r/^\. hex\.audit --format sarif --output \S+audit\.sarif$/m
+    end
+
+    test "an advisory SARIF result in the example -> advisory" do
+      out_dir = tmp_out_dir()
+
+      {output, status, _calls} =
+        run_report(out_dir, [{"FAKE_SARIF_EXAMPLE", "advisory_plug.json"}])
+
+      assert status == 0
       assert output =~ "classification=advisory", diag(out_dir, output)
+    end
+
+    test "hex.audit writes no SARIF file (registry failure) -> unknown with a named reason" do
+      out_dir = tmp_out_dir()
+
+      {output, status, _calls} = run_report(out_dir, [{"FAKE_SARIF_NO_FILE", "bench"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown", diag(out_dir, output)
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "- audit: unknown (hex.audit exited 1 and wrote no SARIF file)"
     end
 
     test "deps.get fails in root -> unknown, and no hex.audit/hex.outdated logged for root" do
@@ -213,7 +259,7 @@ defmodule Threadline.DepsHealthReportTest do
       {output, status, calls} =
         run_report(out_dir, [
           {"FAKE_FAIL_DEPS_GET", "."},
-          {"FAKE_FAIL_HEX_AUDIT", "bench"}
+          {"FAKE_SARIF_BENCH", "advisory_plug.json"}
         ])
 
       assert status == 0

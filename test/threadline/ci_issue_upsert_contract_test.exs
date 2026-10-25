@@ -24,6 +24,7 @@ defmodule Threadline.CiIssueUpsertContractTest do
     if [ "$1 $2" = "issue create" ]; then printf '%s\n' 'https://example.test/issues/41'; exit 0; fi
     if [ "$1 $2" = "issue comment" ] || [ "$1 $2" = "label create" ]; then exit 0; fi
     if [ "$1 $2" = "issue close" ]; then exit 0; fi
+    if [ "$1 $2" = "issue edit" ]; then exit 0; fi
     exit 9
     """)
 
@@ -80,6 +81,51 @@ defmodule Threadline.CiIssueUpsertContractTest do
     assert out =~ "action=update"
     assert File.read!(f.log) =~ "issue comment 41"
     refute File.read!(f.log) =~ "issue create"
+  end
+
+  defp run_titled(f, title) do
+    System.cmd(
+      @script,
+      [
+        "--marker",
+        "Dependency health",
+        "--title",
+        title,
+        "--body-file",
+        f.body,
+        "--label",
+        "ci-deps"
+      ],
+      env: env(f),
+      stderr_to_stdout: true
+    )
+  end
+
+  describe "retitle on update (D-26)" do
+    test "a differing title is retitled with issue edit before the comment" do
+      f = fixture(~s([{"number":41,"title":"Dependency health: outdated"}]))
+      assert {out, 0} = run_titled(f, "Dependency health: retirement")
+      assert out =~ "action=update"
+      log = calls(f)
+      assert log =~ "issue edit 41 --title Dependency health: retirement"
+      {edit_at, _} = :binary.match(log, "issue edit 41")
+      {comment_at, _} = :binary.match(log, "issue comment 41")
+      assert edit_at < comment_at, "the retitle must happen before the comment"
+
+      assert File.read!(f.args_log)
+             |> String.split("\n")
+             |> Enum.member?("Dependency health: retirement"),
+             "the title must travel as one argv element"
+    end
+
+    test "an equal title makes no issue edit call" do
+      f = fixture(~s([{"number":41,"title":"Dependency health: retirement"}]))
+      assert {out, 0} = run_titled(f, "Dependency health: retirement")
+      assert out =~ "action=update"
+      log = calls(f)
+      assert log =~ "issue comment 41"
+      refute log =~ "issue edit"
+    end
   end
 
   test "ambiguous matches fail closed" do
