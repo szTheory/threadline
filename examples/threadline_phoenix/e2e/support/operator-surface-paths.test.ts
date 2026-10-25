@@ -42,7 +42,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
 
     assert.deepEqual(fromNested, fromRoot);
     assert.equal(fromRoot.repositoryRoot, expectedRepositoryRoot);
-    assert.equal(fromRoot.scorecardsDir, resolve(expectedRepositoryRoot, "test/fixtures/operator_surface/scorecards"));
+    assert.equal(fromRoot.ledgerPath, resolve(expectedRepositoryRoot, "test/fixtures/operator_surface/design-system-ledger.json"));
   } finally {
     process.chdir(originalCwd);
   }
@@ -68,8 +68,8 @@ test("resolves repository evidence identically from root, nested cwd, and a work
     const canonicalWorktreeRoot = await realpath(worktreeRoot);
     assert.equal(worktreePaths.repositoryRoot, canonicalWorktreeRoot);
     assert.equal(
-      worktreePaths.scorecardsDir,
-      resolve(canonicalWorktreeRoot, "test/fixtures/operator_surface/scorecards"),
+      worktreePaths.ledgerPath,
+      resolve(canonicalWorktreeRoot, "test/fixtures/operator_surface/design-system-ledger.json"),
     );
     assert.equal(
       worktreePaths.generatedRoot,
@@ -101,7 +101,7 @@ test("explicit fixture and output flags override deterministic defaults without 
 
     assert.deepEqual(parsed.rest, ["--dry-run"]);
     assert.equal(paths.fixtureRoot, await realpath(fixtureRoot));
-    assert.equal(paths.goldenDir, resolve(await realpath(fixtureRoot), "golden"));
+    assert.equal(paths.ledgerPath, resolve(await realpath(fixtureRoot), "design-system-ledger.json"));
     assert.equal(paths.generatedRoot, await realpath(outputRoot));
     assert.equal(paths.routeScorecardsDir, resolve(await realpath(outputRoot), "route-scorecards"));
   } finally {
@@ -185,26 +185,14 @@ test("a required dataset read fails closed rather than reporting an empty result
   }
 });
 
-test("graded capture uses contained generated targets without redirecting snapshots", async () => {
+test("e2e artifact targets cannot traverse out of the e2e root", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
-
-  const source = await readFile(
-    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/tests/operator-graded-capture.spec.ts"),
-    "utf8",
-  );
-
-  assert.match(source, /operator-surface-paths\.js/);
-  assert.match(source, /resolveContainedPath/);
-  assert.match(source, /atomicWriteFile/);
-  assert.doesNotMatch(source, /process\.cwd\(|\.planning\//);
-  assert.doesNotMatch(source, /writeFileSync/);
-  assert.doesNotMatch(source, /toHaveScreenshot\(/);
 
   assert.throws(
     () => adapter.resolveContainedPath(
       adapter.DEFAULT_OPERATOR_SURFACE_PATHS.e2eRoot,
-      "artifacts/graded/../../../../hostile-output",
+      "artifacts/routes/../../../../hostile-output",
     ),
     /outside|traversal/i,
   );
@@ -215,11 +203,7 @@ test("every remaining capture consumer shares contained paths and immutable snap
     expectedRepositoryRoot,
     "examples/threadline_phoenix/e2e/tests",
   );
-  const captureWriters = [
-    "operator-page-capture.spec.ts",
-    "operator-storybook-capture.spec.ts",
-    "operator-tier-a-capture.spec.ts",
-  ] as const;
+  const captureWriters = ["operator-page-capture.spec.ts"] as const;
   const consumers = [...captureWriters, "operator-stress.spec.ts"] as const;
 
   for (const filename of consumers) {
@@ -332,11 +316,11 @@ test("resolves first-run output paths beneath a root that does not exist yet", a
   assert.equal(typeof adapter.resolveContainedPath, "function");
 
   const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-first-run-"));
-  const outputRoot = resolve(sandbox, "artifacts", "tier-a");
+  const outputRoot = resolve(sandbox, "artifacts", "routes");
 
   try {
     const canonicalSandbox = await realpath(sandbox);
-    const expectedRoot = resolve(canonicalSandbox, "artifacts", "tier-a");
+    const expectedRoot = resolve(canonicalSandbox, "artifacts", "routes");
     const cellRoot = adapter.resolveContainedPath(outputRoot, "timeline-density-dark-1280");
 
     assert.equal(cellRoot, resolve(expectedRoot, "timeline-density-dark-1280"));

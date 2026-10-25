@@ -22,7 +22,6 @@ defmodule Threadline.MixProject do
         "test.reset": :test,
         "test.setup": :test,
         "verify.mechanical": :test,
-        "verify.capture": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
         "verify.example": :test,
@@ -168,7 +167,6 @@ defmodule Threadline.MixProject do
       # command: its test file already runs in `verify.test` (and so in ci.all and in
       # the verify-test CI job), which keeps ci.all from running it twice.
       "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
-      "verify.capture": &verify_capture/1,
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
@@ -244,9 +242,6 @@ defmodule Threadline.MixProject do
         # The `cmd` form is required: `verify.test` already ran the `test` task, and a
         # second bare `test` entry in the same alias chain is a Mix no-op.
         "cmd env MIX_ENV=test mix verify.dialyzer_slice",
-        # The critic trust and mechanical gates are not listed here: their test files
-        # already ran in `verify.test` above, which still precedes the browser lane, so
-        # a ratchet or token violation fails fast without running the same tests twice.
         # Browser e2e last (slowest; needs Node + Playwright). Reproduce the
         # committed CI lane exactly: only its two voting projects run and CI's
         # explicitly platform-local screenshot guards remain outside the gate.
@@ -411,19 +406,6 @@ defmodule Threadline.MixProject do
   # Source contract: defp verify_operator_stress(args), do: verify_example_browser(["operator-stress.spec.ts" | args])
   defp verify_operator_stress(args),
     do: verify_example_browser(["operator-stress.spec.ts" | args])
-
-  # Tier A deterministic capture-lane regeneration. Runs BOTH
-  # theme projects so a single `mix verify.capture` reproduces all 120 committed
-  # scorecards (66 Band-1 + 54 Band-2). Local-only regeneration — deliberately NOT
-  # in ci.all (CI gates the committed scorecard JSON through verify-test, because
-  # mechanical_checker_test.exs is in the default suite).
-  defp verify_capture(args),
-    do:
-      verify_example_browser([
-        "--project=tier-a-capture",
-        "--project=tier-a-capture-light",
-        "operator-tier-a-capture.spec.ts" | args
-      ])
 
   # Targeted runner for the operator component browser contract (viewport reflow + motion +
   # reconnect CSS contract). Convenience for local runs; CI runs it as part of the

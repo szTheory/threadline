@@ -5,10 +5,6 @@
   "scripts": {
     "test": "npm run test:unit && playwright test",
     "test:headed": "playwright test --headed",
-    "capture:tier-a": "playwright test --project=tier-a-capture --project=tier-a-capture-light operator-tier-a-capture.spec.ts",
-    "capture:storybook": "playwright test --project=storybook-capture operator-storybook-capture.spec.ts",
-    "capture:refute": "playwright test --project=refute-capture operator-refute-capture.spec.ts",
-    "capture:graded": "playwright test --project=graded-capture operator-graded-capture.spec.ts",
     "capture:pages": "playwright test --project=route-capture operator-page-capture.spec.ts",
     "test:unit": "tsx --test support/operator-surface-paths.test.ts",
     "test:paths": "tsx --test support/operator-surface-paths.test.ts"

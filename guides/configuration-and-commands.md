@@ -157,7 +157,6 @@ The following tools are shipped from source today but are not supported adopter
 or contributor interfaces. They operate on maintainer evidence or a
 repository-specific capture corpus:
 
-- `mix verify.capture`
 - `mix verify.operator_component_contracts`
 
 There are no additional internal Mix tasks or aliases in the current source

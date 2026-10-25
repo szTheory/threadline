@@ -292,39 +292,33 @@ v1.47 and removed from the tree. Restore them from the annotated tag
 
 Browser coverage is **split** across two workflows, and the split is a
 **partition**: every default-config Playwright project runs in exactly one lane.
-Pull requests (and every push to `main`) run four projects through `ci.yml` so
-per-PR feedback stays inside a usable loop. Browser-full runs the other four.
-**This is a real trade, not a free speedup**: the four Browser-full projects do
-not run on pull requests. They are named below.
+Pull requests (and every push to `main`) run two projects through `ci.yml` so
+per-PR feedback stays inside a usable loop. Browser-full runs the third.
+**This is a real trade, not a free speedup**: the Browser-full project does
+not run on pull requests. It is named below.
 
 | Playwright project | Pull request | `main` | Nightly | Runs via |
 |---|---|---|---|---|
 | `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
 | `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
-| `tier-a-capture` | **yes** | yes | only as `refute-capture`'s dependency | `verify-capture` (ci.yml, `mix verify.capture`) |
-| `tier-a-capture-light` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
-| `storybook-capture` | no | yes | yes | `verify-example-browser-full` |
-| `graded-capture` | no | yes | yes | `verify-example-browser-full` |
-| `refute-capture` | no | yes | yes | `verify-example-browser-full` |
 | `route-capture` | no | yes | yes | `verify-example-browser-full` |
 | `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
 
 **Both lanes run on `main`; only Browser-full runs nightly.** `ci.yml` runs its
-four projects on every pull request and every push to `main`. Job
+two projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
 [`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
-the other four on push to `main`, on a nightly `schedule`, and on manual
-dispatch. It never selects a project `ci.yml` already runs; the one exception to
-never *executing* one is a declared Playwright `dependencies` edge, so
-`tier-a-capture` also runs there first because `refute-capture` overwrites the
-cell directories it creates (`bin/browser-full-projects --list deps`). The nightly is
+`route-capture` (a render smoke over every inventoried route at three
+viewports) on push to `main`, on a nightly `schedule`, and on manual dispatch.
+It never selects a project `ci.yml` already runs; the one exception to never
+*executing* one would be a declared Playwright `dependencies` edge, and none is
+declared today (`bin/browser-full-projects --list deps`). The nightly is
 skipped when Browser-full already passed on the same commit (`bin/ci-sha-gate`),
 because a re-run of a proven commit proves nothing new.
 
 **What does not run on pull requests:**
 
-- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture`:
-  they run on `main`, nightly and on dispatch only.
+- `route-capture`: it runs on `main`, nightly and on dispatch only.
 - The bare `chromium` project was **deleted outright**, not moved. It was
   `Desktop Chrome` at 1280×720 with no scoped `testMatch`, and both
   snapshot-bearing specs already excluded it by name, so it carried zero
@@ -339,7 +333,8 @@ green Browser-full run closes that issue.
 This table is not documentation-on-trust. Browser-full's project list is never
 hand-written: `bin/browser-full-projects` derives it as the default
 `playwright.config.ts` projects minus the ones `ci.yml` runs (its `--project`
-flags plus those behind `mix verify.capture`). Only flags passed to a `mix` or
+flags plus those inside the `mix.exs` function behind any `mix` alias a `run:`
+body calls). Only flags passed to a `mix` or
 `npx` command count, and the script refuses a flag in a step or job that carries
 an `if:`, because such a flag may never run on a pull request or push.
 `test/threadline/browser_full_projects_contract_test.exs` proves the two lanes
@@ -370,7 +365,6 @@ topology mutation controls.
 - `verify-test`
 - `verify-hex-evaluator`
 - `verify-example-browser`
-- `verify-capture`
 - `verify-pgbouncer-topology`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
@@ -582,7 +576,6 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
-| `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.6.0 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
@@ -592,12 +585,13 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 
 A CI proof is removed only when another job catches the same failure class on
 the same triggers (push to `main`, pull_request to `main`, workflow_dispatch)
-with no job-level `if:`. Each removal keeps its justification here, and
-`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing or
-if the proof that still catches it stops running.
+with no job-level `if:`, or as a deliberate coverage cut that is recorded here
+in full: what still catches part of the failure class, and what is retired
+without a replacement. Each removal keeps its justification here, and
+`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing.
 
-- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (every lane), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
-- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
+- `verify-mechanical` (the job, and since 246 the MODE-A/MODE-B floor itself): retired with the UI critic loop (tag `archive/ui-critic-loop`), a deliberate, recorded coverage cut. Failure class "a component regresses contrast, tokens or accessibility" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/style_contract_test.exs` (contrast and token checks) in the default suite, and by `verify-example-browser`, which runs `operator-accessibility.spec.ts` (accessibility), on pull_request, push to `main` and workflow_dispatch. Scorecard-level MODE-A/MODE-B checks are retired, not replaced.
+- `verify-capture`: failure class "a component regresses contrast, tokens or accessibility" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/style_contract_test.exs` (contrast and token checks), and by `verify-example-browser`, which runs `operator-accessibility.spec.ts` (accessibility), on pull_request, push to `main` and workflow_dispatch. Byte-stable stress-lab regeneration is retired, not replaced: a recorded coverage cut (UI work is parked until 1.0.0; restorable from tag `archive/ui-critic-loop`).
 - `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Next-minor release rehearsal (docs + contracts)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
 - `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
@@ -693,9 +687,8 @@ so a failed or partial dependency build is never stored.
 | `verify-test` | root on every lane; example on the current lane only | yes |
 | `verify-pgbouncer-topology` | root, restoring the current lane's key | no, restore only |
 | `verify-example-browser` | example | yes |
-| `verify-capture` | example | yes |
 
-That is four build keys across six job-lanes: a root key per verify-test lane plus the shared example key.
+That is four build keys across five job-lanes: a root key per verify-test lane plus the shared example key.
 
 Every key is exact. In order it carries: the runner label (`${{ matrix.runner }}`
 in `verify-test`, the literal `ubuntu-24.04` elsewhere), the OTP and Elixir that
@@ -752,8 +745,8 @@ The stable log fields, printed by each cached job's removal step, are:
   ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
   so `Build and test (min)` and `Build and test (latest)` never print it.
 
-`verify-test (current)`, `verify-example-browser` and `verify-capture` share one
-example key. On a cold run two of them can try to save it at once; the loser
+`verify-test (current)` and `verify-example-browser` share one example key. On a
+cold run both can try to save it at once; the loser
 logs `Unable to reserve cache` as a warning, not a failure. There is no cleanup
 workflow: GitHub evicts entries unused for 7 days and trims the repository's
 10 GB budget oldest first.
@@ -840,7 +833,6 @@ pass. The posted check names, in `ci.yml` order:
 - Build and test (min) (`verify-test` min lane)
 - Build and test (current) (`verify-test` current lane)
 - Build and test (latest) (`verify-test` latest lane)
-- Capture evidence byte-stable (`verify-capture`)
 - Example app browser E2E (2 projects) (`verify-example-browser`)
 
 `test/threadline/ci_workflow_parity_contract_test.exs` keeps this list equal to
