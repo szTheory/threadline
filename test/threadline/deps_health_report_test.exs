@@ -135,7 +135,8 @@ defmodule Threadline.DepsHealthReportTest do
       [
         {"MIX_BIN", fake_mix()},
         {"FAKE_MIX_ROOT", @repo_root},
-        {"FAKE_MIX_LOG", log}
+        {"FAKE_MIX_LOG", log},
+        {"RETRY_NETWORK_BASE_DELAY", "0"}
       ] ++ extra_env
 
     {output, status} = System.cmd(@script, [out_dir], env: env, stderr_to_stdout: true)
@@ -202,6 +203,8 @@ defmodule Threadline.DepsHealthReportTest do
       refute calls =~ ". hex.outdated"
       assert calls =~ "bench hex.audit"
       assert calls =~ "examples/threadline_phoenix hex.audit"
+      # REL-03: the transient fetch failure is retried through bin/retry-network.
+      assert length(Regex.scan(~r/^\. deps\.get --check-locked$/m, calls)) == 3, calls
     end
 
     test "deps.get fails in root AND hex.audit fails in bench -> advisory (a real advisory outranks unknown)" do
