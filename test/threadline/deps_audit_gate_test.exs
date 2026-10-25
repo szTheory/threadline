@@ -510,4 +510,88 @@ defmodule Threadline.DepsAuditGateTest do
     assert Enum.at(dir_pwds, 1) |> String.ends_with?("/bench")
     assert Enum.at(dir_pwds, 2) |> String.ends_with?("/examples/threadline_phoenix")
   end
+
+  describe "lock hygiene (REL-04)" do
+    @hygiene Path.expand("../../bin/verify-lock-hygiene", __DIR__)
+
+    # The plug_crypto 2.2.1 entry exactly as commit a3301bed wrote it, with an
+    # empty build-manager list. Commit f7fdcaca restored `[:mix]`. Kept as a
+    # literal, not read through `git show`, because a CI clone may not hold
+    # that commit.
+    @a3301bed_entry ~s("plug_crypto": {:hex, :plug_crypto, "2.2.1", "bd1d0358a2e2f5ffb818217e64c394f9d24ed191d862b7fa1bcce264ace2b8ea", [], [], "hexpm", "4417ccbd8f85e627321cd07d2ab9c4b621f1fd883b9905af241f9b4b780b94b6"},)
+    @f7fdcaca_entry String.replace(
+                      @a3301bed_entry,
+                      ~s("2.2.1", "bd1d0358a2e2f5ffb818217e64c394f9d24ed191d862b7fa1bcce264ace2b8ea", []),
+                      ~s("2.2.1", "bd1d0358a2e2f5ffb818217e64c394f9d24ed191d862b7fa1bcce264ace2b8ea", [:mix])
+                    )
+
+    defp lock_text(entry), do: "%{\n  " <> entry <> "\n}\n"
+
+    defp write_lock(root, name, content) do
+      path = Path.join(root, name)
+      File.write!(path, content)
+      path
+    end
+
+    defp hygiene(paths), do: System.cmd(@hygiene, paths, stderr_to_stdout: true)
+
+    test "mutation control: the a3301bed entry with [] managers exits 1, naming file, package and version" do
+      root = tmp_root()
+      lock = write_lock(root, "a3301bed.lock", lock_text(@a3301bed_entry))
+
+      {out, status} = hygiene([lock])
+
+      assert status == 1, out
+      assert out =~ "FAIL #{lock}"
+      assert out =~ "plug_crypto"
+      assert out =~ "2.2.1"
+      assert out =~ "([])"
+    end
+
+    test "control: the f7fdcaca entry with [:mix] managers exits 0" do
+      root = tmp_root()
+      lock = write_lock(root, "f7fdcaca.lock", lock_text(@f7fdcaca_entry))
+
+      {out, status} = hygiene([lock])
+
+      assert status == 0, out
+      assert out =~ "verify-lock-hygiene: 1 lock(s), 1 :hex entries clean"
+    end
+
+    test "no arguments is a usage error (exit 2)" do
+      {_out, status} = hygiene([])
+
+      assert status == 2
+    end
+
+    test "a successful (warm) fetch cannot mask a [] lock: the gate fails the dir and still audits the others" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      d2 = project_dir(root, "two")
+      File.write!(Path.join(d1, "mix.lock"), lock_text(@a3301bed_entry))
+      File.write!(Path.join(d2, "mix.lock"), lock_text(@f7fdcaca_entry))
+
+      {out, status, log} = run([d1, d2], [], root)
+
+      assert status != 0
+      assert out =~ "FAIL #{d1}: lock hygiene"
+      assert out =~ "plug_crypto"
+      assert log =~ "two|hex.audit"
+      # Aggregate, not fail-fast: the [] dir still runs its fetch and audit.
+      assert log =~ "one|hex.audit"
+    end
+
+    test "the same gate run with [:mix] locks exits 0" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      d2 = project_dir(root, "two")
+      File.write!(Path.join(d1, "mix.lock"), lock_text(@f7fdcaca_entry))
+      File.write!(Path.join(d2, "mix.lock"), lock_text(@f7fdcaca_entry))
+
+      {out, status, _log} = run([d1, d2], [], root)
+
+      assert status == 0, out
+      refute out =~ "lock hygiene"
+    end
+  end
 end
