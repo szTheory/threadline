@@ -21,7 +21,6 @@ const repositoryRoot = resolve(moduleDirectory, "../../../..");
 export interface OperatorSurfacePaths {
   readonly repositoryRoot: string;
   readonly e2eRoot: string;
-  readonly criticRubricsDir: string;
   readonly tierAArtifactsDir: string;
   readonly fixtureRoot: string;
   readonly ledgerPath: string;
@@ -30,12 +29,6 @@ export interface OperatorSurfacePaths {
   readonly refuteDir: string;
   readonly generatedRoot: string;
   readonly routeScorecardsDir: string;
-  readonly criticScoresDir: string;
-  readonly verdictCacheDir: string;
-  readonly refuteTranscriptsDir: string;
-  readonly critiqueReportPath: string;
-  readonly criticReportHtmlPath: string;
-  readonly criticFloorsPath: string;
 }
 
 export interface OperatorSurfaceRootOverrides {
@@ -91,17 +84,12 @@ export function resolveOperatorSurfacePaths(
   const goldenDir = resolve(fixtureRoot, "golden");
   const refuteDir = resolve(fixtureRoot, "refute");
   const routeScorecardsDir = resolve(generatedRoot, "route-scorecards");
-  const criticScoresDir = resolve(generatedRoot, "critic-scores");
-  const verdictCacheDir = resolve(generatedRoot, "critic-verdict-cache");
-  const refuteTranscriptsDir = resolve(generatedRoot, "refute-transcripts");
-  const reportsDir = resolve(generatedRoot, "reports");
   const immutableRoots = [ledgerPath, scorecardsDir, goldenDir, refuteDir];
   assertSeparatedOutputRoot(generatedRoot, immutableRoots);
 
   return Object.freeze({
     repositoryRoot,
     e2eRoot: resolve(repositoryRoot, "examples/threadline_phoenix/e2e"),
-    criticRubricsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/critic/rubrics"),
     tierAArtifactsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/artifacts/tier-a"),
     fixtureRoot,
     ledgerPath,
@@ -110,12 +98,6 @@ export function resolveOperatorSurfacePaths(
     refuteDir,
     generatedRoot,
     routeScorecardsDir,
-    criticScoresDir,
-    verdictCacheDir,
-    refuteTranscriptsDir,
-    critiqueReportPath: resolve(reportsDir, "CRITIQUE.md"),
-    criticReportHtmlPath: resolve(reportsDir, "critic-report.html"),
-    criticFloorsPath: resolve(reportsDir, "critic-floors.json"),
   });
 }
 

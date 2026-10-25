@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import {
-  chmod,
   copyFile,
   mkdir,
   mkdtemp,
@@ -20,31 +18,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const expectedRepositoryRoot = resolve(here, "../../../..");
 
-// The three required evidence datasets D1 names, each with the reader that owns
-// it and the path expression that reader passes. A required dataset must be read
-// through readRequiredJson, which throws naming the dataset, resolved path, scope
-// and recovery command. A permissive read would let a missing or truncated
-// scorecard score as absent-but-fine, which is the failure this pins shut.
-const requiredEvidenceReaders = [
-  { dataset: "scorecard", filename: "bundle.ts", pathExpression: "scorecardPath" },
-  { dataset: "refute set", filename: "refute.ts", pathExpression: "refuteSetPath" },
-  { dataset: "ledger", filename: "gate.ts", pathExpression: "paths().ledgerPath" },
-] as const;
-
-const criticReaders = [
-  "bundle.ts",
-  "gate.ts",
-  "label.ts",
-  "label_web.ts",
-  "panel.ts",
-  "prompt.ts",
-  "refute.ts",
-  "report.ts",
-  "report_html.ts",
-  "rubric.ts",
-  "schema.ts",
-] as const;
-
 async function loadAdapter(moduleUrl = new URL("./operator-surface-paths.js", import.meta.url)) {
   try {
     return await import(moduleUrl.href);
@@ -59,7 +32,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
   assert.equal(typeof adapter.resolveOperatorSurfacePaths, "function");
 
   const originalCwd = process.cwd();
-  const nestedCwd = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic");
+  const nestedCwd = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/support");
 
   try {
     process.chdir(expectedRepositoryRoot);
@@ -130,7 +103,7 @@ test("explicit fixture and output flags override deterministic defaults without 
     assert.equal(paths.fixtureRoot, await realpath(fixtureRoot));
     assert.equal(paths.goldenDir, resolve(await realpath(fixtureRoot), "golden"));
     assert.equal(paths.generatedRoot, await realpath(outputRoot));
-    assert.equal(paths.criticScoresDir, resolve(await realpath(outputRoot), "critic-scores"));
+    assert.equal(paths.routeScorecardsDir, resolve(await realpath(outputRoot), "route-scorecards"));
   } finally {
     if (previousEnvironmentValue === undefined) delete process.env.THREADLINE_FIXTURE_ROOT;
     else process.env.THREADLINE_FIXTURE_ROOT = previousEnvironmentValue;
@@ -147,7 +120,7 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
   const fixtureRoot = await mkdtemp(resolve(tmpdir(), "threadline-paths-json-"));
   const missingPath = resolve(fixtureRoot, "missing.json");
   const malformedPath = resolve(fixtureRoot, "malformed.json");
-  const recoveryCommand = "npm run critic:check";
+  const recoveryCommand = "npm run capture:pages";
 
   try {
     assert.throws(
@@ -181,65 +154,10 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
   }
 });
 
-test("critic readers share the adapter without independent planning or cwd roots", async () => {
-  const criticRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic");
-  const offenders: string[] = [];
-
-  for (const filename of criticReaders) {
-    const source = await readFile(resolve(criticRoot, filename), "utf8");
-    if (source.includes(".planning")) offenders.push(`${filename}: planning literal`);
-    if (source.includes("process.cwd(")) offenders.push(`${filename}: process.cwd root`);
-
-    if (filename !== "schema.ts" && !source.includes("operator-surface-paths.js")) {
-      offenders.push(`${filename}: shared adapter import missing`);
-    }
-  }
-
-  const shellSource = await readFile(
-    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic-before-pole.sh"),
-    "utf8",
-  );
-  assert.match(shellSource, /critic\/run\.ts paths/);
-  assert.doesNotMatch(shellSource, /\.planning|CACHE_DIR="\$ROOT/);
-  assert.deepEqual(offenders, []);
-});
-
-test("required scorecard, refute, and ledger evidence is read through the failing-closed reader", async () => {
-  // The sibling sweep above proves each reader IMPORTS the shared adapter. That
-  // is a proxy, not the property: a reader can import the adapter and still take
-  // a permissive read for a dataset whose absence must be fatal. This pins the
-  // call site itself for the three datasets D1 declares required.
-  const criticRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic");
-  const offenders: string[] = [];
-
-  for (const { dataset, filename, pathExpression } of requiredEvidenceReaders) {
-    const source = await readFile(resolve(criticRoot, filename), "utf8");
-    const call = new RegExp(
-      `readRequiredJson<[^>]*>\\(\\s*${pathExpression.replace(/[.()]/g, "\\$&")}`,
-    );
-
-    if (!call.test(source)) {
-      offenders.push(`${filename}: ${dataset} is not read through readRequiredJson(${pathExpression})`);
-    }
-  }
-
-  assert.deepEqual(offenders, []);
-
-  // Non-vacuity: the same matcher must reject a reader that swaps the required
-  // read for a permissive one, otherwise the assertion above proves nothing.
-  const permissive = `const data = JSON.parse(readFileSync(scorecardPath, "utf8"));`;
-  assert.equal(
-    new RegExp(`readRequiredJson<[^>]*>\\(\\s*scorecardPath`).test(permissive),
-    false,
-    "the matcher accepts a permissive read, so it cannot detect the regression it guards",
-  );
-});
-
 test("a required dataset read fails closed rather than reporting an empty result", async () => {
-  // The adapter-level counterpart to the call-site pin above: given a path that
-  // does not exist, the required reader must THROW. Returning null, {} or [] is
-  // the specific failure mode that would let parked or missing critic evidence
-  // pass as a clean score.
+  // Given a path that does not exist, the required reader must THROW. Returning
+  // null, {} or [] is the specific failure mode that would let missing evidence
+  // pass as a clean result.
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
 
@@ -254,7 +172,7 @@ test("a required dataset read fails closed rather than reporting an empty result
         adapter.readRequiredJson(absent, {
           dataset,
           repositoryOnly: true,
-          recoveryCommand: "npm run critic:check",
+          recoveryCommand: "npm run capture:pages",
         });
       } catch {
         threw = true;
@@ -329,44 +247,24 @@ test("nondeterministic producers stay inside one generated boundary", async () =
   const generatedRoot = resolve(expectedRepositoryRoot, "test/generated/operator_surface");
   assert.equal(paths.generatedRoot, generatedRoot);
   assert.equal(paths.routeScorecardsDir, resolve(generatedRoot, "route-scorecards"));
-  assert.equal(paths.criticScoresDir, resolve(generatedRoot, "critic-scores"));
-  assert.equal(paths.verdictCacheDir, resolve(generatedRoot, "critic-verdict-cache"));
-  assert.equal(paths.refuteTranscriptsDir, resolve(generatedRoot, "refute-transcripts"));
-  assert.equal(paths.critiqueReportPath, resolve(generatedRoot, "reports/CRITIQUE.md"));
-  assert.equal(paths.criticReportHtmlPath, resolve(generatedRoot, "reports/critic-report.html"));
 
   const pageCapture = await readFile(
     resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts"),
     "utf8",
   );
-  const refute = await readFile(
-    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/refute.ts"),
-    "utf8",
-  );
 
   assert.match(pageCapture, /paths\.routeScorecardsDir/);
   assert.doesNotMatch(pageCapture, /const scorecardsDir = paths\.scorecardsDir/);
-  assert.match(refute, /refuteTranscriptsDir/);
-  assert.doesNotMatch(refute, /refuteDir, "transcripts"/);
 });
 
-test("route scoring and gate discover generated scorecards and reject an empty explicit scope", async () => {
+test("route scorecard readers enumerate the generated root exactly, without prefix confusion", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
   const outputRoot = await mkdtemp(resolve(tmpdir(), "threadline-route-reader-"));
   const routeScorecardsDir = resolve(outputRoot, "route-scorecards");
-  const runPath = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/run.ts");
-  const e2eRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e");
   const cellId = "route.timeline__dark-1280";
   const variantCellId = "route.timeline.degraded__dark-1280";
   const prefixSiblingCellId = "route.timelineish__dark-1280";
-
-  const runCritic = (args: string[]) =>
-    spawnSync("tsx", [runPath, ...args, "--output-root", outputRoot], {
-      cwd: e2eRoot,
-      encoding: "utf8",
-      env: { ...process.env, NO_COLOR: "1" },
-    });
 
   try {
     await mkdir(routeScorecardsDir, { recursive: true });
@@ -379,145 +277,12 @@ test("route scoring and gate discover generated scorecards and reject an empty e
     assert.equal(adapter.routeCellMatchesPage(variantCellId, "route.timeline"), true);
     assert.equal(adapter.routeCellMatchesPage(prefixSiblingCellId, "route.timeline"), false);
     assert.deepEqual(adapter.readRouteScorecard(cellId), {});
-
-    const score = runCritic([
-      "score",
-      "--dry-run",
-      "--page",
-      "route.timeline",
-      "--theme",
-      "dark",
-      "--breakpoint",
-      "1280",
-    ]);
-    assert.equal(score.error, undefined, String(score.error));
-    assert.equal(score.status, 0, score.stderr);
-    assert.match(score.stdout, /Cells in scope:\s+2/);
-
-    const gate = runCritic([
-      "gate",
-      "--dry-run",
-      "--page",
-      "route.timeline",
-      "--lens",
-      "density",
-    ]);
-    assert.equal(gate.error, undefined, String(gate.error));
-    assert.equal(gate.status, 0, gate.stderr);
-    assert.match(gate.stdout, /0 changed of 2 scanned/);
-    assert.match(gate.stdout, new RegExp(cellId));
-    assert.match(gate.stdout, new RegExp(variantCellId));
-    assert.doesNotMatch(gate.stdout, new RegExp(prefixSiblingCellId));
-
-    const empty = runCritic([
-      "score",
-      "--dry-run",
-      "--page",
-      "route.missing",
-      "--theme",
-      "dark",
-      "--breakpoint",
-      "1280",
-    ]);
-    assert.equal(empty.error, undefined, String(empty.error));
-    assert.notEqual(empty.status, 0, "an explicitly requested empty route scope must fail closed");
-    assert.match(`${empty.stdout}\n${empty.stderr}`, /No cells match the explicit scope/);
-
-    const synthetic = runCritic([
-      "score",
-      "--dry-run",
-      "--synthetic",
-      "--page",
-      "route.timeline",
-      "--theme",
-      "dark",
-      "--breakpoint",
-      "1280",
-    ]);
-    assert.notEqual(
-      synthetic.status,
-      0,
-      "synthetic/oracle scope must not consume generated route evidence",
-    );
-    assert.match(`${synthetic.stdout}\n${synthetic.stderr}`, /No cells match the explicit scope/);
-
-    const emptyGate = runCritic([
-      "gate",
-      "--dry-run",
-      "--page",
-      "route.missing",
-      "--lens",
-      "density",
-    ]);
-    assert.equal(emptyGate.error, undefined, String(emptyGate.error));
-    assert.notEqual(emptyGate.status, 0, "an empty explicit gate scope must fail closed");
-    assert.match(`${emptyGate.stdout}\n${emptyGate.stderr}`, /No route scorecards match/);
+    assert.throws(() => adapter.routeScorecardPath("route.unknown__dark-1280"), /Unknown route cell_id/);
   } finally {
     adapter.configureOperatorSurfacePaths({
       fixtureRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot,
       outputRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot,
     });
-    await rm(outputRoot, { recursive: true, force: true });
-  }
-});
-
-test("failed route recapture forces VOID before any later gate subprocess", async () => {
-  const outputRoot = await mkdtemp(resolve(tmpdir(), "threadline-route-capture-failure-"));
-  const routeScorecardsDir = resolve(outputRoot, "route-scorecards");
-  const fakeBin = resolve(outputRoot, "fake-bin");
-  const invocationLog = resolve(outputRoot, "invocations.log");
-  const e2eRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e");
-  const runPath = resolve(e2eRoot, "critic/run.ts");
-  const tsxPath = resolve(e2eRoot, "node_modules/.bin/tsx");
-  const cellId = "route.timeline__dark-1280";
-
-  try {
-    await mkdir(routeScorecardsDir, { recursive: true });
-    await mkdir(fakeBin);
-    await writeFile(resolve(routeScorecardsDir, `${cellId}.json`), "{}\n", "utf8");
-    await writeFile(
-      resolve(fakeBin, "npm"),
-      `#!/usr/bin/env bash\nprintf 'npm %s\\n' "$*" >>${JSON.stringify(invocationLog)}\nexit 77\n`,
-      "utf8",
-    );
-    await writeFile(
-      resolve(fakeBin, "mix"),
-      `#!/usr/bin/env bash\nprintf 'mix %s\\n' "$*" >>${JSON.stringify(invocationLog)}\nexit 78\n`,
-      "utf8",
-    );
-    await chmod(resolve(fakeBin, "npm"), 0o755);
-    await chmod(resolve(fakeBin, "mix"), 0o755);
-
-    const env: NodeJS.ProcessEnv = {
-      ...process.env,
-      PATH: `${fakeBin}:${process.env.PATH ?? ""}`,
-      NO_COLOR: "1",
-    };
-    delete env.ANTHROPIC_API_KEY;
-
-    const gate = spawnSync(
-      tsxPath,
-      [
-        runPath,
-        "gate",
-        "--page",
-        "route.timeline",
-        "--lens",
-        "density",
-        "--output-root",
-        outputRoot,
-      ],
-      { cwd: e2eRoot, encoding: "utf8", env },
-    );
-    const output = `${gate.stdout}\n${gate.stderr}`;
-
-    assert.equal(gate.error, undefined, String(gate.error));
-    assert.notEqual(gate.status, 0);
-    assert.match(output, /capture:pages failed/);
-    assert.match(output, /Verdict: VOID/);
-    assert.doesNotMatch(output, /\[2\/7\]|\[3\/7\]|\[4\/7\]/);
-    assert.equal(await readFile(invocationLog, "utf8"), "npm run capture:pages\n");
-  } finally {
     await rm(outputRoot, { recursive: true, force: true });
   }
 });
@@ -598,7 +363,7 @@ test("rejects immutable and generated root aliasing while allowing a separated o
   const immutableRoot = resolve(sandbox, "scorecards");
   const nestedOutput = resolve(immutableRoot, "generated");
   const broadOutput = sandbox;
-  const separatedOutput = resolve(sandbox, "critic-scores");
+  const separatedOutput = resolve(sandbox, "generated-output");
 
   try {
     await mkdir(nestedOutput, { recursive: true });
@@ -625,152 +390,18 @@ test("rejects immutable and generated root aliasing while allowing a separated o
   }
 });
 
-test("critic score and cache writers use contained atomic targets", async () => {
+test("review diff commands stay contained in the repository", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
-  const scorecardModule = await import("../critic/scorecard.js");
-  const cacheModule = await import("../critic/cache.js");
-  const scorecardSource = await readFile(
-    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/scorecard.ts"),
-    "utf8",
-  );
-  const cacheSource = await readFile(
-    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/cache.ts"),
-    "utf8",
-  );
-
-  assert.throws(
-    () => scorecardModule.criticScorePath("../escape", "density", "signal_to_chrome"),
-    /outside|traversal/i,
-  );
-  for (const [filename, source] of [
-    ["scorecard.ts", scorecardSource],
-    ["cache.ts", cacheSource],
-  ] as const) {
-    assert.match(source, /operator-surface-paths\.js/, `${filename} must import the adapter`);
-    assert.match(source, /resolveContainedPath/, `${filename} must contain its target`);
-    assert.match(source, /atomicWriteFile/, `${filename} must replace atomically`);
-    assert.doesNotMatch(source, /writeFileSync/, `${filename} must not write destinations directly`);
-  }
-
-  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-critic-writers-"));
-  const fixtureRoot = resolve(sandbox, "fixtures");
-  const outputRoot = resolve(sandbox, "generated");
-  const outside = resolve(sandbox, "outside");
-  await mkdir(fixtureRoot, { recursive: true });
-  await mkdir(outputRoot);
-  await mkdir(outside);
-
-  const params = {
-    cellId: "page.actor.happy__dark-1280",
-    lens: "density" as const,
-    dimension: "signal_to_chrome",
-    modelId: "test-model",
-    rubricVersion: "density@1.0.0+00000000",
-    n: 3,
-    scoresRaw: [70, 72, 74],
-    score: 72,
-    band: "strong",
-    bandMode: "median",
-    iqr: 2,
-    range: 4,
-    stable: true,
-    pass: true,
-    evidence: { kind: "region" as const, locator: "main", observation: "clear" },
-    rationale: "test",
-  };
-  const cachedVerdict = {
-    cell_id: params.cellId,
-    dimension: params.dimension,
-    rubric_hash: "00000000",
-    model_id: params.modelId,
-    screenshot_hash: "deadbeef",
-    result: {
-      evidence: params.evidence,
-      pass: true,
-      band: "strong" as const,
-      score: 72,
-      lens: "density" as const,
-      rationale: "test",
-    },
-    n: 3,
-    scores_raw: [70, 72, 74],
-    score: 72,
-    band: "strong",
-    band_mode: "median",
-    iqr: 2,
-    range: 4,
-    stable: true,
-    cached_at: "2026-09-11T00:00:00Z",
-  };
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-review-diff-"));
 
   try {
-    adapter.configureOperatorSurfacePaths({ fixtureRoot, outputRoot });
-    await mkdir(adapter.currentOperatorSurfacePaths().criticScoresDir, { recursive: true });
-    await symlink(outside, resolve(adapter.currentOperatorSurfacePaths().criticScoresDir, "linked"));
-    assert.throws(
-      () => scorecardModule.criticScorePath("linked", "density", params.dimension),
-      /symlink/i,
-    );
-
-    scorecardModule.writeCriticScore(params);
-    const scorePath = scorecardModule.criticScorePath(
-      params.cellId,
-      params.lens,
-      params.dimension,
-    );
-    const originalScore = await readFile(scorePath, "utf8");
-    assert.throws(
-      () => scorecardModule.writeCriticScore(
-        { ...params, rationale: "must not land" },
-        { beforeRename: () => { throw new Error("forced score failure"); } },
-      ),
-      /forced score failure/,
-    );
-    assert.equal(await readFile(scorePath, "utf8"), originalScore);
-    assert.deepEqual(
-      (await readdir(dirname(scorePath))).filter((name) => name.includes(".tmp")),
-      [],
-    );
-
-    cacheModule.writeCache(cachedVerdict);
-    const cacheFiles = await readdir(adapter.currentOperatorSurfacePaths().verdictCacheDir);
-    assert.equal(cacheFiles.length, 1);
-    const cachePath = resolve(adapter.currentOperatorSurfacePaths().verdictCacheDir, cacheFiles[0]);
-    const originalCache = await readFile(cachePath, "utf8");
-    assert.throws(
-      () => cacheModule.writeCache(
-        { ...cachedVerdict, score: 73 },
-        { beforeRename: () => { throw new Error("forced cache failure"); } },
-      ),
-      /forced cache failure/,
-    );
-    assert.equal(await readFile(cachePath, "utf8"), originalCache);
-    assert.deepEqual(
-      (await readdir(adapter.currentOperatorSurfacePaths().verdictCacheDir)).filter((name) => name.includes(".tmp")),
-      [],
-    );
-    assert.throws(
-      () => cacheModule.writeCache({ ...cachedVerdict, cell_id: "../escape" }),
-      /outside|traversal/i,
-    );
-
-    assert.throws(
-      () => adapter.reviewDiffCommand(resolve(fixtureRoot, "golden/golden-set.json")),
-      /outside/i,
-    );
+    assert.throws(() => adapter.reviewDiffCommand(resolve(sandbox, "outside.json")), /outside/i);
   } finally {
-    adapter.configureOperatorSurfacePaths({
-      fixtureRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot,
-      outputRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot,
-    });
     await rm(sandbox, { recursive: true, force: true });
   }
 
-  const canonicalTarget = resolve(
-    adapter.DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir,
-    "golden-set.json",
-  );
+  const canonicalTarget = adapter.DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath;
   assert.equal(
     adapter.reviewDiffCommand(canonicalTarget),
     `git -C ${JSON.stringify(expectedRepositoryRoot)} diff -- ${JSON.stringify(relative(expectedRepositoryRoot, canonicalTarget))}`,
