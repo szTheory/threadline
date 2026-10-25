@@ -1,11 +1,12 @@
-# Weekly, non-required dependency health lane (SUP-04). Deliberately NOT a
+# Daily, non-required dependency health lane (SUP-04). Deliberately NOT a
 # member of ci.yml or ci-required's needs: — this lane never blocks a pull
-# request. It runs `mix hex.audit` and `mix hex.outdated` over all three
-# lockfiles this repo maintains (root, bench, examples/threadline_phoenix)
-# and, when the result is anything other than clean, upserts exactly ONE
-# open issue labelled `ci-deps` — a re-run comments on the same issue rather
-# than opening a second one. The policy this lane implements is documented in
-# CONTRIBUTING.md's "Dependency freshness policy" section, and
+# request. It runs `mix hex.audit --format sarif` over all three lockfiles
+# this repo maintains (root, bench, examples/threadline_phoenix) and
+# classifies the run as clean, unknown, retirement or advisory. Any non-clean
+# class opens or updates exactly ONE open issue labelled `ci-deps` (a re-run
+# comments on, and retitles, the same issue rather than opening a second
+# one); only a clean run closes it. The policy this lane implements is
+# documented in CONTRIBUTING.md's "Dependency freshness policy" section, and
 # test/threadline/deps_health_doc_contract_test.exs derives facts from this
 # workflow and fails if that section drifts.
 #
@@ -15,8 +16,19 @@ name: Dependency Health
 on:
   workflow_dispatch:
   schedule:
-    # Mondays 08:00 UTC.
-    - cron: "0 8 * * 1"
+    # Daily 08:00 UTC, so a new advisory reaches the issue within a day.
+    - cron: "0 8 * * *"
+  # A lockfile change on main re-runs the lane, so the issue closes as soon
+  # as a fix lands. Exactly the three mix.exs/mix.lock pairs.
+  push:
+    branches: [main]
+    paths:
+      - mix.exs
+      - mix.lock
+      - bench/mix.exs
+      - bench/mix.lock
+      - examples/threadline_phoenix/mix.exs
+      - examples/threadline_phoenix/mix.lock
 
 permissions:
   contents: read
@@ -28,7 +40,7 @@ concurrency:
 jobs:
   # Job id is stable.
   deps-health:
-    name: Weekly hex.audit + hex.outdated (Mix lockfiles)
+    name: Daily hex.audit (Mix lockfiles)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -47,7 +59,7 @@ jobs:
       - name: Pin Hex (CI and local must agree)
         run: bin/retry-network mix local.hex 2.6.0 --force
 
-      - name: Run hex.audit + hex.outdated over all three lockfiles
+      - name: Classify hex.audit over all three lockfiles
         id: report
         run: bin/deps-health-report "$RUNNER_TEMP/deps-health"
 
@@ -91,15 +103,15 @@ jobs:
           bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
             --title "$TITLE_PREFIX: ${CLASSIFICATION:-unknown}" \
             --body-file "$body_file" --label "$LABEL" \
-            --label-description "Weekly deps-health lane: hex.audit advisories or hex.outdated findings" \
+            --label-description "Deps-health lane: hex.audit advisories, retirements or an unknown audit state" \
             --label-color FBCA04
 
       # ECON-02 / D-06: a clean run closes the open dependency health issue,
       # after first commenting with this run's URL and SHA so the closure is
       # attributable. Gated on the classification VALUE 'clean' only: an
-      # empty/crashed report (classification '') and an `outdated` result
-      # (informational, still reported above) never close. With no open issue
-      # the script prints action=none and writes nothing.
+      # empty/crashed report (classification '') and an `unknown` result
+      # never close. With no open issue the script prints action=none and
+      # writes nothing.
       - name: Close the dependency health issue on a clean run
         if: steps.report.outputs.classification == 'clean'
         env:
@@ -114,14 +126,15 @@ jobs:
           printf 'Clean on %s (%s): %s\n' "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$RUN_URL" > "$body_file"
           bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"
 
-      # The lane goes red on `advisory` (a hex.audit finding) or `unknown`
-      # (a fetch failure that prevented an audit from running at all) —
-      # never silently on empty output, which is why this exempts only the
-      # two known-safe values instead of allow-listing 'advisory'/'unknown'.
-      # `outdated` alone stays green: it is informational, reported via the
-      # issue above but not a merge-style gate.
-      - name: Fail the job on an advisory or an unknown result
-        if: always() && steps.report.outputs.classification != 'clean' && steps.report.outputs.classification != 'outdated'
+      # The lane goes red on every non-clean class: `advisory`, `retirement`
+      # or `unknown` (an audit this lane could not vouch for). It exempts only
+      # the one known-safe value instead of allow-listing the bad ones, so an
+      # empty or crashed report also goes red. The classification reaches the
+      # shell through env:, never through expression interpolation in run:.
+      - name: Fail the job on any non-clean result
+        if: always() && steps.report.outputs.classification != 'clean'
+        env:
+          CLASSIFICATION: ${{ steps.report.outputs.classification }}
         run: |
-          echo "::error::Dependency health classified this run as '${{ steps.report.outputs.classification }}'. See CONTRIBUTING.md, \"Dependency freshness policy\"."
+          echo "::error::Dependency health classified this run as '${CLASSIFICATION}'. See CONTRIBUTING.md, \"Dependency freshness policy\"."
           exit 1

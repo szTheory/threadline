@@ -64,6 +64,15 @@ defmodule Threadline.DepsHealthDocContractTest do
     end
   end
 
+  defp rank_names!(path) do
+    content = File.read!(path)
+
+    case Regex.run(~r/^RANK_NAMES=\((.+)\)$/m, content) do
+      [_, names] -> String.split(names)
+      nil -> flunk("no RANK_NAMES=(...) literal found in #{path}")
+    end
+  end
+
   defp policy_section do
     contributing = File.read!(@contributing)
 
@@ -159,10 +168,27 @@ defmodule Threadline.DepsHealthDocContractTest do
 
     assert section =~ "This repository does not use Dependabot version-update pull requests."
     assert section =~ "hex.audit"
-    assert section =~ "hex.outdated"
     assert section =~ "release train"
     assert section =~ "verify-deps-audit"
     assert section =~ "hex_audit_ignores"
+  end
+
+  test "the class set CONTRIBUTING names equals bin/deps-health-report's RANK_NAMES (D-29)" do
+    names = rank_names!(@deps_health_report)
+
+    assert names == ["clean", "unknown", "retirement", "advisory"],
+           "RANK_NAMES must be the D-25 precedence order, got #{inspect(names)}"
+
+    section = policy_section()
+
+    for name <- names do
+      assert section =~ "`#{name}`",
+             "CONTRIBUTING.md's #{@policy_heading} section must name the class `#{name}`"
+    end
+  end
+
+  test "the policy section no longer says a finding alone stays green (D-24)" do
+    refute policy_section() =~ "alone stays green"
   end
 
   test "no Dependabot version-update config file exists" do
@@ -217,8 +243,8 @@ defmodule Threadline.DepsHealthDocContractTest do
       end
 
     assert close_step =~ ~r/^\s*if: steps\.report\.outputs\.classification == 'clean'\s*$/m,
-           "the close step must run only when classification == 'clean' (never on outdated, " <>
-             "advisory, unknown, or an empty/crashed report)"
+           "the close step must run only when classification == 'clean' (never on advisory, " <>
+             "retirement, unknown, or an empty/crashed report)"
 
     assert close_step =~ "upsert-ci-issue --close",
            "the `clean` gate must sit on the step that runs upsert-ci-issue --close"

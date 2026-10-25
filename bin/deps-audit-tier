@@ -59,13 +59,16 @@ dat_audit() {
 #   <kind>\t<package>\t<id>\t<message>
 # kind is advisory, retirement or denied; an unmatched fingerprint yields
 #   UNPARSEABLE\t\t\t<fingerprint>
-# Returns non-zero when the file is absent or jq fails.
+# A non-matching capture() yields no output at all (not null), so it is
+# collected into an array whose first element is null on a non-match; without
+# that, an unparseable result would silently vanish. Returns non-zero when the
+# file is absent or jq fails.
 dat_findings() {
   local sarif="$1"
   [ -f "$sarif" ] || return 1
   jq -r '.runs[0].results[]
     | (.partialFingerprints["hexAudit/v1"] // "") as $fp
-    | ($fp | capture("^(?<kind>advisory|retired|denied):(?<repo>[^/]+)/(?<pkg>[a-z0-9_]+)(:(?<id>.+))?$")?) as $m
+    | ([$fp | capture("^(?<kind>advisory|retired|denied):(?<repo>[^/]+)/(?<pkg>[a-z0-9_]+)(:(?<id>.+))?$")?] | .[0]) as $m
     | if $m == null then "UNPARSEABLE\t\t\t\($fp)"
       else [(if $m.kind == "retired" then "retirement" else $m.kind end),
             $m.pkg, ($m.id // .ruleId // ""), (.message.text // "")] | @tsv end' "$sarif"
@@ -110,9 +113,12 @@ dat_audit_shape_error() {
     return 1
   fi
 
-  local line kind rest
+  # Every SARIF result must yield exactly one row; a dropped row is a shape
+  # error, never a silent clean.
+  local line kind rest row_count=0
   while IFS= read -r line; do
     [ -n "$line" ] || continue
+    row_count=$((row_count + 1))
     kind="${line%%	*}"
     rest="${line#*	}"
     case "$kind" in
@@ -129,6 +135,11 @@ dat_audit_shape_error() {
   done <<EOF
 $rows
 EOF
+
+  if [ "$row_count" -ne "$count" ]; then
+    printf 'parsed %s findings from %s SARIF results\n' "$row_count" "$count"
+    return 1
+  fi
 
   return 0
 }
