@@ -120,7 +120,7 @@ defmodule Threadline.DepsAuditGateTest do
     base_env = [
       {"MIX_BIN", mix},
       {"CALL_LOG", log},
-      {"FAKE_HEX_INFO", "Hex:    2.5.1"},
+      {"FAKE_HEX_INFO", "Hex:    2.6.0"},
       {"FAKE_FAIL", ""},
       {"HEX_IGNORE_ADVISORIES", ""},
       {"HEX_IGNORE_RETIREMENTS", ""},
@@ -187,12 +187,36 @@ defmodule Threadline.DepsAuditGateTest do
       {out, status, log} = run([d1], [{"FAKE_HEX_INFO", "Hex:    #{version}"}], root)
 
       assert status != 0
-      assert out =~ "requires Hex >= 2.5.1"
+      assert out =~ "requires Hex >= 2.6.0"
       assert out =~ version
       assert String.trim(log) == "#{root}|hex.info" or String.contains?(log, "|hex.info")
       refute log =~ "deps.get"
       refute log =~ "hex.audit"
     end
+  end
+
+  # REL-04: the 1.1.0 drift pair. The maintainer's Hex accepted a lock that
+  # CI's floated Hex 2.6.0 rejected under --check-locked, so the old passing
+  # default is now below the floor and refused before any lock is judged.
+  test "the 1.1.0 local Hex is below the floor CI pins" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} =
+      run(
+        [d1],
+        [
+          {"FAKE_HEX_INFO", "Hex:    2.5.1"}
+        ],
+        root
+      )
+
+    assert status != 0
+
+    assert out =~
+             "requires Hex >= 2.6.0, found 2.5.1"
+
+    refute log =~ "deps.get"
   end
 
   test "unparseable hex.info output fails closed" do
@@ -463,7 +487,7 @@ defmodule Threadline.DepsAuditGateTest do
     env = [
       {"MIX_BIN", mix},
       {"CALL_LOG", log},
-      {"FAKE_HEX_INFO", "Hex:    2.5.1"},
+      {"FAKE_HEX_INFO", "Hex:    2.6.0"},
       {"FAKE_FAIL", ""},
       {"HEX_IGNORE_ADVISORIES", ""},
       {"HEX_IGNORE_RETIREMENTS", ""},
