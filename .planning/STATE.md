@@ -4,11 +4,11 @@ milestone: v1.47
 current_phase: 245
 current_phase_name: Supply chain
 status: planning
-stopped_at: Phase 244 complete, ready to plan Phase 245
-last_updated: "2026-10-25T16:41:44.762Z"
+stopped_at: Phase 245 context gathered
+last_updated: "2026-10-25T17:34:50.284Z"
 last_activity: 2026-10-25
-last_activity_desc: Phase 244 complete, transitioned to Phase 245
-state_head: 5f0850abf34c6cb2f7529238b1ca79c4ace18fa6
+last_activity_desc: Phase 245 context gathered (D-01..D-33; SUP-01 reworded)
+state_head: d15a6c0ea01478b335348998d691700c9957a3e5
 progress:
   total_phases: 4
   completed_phases: 1
@@ -1145,9 +1145,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T16:28:45.504Z
-**Stopped at:** Phase 244 complete, ready to plan Phase 245
-**Resume file:** None
+**Last session:** 2026-10-25T17:34:49.948Z
+**Stopped at:** Phase 245 context gathered
+**Resume file:** .planning/phases/245-supply-chain/245-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
