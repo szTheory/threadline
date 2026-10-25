@@ -951,6 +951,35 @@ defmodule Threadline.DepsAuditGateTest do
       end
     end
 
+    # WR-01: deps.tree lists the app name, SARIF names the Hex package, so a
+    # dep declared `{:foo, "~> 1.0", hex: :foo_bar}` must still block.
+    test "case 3b: an advisory on the Hex package of a renamed (hex:) runtime dep blocks" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+
+      File.write!(
+        Path.join(d1, "mix.lock"),
+        ~s(%{\n  "foo": {:hex, :foo_bar, "1.0.0", "abc", [:mix], [], "hexpm", "def"},\n}\n)
+      )
+
+      {out, status, _log} =
+        run(
+          [d1],
+          [
+            {"FAKE_TREE_one", "foo,telemetry"},
+            {"FAKE_SARIF_one", "advisory:foo_bar:EEF-CVE-2026-0003"}
+          ],
+          root
+        )
+
+      assert status == 1, out
+
+      assert out =~
+               "deps-audit-finding tier=blocking dir=#{d1} kind=advisory package=foo_bar id=EEF-CVE-2026-0003"
+
+      assert out =~ "FAIL #{d1}: blocking advisory foo_bar EEF-CVE-2026-0003"
+    end
+
     test "case 4: a root dev-only ex_doc advisory is non-blocking (exit 0, ::warning::)" do
       root = tmp_root()
       d1 = project_dir(root, "one")
