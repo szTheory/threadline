@@ -493,9 +493,11 @@ fi
 
 # --- Fetch deps, then run the pin writer -------------------------------------
 step "fetching dependencies in the throwaway tree"
-# Here-string, not `printf | mix`: under pipefail a pipe also counts printf,
-# which fails when mix exits without reading stdin (see bin/deps-health-report).
-(cd "$CLONE" && mix deps.get <<<'n') ||
+# REL-03: bin/retry-network retries a transient fetch failure and feeds each
+# attempt `n` as a here-string, never `printf | mix`: under pipefail a pipe also
+# counts printf, which fails when mix exits without reading stdin (see
+# bin/deps-health-report).
+(cd "$CLONE" && "$ROOT/bin/retry-network" mix deps.get) ||
   fail "deps" "\`mix deps.get\` failed inside the throwaway tree."
 
 step "running mix release.pins against the bumped @version"
