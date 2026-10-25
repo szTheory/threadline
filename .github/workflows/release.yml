@@ -117,6 +117,11 @@ jobs:
   # update force-pushes the branch (dropping any earlier pin commit), so the pins are
   # re-synced every time the release commit is regenerated. A patch release is a
   # no-op: the derived `major.minor.0` floor does not change, so nothing is pushed.
+  # The job also dates the human-owned CHANGELOG.md: bin/date-release-changelog
+  # renames the `## Unreleased — highlights` block to `## [X.Y.Z] - YYYY-MM-DD`.
+  # It must re-run on every regeneration for the same reason as the pins: the
+  # force-push drops the earlier dating commit, so the release PR's final head is
+  # only dated if this job dates it again.
   sync-release-pr-pins:
     name: Sync install pins on Release PR
     runs-on: ubuntu-24.04
