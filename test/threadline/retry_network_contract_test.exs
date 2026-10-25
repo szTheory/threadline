@@ -1196,7 +1196,92 @@ defmodule Threadline.RetryNetworkContractTest do
     String.replace(text, @eager_guard_anchor, @eager_guard)
   end
 
+  # The text of `aliases/0`: from `defp aliases do` to the next top-level def,
+  # comment lines dropped (a comment is never evaluated).
+  defp aliases_text(text) do
+    [_, rest] = String.split(text, "\n  defp aliases do\n", parts: 2)
+    [body | _] = String.split(rest, ~r/\n  defp? /, parts: 2)
+    strip_comment_lines(body)
+  end
+
+  defp alias_purity_errors(files) do
+    body = files |> Map.fetch!(@mix_exs) |> aliases_text()
+
+    for line <- String.split(body, "\n"), String.contains?(line, "\#{") do
+      "rule=alias-load-pure mix.exs: aliases/0 is evaluated at project load for every " <>
+        "adopter (CR-01) and must not interpolate: #{String.trim(line)}"
+    end
+  end
+
+  # Top-level function chunks of mix.exs whose code expands `$RETRY_NETWORK`.
+  defp retry_network_functions(files) do
+    files
+    |> Map.fetch!(@mix_exs)
+    |> strip_comment_lines()
+    |> String.split(~r/\n(?=  defp? )/)
+    |> Enum.filter(&String.contains?(&1, "$RETRY_NETWORK"))
+  end
+
+  defp env_pairing_errors(files) do
+    for chunk <- retry_network_functions(files),
+        [head | _] = String.split(chunk, "\n", parts: 2),
+        calls = Regex.scan(~r/Mix\.shell\(\)\.cmd\([^\n]*/, chunk) |> List.flatten(),
+        calls == [] or not Enum.all?(calls, &(&1 =~ "retry_network_env")) do
+      "rule=retry-env-pairing mix.exs #{String.trim(head)}: a command expanding " <>
+        "$RETRY_NETWORK must be run with `env: retry_network_env(...)`, got #{inspect(calls)}"
+    end
+  end
+
   describe "mix.exs loads from any checkout path (CR-01)" do
+    setup do
+      %{live: nested_sources()}
+    end
+
+    test "rule=alias-load-pure: aliases/0 interpolates nothing", %{live: live} do
+      errors = alias_purity_errors(live)
+      assert errors == [], Enum.join(errors, "\n")
+      assert aliases_text(live[@mix_exs]) =~ ~s("test.setup"), "aliases/0 not found (vacuous)"
+    end
+
+    test "mutation control: re-interpolating the wrapper into test.setup fires rule=alias-load-pure",
+         %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          ~S|"test.setup": [&test_setup_fetch/1, "test"],|,
+          ~S|"test.setup": ["cmd --cd examples/threadline_phoenix #{retry_network()} mix deps.get", "test"],|
+        )
+
+      errors = alias_purity_errors(mutated)
+      assert rule_fired?(errors, "alias-load-pure"), inspect(errors)
+    end
+
+    test "rule=retry-env-pairing: every $RETRY_NETWORK command gets the env", %{live: live} do
+      assert length(retry_network_functions(live)) == 5,
+             inspect(Enum.map(retry_network_functions(live), &hd(String.split(&1, "\n"))))
+
+      errors = env_pairing_errors(live)
+      assert errors == [], Enum.join(errors, "\n")
+    end
+
+    test "mutation control: dropping the env from verify_bench_compile fires rule=retry-env-pairing",
+         %{live: live} do
+      mutated =
+        mutate_source(
+          live,
+          @mix_exs,
+          "Mix.shell().cmd(cmd, env: retry_network_env()) do\n      0 -> :ok\n      " <>
+            "status -> Mix.raise(\"verify.bench_compile failed",
+          "Mix.shell().cmd(cmd) do\n      0 -> :ok\n      " <>
+            "status -> Mix.raise(\"verify.bench_compile failed"
+        )
+
+      errors = env_pairing_errors(mutated)
+      assert [error] = errors, inspect(errors)
+      assert error =~ "rule=retry-env-pairing mix.exs defp verify_bench_compile", error
+    end
+
     test "a directory name with a space loads" do
       {out, status} = load_mix_exs("threadline checkout", live_mix_exs())
       assert status == 0, out
