@@ -153,7 +153,7 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Check formatting
         run: mix verify.format

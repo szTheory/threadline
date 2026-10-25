@@ -236,6 +236,7 @@
 2 test/threadline/retention/policy_test.exs
 227 test/threadline/retention/pruner_test.exs
 916 test/threadline/retention_test.exs
+1300 test/threadline/retry_network_contract_test.exs
 52 test/threadline/row_history_focus_evidence_contract_test.exs
 4419 test/threadline/row_history_test.exs
 2 test/threadline/schema_fields_contract_test.exs

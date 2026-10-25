@@ -500,7 +500,7 @@ defmodule Threadline.RetryNetworkContractTest do
           @ci,
           &mutate_job(
             &1,
-            "verify-credo",
+            "verify-pgbouncer-topology",
             "run: mix compile --warnings-as-errors\n",
             "run: bin/retry-network mix compile --warnings-as-errors\n"
           )
