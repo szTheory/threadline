@@ -254,6 +254,67 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     end
   end
 
+  # --- Phase 244 / REL-02: release-please keeps the release PR current -------
+  #
+  # After the 1.1.0 dating PR (#87) merged, release-please logged that the
+  # release PR "remained the same" (run 40038808445) and left it on an old base,
+  # so it had to be rebased by hand. `always-update` makes release-please
+  # regenerate the open release PR on every push to main. It pushes with the
+  # RELEASE_PLEASE_TOKEN PAT, so the refreshed head fires pull_request CI, and
+  # the refresh reports prs_created true, which re-runs the sync job above.
+
+  test "release-please regenerates the open release PR with the PAT (REL-02)" do
+    errors = regenerate_errors(release_please_config(), release_workflow())
+
+    assert errors == [],
+           "release-please must run with top-level `\"always-update\": true`, the " <>
+             "`secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN` token, and the sync " <>
+             "job keyed on prs_created. Without always-update release-please logs " <>
+             "\"remained the same\" and leaves the release PR on an old base " <>
+             "(run 40038808445, REL-02): #{inspect(errors)}"
+  end
+
+  describe "mutation controls (REL-02 release PR regeneration)" do
+    setup do
+      %{config: release_please_config(), workflow: release_workflow()}
+    end
+
+    for {label, from, to, rule, target} <- [
+          {"set always-update to false", ~s("always-update": true,\n),
+           ~s("always-update": false,\n), "always-update", :config},
+          {"remove always-update", ~s(  "always-update": true,\n), "", "always-update", :config},
+          {"quote always-update as a string", ~s("always-update": true,\n),
+           ~s("always-update": "true",\n), "always-update", :config},
+          {"run release-please with GITHUB_TOKEN alone",
+           "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n" <>
+             "          config-file: release-please-config.json\n",
+           "          token: ${{ secrets.GITHUB_TOKEN }}\n" <>
+             "          config-file: release-please-config.json\n", "pat-token", :workflow},
+          {"stop keying the sync job on prs_created",
+           "    if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'\n",
+           "    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'\n",
+           "sync-on-prs-created", :workflow}
+        ] do
+      test "#{label} fires rule=#{rule}", %{config: config, workflow: workflow} do
+        from = unquote(from)
+        to = unquote(to)
+        live = if unquote(target) == :config, do: config, else: workflow
+
+        assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+
+        mutated = String.replace(live, from, to, global: false)
+        refute mutated == live, "the control did not change the input"
+
+        errors =
+          if unquote(target) == :config,
+            do: regenerate_errors(mutated, workflow),
+            else: regenerate_errors(config, mutated)
+
+        assert rule_fired?(errors, unquote(rule)), inspect(errors)
+      end
+    end
+  end
+
   # --- Phase 218 / ECON-03: one CI run per release PR head --------------------
   #
   # With RELEASE_PLEASE_TOKEN configured, release-please's own push already fires
@@ -507,6 +568,50 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
        end)
     |> Enum.reject(fn {ok, _message} -> ok end)
   end
+
+  # REL-02 rules over release-please-config.json and release.yml, as
+  # `{ok?, message}` pairs with the ok ones rejected.
+  defp regenerate_errors(config_text, workflow_text) do
+    always_update =
+      case Jason.decode(config_text) do
+        {:ok, %{} = config} -> Map.get(config, "always-update")
+        _ -> nil
+      end
+
+    release_step =
+      workflow_text
+      |> job_block!("release-please")
+      |> job_steps()
+      |> Enum.find(&(&1 =~ ~r/^\s*(?:- )?name: Run Release Please$/m))
+
+    sync_if =
+      workflow_text
+      |> job_block!("sync-release-pr-pins")
+      |> then(&Regex.run(~r/^    if:[ \t]*(.*?)[ \t]*$/m, &1))
+      |> case do
+        [_, condition] -> condition
+        nil -> ""
+      end
+
+    [
+      {always_update === true,
+       "rule=always-update: release-please-config.json must set top-level " <>
+         "`\"always-update\": true` (a JSON boolean), found #{inspect(always_update)}"},
+      {release_step != nil and
+         yaml_value(release_step, "token") ==
+           "${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}",
+       "rule=pat-token: the `Run Release Please` step must use " <>
+         "`token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}`, or the " <>
+         "regenerated release PR fires no pull_request CI"},
+      {String.contains?(sync_if, "needs.release-please.outputs.prs_created == 'true'"),
+       "rule=sync-on-prs-created: sync-release-pr-pins' `if:` must key on " <>
+         "`needs.release-please.outputs.prs_created == 'true'`, or a regenerated release " <>
+         "PR loses its pins and its dated CHANGELOG"}
+    ]
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp release_please_config, do: File.read!(Path.join(@root, "release-please-config.json"))
 
   defp position(text, needle) do
     case :binary.match(text, needle) do
