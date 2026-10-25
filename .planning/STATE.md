@@ -4,17 +4,17 @@ milestone: v1.47
 current_phase: 244
 current_phase_name: Release flow
 status: executing
-stopped_at: Completed 244-05-PLAN.md
-last_updated: "2026-10-25T14:34:59.089Z"
+stopped_at: Completed 244-06-PLAN.md
+last_updated: "2026-10-25T14:46:06.811Z"
 last_activity: 2026-10-25
-last_activity_desc: Plan 244-05 complete (Hex 2.6.0 pinned in verify-deps-audit; MIN_HEX=2.6.0; hex pin contract; REL-04 cause recorded)
-state_head: cdad098465543104e7b0e1054a0edc0b5e10e02b
+last_activity_desc: Plan 244-06 complete (Hex 2.6.0 pinned in all 17 setup-beam steps; hex pin contract covers every workflow; REL-04 complete)
+state_head: 0a435e6147e8bf47bb21857d85dcb8c7ce66f1ac
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 86
 milestone_name: Release on autopilot
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 244 (Release flow) — EXECUTING
-Plan: 5 of 7 complete (244-06 next)
+Plan: 6 of 7 complete (244-07 next)
 Status: Executing Phase 244
-Last activity: 2026-10-25 — Plan 244-05 complete (verify-deps-audit pins Hex 2.6.0 via install-hex: false + retried local.hex; MIN_HEX 2.5.1 -> 2.6.0; hex_pin_contract_test six rules; CONTRIBUTING records the 1.1.0 cause; maintainer must run `mix local.hex 2.6.0 --force` locally)
-Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 5/7 Phase 244 plans complete (later phases TBD)
+Last activity: 2026-10-25 — Plan 244-06 complete (all 17 setup-beam steps set install-hex: false and pin Hex 2.6.0, retried: 14 via bin/retry-network, 3 inline in release.yml sparse jobs; hex_pin_contract_test live scope = every workflow, 17-step count; parity matrix admits install-hex: false; REL-04 complete; A3 min/latest lanes confirmed only by the phase PR CI)
+Progress: [░░░░░░░░░░] 0 of 4 v1.47 phases complete (0%); 6/7 Phase 244 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -309,6 +309,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 244 P03 | ~40 min | 2 tasks | 8 files |
 | Phase 244 P04 | ~50 min | 2 tasks | 7 files |
 | Phase 244 P05 | ~40 min | 2 tasks | 6 files |
+| Phase 244 P06 | 35min | 2 tasks | 7 files |
 
 ## Deferred Items
 
@@ -1113,6 +1114,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 244]: 244-04: mix.exs nested fetches sit behind an interpolated absolute retry_network() path; a relative bin/retry-network in mix.exs counts as unwrapped
 - [Phase 244]: 244-04: bin/verify-clean-checkout and bin/verify-planning-independent stay unwrapped (reasoned allowlist): they run inside clean-clone proofs invoked from ExUnit, not CI fetch steps
 - [Phase 244]: 244-05: Hex pinned 2.6.0 in verify-deps-audit (install-hex: false + retried local.hex); MIN_HEX=2.6.0 equals the pin; 244-06 widens hex_pin_contract_test @live_scope to every job
+- [Phase 244]: 244-06: Hex pin contract live scope is every job in every workflow, 17 pinned setup-beam steps; release.yml sparse jobs pin with the inline bounded retry before the ref checkout
 
 ### Blockers
 
@@ -1133,8 +1135,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T14:34:59.059Z
-**Stopped at:** Completed 244-05-PLAN.md
+**Last session:** 2026-10-25T14:46:06.782Z
+**Stopped at:** Completed 244-06-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
