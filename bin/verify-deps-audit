@@ -2,7 +2,8 @@
 # Per-PR supply-chain gate (SUP-02): asserts a minimum Hex client version, then
 # runs `bin/verify-lock-hygiene` (REL-04, a static check that rejects an empty
 # build-manager list without fetching) + `mix deps.get --check-locked` +
-# `mix deps.unlock --check-unused` + `mix hex.audit` over every lockfile this
+# `mix deps.unlock --check-unused` + `mix deps.tree --only prod` (closure-rule
+# directories) + `mix hex.audit --format sarif` over every lockfile this
 # repository maintains (root, bench, examples/threadline_phoenix), in that
 # fixed order. `--check-locked` means
 # the lock actually audited is the one committed to the repo: if mix.lock no
@@ -24,23 +25,54 @@
 # MixProject module (see test/threadline/ignore_advisories_contract_test.exs),
 # which records a reason, a reachability claim and a review-by date.
 #
+# Tiered findings (SUP-03, D-16..D-21). `hex.audit` runs as
+# `--format sarif --output <fresh path>` and findings come only from the SARIF
+# `hexAudit/v1` fingerprint, parsed by the shared bin/deps-audit-tier library
+# (the same parser bin/deps-health-report uses). A finding is BLOCKING if and
+# only if its directory uses the closure rule and its package is in that
+# directory's `mix deps.tree --only prod --format plain` closure (optional and
+# transitive deps included; `runtime: false` is never consulted). Directory
+# roles come only from the resolved path, with no env or flag seam:
+#   $ROOT/bench, $ROOT/examples/threadline_phoenix  every finding non-blocking
+#   the root and every other DIR argument            the closure rule
+# The closure is read only after that directory's `deps.get --check-locked`
+# succeeded; a failing deps.tree or an empty closure is a FAIL. Every finding
+# prints one machine line
+#   deps-audit-finding tier=<blocking|non-blocking> dir=<d> kind=<advisory|retirement> package=<p> id=<id>
+# (id is the advisory id, or the SARIF ruleId for a retirement), plus an
+# `::error::` (blocking, appended to the FAIL list) or `::warning::`
+# (non-blocking, exit status unchanged) annotation, and one row in a
+# $GITHUB_STEP_SUMMARY table when that is set. Non-blocking findings leave the
+# exit status 0: the release lane needs a fully successful run (D-21). Every
+# ambiguous audit shape (no SARIF file, unparseable SARIF, non-zero exit with
+# no results, exit 0 with results, an unparseable fingerprint, an unknown kind,
+# OTP below 27) is its own FAIL line (D-19). Everything other than findings
+# (the Hex floor, ignore refusal, lock hygiene, --check-locked,
+# --check-unused, a missing lock) stays blocking in all three directories
+# (D-20).
+#
 # Modes:
 #   bin/verify-deps-audit                  # canonical: . bench examples/threadline_phoenix
 #   bin/verify-deps-audit DIR [DIR ...]    # explicit directories, in the given order
 #   bin/verify-deps-audit --self-test      # proves the gate goes red (see below)
 #
-# `--self-test` proves the gate actually has teeth against real Hex, in four
+# `--self-test` proves the gate actually has teeth against real Hex, in five
 # cases: (a) it copies a committed, deliberately vulnerable lock
 # (test/fixtures/deps_audit/vulnerable_lock/) into a throwaway project under
 # the repo's gitignored tmp/ and runs this gate on it (must go red, and go
-# red FOR AN ADVISORY, not vacuously); (b) repeats with a faked Hex 2.4.0
+# red FOR A BLOCKING ADVISORY: `tier=blocking ... package=plug
+# id=EEF-CVE-2026-54892`, not vacuously); (b) repeats with a faked Hex 2.4.0
 # (must go red on the version floor, without ever reaching an audit call);
 # (c) sets a real global `hex.config ignore_advisories` for the fixture's
 # advisory id under a throwaway HEX_HOME (must go red on the global-config
 # refusal, before any audit call); (d) copies the fixture into a second
 # throwaway project and edits its mix.exs so the lock no longer matches
 # (must go red via `--check-locked`, with the committed lock left
-# byte-identical). This is the negative network proof required by SUP-02; it
+# byte-identical); (e) copies the fixture into a third throwaway project
+# with deps `{:plug, "== 1.19.1", only: :test}, {:telemetry, "~> 1.4"}` over
+# the unchanged lock (must stay green, reporting `tier=non-blocking` for
+# `package=plug id=EEF-CVE-2026-54892`: the real-Hex proof of the SUP-03
+# downgrade). This is the negative network proof required by SUP-02; it
 # runs as a step in the `verify-deps-audit` CI job, not as a tagged ExUnit
 # test, so no network-dependent test is excluded from the default `mix test`
 # lane.
@@ -132,9 +164,8 @@ if [ "${1:-}" = "--self-test" ]; then
 
   [ "$vuln_status" -ne 0 ] ||
     die "gate stayed green on a known-vulnerable lock"
-  grep -q 'Advisories:' <<<"$vuln_output" &&
-    grep -q 'plug 1.19.1' <<<"$vuln_output" ||
-    die "gate went red for a reason other than an advisory (vacuous red): $vuln_output"
+  grep -q 'deps-audit-finding tier=blocking .*package=plug id=EEF-CVE-2026-54892' <<<"$vuln_output" ||
+    die "gate went red for a reason other than a blocking plug advisory (vacuous red): $vuln_output"
 
   # (b) A faked old Hex must be refused before any mix call runs beyond hex.info.
   fake_mix_dir="$self_test_dir/fake-mix-bin"
@@ -211,7 +242,38 @@ EOF
     cmp -s "$drift_dir/mix.lock" "$drift_dir/mix.lock.before" ||
     die "lock drift was not refused (WR-02 regression): $drift_output"
 
-  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red)\n'
+  # (e) The same vulnerable lock with plug declared `only: :test` must stay
+  # green and report the advisory as non-blocking: real-Hex proof of the
+  # SUP-03 downgrade, and a tripwire for SARIF format drift. mix.lock does not
+  # record `only:`, so --check-locked still passes on the unchanged lock. The
+  # second dep (telemetry, already in the lock) keeps the `--only prod`
+  # closure non-empty, which an all-test-only project would fail closed on.
+  nonblocking_dir="$SELF_TEST_DIR/nonblocking"
+  mkdir -p "$nonblocking_dir"
+  cp "$fixture_dir/mix.exs" "$nonblocking_dir/mix.exs"
+  cp "$fixture_dir/mix.lock" "$nonblocking_dir/mix.lock"
+  cp "$fixture_dir/mix.lock" "$nonblocking_dir/mix.lock.before"
+
+  orig_mix_exs="$(cat "$nonblocking_dir/mix.exs")"
+  plug_dep='{:plug, "== 1.19.1"}'
+  test_only_deps='{:plug, "== 1.19.1", only: :test}, {:telemetry, "~> 1.4"}'
+  test_only_mix_exs="${orig_mix_exs//"$plug_dep"/$test_only_deps}"
+  [ "$test_only_mix_exs" != "$orig_mix_exs" ] ||
+    die "self-test setup: case (e) could not rewrite $plug_dep in the fixture mix.exs"
+  printf '%s\n' "$test_only_mix_exs" >"$nonblocking_dir/mix.exs"
+
+  set +e
+  nonblocking_output="$(HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$nonblocking_dir" 2>&1)"
+  nonblocking_status=$?
+  set -e
+
+  [ "$nonblocking_status" -eq 0 ] &&
+    grep -q 'deps-audit-finding tier=non-blocking .*package=plug id=EEF-CVE-2026-54892' <<<"$nonblocking_output" &&
+    ! grep -q 'deps-audit-finding tier=blocking' <<<"$nonblocking_output" &&
+    cmp -s "$nonblocking_dir/mix.lock" "$nonblocking_dir/mix.lock.before" ||
+    die "test-only plug advisory was not downgraded to non-blocking (SUP-03 case (e)): $nonblocking_output"
+
+  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red, test-only advisory non-blocking)\n'
   exit 0
 fi
 
@@ -391,7 +453,11 @@ for d in "${DIRS[@]}"; do
 
   if [ "$hygiene_status" -ne 0 ]; then
     printf '%s\n' "$hygiene_output"
-    FAILURES+=("FAIL $d: lock hygiene exited $hygiene_status (an empty build-manager list in mix.lock passes against a warm deps/ and fails CI's cold fetch; see the lines above)")
+    if [ "$hygiene_status" -eq 1 ]; then
+      FAILURES+=("FAIL $d: lock hygiene exited 1 (an empty build-manager list in mix.lock passes against a warm deps/ and fails CI's cold fetch; see the lines above)")
+    else
+      FAILURES+=("FAIL $d: lock hygiene could not check mix.lock (usage, missing file, parse error or malformed entry; see the lines above)")
+    fi
   fi
 
   # REL-03: bin/retry-network retries a transient fetch failure with backoff
