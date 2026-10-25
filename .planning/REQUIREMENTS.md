@@ -9,7 +9,7 @@
 ### Release flow
 
 - [x] **REL-01**: The maintainer writes release prose under `## Unreleased` (plus the upgrade-path row) in the landing PR, and the release workflow renames it to `## [X.Y.Z] - YYYY-MM-DD` on the release branch. The release PR's first CI run is green and no separate CHANGELOG-dating PR is needed; the release-shape and version-truth contract tests prove it.
-- [x] **REL-02**: When a non-releasable merge leaves an open release PR behind main (release-please reports it unchanged), the release workflow rebases it with a CI-triggering token, and fresh CI runs with no human action.
+- [ ] **REL-02**: When a non-releasable merge leaves an open release PR behind main (release-please reports it unchanged), the release workflow rebases it with a CI-triggering token, and fresh CI runs with no human action.
 - [ ] **REL-03**: Network dependency fetches in CI (`mix deps.get`, the hex-evaluator resolve) retry with backoff on transient failure; test steps are never retried.
 - [ ] **REL-04**: The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is verified. If Hex version drift is the cause, CI pins the Hex version, so the lock mismatch cannot recur silently.
 
@@ -53,7 +53,7 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REL-01 | Phase 244 | Complete |
-| REL-02 | Phase 244 | Complete |
+| REL-02 | Phase 244 | Pending |
 | REL-03 | Phase 244 | Pending |
 | REL-04 | Phase 244 | Pending |
 | SUP-01 | Phase 245 | Pending |
