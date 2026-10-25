@@ -801,13 +801,15 @@ No test pins the current `const sha = '${{` text (grep over `test/`).
 | A3 | A Dependabot config error, or the accepted run, is observable read-only through the "Dependabot Updates" workflow runs (`gh run list --event dynamic`) or the repo's Insights → Dependency graph → Dependabot tab | Validation (D-31) | Medium. If no API shows it, the D-31 post-landing check becomes "the first grouped PR appears or no error banner"; record it as deferred-to-landing either way. |
 | A4 | Hex organization repos appear as `hexpm:<org>` in the fingerprint repo segment | §Parsing recipe | Low. Not used here, and the regex tolerates it. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What does the first Dependabot PR mean for D-31's "first grouped PR" check?**
+1. **RESOLVED: What does the first Dependabot PR mean for D-31's "first grouped PR" check?**
    - What we know: it will be majors-only (Pitfall 5).
    - Recommendation: the D-31 check is "Dependabot accepted the config and opened a grouped PR, or reported no updates". The PR going red on the runtime allowlist is the expected behaviour, not a phase failure. Record this in the VERIFICATION deferred-to-landing list.
-2. **D-18 says human output is "printed for display only". Should it be one `hex.audit` call or two?**
+   - RESOLVED: adopted by plan 245-05 Task 3, which records the D-31 config-accepted / first-grouped-PR observation (a red PR on the runtime allowlist is expected) as deferred-to-landing.
+2. **RESOLVED: D-18 says human output is "printed for display only". Should it be one `hex.audit` call or two?**
    - Recommendation: one SARIF call, displaying each result's `.message.text`. That avoids a second registry fetch and any chance the two outputs disagree, and stays within Claude's discretion over the helper's shape. If the planner keeps a human call for display, it must never feed classification.
+   - RESOLVED: adopted by plan 245-01 Task 1 (`dat_audit` makes the single `hex.audit --format sarif --output` call; no second human-format call) and reused by plan 245-02.
 
 ## Environment Availability
 
