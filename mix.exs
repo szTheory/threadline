@@ -187,7 +187,7 @@ defmodule Threadline.MixProject do
       # Per-PR proof that bench compiles bare (SUITE-05): unlike verify.bench above it
       # runs no benchmark and is wired into ci.all right after verify.compile_no_optional.
       "verify.bench_compile": &verify_bench_compile/1,
-      # Per-PR supply-chain gate (SUP-02): asserts Hex >= 2.5.1, then runs
+      # Per-PR supply-chain gate (SUP-02): asserts Hex >= 2.6.0, then runs
       # `deps.unlock --check-unused` + `hex.audit` over root, bench and the
       # example app's lockfiles via bin/verify-deps-audit. CLI args are
       # ignored on purpose so the gate cannot be narrowed from the command
