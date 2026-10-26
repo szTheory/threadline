@@ -23,9 +23,11 @@ const projects = [
   { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
   { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
   // Route render smoke (Phase 196; Browser-full's only project since 246). Drives
-  // operator-page-capture.spec.ts against the seeded, authed /audit/* routes at
-  // 1280/768/375 and, in evidence mode, writes the route scorecards. deviceScaleFactor:1
-  // at project level; dark hero view.
+  // operator-page-capture.spec.ts against the seeded, authed /audit/* routes.
+  // Outside evidence mode it renders the 6 curated operator routes at 1280, which
+  // is what Browser-full runs; the inventory-wide 1280/768/375 tests and the route
+  // scorecards run only in evidence mode. deviceScaleFactor:1 at project level;
+  // dark hero view.
   {
     name: "route-capture",
     testMatch: /operator-page-capture\.spec\.ts/,

@@ -1112,7 +1112,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       browser_full = parsed_doc(workflows[".github/workflows/browser-full.yml"])
 
       assert yaml_get(parsed_job(browser_full, "verify-example-browser-full"), "name") ==
-               "Example app browser E2E (all projects)"
+               "Example app browser E2E (projects ci.yml does not run)"
     end
 
     test "renaming a check back or breaking the roster turns the name contract red" do
