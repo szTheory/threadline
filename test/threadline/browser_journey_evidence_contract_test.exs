@@ -140,9 +140,20 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     [_, test_workflow] = String.split(workflow, "  verify-test:\n", parts: 2)
     [test_job, _] = String.split(test_workflow, "\n  verify-example-browser:\n", parts: 2)
 
-    assert test_job =~ "uses: actions/setup-node@"
+    # Node runs only in :repo_contract files, which the min and latest lanes
+    # drop, so both Node steps are guarded to the current lane only.
+    current_only = "        if: matrix.lane == 'current'\n"
+
+    assert test_job =~
+             "- name: Set up Node for browser journey contract\n" <>
+               current_only <> "        uses: actions/setup-node@"
+
     assert test_job =~ "cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json"
-    assert test_job =~ "working-directory: examples/threadline_phoenix/e2e\n        run: npm ci"
+
+    assert test_job =~
+             "- name: Install locked E2E dependencies for browser journey contract\n" <>
+               current_only <>
+               "        working-directory: examples/threadline_phoenix/e2e\n        run: npm ci"
 
     assert :binary.match(test_job, "run: npm ci") < :binary.match(test_job, "- name: Run tests"),
            "locked E2E dependencies must be installed before ExUnit invokes Playwright"

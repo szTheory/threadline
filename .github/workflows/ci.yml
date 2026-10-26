@@ -679,9 +679,14 @@ jobs:
           fetch-depth: 0
 
       # The root ExUnit suite checks the required operator journey identities
-      # against Playwright's real --list output. Install the locked CLI for all
-      # toolchain lanes; browser binaries are installed only by the browser job.
+      # against Playwright's real --list output. Every test file that runs Node
+      # carries `@moduletag :repo_contract` (pinned by
+      # test/threadline/repo_contract_scope_contract_test.exs), and the min and
+      # latest lanes drop those files (test-scope: toolchain), so the locked CLI
+      # is installed on the current lane only. Browser binaries are installed
+      # only by the browser job.
       - name: Set up Node for browser journey contract
+        if: matrix.lane == 'current'
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version-file: .tool-versions
@@ -689,6 +694,7 @@ jobs:
           cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
       - name: Install locked E2E dependencies for browser journey contract
+        if: matrix.lane == 'current'
         working-directory: examples/threadline_phoenix/e2e
         run: npm ci
 
