@@ -172,4 +172,135 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     assert required_job =~ "jobs: ${{ toJSON(needs) }}"
     assert workflow =~ "\n  ci-required:\n", "stable required job ID changed"
   end
+
+  describe "CI-01 slowest browser specs (247 D-04..D-06)" do
+    @package_json_path Path.join(@e2e_root, "package.json")
+    @slow_specs_path Path.join(@e2e_root, "support/slow-specs.ts")
+    @timings_step "Summarize slowest browser specs"
+    @timings_upload "Upload browser spec timings"
+
+    # Scope every search to the verify-example-browser job block so a timings
+    # step anywhere else in ci.yml cannot satisfy the contract.
+    defp browser_job_block(workflow_yaml) do
+      with [before_required, _] <- String.split(workflow_yaml, "  ci-required:\n", parts: 2),
+           [_, job] <- String.split(before_required, "  verify-example-browser:\n", parts: 2) do
+        job
+      else
+        _ -> ""
+      end
+    end
+
+    defp step_block(job, name) do
+      case String.split(job, "      - name: #{name}\n", parts: 2) do
+        [_, rest] -> rest |> String.split("\n      - name: ", parts: 2) |> hd()
+        _ -> ""
+      end
+    end
+
+    defp test_unit_script(package_json) do
+      case Jason.decode(package_json) do
+        {:ok, %{"scripts" => %{"test:unit" => script}}} when is_binary(script) -> script
+        _ -> ""
+      end
+    end
+
+    defp slow_specs_errors(workflow_yaml, package_json) do
+      job = browser_job_block(workflow_yaml)
+      step = step_block(job, @timings_step)
+      upload = step_block(job, @timings_upload)
+      test_unit = test_unit_script(package_json)
+
+      [
+        {"rule=timings-step",
+         step != "" and step =~ "working-directory: examples/threadline_phoenix/e2e" and
+           step =~ "support/slow-specs.ts \"$report\" --label all --out"},
+        {"rule=timings-always", step =~ ~r/^        if: always\(\)$/m},
+        {"rule=timings-fail-soft", step != "" and not (step =~ "continue-on-error")},
+        {"rule=timings-guard",
+         step =~
+           "report=\"${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json\"" and
+           step =~ "if [ -f \"$report\" ]"},
+        {"rule=timings-artifact",
+         upload =~ ~r/^        if: always\(\)$/m and
+           upload =~ "uses: actions/upload-artifact@" and
+           upload =~ "name: browser-timings-" and
+           upload =~ "path: ${{ runner.temp }}/browser-timings-"},
+        {"rule=timings-retention", upload =~ ~r/^          retention-days: 14$/m},
+        {"rule=test-unit-wiring",
+         String.contains?(test_unit, "support/operator-ci-evidence.test.ts") and
+           String.contains?(test_unit, "support/slow-specs.test.ts")}
+      ]
+      |> Enum.reject(fn {_rule, ok?} -> ok? end)
+      |> Enum.map(fn {rule, _} -> rule end)
+    end
+
+    test "the live browser job publishes slowest-spec timings fail-soft" do
+      assert slow_specs_errors(read!(@workflow_path), read!(@package_json_path)) == []
+
+      script = read!(@slow_specs_path)
+      assert script =~ "GITHUB_STEP_SUMMARY"
+      assert script =~ "MAX_REPORT_BYTES"
+      refute script =~ "process.exitCode = 1", "slow-specs must never fail the browser job"
+      assert read!(@config_path) =~ "[[\"github\"], [\"json\"]]", "reporter config changed (D-04)"
+    end
+
+    test "each CI-01 rule goes red under its mutation" do
+      workflow = read!(@workflow_path)
+      package_json = read!(@package_json_path)
+
+      step_header = "      - name: #{@timings_step}\n        if: always()\n"
+      upload_header = "      - name: #{@timings_upload}\n        if: always()\n"
+
+      controls = [
+        {"rule=timings-step", String.replace(workflow, @timings_step, "Summarize browser specs"),
+         package_json},
+        {"rule=timings-always",
+         String.replace(workflow, step_header, "      - name: #{@timings_step}\n"), package_json},
+        {"rule=timings-fail-soft",
+         String.replace(
+           workflow,
+           step_header,
+           "      - name: #{@timings_step}\n        if: always()\n        continue-on-error: true\n"
+         ), package_json},
+        {"rule=timings-guard", String.replace(workflow, "if [ -f \"$report\" ] && ", "if "),
+         package_json},
+        {"rule=timings-artifact",
+         String.replace(workflow, "name: browser-timings-all-", "name: browser-durations-all-"),
+         package_json},
+        {"rule=timings-artifact",
+         String.replace(workflow, upload_header, "      - name: #{@timings_upload}\n"),
+         package_json},
+        {"rule=timings-retention",
+         String.replace(
+           workflow,
+           "          if-no-files-found: warn\n          retention-days: 14\n",
+           "          if-no-files-found: warn\n          retention-days: 90\n"
+         ), package_json},
+        {"rule=test-unit-wiring", workflow,
+         String.replace(package_json, " support/slow-specs.test.ts", "")},
+        {"rule=test-unit-wiring", workflow,
+         String.replace(package_json, " support/operator-ci-evidence.test.ts", "")}
+      ]
+
+      for {rule, mutated_workflow, mutated_package} <- controls do
+        refute {mutated_workflow, mutated_package} == {workflow, package_json},
+               "mutation anchor missing for #{rule}"
+
+        assert rule in slow_specs_errors(mutated_workflow, mutated_package),
+               "#{rule} stayed green under its mutation"
+      end
+
+      # Scope control: a timings step outside verify-example-browser does not count.
+      job = browser_job_block(workflow)
+      step = "      - name: #{@timings_step}\n" <> step_block(job, @timings_step) <> "\n"
+      assert String.contains?(workflow, step), "mutation anchor missing for scope control"
+
+      relocated =
+        workflow
+        |> String.replace(step, "")
+        |> String.replace("  ci-required:\n", "  ci-required:\n    steps:\n" <> step)
+
+      assert "rule=timings-step" in slow_specs_errors(relocated, package_json)
+    end
+  end
 end
