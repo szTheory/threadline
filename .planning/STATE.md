@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-06-PLAN.md
-last_updated: "2026-10-26T17:35:52.821Z"
+stopped_at: Completed 247-07-PLAN.md
+last_updated: "2026-10-26T17:54:36.335Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-06 repo-contract lane scope plumbing (THREADLINE_TEST_SCOPE filter, min/latest scope rows, tracer tag, scope contract) complete (55d14d69, c391a62f)"
-state_head: c391a62fb2b2733be3bf92d9c535f2f9c6a857b9
+last_activity_desc: "247-07 CI-03 classification (D-09 no-dodging/no-unclassified/node-direction contract, 63 files tagged, 58 exempt, Node current-lane only) complete (070a9635, 7644105c, e22050a8, 58a7cd3d)"
+state_head: 58a7cd3d23c25147d9529a045e81558162adccc6
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 30
+  completed_plans: 31
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 5 of 13 executed (247-01, 247-03, 247-04, 247-05 and 247-06 complete; 247-02 paused at a maintainer checkpoint)
+Plan: 6 of 13 executed (247-01, 247-03, 247-04, 247-05, 247-06 and 247-07 complete; 247-02 paused at a maintainer checkpoint)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-06 repo-contract lane scope plumbing complete (55d14d69, c391a62f)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 5/13 executed: 247-01, 247-03, 247-04, 247-05, 247-06)
+Last activity: 2026-10-26 — 247-07 CI-03 classification complete (070a9635, 7644105c, e22050a8, 58a7cd3d)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 6/13 executed: 247-01, 247-03, 247-04, 247-05, 247-06, 247-07)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -326,6 +326,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P04 | 15min | 3 tasks | 4 files |
 | Phase 247 P05 | 50min | 3 tasks | 5 files |
 | Phase 247 P06 | 35min | 2 tasks | 7 files |
+| Phase 247 P07 | 50min | 3 tasks | 63 files |
 
 ## Deferred Items
 
@@ -1159,6 +1160,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-05: a fake that must answer QUIT is perl, not bash (background commands start with QUIT ignored; bash cannot trap a signal ignored on entry; the BEAM installs its own handler)
 - [Phase 247]: 247-06: lane scope is file filtering in bin/ci-test-partitions (THREADLINE_TEST_SCOPE=toolchain on min/latest), not an ExUnit exclude; rule filter-literal requires exact equality with the whole-line tag regex
 - [Phase 247]: 247-06: test-scope sits right after otp: in the min/latest rows so the parity contract's adjacency needles keep matching
+- [Phase 247]: 247-07: deps_audit_gate_test and ci_topology_contract_test stay exempt (Mix.Project.config call; sources a mix-running bin script); no marker weakened
+- [Phase 247]: 247-07: lib-module dodging scan blanks strings/heredocs/comments; bin-script lines count only when they build or run the path; bash -n is not a run
+- [Phase 247]: 247-07: verify-test Node steps run on the current lane only; the node-direction rule keeps every Node-running test tagged
 
 ### Blockers
 
@@ -1179,8 +1183,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T17:35:52.436Z
-**Stopped at:** Completed 247-06-PLAN.md
+**Last session:** 2026-10-26T17:54:36.004Z
+**Stopped at:** Completed 247-07-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
