@@ -378,10 +378,32 @@ defmodule Threadline.DepsHealthDocContractTest do
     end
   end
 
-  test "the Dependency Health job name appears in no ruleset required context" do
-    ruleset = File.read!(@ruleset)
+  defp required_context_hits(ruleset, name) do
+    contexts =
+      for %{"type" => "required_status_checks", "parameters" => params} <- ruleset["rules"],
+          check <- params["required_status_checks"],
+          do: check["context"]
 
-    refute ruleset =~ "Dependency Health",
-           "#{@ruleset} must not name the Dependency Health job as a required status check"
+    if contexts == [], do: flunk("no required_status_checks contexts in #{@ruleset}")
+    Enum.filter(contexts, &(&1 == name))
+  end
+
+  test "the deps-health job name appears in no ruleset required context" do
+    ruleset = @ruleset |> File.read!() |> Jason.decode!()
+    job_name = YamlElixir.read_from_string!(deps_health_yaml())["jobs"]["deps-health"]["name"]
+
+    assert is_binary(job_name) and job_name != "", "deps-health job has no name: in the workflow"
+
+    assert required_context_hits(ruleset, job_name) == [],
+           "#{@ruleset} must not name #{inspect(job_name)} as a required status check"
+
+    # Negative control: the same ruleset with the job name appended must report a hit.
+    rsc = Access.filter(&(&1["type"] == "required_status_checks"))
+    path = ["rules", rsc, "parameters", "required_status_checks"]
+    extra = %{"context" => job_name, "integration_id" => 15_368}
+    promoted = update_in(ruleset, path, &(&1 ++ [extra]))
+
+    refute promoted == ruleset
+    assert required_context_hits(promoted, job_name) == [job_name]
   end
 end
