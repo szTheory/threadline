@@ -308,8 +308,10 @@ not run on pull requests. It is named below.
 two projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
 [`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
-`route-capture` (a render smoke over every inventoried route at three
-viewports) on push to `main`, on a nightly `schedule`, and on manual dispatch.
+`route-capture` (a render smoke over the 6 curated operator routes at 1280; the
+inventory-wide 1280/768/375 route tests run only in evidence mode,
+`THREADLINE_E2E_EVIDENCE=1`, which Browser-full never sets) on push to `main`,
+on a nightly `schedule`, and on manual dispatch.
 It never selects a project `ci.yml` already runs; the one exception to never
 *executing* one would be a declared Playwright `dependencies` edge, and none is
 declared today (`bin/browser-full-projects --list deps`). The nightly is

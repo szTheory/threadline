@@ -14,7 +14,7 @@ defmodule Threadline.CiCoverageDocContractTest do
   `--list browser-full`), the same derivation Browser-full itself runs, which
   `browser_full_projects_contract_test.exs` proves partitions the config.
 
-  Three failures, deliberately distinct:
+  Four failures, deliberately distinct:
 
     * A default-config project is **missing** from the table, so the table has
       drifted behind the pipeline.
@@ -23,6 +23,14 @@ defmodule Threadline.CiCoverageDocContractTest do
     * The derive source returns **no** projects at all, which would make this
       guard pass vacuously while asserting nothing. That is the failure mode
       `version_truth_doc_contract_test.exs:59` exists to prevent, transplanted.
+    * A prose description of Browser-full's **coverage** overstates what the
+      code runs (review WR-01, phase 246 gap closure). `CONTRIBUTING.md`'s
+      `## CI Coverage` section, the `browser-full.yml` header comment and the
+      `playwright.config.ts` route-capture comment must each state the curated
+      render smoke in a phrase derived from `operator-page-capture.spec.ts`
+      (`const ROUTES` entry count, `const BREAKPOINTS` widths) and say the
+      inventory-wide route tests run only in evidence mode. The two false
+      claims WR-01 found are refused outright.
 
   Deliberately a plain `*_contract_test.exs` picked up by bare `mix test`, NOT
   wired into a `mix verify.*` alias: the hand-listed doc-contract alias was
@@ -37,6 +45,17 @@ defmodule Threadline.CiCoverageDocContractTest do
   @contributing Path.join(@repo_root, "CONTRIBUTING.md")
   @coverage_heading "## CI Coverage"
   @full_job "verify-example-browser-full"
+
+  @capture_spec Path.join(
+                  @repo_root,
+                  "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts"
+                )
+  @browser_full_workflow Path.join(@repo_root, ".github/workflows/browser-full.yml")
+  @playwright_config Path.join(@repo_root, "examples/threadline_phoenix/e2e/playwright.config.ts")
+
+  @evidence_only "only in evidence mode"
+  # The two claims review WR-01 found: Browser-full never runs either.
+  @false_claims ["every inventoried route", "at three viewports"]
 
   defp list(kind) do
     {output, status} = System.cmd(@script, ["--list", kind], stderr_to_stdout: true)
@@ -122,5 +141,133 @@ defmodule Threadline.CiCoverageDocContractTest do
              "`#{project}` runs in ci.yml and never in Browser-full, but its CI Coverage " <>
                "row still names `#{@full_job}` (the old overlap wording)."
     end
+  end
+
+  # The curated render smoke as the spec runs it, e.g. "6 curated operator
+  # routes at 1280". Derived, never hand-written, so adding a route or a width
+  # turns the prose red until the docs say so.
+  defp curated_phrase do
+    spec = File.read!(@capture_spec)
+    "#{route_count(spec)} curated operator routes at #{breakpoints(spec)}"
+  end
+
+  defp route_count(spec) do
+    body =
+      case Regex.run(~r/const ROUTES\b.*?^\];$/ms, spec) do
+        [body] -> body
+        nil -> flunk("operator-page-capture.spec.ts has no `const ROUTES` array ending in `];`")
+      end
+
+    case length(Regex.scan(~r/\{ id: "/, body)) do
+      0 -> flunk("operator-page-capture.spec.ts `const ROUTES` has no `{ id: \"...` entries")
+      count -> count
+    end
+  end
+
+  defp breakpoints(spec) do
+    widths =
+      case Regex.run(~r/const BREAKPOINTS = \[([^\]]*)\]/, spec) do
+        [_, list] ->
+          list |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+
+        nil ->
+          []
+      end
+
+    if widths == [],
+      do: flunk("operator-page-capture.spec.ts has no non-empty `const BREAKPOINTS = [...]` list")
+
+    Enum.join(widths, "/")
+  end
+
+  # Comment-normalise so YAML (`#`) and TypeScript (`//`) comments may wrap a
+  # phrase across lines.
+  defp prose(text) do
+    text
+    |> String.split("\n")
+    |> Enum.map_join(" ", &(&1 |> String.trim_leading() |> String.replace(~r/^(#+|\/\/+)/, "")))
+    |> String.replace(~r/\s+/, " ")
+  end
+
+  # Pure: the errors for one labelled source. The count is matched exactly, so
+  # "16 curated ..." or "... at 1280/768" can never satisfy "6 ... at 1280".
+  defp coverage_wording_errors(label, text, phrase) do
+    normalised = prose(text)
+    exact = ~r/(?<!\d)#{Regex.escape(phrase)}(?!\d|\/\d)/
+
+    missing =
+      [
+        {Regex.match?(exact, normalised), "#{label} lacks the spec-derived phrase `#{phrase}`"},
+        {String.contains?(normalised, @evidence_only), "#{label} lacks `#{@evidence_only}`"}
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+
+    false_claims =
+      for claim <- @false_claims, String.contains?(normalised, claim) do
+        "#{label} states the false claim `#{claim}` (review WR-01)"
+      end
+
+    missing ++ false_claims
+  end
+
+  defp coverage_sources do
+    [
+      {"CONTRIBUTING.md ## CI Coverage", coverage_section()},
+      {"browser-full.yml", File.read!(@browser_full_workflow)},
+      {"playwright.config.ts", File.read!(@playwright_config)}
+    ]
+  end
+
+  test "every Browser-full coverage description matches what the spec runs (WR-01)" do
+    phrase = curated_phrase()
+
+    errors =
+      Enum.flat_map(coverage_sources(), fn {label, text} ->
+        coverage_wording_errors(label, text, phrase)
+      end)
+
+    assert errors == [],
+           "Browser-full's coverage prose does not match operator-page-capture.spec.ts. " <>
+             "Phase 247 measures CI from the CI Coverage table, so an overstated claim " <>
+             "hands it a false baseline:\n" <> Enum.join(errors, "\n")
+  end
+
+  test "the curated-route derive is non-vacuous" do
+    spec = File.read!(@capture_spec)
+
+    assert route_count(spec) > 0
+    assert breakpoints(spec) != ""
+    refute curated_phrase() =~ ~r/^0 /
+  end
+
+  test "a false claim, a dropped phrase or a wrong route count turns the wording check red" do
+    phrase = curated_phrase()
+    passing = "It renders the #{phrase}; the inventory-wide tests run #{@evidence_only}."
+
+    assert coverage_wording_errors("control", passing, phrase) == []
+
+    for claim <- @false_claims do
+      errors = coverage_wording_errors("control", passing <> " It covers #{claim}.", phrase)
+      assert Enum.any?(errors, &String.contains?(&1, claim)), "#{claim}: #{inspect(errors)}"
+    end
+
+    dropped = String.replace(passing, phrase, "the curated routes")
+
+    assert Enum.any?(
+             coverage_wording_errors("control", dropped, phrase),
+             &(&1 =~ "lacks the spec")
+           )
+
+    [count | rest] = String.split(phrase, " ", parts: 2)
+    wrong = String.replace(passing, phrase, "#{String.to_integer(count) + 1} #{hd(rest)}")
+    assert Enum.any?(coverage_wording_errors("control", wrong, phrase), &(&1 =~ "lacks the spec"))
+
+    padded = String.replace(passing, phrase, "1#{phrase}")
+
+    assert Enum.any?(
+             coverage_wording_errors("control", padded, phrase),
+             &(&1 =~ "lacks the spec")
+           )
   end
 end
