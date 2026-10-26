@@ -158,11 +158,11 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 1/13 plans executed
+**Plans**: 2/13 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 247-01-PLAN.md — Land A1: 244/245 work to main as one `ci:` squash (D-01/D-02/D-03; maintainer push/merge checkpoint)
+- [x] 247-01-PLAN.md — Land A1: 244/245 work to main as one `ci:` squash (D-01/D-02/D-03; maintainer push/merge checkpoint)
 - [x] 247-03-PLAN.md — CI-01: slow-specs.ts summary + `browser-timings` artifact + contract; read-only `bin/measure-main-ci`
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -201,7 +201,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 1/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 2/13 | In Progress | - |
 
 ## Current Position
 
