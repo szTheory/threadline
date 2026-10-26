@@ -82,8 +82,10 @@ reads `_Nothing yet for the next release._`. There is no adopter-facing entry, s
 
 The 246 critic removal as its own non-releasable `chore:` squash (246 D-12, D-02 step 1).
 
-**Status: HALTED at the slice proof (Task 1).** The branch is built and unpushed; no PR
-exists. See "Slice proof" below.
+**Status: LANDED.** The removal squash `9f69a904` is on origin/main. The archive tag exists
+locally on its parent. Pushing the tag is a non-blocking maintainer hand-off (see below).
+Task 1 first stopped at the literal slice proof. The maintainer accepted the corrected proof
+(Option 1) and landed the branch unchanged.
 
 | Field | Value |
 |-------|-------|
@@ -121,3 +123,71 @@ in 247-02-PLAN cannot exit 0 while `46efd9d4` lands after the removal (246-LANDI
 order step 2.3). Per the plan's halt rule, no slice was re-ordered, edited, dropped or
 squashed, and the branch was not pushed. A decision is needed on the proof (see the 247-02
 checkpoint).
+
+### Corrected slice proof (accepted, Option 1)
+
+The maintainer accepted Option 1, which the checkpoint recommended. The orchestrator
+re-verified it independently. The corrected proof is:
+
+1. `git diff e9a97139 HEAD -- $paths` touches exactly one file,
+   `test/threadline/ci_workflow_parity_contract_test.exs`.
+2. Its `git patch-id --stable` is `421fbeb9e0c3749e4ee84a61f1ae05783a859a13`. The reverse
+   of `46efd9d4`, taken as `git diff 46efd9d4 46efd9d4^ -- test/threadline/ci_workflow_parity_contract_test.exs`,
+   has the same patch-id, `421fbeb9e0c3749e4ee84a61f1ae05783a859a13`.
+
+So the residual is exactly `46efd9d4`, a 246-05 `test:` commit and not a slice. It is
+missing from the land branch on purpose: 246-LANDING landing-order step 2.3 lands it later,
+with Land B. The branch carries the nine slices and nothing else. No slice was edited or
+re-ordered to make the literal proof pass.
+
+### Merge
+
+| Field | Value |
+|-------|-------|
+| PR | #93 (`chore: retire the UI critic loop (DEBT-02)`), pushed, opened and squash-merged by the maintainer |
+| PR head | `c3babc69ebceaec09083c15558e422c3f5eab6c5` (the land branch head above) |
+| Green ci.yml run | `40375604860` (event `pull_request`, conclusion `success`, head `c3babc69`); `CI required` = pass; all 15 checks green |
+| Merged at | 2026-10-26T18:36:24Z |
+| Removal squash SHA on origin/main | `9f69a904cf99f7691d50754785d42d8feef1162c` (parent `fea5250b`, the A1 squash) |
+| Squash subject | `chore: retire the UI critic loop (DEBT-02)` (non-releasable, D-03) |
+| Squash tree check | `git diff --quiet 9f69a904 c3babc69` exit 0: the squash tree equals the proven land head |
+| Squash diffstat | `git diff --stat fea5250b 9f69a904`: 528 files changed, 985 insertions(+), 114609 deletions(-) |
+| Remote branch | `land/v1.47-critic-removal` **still exists on origin** (`git ls-remote --heads` returns `c3babc69`). It was deliberately not deleted, and the local branch is kept too |
+| Land worktree | removed with `git worktree remove`; no longer in `git worktree list` |
+
+### Archive tag (246 D-11, D-13)
+
+| Field | Value |
+|-------|-------|
+| SQUASH | `9f69a904cf99f7691d50754785d42d8feef1162c` (`git merge-base --is-ancestor "$SQUASH" origin/main` exit 0) |
+| PARENT (tag target) | `fea5250bf91a582754e82c57ec9196077e4e6c00` (`git rev-parse "$SQUASH^"`; a main commit, never a milestone/v1.47 commit) |
+| Tag | `archive/ui-critic-loop`, annotated (`git cat-file -t` = `tag`), `^{commit}` = `fea5250bf91a582754e82c57ec9196077e4e6c00`, **local only** |
+| Message | the 246-LANDING D-31 shape, with both SHAs, the full real `git diff --stat fea5250b 9f69a904` and archive date 2026-10-26; kept as an uncommitted scratch file |
+| Message hygiene | `grep -nF -e "$HOME" -e "$(id -un)" <message-file>` printed nothing |
+| Register | `.planning/ARCHIVE-REGISTER.md` gains the `archive/ui-critic-loop` row in the `:23` column order; `**Rows: 11.**` → `**Rows: 12.**`; no `archive-subject` comment line |
+
+### Landing evidence (D-14)
+
+| command | result |
+|---------|--------|
+| `git ls-tree -r --name-only archive/ui-critic-loop \| grep -c lib/threadline/critic_trust/` | `5` (> 0: the tag carries the retired code) |
+| `git merge-base --is-ancestor archive/ui-critic-loop origin/main` | exit 0 (the tag pins a main commit) |
+| `git ls-remote origin refs/tags/archive/ui-critic-loop` | empty. **Pending the maintainer push below**; it must be non-empty after the push |
+| `git grep -n 'archive/ui-critic-loop' origin/main -- .github test bin` | only the three expected lines: `ci_topology_contract_test.exs:681`, `:692` and `ui_critic_retirement_doc_contract_test.exs:16`. None of them resolves the ref |
+
+### Maintainer hand-off (non-blocking, 246 D-13)
+
+Push this one ref only, and never with the flag that pushes all tags (that would publish the
+local-only `vX.Y` milestone tags):
+
+```
+! git push origin refs/tags/archive/ui-critic-loop
+```
+
+Follow-up check (it must print one line, the tag object):
+
+```
+git ls-remote origin refs/tags/archive/ui-critic-loop
+```
+
+This push does not block Phase 247.
