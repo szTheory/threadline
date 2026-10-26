@@ -62,3 +62,18 @@ reads `_Nothing yet for the next release._`. There is no adopter-facing entry, s
    archive (`231-REVIEW-DISPOSITION.md`, WR-01 `open` → `fixed`, from `e29e6c5f`). The sync commit therefore makes
    `.planning` on the land branch identical to milestone/v1.47, with no duplicate
    phase directories.
+
+### Merge
+
+| Field | Value |
+|-------|-------|
+| PR | #91 (`ci: land v1.47 release flow and supply chain (244, 245)`), opened and merged by the maintainer |
+| PR head | `eed57370b478ca21ef5c11313a6f47a4528ad8af` (the land branch head above) |
+| Green ci.yml run | `40354035917` (event `pull_request`, conclusion `success`, head `eed57370`); `CI required` = pass; all 16 checks green |
+| Merged at | 2026-10-26T16:26:45Z |
+| A1 squash SHA on origin/main | `fea5250bf91a582754e82c57ec9196077e4e6c00` (parent `23178fb0`) |
+| Squash subject | `ci: land v1.47 release flow and supply chain (244, 245)` (non-releasable, D-03) |
+| Squash tree check | `git diff --quiet fea5250b eed57370` exit 0 (squash tree equals the proven land head) |
+| Remote branch | `git ls-remote --heads origin land/v1.47-a1` returns nothing: already gone on origin (local branch kept, tracking shows `[gone]`) |
+| Land worktree | removed with `git worktree remove`; no longer in `git worktree list` |
+| Postgres container | none started (main had not moved); `docker ps -q --filter label=dev.threadline.plan=247-01` is empty |
