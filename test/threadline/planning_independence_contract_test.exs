@@ -1,5 +1,6 @@
 defmodule Threadline.PlanningIndependenceContractTest do
   use ExUnit.Case, async: false
+  @moduletag :repo_contract
 
   @root Path.expand("../..", __DIR__)
 

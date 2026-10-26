@@ -113,6 +113,7 @@ end
 defmodule Threadline.RemovedArtifactContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.RemovedArtifactContract, as: Scanner
 

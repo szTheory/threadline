@@ -1,5 +1,6 @@
 defmodule Threadline.ReleaseDistributionDocContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @changelog "CHANGELOG.md"
 

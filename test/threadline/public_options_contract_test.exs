@@ -1,6 +1,7 @@
 defmodule Threadline.PublicOptionsContractTest do
   @moduledoc false
   use ExUnit.Case, async: false
+  @moduletag :repo_contract
 
   @task_flags %{
     "threadline.continuity" => %{flags: ~w(dry_run table), aliases: %{"d" => "dry_run"}},

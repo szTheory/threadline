@@ -79,6 +79,7 @@ end
 
 defmodule Threadline.PlanningDependencyContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.PlanningDependencyContract, as: Contract
 

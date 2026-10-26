@@ -1,6 +1,7 @@
 defmodule Threadline.UpgradingTo011DocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   # Copied from test/threadline/release_artifact_contract_test.exs @banned_shapes
   # (D-06): the release archive scan already runs these over the whole built

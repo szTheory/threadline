@@ -209,6 +209,9 @@ defmodule Threadline.RepoContractScopeContractTest do
       "asserts the running lane's ExUnit exclude configuration",
     "test/threadline/deps_audit_gate_test.exs" =>
       "reads the running Mix project config to list runtime deps",
+    "test/threadline/ci_topology_contract_test.exs" =>
+      "sources bin/verify-bump-rehearsal, a mix-running script, for its guarded parser",
+    "test/threadline/cloak_advisory_reachability_contract_test.exs" => @toolchain_ast,
     "test/threadline/doc_rubric_contract_test.exs" => @toolchain_db,
     "test/threadline/readme_doc_contract_test.exs" => @toolchain_db,
     "test/threadline/operator_surface/copy_contract_test.exs" => @toolchain_db,
@@ -535,6 +538,17 @@ defmodule Threadline.RepoContractScopeContractTest do
     assert offenders == [],
            "these tagged files contain a toolchain marker: #{inspect(offenders)}. Remove " <>
              "the tag (and add an @exempt reason) rather than weakening a marker"
+  end
+
+  test "rule no-unclassified (D-09b): every contract file is tagged or exempt" do
+    pairs = live_sources()
+    paths = Enum.map(pairs, &elem(&1, 0))
+    loose = unclassified(paths, tagged_paths(pairs), @exempt)
+
+    assert loose == [],
+           "these contract files are neither tagged nor exempt: #{inspect(loose)}. Tag " <>
+             "the file if its outcome does not depend on the Elixir/OTP/PostgreSQL " <>
+             "toolchain, else add an @exempt row with a one-line reason"
   end
 
   test "rule node-direction: every test file that runs Node is tagged" do

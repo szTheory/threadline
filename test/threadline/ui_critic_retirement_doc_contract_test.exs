@@ -10,6 +10,7 @@ defmodule Threadline.UiCriticRetirementDocContractTest do
   commands) against reintroduction.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @contributing File.read!("CONTRIBUTING.md")
   @retired_heading "## Retired: UI critic loop"
