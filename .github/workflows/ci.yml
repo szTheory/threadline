@@ -639,10 +639,11 @@ jobs:
           - lane: min
             elixir: "1.15.8"
             otp: "26.2.5.21"
+            # CI-03 (D-10): min and latest drop `@moduletag :repo_contract` files.
+            test-scope: toolchain
             # The PostgreSQL 15 support floor is pinned by test/threadline/ci_topology_contract_test.exs.
             pg: "15"
             runner: "ubuntu-24.04"
-            test-scope: toolchain
           - lane: current
             version-file: ".tool-versions"
             pg: "16"
@@ -650,9 +651,9 @@ jobs:
           - lane: latest
             elixir: "1.20.4"
             otp: "29.1.1"
+            test-scope: toolchain
             pg: "18.6"
             runner: "ubuntu-24.04"
-            test-scope: toolchain
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     env:

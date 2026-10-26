@@ -226,6 +226,7 @@
 14 test/threadline/release_control_plane_contract_test.exs
 1 test/threadline/release_distribution_doc_contract_test.exs
 785 test/threadline/removed_artifact_contract_test.exs
+39 test/threadline/repo_contract_scope_contract_test.exs
 227 test/threadline/repo_hygiene_contract_test.exs
 10976 test/threadline/repo_hygiene_guard_test.exs
 433 test/threadline/retention/cutoff_property_test.exs
