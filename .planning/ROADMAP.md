@@ -114,7 +114,7 @@ Plans:
   3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
   4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
 
-**Plans**: 9/9 plans executed (2 gap-closure plans added)
+**Plans**: 9/10 plans executed (3 gap-closure plans added; 246-10 planned)
 
 Plans:
 **Wave 1**
@@ -143,6 +143,9 @@ Plans:
 
 **Wave 9 — gap closure** *(blocked on 246-08: shared 246-LANDING.md)*
 - [x] 246-09-PLAN.md — Gap 2 (D-24): route the :101 Home screenshot drift to SEED-008 (10-failure threshold) with a pinned register row
+
+**Wave 10 — gap closure** *(from 246-VERIFICATION.md re-verification, 10/11)*
+- [ ] 246-10-PLAN.md — Residual WR-01: un-invert the playwright.config.ts scorecard clause, harden CiCoverageDocContractTest (R2-WR-01 twin-aware phrase, R2-WR-02 scoped blocks + widened denylist), carried as removal slice C8
 
 ### Phase 247: CI critical path and suite lanes
 

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 246
 current_phase_name: Debt Close-out and Critic Retirement
-status: verifying
-stopped_at: Phase 246 gap closure 08+09 executed; re-verification gaps_found (10/11) — 1 gap (inverted scorecard clause in playwright.config.ts), next /gsd-plan-phase 246 --gaps
-last_updated: "2026-10-26T02:11:53.731Z"
+status: ready_to_execute
+stopped_at: Phase 246 gap-closure plan 246-10 created and checker-verified (C8 removal slice for the inverted scorecard clause); next /gsd-execute-phase 246 --gaps-only
+last_updated: "2026-10-26T02:50:27.911Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 246 gap closure executed; re-verification gaps_found 10/11
-state_head: f1909b4fa6490d6ce3be958699912b54f62cfba0
+state_head: 8377fa711dc03de80b6e5e2cd9ff264a22391149
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 24
+  total_plans: 25
   completed_plans: 24
   percent: 50
 milestone_name: Release on autopilot
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 246 (Debt Close-out and Critic Retirement) — EXECUTING
-Plan: 9 of 9
-Status: Executed 9/9 — re-verification gaps_found (10/11 must-haves); gap closure next
+Phase: 246 (Debt Close-out and Critic Retirement) — READY TO EXECUTE (gap closure)
+Plan: 10 of 10 planned (9 executed)
+Status: 246-10 planned (gap_closure) — closes the last re-verification gap (10/11)
 Last activity: 2026-10-25 — 246-09 complete: SEED-008 Scope now owns 10 screenshot baselines (:101 x2 added, 10-failure threshold, origin/main 23178fb0 height evidence); register row UI-HOME-SHOT-101 routed to SEED-008 (routed 24 / total 132), pinned in verify-phase.sh REQUIRED_IDS; deferred-items.md and 246-LANDING.md cite it (cea43407). 246-08 before it: removal slice C7 f57237d6. Next: re-verify Phase 246 (gaps 1 and 2 closed)
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
