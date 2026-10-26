@@ -65,7 +65,7 @@ defmodule Threadline.MeasureMainCiContractTest do
 
   # fixtures: %{"runs" => list, {:compare, head} => status, {:attempt, id} => map,
   # {:bare, id} => map, {:jobs, id} => map, {:log, job_id} => text}
-  defp measure(fixtures, args) do
+  defp measure(fixtures, args, gh_escape \\ "old") do
     root = Path.join(System.tmp_dir!(), "measure_main_ci_#{System.unique_integer([:positive])}")
     fixture_dir = Path.join(root, "fixtures")
     File.mkdir_p!(fixture_dir)
@@ -117,7 +117,23 @@ defmodule Threadline.MeasureMainCiContractTest do
       elif [ "$#" -eq 3 ] && [ "$1" = api ] && [ "$3" = --paginate ] &&
            [[ "$2" =~ ^${p}/actions/runs/([0-9]+)/attempts/1/jobs$ ]]; then
         serve "jobs-${BASH_REMATCH[1]}.json"
+      elif [ "$#" -eq 2 ] && [ "$1" = api ] && [ "$2" = --help ]; then
+        echo "FLAGS"
+        echo "      --paginate                 Make additional HTTP requests"
+        if [ "$FAKE_GH_ESCAPE" = new ]; then
+          echo "      --allow-escape-sequences   Allow printing terminal escape sequences"
+        fi
       elif [ "$#" -eq 2 ] && [ "$1" = api ] && [[ "$2" =~ ^${p}/actions/jobs/([0-9]+)/logs$ ]]; then
+        if [ "$FAKE_GH_ESCAPE" = new ]; then
+          # gh 2.101+: an ANSI-bearing response needs --allow-escape-sequences.
+          echo "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway" >&2
+          exit 1
+        fi
+        serve "log-${BASH_REMATCH[1]}.txt"
+      elif [ "$#" -eq 3 ] && [ "$1" = api ] && [ "$3" = --allow-escape-sequences ] &&
+           [[ "$2" =~ ^${p}/actions/jobs/([0-9]+)/logs$ ]]; then
+        # Older gh has no such flag and rejects it as unknown.
+        [ "$FAKE_GH_ESCAPE" = new ] || reject
         serve "log-${BASH_REMATCH[1]}.txt"
       else
         reject
@@ -127,7 +143,13 @@ defmodule Threadline.MeasureMainCiContractTest do
 
     File.chmod!(gh, 0o755)
 
-    env = [{"GH_BIN", gh}, {"FIXTURES", fixture_dir}, {"ARGV_LOG", argv_path}]
+    env = [
+      {"GH_BIN", gh},
+      {"FIXTURES", fixture_dir},
+      {"ARGV_LOG", argv_path},
+      {"FAKE_GH_ESCAPE", gh_escape}
+    ]
+
     {out, status} = System.cmd(@script, args, env: env, stderr_to_stdout: true)
 
     calls =
@@ -304,6 +326,41 @@ defmodule Threadline.MeasureMainCiContractTest do
 
     assert ["api", "repos/{owner}/{repo}/actions/jobs/101/logs"] in calls
     refute Enum.any?(calls, &(&1 == ["api", "repos/{owner}/{repo}/actions/jobs/103/logs"]))
+  end
+
+  defp ratio_fixtures do
+    %{
+      "runs" => [run_row(1)],
+      {:compare, sha(1)} => "ahead\n",
+      {:attempt, 1} => attempt(1, 600),
+      {:jobs, 1} => jobs(1, [{"Build and test (current)", 500}, {"Lint", 30}]),
+      {:log, 101} => "2026-10-01T00:05:00.0000000Z \e[1m| max/min | - | 1.08 | - |\e[0m\n"
+    }
+  end
+
+  test "--ratios passes --allow-escape-sequences only when gh api --help lists it" do
+    args = ["--since", @since, "--count", "1", "--ratios", "--format", "json"]
+
+    {out, 0, calls} = measure(ratio_fixtures(), args, "new")
+    assert json!(out)["ratios"] == %{"current" => [1.08]}
+    assert ["api", "--help"] in calls
+
+    assert ["api", "repos/{owner}/{repo}/actions/jobs/101/logs", "--allow-escape-sequences"] in calls
+
+    refute ["api", "repos/{owner}/{repo}/actions/jobs/101/logs"] in calls
+    assert Enum.count(calls, &(&1 == ["api", "--help"])) == 1
+
+    {out, 0, calls} = measure(ratio_fixtures(), args, "old")
+    assert json!(out)["ratios"] == %{"current" => [1.08]}
+    assert ["api", "repos/{owner}/{repo}/actions/jobs/101/logs"] in calls
+    refute Enum.any?(calls, &("--allow-escape-sequences" in &1))
+  end
+
+  test "without --ratios the escape-flag probe never runs" do
+    {_out, 0, calls} =
+      measure(ratio_fixtures(), ["--since", @since, "--count", "1", "--format", "json"], "new")
+
+    refute ["api", "--help"] in calls
   end
 
   test "hostile arguments, unknown flags and write verbs exit 1 before any gh call" do
