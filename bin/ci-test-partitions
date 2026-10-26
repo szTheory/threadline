@@ -165,7 +165,10 @@
 # QUIT is stopped at a 3 s budget with the backstop, a group TERM, Exit 124
 # and no leftover process; (t) one that also ignores TERM is escalated to
 # SIGKILL; (u) one that answers QUIT with ExUnit's abort list skips the
-# backstop and has its unfinished tests named in the summary. The
+# backstop and has its unfinished tests named in the summary; (v) the
+# max/min row is 1.30 with a stdout-only warning for 10/11/12/13 s, 1.10 with
+# none for 10/10/11/11 s, ignores zero-file partitions and is n/a with no
+# known times, and the report still exits 0. The
 # partitions also receive the monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
@@ -365,10 +368,11 @@ parse_counts() {
 
 report() {
   local n="$1" log_dir="$2" step_seconds="$3"
-  local i status start end seconds counts body hung
+  local i status start end seconds counts body hung ratio_secs ratio
 
   body=""
   hung=""
+  ratio_secs=""
   for i in $(seq 1 "$n"); do
     status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
     start="$(grep -oE 'start=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
@@ -389,11 +393,22 @@ report() {
     fi
     body="${body}| ${i} | ${status:-unknown} | ${seconds} | ${counts} |
 "
+    case "$seconds" in
+      '' | *[!0-9]*) ;;
+      *) [ ! -s "$log_dir/partition-$i.files" ] || ratio_secs="$ratio_secs $seconds" ;;
+    esac
     if [ -f "$log_dir/partition-$i.budget" ]; then
       hung="${hung}$(hung_rows "$i" "$log_dir/partition-$i.log")
 "
     fi
   done
+
+  # Slowest over fastest partition, over partitions with at least one file
+  # and a known time; n/a when there is none or the fastest took 0 s.
+  ratio="$(printf '%s\n' $ratio_secs | awk '
+    NF { v = $1 + 0; if (n == 0 || v < lo) lo = v; if (n == 0 || v > hi) hi = v; n++ }
+    END { if (n == 0 || lo <= 0) print "n/a"; else printf "%.2f\n", hi / lo }
+  ')"
 
   {
     printf 'ci-test-partitions: partition report (N=%s)\n\n' "$n"
@@ -401,6 +416,7 @@ report() {
     printf '|---|---|---|---|\n'
     printf '%s' "$body"
     printf '| total | - | %s | - |\n' "$step_seconds"
+    printf '| max/min | - | %s | - |\n' "$ratio"
     if [ -n "$hung" ]; then
       printf '\nHung partitions (killed at the %ss budget; stacks are in the partition log):\n\n' \
         "${CI_TEST_PARTITIONS_BUDGET_S:-480}"
@@ -409,6 +425,12 @@ report() {
       printf '%s' "$hung"
     fi
   } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+  # D-12: visible every run, never a gate. Stdout only, so the step summary
+  # never shows it as a failure, and the exit status is unchanged.
+  if [ "$ratio" != "n/a" ] && awk -v r="$ratio" 'BEGIN { exit !(r + 0 > 1.15) }'; then
+    printf '::warning::partition ratio %s exceeds 1.15\n' "$ratio"
+  fi
 }
 
 # `| <i> | <in-flight name> |` rows for a budget-killed partition: the lines
@@ -1539,7 +1561,52 @@ WEIGHTS
   grep -q 'Aborting test suite' "$case_summary" && die "self-test: the step summary must not carry raw log lines"
   pgrep -f "$fake_mix" >/dev/null && die "self-test: a fake mix process was left running"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit)\n'
+  # (v) the max/min ratio row (D-12), over prepared partition files: never
+  # a gate, a warning above 1.15 on stdout only, zero-file partitions and
+  # unknown times excluded
+  ratio_case() {
+    # ratio_case <label> <seconds per partition; "-" = no files, "?" = unknown>
+    local label="$1" dir k secs
+    shift
+    case_n=$((case_n + 1))
+    dir="$self_test_dir/case-$case_n"
+    mkdir -p "$dir/logs"
+    k=0
+    for secs in "$@"; do
+      k=$((k + 1))
+      printf '1 test, 0 failures\n' >"$dir/logs/partition-$k.log"
+      case "$secs" in
+        -) : >"$dir/logs/partition-$k.files"; secs=1 ;;
+        *) printf 'test/x_test.exs\n' >"$dir/logs/partition-$k.files" ;;
+      esac
+      case "$secs" in
+        '?') printf 'status=0\n' >"$dir/logs/partition-$k.status" ;;
+        *) printf 'status=0 start=1000 end=%s\n' "$((1000 + secs))" >"$dir/logs/partition-$k.status" ;;
+      esac
+    done
+    set +e
+    output="$(CI_TEST_PARTITIONS_REPORT_ONLY="$dir/logs" GITHUB_STEP_SUMMARY="$dir/summary.md" "$sandbox_script" "$k" 2>&1)"
+    case_status=$?
+    set -e
+    case_summary="$dir/summary.md"
+    [ "$case_status" -eq 0 ] || die "self-test: ratio $label: the report must exit 0, got $case_status: $output"
+  }
+  ratio_case "uneven" 10 11 12 13
+  grep -qx '| max/min | - | 1.30 | - |' "$case_summary" || die "self-test: 10/11/12/13 s must give ratio 1.30: $(cat "$case_summary")"
+  grep -qx '::warning::partition ratio 1.30 exceeds 1.15' <<<"$output" ||
+    die "self-test: a ratio above 1.15 must print a ::warning:: line: $output"
+  grep -q '::warning' "$case_summary" && die "self-test: the ratio warning must stay out of the step summary"
+  ratio_case "even" 10 10 11 11
+  grep -qx '| max/min | - | 1.10 | - |' "$case_summary" || die "self-test: 10/10/11/11 s must give ratio 1.10: $(cat "$case_summary")"
+  grep -q '::warning' <<<"$output" && die "self-test: a ratio of 1.10 must not warn: $output"
+  ratio_case "zero-file partition excluded" 10 11 - 12
+  grep -qx '| max/min | - | 1.20 | - |' "$case_summary" ||
+    die "self-test: a zero-file partition must be left out of the ratio: $(cat "$case_summary")"
+  ratio_case "unknown times" '?' '?' '?'
+  grep -qx '| max/min | - | n/a | - |' "$case_summary" || die "self-test: all-unknown times must give n/a: $(cat "$case_summary")"
+  grep -q '::warning' <<<"$output" && die "self-test: n/a must not warn: $output"
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
@@ -1575,6 +1642,13 @@ else
       die "N must be a positive integer from 1 to 8, got '$N'"
       ;;
   esac
+fi
+
+if [ -n "${CI_TEST_PARTITIONS_REPORT_ONLY:-}" ]; then
+  # Test-only seam: the report alone, over prepared partition files.
+  [ -d "$CI_TEST_PARTITIONS_REPORT_ONLY" ] || die "CI_TEST_PARTITIONS_REPORT_ONLY is not a directory: $CI_TEST_PARTITIONS_REPORT_ONLY"
+  report "$N" "$CI_TEST_PARTITIONS_REPORT_ONLY" "-"
+  exit 0
 fi
 
 run_partitions "$N"
