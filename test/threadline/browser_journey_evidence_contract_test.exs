@@ -346,4 +346,101 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
       assert "rule=timings-step" in slow_specs_errors(relocated, package_json)
     end
   end
+
+  describe "CI-02 browser matrix legs (247 D-07, D-07a)" do
+    @leg_job "verify-example-browser"
+
+    # The parsed leg job, or nil. A mutation that breaks the YAML reads as no
+    # job, so every rule below fails closed.
+    defp leg_job(workflow_yaml) do
+      case YamlElixir.read_from_string(workflow_yaml) do
+        {:ok, %{"jobs" => %{@leg_job => %{} = job}}} -> job
+        _ -> nil
+      end
+    end
+
+    defp leg_upload_names(nil), do: []
+
+    defp leg_upload_names(job) do
+      for %{} = step <- List.wrap(job["steps"]),
+          is_binary(step["uses"]),
+          String.starts_with?(step["uses"], "actions/upload-artifact@"),
+          do: get_in(step, ["with", "name"])
+    end
+
+    # Pure over ci.yml text and the decoded inventory. matrix-projects: the leg
+    # matrix runs exactly the inventory's voting projects, in inventory order,
+    # so a dropped or added leg cannot read green. leg-artifact-name: every leg
+    # upload carries the project, so two legs can never write one artifact name
+    # (upload-artifact v4+ fails or overwrites on a name clash).
+    defp split_leg_errors(workflow_yaml, inventory) do
+      job = leg_job(workflow_yaml)
+      projects = get_in(job || %{}, ["strategy", "matrix", "project"])
+      voting = inventory["votingProjects"]
+      uploads = leg_upload_names(job)
+
+      [
+        {"rule=matrix-projects", is_list(voting) and voting != [] and projects == voting},
+        {"rule=leg-artifact-name",
+         uploads != [] and
+           Enum.all?(uploads, &(is_binary(&1) and String.contains?(&1, "${{ matrix.project }}")))}
+      ]
+      |> Enum.reject(fn {_rule, ok?} -> ok? end)
+      |> Enum.map(fn {rule, _} -> rule end)
+    end
+
+    test "the live leg matrix equals votingProjects and every leg artifact names its project" do
+      workflow = read!(@workflow_path)
+      inventory = inventory!()
+
+      assert split_leg_errors(workflow, inventory) == []
+      assert get_in(leg_job(workflow), ["strategy", "matrix", "project"]) == @projects
+
+      # Non-vacuous: the four per-leg uploads (executed, discovered, timings,
+      # diagnostics) are all read.
+      assert length(leg_upload_names(leg_job(workflow))) == 4
+    end
+
+    test "each CI-02 leg rule goes red under its mutation" do
+      workflow = read!(@workflow_path)
+      inventory = inventory!()
+      matrix_line = "        project: [desktop-chromium, mobile-chromium]\n"
+
+      controls = [
+        {"rule=matrix-projects",
+         String.replace(workflow, matrix_line, "        project: [desktop-chromium]\n"),
+         inventory},
+        {"rule=matrix-projects",
+         String.replace(
+           workflow,
+           matrix_line,
+           "        project: [mobile-chromium, desktop-chromium]\n"
+         ), inventory},
+        {"rule=matrix-projects", workflow,
+         Map.update!(inventory, "votingProjects", &(&1 ++ ["route-capture"]))},
+        {"rule=leg-artifact-name",
+         String.replace(
+           workflow,
+           "          name: example-browser-e2e-diagnostics-${{ matrix.project }}\n",
+           "          name: example-browser-e2e-diagnostics\n"
+         ), inventory},
+        {"rule=leg-artifact-name",
+         String.replace(
+           workflow,
+           "          name: operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}\n",
+           "          name: operator-ci-executed-${{ github.run_id }}\n"
+         ), inventory}
+      ]
+
+      for {rule, mutated_workflow, mutated_inventory} <- controls do
+        refute {mutated_workflow, mutated_inventory} == {workflow, inventory},
+               "mutation anchor missing for #{rule}"
+
+        assert leg_job(mutated_workflow) != nil, "#{rule} mutation must stay valid YAML"
+
+        assert rule in split_leg_errors(mutated_workflow, mutated_inventory),
+               "#{rule} stayed green under its mutation"
+      end
+    end
+  end
 end
