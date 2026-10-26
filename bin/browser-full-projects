@@ -25,6 +25,14 @@
 #                 counts. A flag in a step or job that carries an `if:` is refused
 #                 (exit 1): it may never run on pull_request or push, and counting it
 #                 would leave its project running nowhere (218 review WR-05).
+#                 A `--project=${{ matrix.project }}` flag (247-09) resolves to the
+#                 enclosing job's `strategy.matrix.project` list, read as text (an
+#                 inline `[a, b]` or a `- a` block sequence; no YAML library). It
+#                 fails closed (exit 1): any other `${{ }}` in a `--project` value,
+#                 a job with no `strategy.matrix.project`, an empty or unparseable
+#                 list, a project named under matrix `include:`/`exclude:` (rows the
+#                 text parse does not resolve), or a name outside [a-z0-9-]. Matrix
+#                 values obey the same `if:` refusal as literal flags.
 #   BROWSER-FULL  CONFIG minus CI. This is the `--project` flag set: CI and
 #                 BROWSER-FULL partition CONFIG (disjoint and complete).
 #   DEPS          `dependencies: ["<x>", ...]` declared on a default-config project
@@ -48,7 +56,8 @@
 # Exit codes:
 #   0  success
 #   1  CONFIG parsed empty; BROWSER-FULL is empty; a CI `--project` flag sits under a
-#      step- or job-level `if:`; or the number of project `name:`
+#      step- or job-level `if:`; a `--project=${{ }}` value does not resolve from the
+#      enclosing job's `strategy.matrix.project` (see CI above); or the number of project `name:`
 #      entries in the whole config differs from default plus env-gated (a name in a
 #      region this parser does not understand); or a declared dependency names a
 #      project that is not a default-config project. Fail closed: a wrong list must never
@@ -67,6 +76,9 @@ defmodule Threadline.BrowserFullProjects do
 
   @name_entry ~r/\bname:\s*"([^"]+)"/
   @project_flag ~r/--project[= ]([a-z0-9-]+)/
+  @expression_flag ~r/--project[= ]["']?(\$\{\{[^}]*\}\})/
+  @matrix_project ~r/^\$\{\{\s*matrix\.project\s*\}\}$/
+  @matrix_name ~r/^[a-z0-9-]+$/
   @gated_open ~r/\.\.\.\(\s*lightLane\s*\?\s*\[/
 
   def main(argv) do
@@ -253,29 +265,192 @@ defmodule Threadline.BrowserFullProjects do
   defp ci_projects(ci_src, mix_src) do
     yaml_lines = String.split(ci_src, "\n")
 
-    contributions =
+    raw =
       for {body, idx, key_col} <- run_bodies(yaml_lines) do
         {body |> strip_shell_comments() |> join_continuations() |> body_projects(mix_src), idx,
          key_col}
       end
 
-    conditional =
-      for {projects, idx, key_col} <- contributions,
-          projects != [],
-          where <- conditions(yaml_lines, idx, key_col),
-          do: "#{where} (projects: #{Enum.join(Enum.sort(Enum.uniq(projects)), ", ")})"
+    with {:ok, contributions} <- resolve_matrix(raw, yaml_lines) do
+      conditional =
+        for {projects, idx, key_col} <- contributions,
+            projects != [],
+            where <- conditions(yaml_lines, idx, key_col),
+            do: "#{where} (projects: #{Enum.join(Enum.sort(Enum.uniq(projects)), ", ")})"
 
-    case conditional do
-      [] ->
-        {:ok, contributions |> Enum.flat_map(&elem(&1, 0)) |> Enum.uniq()}
+      case conditional do
+        [] ->
+          {:ok, contributions |> Enum.flat_map(&elem(&1, 0)) |> Enum.uniq()}
 
-      found ->
+        found ->
+          {:error, 1,
+           "#{@ci_rel} passes --project flags from a conditional step or job: " <>
+             Enum.join(found, "; ") <>
+             ". A flag behind an if: may never run on pull_request or push, so counting it " <>
+             "as CI would leave its project running nowhere (D-07). Move the flag to an " <>
+             "unconditional step of an unconditional job."}
+      end
+    end
+  end
+
+  # Replace every `{:expression, text}` marker with the project names it resolves
+  # to. Only `${{ matrix.project }}` resolves, from the enclosing job's
+  # `strategy.matrix.project` list; anything else fails closed (exit 1).
+  defp resolve_matrix(raw, lines) do
+    Enum.reduce_while(raw, {:ok, []}, fn {projects, idx, key_col}, {:ok, acc} ->
+      case resolve_projects(projects, lines, idx) do
+        {:ok, names} -> {:cont, {:ok, [{names, idx, key_col} | acc]}}
+        error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, acc} -> {:ok, Enum.reverse(acc)}
+      error -> error
+    end
+  end
+
+  defp resolve_projects(projects, lines, idx) do
+    Enum.reduce_while(projects, {:ok, []}, fn
+      {:expression, text}, {:ok, acc} ->
+        case matrix_projects(text, lines, idx) do
+          {:ok, names} -> {:cont, {:ok, acc ++ names}}
+          error -> {:halt, error}
+        end
+
+      name, {:ok, acc} ->
+        {:cont, {:ok, acc ++ [name]}}
+    end)
+  end
+
+  defp matrix_projects(text, lines, idx) do
+    case enclosing_job(lines, idx) do
+      :none ->
+        {:error, 1, "#{@ci_rel} line #{idx + 1}: --project=#{text} sits outside any job"}
+
+      {:ok, job, body} ->
+        where = "#{@ci_rel} job #{job}"
+
+        if Regex.match?(@matrix_project, text) do
+          job_matrix_projects(body, where)
+        else
+          {:error, 1,
+           "#{where}: --project=#{text} is not a resolvable project value; " <>
+             "only ${{ matrix.project }} resolves (from strategy.matrix.project). " <>
+             "Any other expression could select projects this script cannot see (D-07)."}
+        end
+    end
+  end
+
+  defp job_matrix_projects(job_body, where) do
+    matrix =
+      with {:ok, "", strategy} <- mapping_entry(job_body, "strategy"),
+           {:ok, "", matrix} <- mapping_entry(strategy, "matrix") do
+        {:ok, matrix}
+      else
+        _ -> :none
+      end
+
+    case matrix do
+      :none ->
         {:error, 1,
-         "#{@ci_rel} passes --project flags from a conditional step or job: " <>
-           Enum.join(found, "; ") <>
-           ". A flag behind an if: may never run on pull_request or push, so counting it " <>
-           "as CI would leave its project running nowhere (D-07). Move the flag to an " <>
-           "unconditional step of an unconditional job."}
+         "#{where}: passes --project=${{ matrix.project }} but has no strategy.matrix.project " <>
+           "mapping to resolve it from"}
+
+      {:ok, matrix} ->
+        if combination_names_project?(matrix) do
+          {:error, 1,
+           "#{where}: strategy.matrix include:/exclude: rows name a project; those rows " <>
+             "are not resolved, so the CI project set would be a guess. List every " <>
+             "project in strategy.matrix.project instead (fail closed)."}
+        else
+          matrix |> mapping_entry("project") |> matrix_list(where)
+        end
+    end
+  end
+
+  defp combination_names_project?(matrix) do
+    Enum.any?(~w(include exclude), fn key ->
+      case mapping_entry(matrix, key) do
+        {:ok, value, children} -> Enum.any?([value | children], &(&1 =~ ~r/\bproject\s*:/))
+        :none -> false
+      end
+    end)
+  end
+
+  defp matrix_list(:none, where),
+    do:
+      {:error, 1,
+       "#{where}: passes --project=${{ matrix.project }} but has no strategy.matrix.project list"}
+
+  defp matrix_list({:ok, value, children}, where) do
+    items =
+      case {value, Enum.reject(children, &blank?/1)} do
+        {"[" <> _, []} ->
+          case Regex.run(~r/^\[(.*)\]$/, value) do
+            [_, ""] -> {:ok, []}
+            [_, inner] -> {:ok, inner |> String.split(",") |> Enum.map(&String.trim/1)}
+            nil -> :error
+          end
+
+        {"", [_ | _] = rows} ->
+          block_sequence(rows)
+
+        _ ->
+          :error
+      end
+
+    with {:ok, raw} <- items,
+         names = Enum.map(raw, &unquote_scalar/1),
+         true <- Enum.all?(names, &Regex.match?(@matrix_name, &1)) do
+      if names == [],
+        do: {:error, 1, "#{where}: strategy.matrix.project is empty, so the job runs no project"},
+        else: {:ok, names}
+    else
+      _ ->
+        {:error, 1,
+         "#{where}: cannot parse strategy.matrix.project (expected an inline [a, b] list or " <>
+           "a `- a` block sequence of [a-z0-9-] names)"}
+    end
+  end
+
+  # Every non-blank row must be a `- item` entry; anything else is unparseable.
+  defp block_sequence(rows) do
+    matches = Enum.map(rows, &Regex.run(~r/^\s*-\s+(.+?)\s*$/, strip_yaml_comment(&1)))
+
+    if Enum.any?(matches, &is_nil/1),
+      do: :error,
+      else: {:ok, Enum.map(matches, fn [_, item] -> item end)}
+  end
+
+  defp unquote_scalar(item) do
+    case Regex.run(~r/^(["'])(.*)\1$/, item) do
+      [_, _, inner] -> inner
+      nil -> item
+    end
+  end
+
+  defp strip_yaml_comment(line), do: line |> String.split(~r/\s#/, parts: 2) |> hd()
+
+  # The direct child `key:` of a block (children share the first non-blank line's
+  # indent): `{:ok, inline_value, child_lines}` or `:none`. Text only, no YAML lib.
+  defp mapping_entry(block, key) do
+    case Enum.find(block, &(not blank?(&1))) do
+      nil ->
+        :none
+
+      first ->
+        col = indent(first)
+        entry = ~r/^ {#{col}}#{Regex.escape(key)}:(.*)$/
+
+        case Enum.split_while(block, &(not Regex.match?(entry, &1))) do
+          {_, []} ->
+            :none
+
+          {_, [line | rest]} ->
+            [_, value] = Regex.run(entry, line)
+            children = Enum.take_while(rest, &(blank?(&1) or indent(&1) > col))
+            {:ok, value |> strip_yaml_comment() |> String.trim(), children}
+        end
     end
   end
 
@@ -290,6 +465,11 @@ defmodule Threadline.BrowserFullProjects do
 
     direct = for line <- commands, [_, p] <- Regex.scan(@project_flag, line), do: p
 
+    expressions =
+      for line <- commands,
+          [_, text] <- Regex.scan(@expression_flag, line),
+          do: {:expression, text}
+
     via_alias =
       for line <- commands,
           [_, task] <- Regex.scan(@mix_task, line),
@@ -297,7 +477,7 @@ defmodule Threadline.BrowserFullProjects do
           p <- function_flags(mix_src, fun),
           do: p
 
-    direct ++ via_alias
+    direct ++ expressions ++ via_alias
   end
 
   defp join_continuations(body), do: Regex.replace(~r/\\[ \t]*\n/, body, " ")
@@ -333,11 +513,24 @@ defmodule Threadline.BrowserFullProjects do
   end
 
   defp job_conditions(lines, idx) do
+    case enclosing_job(lines, idx) do
+      :none ->
+        []
+
+      {:ok, job, body} ->
+        if Enum.any?(body, &Regex.match?(~r/^    if:/, &1)),
+          do: ["job #{job} carries a job-level if:"],
+          else: []
+    end
+  end
+
+  # The job whose block contains line `idx`: its id and its body lines.
+  defp enclosing_job(lines, idx) do
     job_header = ~r/^  ([A-Za-z0-9_-]+):\s*$/
 
     case Enum.find(idx..0//-1, fn i -> Regex.match?(job_header, Enum.at(lines, i)) end) do
       nil ->
-        []
+        :none
 
       start ->
         [_, job] = Regex.run(job_header, Enum.at(lines, start))
@@ -347,9 +540,7 @@ defmodule Threadline.BrowserFullProjects do
           |> Enum.drop(start + 1)
           |> Enum.take_while(&(not Regex.match?(~r/^ {0,2}\S/, &1)))
 
-        if Enum.any?(body, &Regex.match?(~r/^    if:/, &1)),
-          do: ["job #{job} carries a job-level if:"],
-          else: []
+        {:ok, job, body}
     end
   end
 
