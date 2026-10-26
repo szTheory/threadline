@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-11-PLAN.md
-last_updated: "2026-10-26T21:51:33.628Z"
+stopped_at: Completed 247-13-PLAN.md
+last_updated: "2026-10-26T23:26:43.329Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-11 CI-02 hardening complete: matrix-projects, leg-artifact-name, receipt-unconditional, receipt-needs, matrix-fail-fast with mutation controls + axis-list composed names (3613a9f4); CI=true mix ci.all green on ephemeral postgres:16"
-state_head: b26d1c8a1189568a32a5104475696c158abfe1c4
+last_activity_desc: "247-13 Land B2 merged (PR #95, 29abf565); CI-02 PASS median 468 s over 5 main runs; CI-03 MISS (ratios 1.20-1.61 > 1.15), gap closure via /gsd-plan-phase 247 --gaps"
+state_head: a6a4ef0ed8704dce0bd2b476e15e4b457805e3b0
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 37
+  completed_plans: 38
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 12 of 13 executed (247-01 through 247-12 complete; next 247-13 Land B2)
-Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-11 CI-02 hardening complete (split rules + 13 mutation controls 3613a9f4; CI=true mix ci.all exit 0: 3376 tests/0 failures, Playwright 418 passed/56 skipped, Dialyzer 0 errors)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 12/13 executed: 247-01 through 247-12)
+Plan: 13 of 13 executed (247-01 through 247-13 complete; CI-03 gap open, next /gsd-plan-phase 247 --gaps)
+Status: Executing Phase 247 (gap closure pending for CI-03)
+Last activity: 2026-10-26 — 247-13 Land B2 merged (PR #95, squash 29abf565) and gates measured on main: CI-02 PASS (median 468 s over 5 runs, baseline 724 s); CI-03 MISS (max/min current 1.20-1.42, latest 1.43-1.58, min 1.57-1.61; 1.15 not relaxed)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 13/13 executed: 247-01 through 247-13; CI-03 gap open)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -333,6 +333,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P10 | 45 min | 2 tasks | 7 files |
 | Phase 247 P12 | 15 min | 3 tasks | 2 files |
 | Phase 247 P11 | 35 min | 2 tasks | 2 files |
+| Phase 247 P13 | ~10 min (Task 3 continuation) | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1182,6 +1183,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-12: one CI current-lane weights file; per-lane weights deferred to a 247-13 data decision
 - [Phase 247]: 247-11: receipt-unconditional pins both ends: receipt has no job-level if:, ci-required keeps if: always(), needs the receipt, no allowed-skips
 - [Phase 247]: 247-11: composed_check_names/2 takes an ordered axis list (caller supplies YAML key order); two-axis naming (desktop-chromium, 1) stays RESEARCH A4 assumed
+- [Phase 247]: 247-13: CI-02 PASS, median ci.yml wall 468 s over 5 attempt-1 main runs (baseline 724 s); critical path now Build and test (current)
+- [Phase 247]: 247-13: CI-03 MISS, partition max/min current 1.20-1.42, latest 1.43-1.58, min 1.57-1.61; 1.15 not relaxed; D-11 per-lane weights is the gap fallback (/gsd-plan-phase 247 --gaps)
 
 ### Blockers
 
@@ -1202,8 +1205,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T21:51:33.266Z
-**Stopped at:** Completed 247-11-PLAN.md
+**Last session:** 2026-10-26T23:26:42.737Z
+**Stopped at:** Completed 247-13-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
