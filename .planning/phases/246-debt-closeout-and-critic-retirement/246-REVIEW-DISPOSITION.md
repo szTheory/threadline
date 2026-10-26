@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Browser-full coverage is misdescribed: the lane renders 6 curated routes at 1280 only, not \"every inventoried route at three viewports\""
   - id: WR-02
     severity: warning
@@ -29,7 +29,7 @@ findings:
     title: "Stale \"Tier A\" wording in stress fixtures, including a summary the stress lab displays"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Browser-full's job name still says \"(all projects)\""
   - id: IN-03
     severity: info
@@ -43,7 +43,7 @@ findings:
     severity: info
     disposition: open
     title: "Leftover e2e dev dependency after `typescript` and `typecheck` were removed"
-open: 10
+open: 8
 total: 10
 recorded: 2026-10-26T01:30:58.000Z
 ---
@@ -52,13 +52,13 @@ recorded: 2026-10-26T01:30:58.000Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
+| WR-01 | warning | fixed | f57237d6 |
 | WR-02 | warning | open | - |
 | WR-03 | warning | open | - |
 | WR-04 | warning | open | - |
 | WR-05 | warning | open | - |
 | IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| IN-02 | info | fixed | f57237d6 |
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |

@@ -102,7 +102,7 @@ D-26 scope held: no branch-protection or ruleset change was made.
 
 ### Prerequisites
 
-**1. Why a landing base is needed.** The seven removal slices were authored on top of the
+**1. Why a landing base is needed.** The eight removal slices were authored on top of the
 v1.47 Phase 244 and 245 code commits. `origin/main` at plan time (`23178fb0`, still the local
 `origin/main` at hand-off) has neither `b7b80289` nor `6912fa96` as an ancestor
 (`git merge-base --is-ancestor` exited 1 for both). The slices edit the same files those
@@ -120,11 +120,12 @@ phases edit: `.github/workflows/ci.yml`, `.github/workflows/browser-full.yml`, `
 
 **3. Readiness check.** This check compares content, not SHA ancestry. A squash landing
 rewrites SHAs, so an ancestry test on milestone SHAs can never pass. The path set is every
-path the seven slices touch: the union of the per-slice file lists, computed now with the
-loop below. That gives 527 paths, none under `.planning/`. A plain range diff
-`4b2c3f89^..8eb54275` would be wrong, because the six 246-05 `test:` commits sit between C5
-and C6. Of the 527 paths, 479 are deletions; their compacted form is the restore list under
-the archive tag below. The 48 modified or added paths are:
+path the eight slices touch: the union of the per-slice file lists, computed now with the
+loop below. That gives 528 paths, none under `.planning/`. A plain range diff
+`4b2c3f89^..f57237d6` would be wrong, because the six 246-05 `test:` commits sit between C5
+and C6, and planning commits sit between C6 and C7. Of the 528 paths, 479 are deletions;
+their compacted form is the restore list under the archive tag below. The 49 modified or
+added paths are:
 
 ```
 .github/workflows/browser-full.yml
@@ -157,6 +158,7 @@ test/partition_weights.txt
 test/support/operator_surface_fixtures.ex
 test/threadline/browser_full_projects_contract_test.exs
 test/threadline/browser_journey_evidence_contract_test.exs
+test/threadline/ci_coverage_doc_contract_test.exs   (C7)
 test/threadline/ci_topology_contract_test.exs
 test/threadline/ci_workflow_parity_contract_test.exs
 test/threadline/dialyzer_ignore_contract_test.exs
@@ -188,7 +190,7 @@ git diff --quiet 4b2c3f89^ origin/main -- $paths   # must exit 0 before the remo
 ```
 
 **4. Fallback when main has moved on those paths.**
-1. On a local landing branch cut from `origin/main`, cherry-pick the seven slices in the order below.
+1. On a local landing branch cut from `origin/main`, cherry-pick the eight slices in the order below.
 2. On an ephemeral postgres:16, run `mix compile --warnings-as-errors` and then the union of the
    slices' targeted test files (from plans 246-02..04):
 
@@ -252,11 +254,13 @@ From `git log --reverse --format='%H %s' --grep='^Removal-Slice:'`:
 | 5 | C4 | `35243789040d234dd721642d52c6aa123483bcd7` | chore: prune critic stress stories and the fixture corpus |
 | 6 | C5 | `61f589541675db4cab1cfb40be01f5843953abbf` | chore: remove residual references to the retired UI critic loop |
 | 7 | C6 | `8eb5427552a1305fe7cac97c2b2b9af1523484d1` | chore: wait for drawer initial focus before focusing the stress toast |
+| 8 | C7 | `f57237d6314bfa63c0fa26e17c46ed0a827bbfea` | chore: describe Browser-full route-capture coverage as the code runs it |
 
 The slices are not contiguous in history. Two `.planning/` commits sit between C1..C5
 (`00048f2e`, docs 246-02; `c2c20837`, docs 246-03). Between C5 and C6 sit the six 246-05
-`test:` commits and the 246-06/246-07 planning commits. Cherry-pick the seven SHAs by name,
-never a range.
+`test:` commits and the 246-06/246-07 planning commits; between C6 and C7 sit the 246-07
+close-out, review, verification and gap-planning commits. Cherry-pick the eight SHAs by
+name, never a range.
 
 C6 was added by plan 246-07. The D-24 gate found `operator-accessibility.spec.ts:1281` red
 3/3 after C4. Bisect: `1258c014` (C3b) passed; `35243789` (C4) and `61f58954` (C5) failed.
@@ -264,6 +268,13 @@ C4's pruned stress ledger changed the stress page's timing, so the drawer's asyn
 `JS.focus` chain stole focus back from the toast. C6 makes the test wait for the drawer's
 `[data-tl-initial-focus]` first, and it then passed 10/10 (`--repeat-each=5`, desktop and
 mobile). C6 must travel with C4, or main goes red.
+
+C7 was added by gap-closure plan 246-08. It corrects the Browser-full coverage wording C3a
+introduced (review WR-01: the lane renders the 6 curated operator routes at 1280; the
+inventory-wide 1280/768/375 route tests run only in evidence mode) and the job display name
+(IN-02), and pins the wording with a spec-derived contract in
+`ci_coverage_doc_contract_test.exs`. C7 must travel with C3a, so main never carries the
+false description.
 
 **No slice touches `.planning/`** (checked per slice; each printed 0):
 
@@ -278,7 +289,7 @@ done
 ```bash
 git fetch origin main
 git switch -c land/v1.47-critic-removal origin/main   # after the prerequisites hold
-git cherry-pick 4b2c3f89 cbb804a6 9ea29dc4 1258c014 35243789 61f58954 8eb54275
+git cherry-pick 4b2c3f89 cbb804a6 9ea29dc4 1258c014 35243789 61f58954 8eb54275 f57237d6
 ```
 
 - Open one squash PR titled `chore: retire the UI critic loop (DEBT-02)`. It is non-releasable:
@@ -316,7 +327,7 @@ archive date: YYYY-MM-DD (the tagging date)
 requirement: DEBT-02 / D-4 (v1.47 Phase 246; decisions D-11..D-14)
 
 diffstat (git diff --stat <parent-sha> <removal-squash-sha>):
-  (paste; about 527 files changed, nearly all deletions)
+  (paste; about 528 files changed, nearly all deletions)
 
 recommendation: ARCHIVE (retired, restorable).
 
@@ -363,7 +374,7 @@ restore command:
       their preferred-env entries; the helper functions verify_capture/1 and
       verify_ui_critique/1; and the package exclude_patterns entries for lib/mix/tasks/critic.*,
       lib/threadline/critic_trust/ and the mechanical checker. The modified CI, contract,
-      fixture and e2e config files (the 47-path list in the landing doc) need the same
+      fixture and e2e config files (the 48 modified paths in the landing doc list) need the same
       hand merge.
   (inspect without restoring: git show archive/ui-critic-loop)
 
