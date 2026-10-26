@@ -1,0 +1,1 @@
+No external API integration: phase 244 changes repo-local release tooling (release-please config key, bin/date-release-changelog, bin/retry-network, Hex pin steps, contract tests); the only GitHub API use is read-only `gh` evidence queries in 244-06, which integrate no new API surface.

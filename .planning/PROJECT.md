@@ -50,9 +50,18 @@ Threadline **1.0.1** is published on Hex.pm with ExDoc. v1.45 closed on 2026-10-
 
 </details>
 
-## Current Milestone: None selected
+## Current Milestone: v1.47 Release on autopilot
 
-Re-derive the product and release baseline using `.planning/MILESTONE-GUIDE.txt` and `.planning/MILESTONE-ARC.md` before selecting further work. Do not carry forward another broad operator-UI milestone by default; act on new adopter, operator, security, or measurable quality evidence. No next milestone is authorized or planned here.
+**Goal:** A release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
+
+**Target features:**
+- The release workflow dates the CHANGELOG `## Unreleased` section and refreshes stale release PRs, so the separate dating PR goes away.
+- Network fetches retry on transient errors (tests never do); Hex version pinned against lock churn.
+- Dependabot security-only updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue.
+- Browser-spec timing visibility, a per-project browser E2E split (CI median ≤ 9 min), contract tests on one lane, rebalanced partitions, and hang-proof test partitions.
+- Carried-debt register closed out; parked UI-critic loop retired to a tag (D-4).
+
+Scope and evidence: `.planning/MILESTONE-ARC.md` rank 1 and `.planning/research/QUALITY-ROADMAP-2026-10-24.md`.
 
 ## Prior shipped milestone: v1.45 1.0 API Contract
 
@@ -897,7 +906,7 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 | Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | — Pending (v1.48, D-1) |
 | Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | — Pending (v1.48, D-2) |
 | Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
-| Retire the parked UI-critic loop to a tag (2026-10-24) | About 3k lines + 3.6 MB of fixtures with no active use; restorable from the tag | — Pending (v1.47, D-4) |
+| Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
 
 ## Evolution
@@ -920,4 +929,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-11 after v1.46 closeout; 6 phases and 26 requirements complete, no successor selected*
+*Last updated: 2026-10-24 at v1.47 start (rolling quality roadmap rank 1)*
