@@ -991,6 +991,31 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json
         run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
 
+      # CI-01 (247 D-04/D-05): slowest specs from the JSON report written above.
+      # Diagnostic only: always() so a red run still shows its timings, and a
+      # missing or malformed report prints ::warning:: and never fails the job.
+      - name: Summarize slowest browser specs
+        if: always()
+        working-directory: examples/threadline_phoenix/e2e
+        env:
+          BROWSER_TIMINGS_JSON: ${{ runner.temp }}/browser-timings-all-${{ github.run_id }}.json
+        run: |
+          report="${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
+          if [ -f "$report" ] && [ -x ./node_modules/.bin/tsx ]; then
+            ./node_modules/.bin/tsx support/slow-specs.ts "$report" --label all --out "$BROWSER_TIMINGS_JSON"
+          else
+            echo "::warning::slow-specs: no Playwright JSON report"
+          fi
+
+      - name: Upload browser spec timings
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-timings-all-${{ github.run_id }}
+          path: ${{ runner.temp }}/browser-timings-all-${{ github.run_id }}.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Discover required operator journeys
         working-directory: examples/threadline_phoenix/e2e
         env:
