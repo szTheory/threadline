@@ -167,7 +167,6 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/mix/tasks/release.pins.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
     "lib/threadline/operator_surface/live/stress_live/paths.ex",
-    "lib/threadline/operator_surface/live/stress_live/refute.ex",
     "lib/threadline/operator_surface/live/stress_live/sections.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
     "lib/threadline/operator_surface/stress_router.ex"

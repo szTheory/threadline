@@ -62,7 +62,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @planning_attributes ~w(data-earned-flow data-persona data-jtbd)
     @reference_corpus_root "test/fixtures/operator_surface"
-    @reference_manifest_entry_count 427
+    @reference_manifest_entry_count 1
     @exception_fields [:after, :before, :delta, :expiry, :node_id, :rationale]
     @max_exception_entries 3
     @planning_vocabulary [
@@ -388,8 +388,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert duplicate_path == hd(manifest).path
 
+      # A one-entry manifest cannot drop a row and stay non-empty, so the path-set
+      # control appends a row the git index does not track.
+      untracked_row = %{path: "zz-untracked-reference.json", sha256: String.duplicate("f", 64)}
+
       assert {:error, {:path_set_mismatch, _details}} =
-               validate_reference_manifest(tl(manifest), tracked)
+               validate_reference_manifest(manifest ++ [untracked_row], tracked)
 
       [first | rest] = manifest
       changed = [%{first | sha256: String.duplicate("0", 64)} | rest]

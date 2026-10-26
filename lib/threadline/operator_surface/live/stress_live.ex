@@ -63,13 +63,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       ledger_entries = socket.assigns.ledger_entries
-      # Ledger-backed product stories plus the graded-ladder oracle fixtures.
-      # The latter are dev/test-only validation cells with no ledger entry — surfaced
-      # here purely so the graded capture lane can render + screenshot them.
-      stories =
-        (ledger_stories(ledger_entries) ++ StressFixtures.graded_stories())
-        |> Enum.uniq_by(& &1.id)
-        |> Enum.sort_by(& &1.id)
+      stories = ledger_stories(ledger_entries)
 
       categories = stories |> Enum.map(& &1.category) |> Enum.uniq() |> Enum.sort()
 
@@ -159,8 +153,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   selected_viewport={@selected_viewport}
                 />
 
-                <Sections.refute_matrix :if={show_refute_matrix?(@selected_story)} selected_story={@selected_story} />
-
                 <Sections.ui_matrix :if={show_ui_matrix?(@selected_story)} overlay_fixture_state={@overlay_fixture_state} />
               <% else %>
                 <div class="tl-empty tl-empty--unsupported" data-testid="stress-empty-state" role="status">
@@ -225,8 +217,5 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          do: true
 
     defp show_ui_matrix?(_story), do: false
-
-    defp show_refute_matrix?(%{category: "refute"}), do: true
-    defp show_refute_matrix?(_story), do: false
   end
 end

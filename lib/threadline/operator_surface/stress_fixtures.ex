@@ -178,116 +178,6 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      ["timezone_boundary"]}
   ]
 
-  # Refute-twin catalog: each entry is
-  # Each entry: {id, fixture_key, scenario, twin_atom, pole_atom, summary}.
-  # 6 gestalt twins (each = polished + injected flaw that PASSES all mechanical gates).
-  # 1 veto-ordering twin (off-token raw-hex trips --tl-* token-parity veto at panel layer;
-  # the flawed pole is NOT added to the capture band, so no committed scorecard is generated
-  # for it and verify.mechanical stays green).
-  # Partition rule: every gestalt flaw passes MODE A (no hard block) and MODE B
-  # (within ratchet floor). If a flaw trips mechanics, it is a mechanical test, never a critic one.
-  @refute_twin_stories [
-    # 1. Rhythm: doubled padding (token-step to token-step: --tl-space-4 → --tl-space-8, on-grid)
-    {"refute.rhythm.doubled-padding.polished", "refute.rhythm.doubled_padding.polished",
-     "Rhythm – correct section spacing", :rhythm, :polished,
-     "Correct section spacing: single token-step --tl-space-4 (16 px) between content sections."},
-    {"refute.rhythm.doubled-padding.flawed", "refute.rhythm.doubled_padding.flawed",
-     "Rhythm – doubled section padding [gestalt flaw]", :rhythm, :flawed,
-     "Gestalt flaw: --tl-space-8 (32 px) between sections (token-step, on-grid, passes mechanics; cadence broken)."},
-
-    # 2. Density: card wrapping a section (nesting depth 2, below the depth-3 ceiling)
-    {"refute.density.card-section-wrap.polished", "refute.density.card_section_wrap.polished",
-     "Density – section as section", :density_card, :polished,
-     "Correct: grouped content uses a plain section element, not a card (brand card-rule: cards for repeated items)."},
-    {"refute.density.card-section-wrap.flawed", "refute.density.card_section_wrap.flawed",
-     "Density – card wrapping a section [gestalt flaw]", :density_card, :flawed,
-     "Gestalt flaw: content section wrapped in .tl-card (nesting depth 2, below ceiling 3; violates brand card-rule)."},
-
-    # 3. Hierarchy: flattened (equal weights/sizes; type-size count still above floor)
-    {"refute.hierarchy.flattened.polished", "refute.hierarchy.flattened.polished",
-     "Hierarchy – clear visual weight progression", :hierarchy, :polished,
-     "Correct: title/label/body have distinct weights and sizes; one dominant entry-point per scan."},
-    {"refute.hierarchy.flattened.flawed", "refute.hierarchy.flattened.flawed",
-     "Hierarchy – flattened visual weights [gestalt flaw]", :hierarchy, :flawed,
-     "Gestalt flaw: title/label/body share font-weight:500, near-equal sizes (type-size count above floor; no scan-path anchor)."},
-
-    # 4. Typography: scale collapse (two roles 1 px apart; count remains above floor)
-    {"refute.typography.scale-collapse.polished", "refute.typography.scale_collapse.polished",
-     "Typography – distinct type scale", :typography, :polished,
-     "Correct: heading/body/label/meta use distinct, widely-spaced steps from the --tl-font-size-* scale."},
-    {"refute.typography.scale-collapse.flawed", "refute.typography.scale_collapse.flawed",
-     "Typography – collapsed type scale [gestalt flaw]", :typography, :flawed,
-     "Gestalt flaw: two primary roles differ by 1 px (--tl-font-size-sm 13 px vs --tl-font-size-label 14 px); count above floor."},
-
-    # 5. Brand fidelity: mis-jobbed accent (real --tl-* token, wrong semantic job)
-    {"refute.brand-fidelity.mis-jobbed-accent.polished",
-     "refute.brand_fidelity.mis_jobbed_accent.polished", "Brand fidelity – correct accent jobs",
-     :brand_fidelity, :polished,
-     "Correct: Thread Blue (--tl-color-thread-blue) for actions; Ember (--tl-color-ember) for diff-emphasis only."},
-    {"refute.brand-fidelity.mis-jobbed-accent.flawed",
-     "refute.brand_fidelity.mis_jobbed_accent.flawed",
-     "Brand fidelity – Ember as default action [gestalt flaw]", :brand_fidelity, :flawed,
-     "Gestalt flaw: --tl-color-ember applied to the primary action button (real --tl-* token, wrong job; no token-parity veto fires)."},
-
-    # 6. Density: chrome bloat (redundant help copy; resists verbosity bias)
-    {"refute.density.chrome-bloat.polished", "refute.density.chrome_bloat.polished",
-     "Density – task-primary chrome", :density_chrome, :polished,
-     "Correct: form labels only; no redundant explanatory copy beside each field."},
-    {"refute.density.chrome-bloat.flawed", "refute.density.chrome_bloat.flawed",
-     "Density – chrome bloat: redundant help copy [gestalt flaw]", :density_chrome, :flawed,
-     "Gestalt flaw: each field carries verbose help text re-stating what the label already names (chrome costs task nothing)."},
-
-    # 7. Veto-ordering: off-token raw-hex accent (trips --tl-* token-parity veto at panel layer).
-    # The FLAWED pole is NOT added to the capture band (no committed scorecard) so
-    # verify.mechanical is never asked to judge it and stays green.
-    # The POLISHED pole is captured normally.
-    {"refute.veto-ordering.off-token-accent.polished",
-     "refute.veto_ordering.off_token_accent.polished",
-     "Veto-ordering – on-token diff-emphasis (polished)", :veto_ordering, :polished,
-     "Correct: var(--tl-color-ember) for diff-emphasis (on-token; veto passes; aesthetic scoring proceeds)."},
-    {"refute.veto-ordering.off-token-accent.flawed",
-     "refute.veto_ordering.off_token_accent.flawed",
-     "Veto-ordering – raw hex #e8a246 accent [trips --tl-* token-parity veto]", :veto_ordering,
-     :flawed,
-     "Veto flaw: raw hex #e8a246 (Ember-alike) instead of var(--tl-color-ember); trips the panel-layer token-parity veto, so no aesthetic score is emitted."}
-  ]
-
-  # Graded severity ladder — the synthetic twin oracle.
-  # Each (lens, scenario) renders at 4 severity rungs mapping onto the human ordinal
-  # scale: r4=good(4), r3=borderline(3), r2=bad(2), r1=broken(1). Cell-ids are DISTINCT
-  # from the rubric anchor poles (refute.<lens>.<twin>.polished/flawed) so validation is
-  # on held-out cells, and each scenario carries DISTINCT content so ~6 scenarios × 4
-  # rungs nets ≥20 low-correlation cells per lens, limiting pseudo-replication.
-  # The twin atom drives the render block; the lens tags the cell for measurement.
-  @graded_rungs [:r4, :r3, :r2, :r1]
-
-  # {lens, twin_atom_for_render, [scenario_key, ...]}. 6 scenarios × 4 rungs = 24 cells
-  # per lens (over-provisions the n≥20 stable floor). The graphic-design lenses (1
-  # persona) are cheap to score; hierarchy/density (5 personas) are added later.
-  @graded_ladder [
-    {"rhythm", :rhythm, ~w(activity coverage retention exports evidence actor)},
-    {"typography", :typography, ~w(activity coverage retention exports evidence actor)},
-    {"brand_fidelity", :brand_fidelity, ~w(export coverage retention evidence actor timeline)},
-    {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)},
-    # Hierarchy joins the graded ladder: the :hierarchy twin
-    # renders a rung-graded weight/size cascade (see @hierarchy_scale in StressLive.Refute). Scored
-    # with 1 persona (probe 2026-07-28 proved p1-p5 redundant on hierarchy); oracle ρ is the backstop.
-    {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)},
-    # density joins too — the :density_chrome twin renders a rung-graded help-text-chrome +
-    # primary-prominence collapse (see @density_ladder). Also 1-persona (same probe basis).
-    {"density", :density_chrome, ~w(retention coverage exports evidence actor activity)}
-  ]
-
-  @graded_twin_stories (for {lens, twin, scenarios} <- @graded_ladder,
-                            scenario <- scenarios,
-                            rung <- @graded_rungs do
-                          id = "refute.#{lens}.graded.#{scenario}.#{rung}"
-                          fixture_key = "refute.#{lens}_graded.#{scenario}.#{rung}"
-
-                          {id, fixture_key, "#{lens} graded ladder — #{scenario} @ #{rung}", twin,
-                           lens, scenario, rung}
-                        end)
-
   @reserved_copy "This baseline records the current issue; resolve it only with the reserved cohort."
 
   @doc """
@@ -360,22 +250,6 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      }}
   end
 
-  def assigns_for(%{category: "refute"} = story) do
-    {:ok,
-     %{
-       title: story.scenario,
-       body: Map.get(story.data, :summary, "Refute twin fixture for #{story.id}."),
-       twin: Map.get(story.data, :twin),
-       pole: Map.get(story.data, :pole),
-       rung: Map.get(story.data, :rung),
-       scenario: Map.get(story.data, :scenario),
-       lens: Map.get(story.data, :lens),
-       fallback_label: "Refute fixture",
-       fallback_value: story.fixture_key,
-       base_path: "/audit"
-     }}
-  end
-
   def assigns_for(%{status: "reserved"} = story) do
     cohort = story.metadata.reserved_for_cohort
 
@@ -413,9 +287,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       state_story_maps(),
       data_display_story_maps(),
       permission_denied_story(),
-      folded_todo_stories(),
-      refute_twin_story_maps(),
-      graded_twin_story_maps()
+      folded_todo_stories()
     ]
     |> List.flatten()
     |> Enum.sort_by(& &1.id)
@@ -724,7 +596,6 @@ defmodule Threadline.OperatorSurface.StressFixtures do
 
   defp category_for("form_control"), do: "form_control"
   defp category_for("future_reserved"), do: "future_reserved"
-  defp category_for("refute"), do: "refute"
   defp category_for(kind), do: kind
 
   defp synthetic_values(cases) do
@@ -866,104 +737,6 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       summary: "Synthetic per-page path fixture for #{id} (Tier A structural cell)."
     }
   end
-
-  # Builds the 14 refute-twin stories (7 twins × 2 poles) from
-  # @refute_twin_stories. Category "refute", status "current", origin cohort "refute-twin".
-  # Polished poles = the well-designed reference; flawed poles = the injected flaw.
-  defp refute_twin_story_maps do
-    Enum.map(
-      @refute_twin_stories,
-      fn {id, fixture_key, scenario, twin, pole, summary} ->
-        story(%{
-          id: id,
-          kind: "refute",
-          category: "refute",
-          scenario: scenario,
-          fixture_key: fixture_key,
-          cases: ["one"],
-          status: "current",
-          origin_cohort: "refute-twin",
-          data: %{
-            twin: twin,
-            pole: pole,
-            summary: summary
-          },
-          metadata: %{
-            twin: twin,
-            pole: pole,
-            origin_cohort: "refute-twin"
-          }
-        })
-      end
-    )
-  end
-
-  # Builds the graded-ladder refute stories (lens × scenario × 4 rungs)
-  # from @graded_twin_stories. Same category/status as the binary twins so the capture
-  # + veto pipeline treat them identically; the extra rung/lens/scenario keys drive the
-  # rung-aware render helpers and the synthetic-set generator (mix critic.synth).
-  defp graded_twin_story_maps do
-    Enum.map(
-      @graded_twin_stories,
-      fn {id, fixture_key, scenario_desc, twin, lens, scenario, rung} ->
-        story(%{
-          id: id,
-          kind: "refute",
-          category: "refute",
-          scenario: scenario_desc,
-          fixture_key: fixture_key,
-          cases: ["one"],
-          status: "current",
-          origin_cohort: "graded-ladder",
-          data: %{
-            twin: twin,
-            lens: lens,
-            rung: rung,
-            scenario: scenario,
-            pole: rung_to_pole(rung),
-            summary: "Graded #{lens} twin — #{scenario} content at severity #{rung}."
-          },
-          metadata: %{
-            twin: twin,
-            rung: rung,
-            lens: lens,
-            origin_cohort: "graded-ladder"
-          }
-        })
-      end
-    )
-  end
-
-  @doc """
-  The severity rungs of the graded ladder, best-to-worst: r4, r3, r2, r1.
-  """
-  def graded_rungs, do: @graded_rungs
-
-  @doc """
-  Every graded-ladder story in the synthetic twin oracle, sorted by id. These
-  are dev/test-only oracle fixtures — NOT product surfaces — so they are surfaced in
-  the stress lab for capture without a design-system-ledger entry (they never enter
-  the product ratchet).
-  """
-  def graded_stories do
-    all()
-    |> Enum.filter(fn s -> s.category == "refute" and Map.get(s.data, :rung) != nil end)
-    |> Enum.sort_by(& &1.id)
-  end
-
-  @doc """
-  Maps a severity rung to the human verdict bucket the synthetic oracle records
-  (`mix critic.synth`): r4→good, r3→borderline, r2→bad, r1→broken.
-  """
-  def rung_verdict(:r4), do: "good"
-  def rung_verdict(:r3), do: "borderline"
-  def rung_verdict(:r2), do: "bad"
-  def rung_verdict(:r1), do: "broken"
-
-  # r4 renders as the polished pole; every worse rung renders through the flawed path
-  # (the rung atom then selects the injected severity in the refute_*_style helpers).
-  defp rung_to_pole(:r4), do: :polished
-  defp rung_to_pole(_), do: :flawed
 
   defp synthetic_change(index, operation) do
     padded = index |> Integer.to_string() |> String.pad_leading(4, "0")
