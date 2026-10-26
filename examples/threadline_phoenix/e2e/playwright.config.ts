@@ -24,10 +24,11 @@ const projects = [
   { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
   // Route render smoke (Phase 196; Browser-full's only project since 246). Drives
   // operator-page-capture.spec.ts against the seeded, authed /audit/* routes.
-  // Outside evidence mode it renders the 6 curated operator routes at 1280, which
-  // is what Browser-full runs; the inventory-wide 1280/768/375 tests and the route
-  // scorecards run only in evidence mode. deviceScaleFactor:1 at project level;
-  // dark hero view.
+  // Outside evidence mode it renders the 5 curated operator routes plus a
+  // degraded Timeline twin at 1280 and writes their route scorecards to
+  // route-scorecards/; that is what Browser-full runs. The inventory-wide 1280/768/375 route tests run only in evidence mode,
+  // which writes per-width scorecards under its run root instead.
+  // deviceScaleFactor:1 at project level; dark hero view.
   {
     name: "route-capture",
     testMatch: /operator-page-capture\.spec\.ts/,
