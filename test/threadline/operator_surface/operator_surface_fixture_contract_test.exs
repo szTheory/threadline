@@ -1,6 +1,7 @@
 defmodule Threadline.OperatorSurface.FixtureContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repository_root Path.expand("../../..", __DIR__)
   @live_corpus_root "test/fixtures/operator_surface"

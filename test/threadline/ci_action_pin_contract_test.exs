@@ -49,6 +49,7 @@ defmodule Threadline.CiActionPinContractTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
 

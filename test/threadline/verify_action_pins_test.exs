@@ -9,6 +9,7 @@ defmodule Threadline.VerifyActionPinsTest do
   every distinct pin passes.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @moduletag :tmp_dir
 
   @script Path.expand("../../bin/verify-action-pins", __DIR__)

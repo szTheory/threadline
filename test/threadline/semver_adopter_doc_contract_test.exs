@@ -1,5 +1,6 @@
 defmodule Threadline.SemverAdopterDocContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @adopter_paths [
     "README.md",

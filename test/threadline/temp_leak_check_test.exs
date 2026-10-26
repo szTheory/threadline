@@ -10,6 +10,7 @@ defmodule Threadline.TempLeakCheckTest do
   cleaned up automatically once the test process exits.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @moduletag :tmp_dir
 

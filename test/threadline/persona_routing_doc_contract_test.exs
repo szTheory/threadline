@@ -10,6 +10,7 @@ defmodule Threadline.PersonaRoutingDocContractTest do
   must agree on the four verbs.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
 

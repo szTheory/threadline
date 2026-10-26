@@ -1,6 +1,7 @@
 defmodule Threadline.CommunityHealthContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @forms [
     {".github/ISSUE_TEMPLATE/01-bug.yml", "Bug report", "bug"},

@@ -24,6 +24,7 @@ defmodule Threadline.VersionTruthDocContractTest do
       U+2192 arrow), including the first stable release after 0.x.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @version Threadline.MixProject.project()[:version]
   @parsed Version.parse!(@version)

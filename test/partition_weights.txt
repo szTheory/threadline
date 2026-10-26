@@ -129,6 +129,7 @@
 10 test/threadline/local_docker_dx_contract_test.exs
 3 test/threadline/lookup_return_shapes_contract_test.exs
 633 test/threadline/main_ci_observer_contract_test.exs
+1913 test/threadline/measure_main_ci_contract_test.exs
 8 test/threadline/mix/migration_version_test.exs
 1 test/threadline/mix/migrations_path_test.exs
 172 test/threadline/mix/trigger_migration_property_test.exs
@@ -191,6 +192,7 @@
 6 test/threadline/option_allowlist_test.exs
 75 test/threadline/optional_deps_contract_test.exs
 331 test/threadline/page_test.exs
+5200 test/threadline/partition_monitor_test.exs
 0 test/threadline/performance_doc_contract_test.exs
 0 test/threadline/persona_routing_doc_contract_test.exs
 114 test/threadline/pgbouncer_topology_test.exs
@@ -224,6 +226,7 @@
 14 test/threadline/release_control_plane_contract_test.exs
 1 test/threadline/release_distribution_doc_contract_test.exs
 785 test/threadline/removed_artifact_contract_test.exs
+39 test/threadline/repo_contract_scope_contract_test.exs
 227 test/threadline/repo_hygiene_contract_test.exs
 10976 test/threadline/repo_hygiene_guard_test.exs
 433 test/threadline/retention/cutoff_property_test.exs

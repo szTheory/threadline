@@ -158,29 +158,29 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 1/13 plans executed
+**Plans**: 8/13 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 247-01-PLAN.md — Land A1: 244/245 work to main as one `ci:` squash (D-01/D-02/D-03; maintainer push/merge checkpoint)
+- [x] 247-01-PLAN.md — Land A1: 244/245 work to main as one `ci:` squash (D-01/D-02/D-03; maintainer push/merge checkpoint)
 - [x] 247-03-PLAN.md — CI-01: slow-specs.ts summary + `browser-timings` artifact + contract; read-only `bin/measure-main-ci`
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 247-02-PLAN.md — Land A2: 246 critic removal as its own `chore:` squash; local archive tag + register row (tag push = maintainer hand-off)
-- [ ] 247-04-PLAN.md — CI-04/D-11: `Threadline.Test.PartitionMonitor` (timings TSV with `lane=` + named hang dump), attached by the partition runner; `--ingest-weights [--lane]`; D-16(b) sandbox test
+- [x] 247-02-PLAN.md — Land A2: 246 critic removal as its own `chore:` squash; local archive tag + register row (tag push = maintainer hand-off)
+- [x] 247-04-PLAN.md — CI-04/D-11: `Threadline.Test.PartitionMonitor` (timings TSV with `lane=` + named hang dump), attached by the partition runner; `--ingest-weights [--lane]`; D-16(b) sandbox test
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 247-05-PLAN.md — CI-04: bash budget watchdog (process groups, QUIT/TERM/KILL, Exit 124), hang self-tests, D-15 timeout layering + artifacts + `THREADLINE_CI_LANE`, D-12 ratio row
+- [x] 247-05-PLAN.md — CI-04: bash budget watchdog (process groups, QUIT/TERM/KILL, Exit 124), hang self-tests, D-15 timeout layering + artifacts + `THREADLINE_CI_LANE`, D-12 ratio row
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 247-06-PLAN.md — CI-03 lane-scope plumbing: `THREADLINE_TEST_SCOPE` filter on min/latest, tracer tag, scope contract (D-10 half), CONTRIBUTING sentence
+- [x] 247-06-PLAN.md — CI-03 lane-scope plumbing: `THREADLINE_TEST_SCOPE` filter on min/latest, tracer tag, scope contract (D-10 half), CONTRIBUTING sentence
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 247-07-PLAN.md — CI-03 classification: D-09 no-dodging / no-unclassified contract, `@moduletag :repo_contract` on ~50 files, drop Node from min/latest
+- [x] 247-07-PLAN.md — CI-03 classification: D-09 no-dodging / no-unclassified contract, `@moduletag :repo_contract` on ~50 files, drop Node from min/latest
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 247-08-PLAN.md — Land B1 `ci:` PR from a pinned `B1 end SHA`; observe ≥ 3 main runs (CI-01 data, ratios); D-16(c) PR #89-shape reproduction
-- [ ] 247-09-PLAN.md — CI-02 prep: N-file journey receipt (plain node) + `bin/browser-full-projects` matrix resolution (fail closed)
+- [x] 247-09-PLAN.md — CI-02 prep: N-file journey receipt (plain node) + `bin/browser-full-projects` matrix resolution (fail closed)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 247-10-PLAN.md — CI-02 split: matrix `verify-example-browser` + `verify-example-browser-receipt` fan-in, contracts/rosters/docs in one commit; action-pin provenance
@@ -201,7 +201,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 1/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 8/13 | In Progress | - |
 
 ## Current Position
 

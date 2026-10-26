@@ -1,6 +1,7 @@
 defmodule Threadline.UpgradingTo100DocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @changelog_path "CHANGELOG.md"
   @guide_path "guides/upgrading-to-1.0.md"

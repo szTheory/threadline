@@ -1,6 +1,7 @@
 defmodule Threadline.CIWorkflowParityContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
 
@@ -545,11 +546,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"quoted continue-on-error key on verify-test",
          &String.replace(&1, job_header, job_header <> ~s(    "continue-on-error": true\n)),
          "rule=continue-on-error"},
+        # Inserted before Run tests: the keys after its `run:` line
+        # (timeout-minutes, env) would otherwise follow the flow step.
         {"flow-mapped step with continue-on-error",
          &String.replace(
            &1,
            run_tests,
-           run_tests <> "      - { name: Extra, run: mix help, continue-on-error: true }\n"
+           "      - { name: Extra, run: mix help, continue-on-error: true }\n" <> run_tests
          ), "rule=continue-on-error"},
         {"quoted allowed-failures key in ci-required",
          &String.replace(
@@ -2832,6 +2835,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
            "key: ubuntu-24.04-",
            "key: ${{ " <> @os_family_context <> " }}-"
          )},
+        {"runs-on bumped with the cache key unchanged",
+         String.replace(job, "runs-on: ubuntu-24.04", "runs-on: ubuntu-26.04")},
         {"deps cache moved above setup-beam",
          job
          |> String.replace(cache_step, "")
@@ -3685,7 +3690,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       else: ["#{where} reads steps.beam.outputs before the `id: beam` step runs"]
   end
 
-  defp cache_key_errors(path, job_id, step) do
+  defp cache_key_errors(path, job_id, step, runs_on) do
     step = strip_comment_lines(step)
 
     if Regex.match?(~r{uses: actions/cache(?:/restore|/save)?@}, step) do
@@ -3704,7 +3709,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
           []
 
         true ->
-          resolved_key_errors(where, yaml_value(step, "key"), yaml_value(step, "restore-keys"))
+          resolved_key_errors(where, yaml_value(step, "key"), yaml_value(step, "restore-keys")) ++
+            runner_label_errors(where, yaml_value(step, "key"), runs_on)
       end
     else
       []
@@ -3716,6 +3722,16 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp resolved_key_errors(where, key, restore_keys) do
     key_value_errors(where, "key", key) ++
       if restore_keys, do: key_value_errors(where, "restore-keys", restore_keys), else: []
+  end
+
+  # 216 IN-01: the key's runner segment must be the job's own `runs-on:` value,
+  # not merely some accepted label, or a runner bump would reuse stale caches.
+  defp runner_label_errors(_where, key, runs_on) when is_nil(key) or is_nil(runs_on), do: []
+
+  defp runner_label_errors(where, key, runs_on) do
+    if String.starts_with?(key, runs_on <> "-"),
+      do: [],
+      else: ["#{where} key must lead with the job's runs-on label #{inspect(runs_on)}"]
   end
 
   defp key_value_errors(where, field, value) do
@@ -3796,11 +3812,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp job_toolchain_errors(path, {job_id, block}) do
     steps = job_steps(block)
     pin_dir = block |> strip_comment_lines() |> job_steps() |> toolchain_pin_dir()
+    runs_on = block |> strip_comment_lines() |> yaml_value("runs-on")
 
     Enum.flat_map(steps, &setup_beam_errors(path, job_id, &1, pin_dir)) ++
       toolchain_source_errors(path, job_id, block) ++
       beam_ordering_errors(path, job_id, block) ++
-      Enum.flat_map(steps, &cache_key_errors(path, job_id, &1))
+      Enum.flat_map(steps, &cache_key_errors(path, job_id, &1, runs_on))
   end
 
   # --- Deps-only build cache contract: rules (Phase 219, CACHE-01) -------------

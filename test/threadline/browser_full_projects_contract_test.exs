@@ -31,6 +31,7 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   control can never pass over an unchanged file.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   import Bitwise
 

@@ -1,5 +1,6 @@
 defmodule Threadline.CiIssueUpsertContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @script Path.expand("../../bin/upsert-ci-issue", __DIR__)
 
   defp fixture(list_json, root \\ nil) do

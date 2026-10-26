@@ -30,6 +30,7 @@ defmodule Threadline.DepsHealthDocContractTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.Test.CiIssuePairing
 
@@ -41,8 +42,6 @@ defmodule Threadline.DepsHealthDocContractTest do
   @ruleset Path.join([@repo_root, ".github", "rulesets", "main.json"])
   @contributing Path.join(@repo_root, "CONTRIBUTING.md")
   @policy_heading "## Dependency freshness policy"
-
-  @lockfiles ["mix.lock", "bench/mix.lock", "examples/threadline_phoenix/mix.lock"]
 
   defp deps_health_yaml, do: File.read!(@deps_health_workflow)
 
@@ -64,6 +63,16 @@ defmodule Threadline.DepsHealthDocContractTest do
       [_, dirs] -> dirs
       nil -> flunk("no CANONICAL_DIRS=(...) literal found in #{path}")
     end
+  end
+
+  defp lockfiles do
+    @verify_deps_audit
+    |> canonical_dir_line!()
+    |> String.split()
+    |> Enum.map(fn
+      "." -> "mix.lock"
+      dir -> dir <> "/mix.lock"
+    end)
   end
 
   defp rank_names!(path) do
@@ -158,7 +167,12 @@ defmodule Threadline.DepsHealthDocContractTest do
   test "every canonical lockfile path appears in the freshness policy section" do
     section = policy_section()
 
-    for lockfile <- @lockfiles do
+    lockfiles = lockfiles()
+
+    assert length(lockfiles) >= 3,
+           "expected >= 3 CANONICAL_DIRS lockfiles, got #{inspect(lockfiles)}"
+
+    for lockfile <- lockfiles do
       assert section =~ lockfile,
              "CONTRIBUTING.md's #{@policy_heading} section is missing the lockfile path " <>
                "#{inspect(lockfile)}"
@@ -359,29 +373,32 @@ defmodule Threadline.DepsHealthDocContractTest do
              "workflow's LABEL: value #{inspect(others)}, so the dedup streams never merge"
   end
 
-  test "the deps-health job id appears in no ci-required needs: list" do
-    ci_yaml = File.read!(@ci_yml)
+  defp required_context_hits(ruleset, name) do
+    contexts =
+      for %{"type" => "required_status_checks", "parameters" => params} <- ruleset["rules"],
+          check <- params["required_status_checks"],
+          do: check["context"]
 
-    case String.split(ci_yaml, "\n  ci-required:\n", parts: 2) do
-      [_, tail] ->
-        needs_block =
-          case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, tail) do
-            [_, items] -> items
-            nil -> ""
-          end
-
-        refute needs_block =~ "- deps-health",
-               "ci-required's needs: must not list deps-health — the lane is non-required"
-
-      _ ->
-        flunk("could not find a \"  ci-required:\" job in .github/workflows/ci.yml")
-    end
+    if contexts == [], do: flunk("no required_status_checks contexts in #{@ruleset}")
+    Enum.filter(contexts, &(&1 == name))
   end
 
-  test "the Dependency Health job name appears in no ruleset required context" do
-    ruleset = File.read!(@ruleset)
+  test "the deps-health job name appears in no ruleset required context" do
+    ruleset = @ruleset |> File.read!() |> Jason.decode!()
+    job_name = YamlElixir.read_from_string!(deps_health_yaml())["jobs"]["deps-health"]["name"]
 
-    refute ruleset =~ "Dependency Health",
-           "#{@ruleset} must not name the Dependency Health job as a required status check"
+    assert is_binary(job_name) and job_name != "", "deps-health job has no name: in the workflow"
+
+    assert required_context_hits(ruleset, job_name) == [],
+           "#{@ruleset} must not name #{inspect(job_name)} as a required status check"
+
+    # Negative control: the same ruleset with the job name appended must report a hit.
+    rsc = Access.filter(&(&1["type"] == "required_status_checks"))
+    path = ["rules", rsc, "parameters", "required_status_checks"]
+    extra = %{"context" => job_name, "integration_id" => 15_368}
+    promoted = update_in(ruleset, path, &(&1 ++ [extra]))
+
+    refute promoted == ruleset
+    assert required_context_hits(promoted, job_name) == [job_name]
   end
 end

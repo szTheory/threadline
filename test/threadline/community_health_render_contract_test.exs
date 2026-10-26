@@ -19,6 +19,7 @@ defmodule Threadline.CommunityHealthRenderContractTest do
   by checking nothing.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @issue_template_dir ".github/ISSUE_TEMPLATE"
   @chooser Path.join(@issue_template_dir, "config.yml")

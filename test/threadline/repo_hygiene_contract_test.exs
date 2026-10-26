@@ -16,6 +16,7 @@ defmodule Threadline.RepoHygieneContractTest do
   modules, per the same-commit roster rule's isolation convention.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
   @job_id "verify-repo-hygiene"
@@ -250,6 +251,16 @@ defmodule Threadline.RepoHygieneContractTest do
              mutated
            ),
            "the alias-arg mutation did not change the input"
+  end
+
+  test "CONTRIBUTING.md states that only the allowlist's literal column is exempt (223 D-18)" do
+    contributing = read_rel!(["CONTRIBUTING.md"]) |> String.replace(~r/\s+/, " ")
+
+    assert String.contains?(
+             contributing,
+             "no file or directory is exempt from the scan other than the allowlist's own literal column"
+           ),
+           "CONTRIBUTING.md lost the 223 D-18 sentence that bounds the repo-hygiene allowlist"
   end
 
   test "CONTRIBUTING.md roster and job table document verify-repo-hygiene" do

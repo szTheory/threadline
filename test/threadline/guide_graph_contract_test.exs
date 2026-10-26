@@ -1,6 +1,7 @@
 defmodule Threadline.GuideGraphContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @lanes %{
     evaluate: [

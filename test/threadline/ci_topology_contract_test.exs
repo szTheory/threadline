@@ -276,7 +276,13 @@ defmodule Threadline.CiTopologyContractTest do
          "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
          "mix dialyzer --no-check"
        )},
-      {"measured timeout", String.replace(yaml, "timeout-minutes: 12", "timeout-minutes: 11")},
+      # Scoped to the Dialyzer job: Run tests also sets timeout-minutes: 12.
+      {"measured timeout",
+       String.replace(
+         yaml,
+         dialyzer_job,
+         String.replace(dialyzer_job, "timeout-minutes: 12", "timeout-minutes: 11")
+       )},
       {"fail-on-unparseable guard",
        String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
       {"build-before-save ordering",
@@ -465,8 +471,100 @@ defmodule Threadline.CiTopologyContractTest do
          File.exists?(Path.join(@repo_root, "test/partition_weights.txt")),
        "bin/ci-test-partitions must read the committed test/partition_weights.txt"}
     ]
+    |> Enum.concat(partition_hang_wiring_checks(job, run_tests_step, script))
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  # D-14/D-15/D-11: the budget watchdog, the monitor formatter args, the
+  # timeout layering and the two partition artifacts.
+  defp partition_hang_wiring_checks(job, run_tests_step, script) do
+    [
+      {timeout_layered?(job, run_tests_step, script),
+       timeout_layering_message(job, run_tests_step, script)},
+      {watchdog_wired?(script),
+       "rule=watchdog: bin/ci-test-partitions must run watch_partitions right before the per-PID wait loop (D-14)"},
+      {monitor_args_wired?(script),
+       "rule=monitor-args: every partition's mix test must get the CLI and PartitionMonitor formatters after its files (D-13)"},
+      {partition_upload?(
+         job,
+         "Upload partition timings",
+         "always()",
+         "partition-timings-${{ matrix.lane }}-${{ github.run_id }}",
+         "tmp/ci-test-partitions/partition-timings-*.tsv"
+       ),
+       "rule=timings-upload: verify-test must always upload partition-timings-<lane>-<run> after Run tests (D-11)"},
+      {partition_upload?(
+         job,
+         "Upload partition logs on failure",
+         "failure()",
+         "partition-logs-${{ matrix.lane }}-${{ github.run_id }}",
+         "tmp/ci-test-partitions/"
+       ),
+       "rule=logs-upload: verify-test must upload partition-logs-<lane>-<run> on failure, after Run tests (D-15)"}
+    ]
+  end
+
+  # Partition budget < Run tests step < job, so the script's watchdog fires
+  # first and the failure-log upload still runs (D-15).
+  defp timeout_layering(job, run_tests_step, script) do
+    {first_integer(~r/^  local budget_s="\$\{CI_TEST_PARTITIONS_BUDGET_S:-(\d+)\}"$/m, script),
+     first_integer(~r/^        timeout-minutes: (\d+)\s*$/m, run_tests_step),
+     first_integer(~r/^    timeout-minutes: (\d+)\s*$/m, job)}
+  end
+
+  defp timeout_layered?(job, run_tests_step, script) do
+    case timeout_layering(job, run_tests_step, script) do
+      {budget_s, step, job_min}
+      when is_integer(budget_s) and is_integer(step) and is_integer(job_min) ->
+        budget_s < step * 60 and step < job_min
+
+      _ ->
+        false
+    end
+  end
+
+  defp timeout_layering_message(job, run_tests_step, script) do
+    {budget_s, step, job_min} = timeout_layering(job, run_tests_step, script)
+
+    "rule=run-tests-step-timeout: Run tests must set timeout-minutes below the job's and above " <>
+      "the partition budget (budget #{inspect(budget_s)} s, step #{inspect(step)} min, " <>
+      "job #{inspect(job_min)} min)"
+  end
+
+  defp watchdog_wired?(script) do
+    Regex.match?(~r/^watch_partitions\(\) \{$/m, script) and
+      String.contains?(script, "  watch_partitions \"$n\" \"$log_dir\"\n  local fail=0\n")
+  end
+
+  defp monitor_args_wired?(script) do
+    String.contains?(script, "\"${files[@]}\" ${monitor_args[@]+\"${monitor_args[@]}\"}") and
+      String.contains?(
+        script,
+        "monitor_args=(--formatter ExUnit.CLIFormatter --formatter Threadline.Test.PartitionMonitor)"
+      )
+  end
+
+  defp partition_upload?(job, step_name, condition, artifact, path) do
+    step = workflow_step(job, step_name)
+
+    Enum.all?([
+      String.contains?(step, "        if: #{condition}\n"),
+      String.contains?(step, "uses: actions/upload-artifact@"),
+      String.contains?(step, "          name: #{artifact}\n"),
+      String.contains?(step, "          path: #{path}\n"),
+      ordered_positions?([
+        position(job, "run: mix verify.test_partitioned"),
+        position(job, "- name: #{step_name}\n")
+      ])
+    ])
+  end
+
+  defp first_integer(regex, text) do
+    case Regex.run(regex, text, capture: :all_but_first) do
+      [digits] -> String.to_integer(digits)
+      nil -> nil
+    end
   end
 
   defp minimum_postgres_errors(yaml) do
@@ -638,6 +736,57 @@ defmodule Threadline.CiTopologyContractTest do
 
       assert partition_topology_errors(y, mexs, s) != [],
              "#{label} mutation must make the partition topology contract fail"
+    end
+
+    # D-14/D-15/D-11: each control must trip its own rule.
+    step_timeout_text = run_tests_step_text <> "        timeout-minutes: 12\n"
+    watchdog_text = "  watch_partitions \"$n\" \"$log_dir\"\n  local fail=0\n"
+    monitor_args_text = " ${monitor_args[@]+\"${monitor_args[@]}\"}"
+    timings_step = workflow_step(workflow_job(yaml, "verify-test"), "Upload partition timings")
+
+    logs_step =
+      workflow_step(workflow_job(yaml, "verify-test"), "Upload partition logs on failure")
+
+    for text <- [step_timeout_text, watchdog_text, monitor_args_text] do
+      assert String.contains?(yaml <> script, text), "mutation anchor missing"
+    end
+
+    assert timings_step != "", "mutation anchor missing"
+    assert logs_step != "", "mutation anchor missing"
+
+    rule_controls = [
+      {"the Run tests step timeout removed",
+       String.replace(yaml, step_timeout_text, run_tests_step_text), script,
+       "rule=run-tests-step-timeout"},
+      {"the Run tests step timeout raised to the job's",
+       String.replace(
+         yaml,
+         step_timeout_text,
+         run_tests_step_text <> "        timeout-minutes: 20\n"
+       ), script, "rule=run-tests-step-timeout"},
+      {"the partition budget raised past the step timeout", yaml,
+       String.replace(
+         script,
+         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-480}\"",
+         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-900}\""
+       ), "rule=run-tests-step-timeout"},
+      {"the watchdog call removed", yaml,
+       String.replace(script, watchdog_text, "  local fail=0\n"), "rule=watchdog"},
+      {"the monitor formatter args dropped", yaml, String.replace(script, monitor_args_text, ""),
+       "rule=monitor-args"},
+      {"the partition timings upload removed", String.replace(yaml, timings_step, ""), script,
+       "rule=timings-upload"},
+      {"the partition logs upload removed", String.replace(yaml, logs_step, ""), script,
+       "rule=logs-upload"}
+    ]
+
+    for {label, y, s, rule} <- rule_controls do
+      refute {y, s} == {yaml, script}, "#{label} control did not change the input"
+
+      errors = partition_topology_errors(y, mix_exs, s)
+
+      assert Enum.any?(errors, &String.contains?(&1, rule)),
+             "#{label} mutation must report #{rule}, got #{inspect(errors)}"
     end
   end
 

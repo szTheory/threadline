@@ -24,6 +24,7 @@ defmodule Threadline.DepsHealthReportTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
   @script Path.join(@repo_root, "bin/deps-health-report")
@@ -936,15 +937,12 @@ defmodule Threadline.DepsHealthReportTest do
       assert File.exists?(@workflow_path)
       yaml = File.read!(@workflow_path)
 
-      [_, after_report] = String.split(yaml, "bin/deps-health-report", parts: 2)
       # the id: must precede the run: line in the same step; look just before.
       [before_report, _] = String.split(yaml, "bin/deps-health-report", parts: 2)
       step_start = before_report |> String.split(~r/\n\s{6}- name:/) |> List.last()
 
       assert step_start =~ ~r/id:\s*report/,
              "the step invoking bin/deps-health-report must carry `id: report`"
-
-      refute after_report == nil
     end
 
     test "the upsert step's if: starts with always() && and compares against 'clean'" do

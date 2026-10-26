@@ -1,5 +1,6 @@
 defmodule Threadline.AuditDocContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.GettingStartedFixtures
 

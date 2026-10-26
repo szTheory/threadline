@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+# Read-only main CI measurement (phase 247 D-08 / D-12).
+#
+#   bin/measure-main-ci --since <40-hex sha> [--count N] [--ratios] [--format json|text]
+#
+# Selects the first N consecutive ci.yml runs on main (event push or
+# workflow_dispatch) whose head is at or after --since and whose ATTEMPT 1
+# concluded success. Cancelled, failed or unfinished attempt-1 runs are skipped
+# and listed under `excluded`. Emits threadline.main-ci-measurement/1 JSON with
+# per-run wall seconds, per-job durations, the slowest job and the median wall.
+#
+# Why attempt 1: re-running a job moves the run object's updated_at (and its
+# conclusion) to the re-run, so the bare run object measures the re-run, not
+# the critical path. Every timestamp here comes from /actions/runs/<id>/attempts/1.
+#
+# --ratios also reads each `Build and test (<lane>)` job log and extracts the
+# partition `| max/min |` row that bin/ci-test-partitions prints.
+#
+# This script never writes to GitHub: the gh boundary below is closed over
+# symbolic read operations, and every id is validated as decimal digits.
+set -euo pipefail
+
+GH_BIN=${GH_BIN:-gh}
+since=""
+count=5
+ratios=false
+format=text
+
+die() {
+  echo "measure-main-ci: $*" >&2
+  exit 1
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --since)
+      [ "$#" -ge 2 ] || die "--since requires a value"
+      since=$2
+      shift 2
+      ;;
+    --count)
+      [ "$#" -ge 2 ] || die "--count requires a value"
+      count=$2
+      shift 2
+      ;;
+    --ratios)
+      ratios=true
+      shift
+      ;;
+    --format)
+      [ "$#" -ge 2 ] || die "--format requires a value"
+      format=$2
+      shift 2
+      ;;
+    *)
+      die "unknown argument $1"
+      ;;
+  esac
+done
+
+case "$format" in
+  json | text) ;;
+  *) die "--format must be json or text" ;;
+esac
+
+printf '%s' "$since" | grep -Eq '^[0-9a-f]{40}$' || die "--since must be 40 lowercase hex"
+printf '%s' "$count" | grep -Eq '^[1-9][0-9]?$' || die "--count must be 1-99"
+
+digits() {
+  printf '%s' "$1" | grep -Eq '^[0-9]+$' || die "$2 must be decimal digits"
+}
+
+# The GitHub boundary is intentionally closed over symbolic read operations.
+# Callers cannot provide flags, verbs, resource paths, or arbitrary arguments.
+gh_read() {
+  local operation=$1
+  case "$operation" in
+    list-main-runs)
+      [ "$#" -eq 1 ] || die "list-main-runs takes no arguments"
+      "$GH_BIN" run list \
+        --workflow .github/workflows/ci.yml \
+        --branch main \
+        --limit 100 \
+        --json databaseId,headSha,event,status,conclusion,createdAt
+      ;;
+    compare)
+      [ "$#" -eq 3 ] || die "compare requires a base and a head"
+      printf '%s' "$2" | grep -Eq '^[0-9a-f]{40}$' || die "compare base must be 40 lowercase hex"
+      printf '%s' "$3" | grep -Eq '^[0-9a-f]{40}$' || die "compare head must be 40 lowercase hex"
+      "$GH_BIN" api "repos/{owner}/{repo}/compare/$2...$3" --jq .status
+      ;;
+    run-attempt-1)
+      [ "$#" -eq 2 ] || die "run-attempt-1 requires one run id"
+      digits "$2" "run id"
+      "$GH_BIN" api "repos/{owner}/{repo}/actions/runs/$2/attempts/1"
+      ;;
+    attempt-1-jobs)
+      [ "$#" -eq 2 ] || die "attempt-1-jobs requires one run id"
+      digits "$2" "run id"
+      "$GH_BIN" api "repos/{owner}/{repo}/actions/runs/$2/attempts/1/jobs" --paginate
+      ;;
+    job-log)
+      [ "$#" -eq 2 ] || die "job-log requires one job id"
+      digits "$2" "job id"
+      "$GH_BIN" api "repos/{owner}/{repo}/actions/jobs/$2/logs"
+      ;;
+    *)
+      die "rejected unknown read operation: $operation"
+      ;;
+  esac
+}
+
+# Seconds between two ISO-8601 timestamps (fractional seconds tolerated).
+JQ_SECONDS='def ts: sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;'
+
+runs=$(gh_read list-main-runs)
+
+# Validate every id and sha gh returned before any further call.
+printf '%s' "$runs" | jq -e '
+  type == "array" and
+  all(.[]; (.databaseId | type) == "number" and (.databaseId | tostring | test("^[0-9]+$")) and
+           (.headSha | type) == "string" and (.headSha | test("^[0-9a-f]{40}$")))
+' > /dev/null || die "gh returned a run with a non-digit id or a malformed head sha"
+
+candidates=$(printf '%s' "$runs" | jq -r '
+  [.[] | select(.event == "push" or .event == "workflow_dispatch")]
+  | sort_by([.createdAt, .databaseId]) | .[] | "\(.databaseId) \(.headSha) \(.event)"
+')
+
+selected="[]"
+excluded="[]"
+found=0
+# head sha -> compare status cache, one "sha status" pair per line (bash 3.2 has
+# no associative arrays).
+ancestry_cache=""
+
+while read -r id head event <&3; do
+  [ -n "${id:-}" ] || continue
+  [ "$found" -lt "$count" ] || break
+  digits "$id" "run id"
+
+  ancestry=$(printf '%s\n' "$ancestry_cache" | awk -v sha="$head" '$1 == sha { print $2; exit }')
+  if [ -z "$ancestry" ]; then
+    if [ "$head" = "$since" ]; then
+      ancestry=identical
+    else
+      ancestry=$(gh_read compare "$since" "$head")
+    fi
+    ancestry_cache=$(printf '%s\n%s %s' "$ancestry_cache" "$head" "$ancestry")
+  fi
+  case "$ancestry" in
+    ahead | identical) ;;
+    *) continue ;;
+  esac
+
+  attempt=$(gh_read run-attempt-1 "$id")
+  status=$(printf '%s' "$attempt" | jq -r '.status // ""')
+  conclusion=$(printf '%s' "$attempt" | jq -r '.conclusion // ""')
+  if [ "$status" != completed ] || [ "$conclusion" != success ]; then
+    reason=${conclusion:-$status}
+    excluded=$(jq -c --argjson id "$id" --arg event "$event" --arg head "$head" --arg reason "${reason:-unknown}" \
+      '. + [{id:$id,event:$event,head_sha:$head,reason:$reason}]' <<< "$excluded")
+    continue
+  fi
+
+  wall=$(printf '%s' "$attempt" | jq -e "$JQ_SECONDS"' (.updated_at | ts) - (.run_started_at | ts)') ||
+    die "attempt 1 of run $id has no usable timestamps"
+
+  jobs=$(gh_read attempt-1-jobs "$id" | jq -cs "$JQ_SECONDS"'
+    [.[].jobs[]
+     | {id, name, seconds: (if .started_at and .completed_at
+                            then ((.completed_at | ts) - (.started_at | ts)) else null end)}]
+  ')
+  printf '%s' "$jobs" | jq -e 'all(.[]; (.id | type) == "number")' > /dev/null ||
+    die "gh returned a job with a non-digit id"
+
+  row=$(jq -cn --argjson id "$id" --arg event "$event" --arg head "$head" --argjson wall "$wall" --argjson jobs "$jobs" '
+    {id:$id, event:$event, head_sha:$head, wall_s:$wall,
+     jobs: [$jobs[] | {id, name, seconds}],
+     slowest_job: ([$jobs[] | select(.seconds != null)] | max_by(.seconds) // null | if . then {name, seconds} else null end)}
+  ')
+  selected=$(jq -c --argjson row "$row" '. + [$row]' <<< "$selected")
+  found=$((found + 1))
+done 3<<< "$candidates"
+
+ratios_json="{}"
+if [ "$ratios" = true ]; then
+  while IFS=$'\t' read -r job_id lane <&3; do
+    [ -n "${job_id:-}" ] || continue
+    digits "$job_id" "job id"
+    ratio=$(gh_read job-log "$job_id" |
+      sed -E $'s/\x1b\\[[0-9;]*[A-Za-z]//g' |
+      sed -nE 's/.*\|[[:space:]]*max\/min[[:space:]]*\|[^|]*\|[[:space:]]*([0-9]+(\.[0-9]+)?)[[:space:]]*\|.*/\1/p' |
+      tail -n 1)
+    if [ -z "$ratio" ]; then
+      echo "measure-main-ci: warning: no max/min row in job $job_id ($lane)" >&2
+      ratio=null
+    fi
+    ratios_json=$(jq -c --arg lane "$lane" --argjson ratio "$ratio" '.[$lane] += [$ratio]' <<< "$ratios_json")
+  done 3< <(jq -r '
+    .[].jobs[]
+    | select(.name | test("^Build and test \\([A-Za-z0-9._-]+\\)$"))
+    | "\(.id)\t\(.name | capture("^Build and test \\((?<lane>[^)]+)\\)$").lane)"
+  ' <<< "$selected")
+fi
+
+if [ "$found" -ge "$count" ]; then state=measured; else state=insufficient; fi
+
+result=$(jq -cn \
+  --arg since "$since" --argjson count "$count" --arg state "$state" --argjson found "$found" \
+  --argjson runs "$selected" --argjson excluded "$excluded" --argjson ratios "$ratios_json" \
+  --argjson with_ratios "$ratios" '
+  def median: sort | length as $n
+    | if $n == 0 then null
+      elif $n % 2 == 1 then .[($n - 1) / 2]
+      else (.[$n / 2 - 1] + .[$n / 2]) / 2 end;
+  {schema: "threadline.main-ci-measurement/1", since: $since, count: $count, state: $state,
+   found: $found, runs: $runs,
+   median_wall_s: (if $state == "measured" then ([$runs[].wall_s] | median) else null end),
+   excluded: $excluded,
+   ratios: (if $with_ratios then $ratios else null end)}
+')
+
+if [ "$format" = json ]; then
+  printf '%s\n' "$result"
+else
+  printf '%s\n' "$result" | jq .
+fi
