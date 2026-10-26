@@ -642,6 +642,7 @@ jobs:
             # The PostgreSQL 15 support floor is pinned by test/threadline/ci_topology_contract_test.exs.
             pg: "15"
             runner: "ubuntu-24.04"
+            test-scope: toolchain
           - lane: current
             version-file: ".tool-versions"
             pg: "16"
@@ -651,6 +652,7 @@ jobs:
             otp: "29.1.1"
             pg: "18.6"
             runner: "ubuntu-24.04"
+            test-scope: toolchain
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     env:
@@ -773,11 +775,16 @@ jobs:
       # runs. A job-level timeout kills the runner and loses the log (PR #89,
       # run 40137607358). THREADLINE_CI_LANE goes into each partition-timings
       # TSV header as lane=<lane>, for `--ingest-weights --lane`.
+      #
+      # CI-03 lane scope (D-10): min/latest drop `@moduletag :repo_contract`
+      # files (toolchain-independent repo contracts); current runs everything;
+      # an absent matrix key renders empty = full scope.
       - name: Run tests
         run: mix verify.test_partitioned
         timeout-minutes: 12
         env:
           THREADLINE_CI_LANE: ${{ matrix.lane }}
+          THREADLINE_TEST_SCOPE: ${{ matrix.test-scope }}
 
       # D-11: per-file partition timings on every run, refreshed into
       # test/partition_weights.txt with bin/ci-test-partitions --ingest-weights.
