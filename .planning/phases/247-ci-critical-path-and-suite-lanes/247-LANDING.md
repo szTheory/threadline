@@ -199,7 +199,7 @@ The Phase 247 CI critical-path work (CI-01, D-13 monitor, D-14/D-15 watchdog and
 layering, D-12 ratio row, D-09/D-10 lane scope, `bin/measure-main-ci`) plus the six 246-05
 `test:` fixes, as one non-releasable `ci:` squash (D-02 step 1, second half; D-03).
 
-**Status: BRANCH BUILT AND PROVEN, awaiting the maintainer push, PR and merge.**
+**Status: LANDED.** The B1 squash `3463fa74` is on origin/main (see "### Merge" at the end of this section).
 
 | Field | Value |
 |-------|-------|
@@ -327,3 +327,21 @@ branch below was also cut from `a99dd653` and does not carry the fix.
 | Commit | `e1c2a3f0ec5f0acda09b9ac43bb63d0173817f3a` `test: throwaway PR #89 hang-shape reproduction (do not merge)` |
 | Content | `test/threadline/zz_hang_repro_test.exs` (`Threadline.ZzHangReproTest`, `async: false`, `setup_all` → `Process.sleep(:infinity)`, one trivial test, no tag) plus the weights row `1000 test/threadline/zz_hang_repro_test.exs` in sorted position (last) |
 | Pushed | no: a maintainer checkpoint command; never merged, never a PR |
+
+### Merge
+
+| Field | Value |
+|-------|-------|
+| PR | #94 (`ci: publish browser spec timings, name hung tests, and scope repo contracts to the current lane (247)`), pushed, opened and squash-merged by the orchestrator under the maintainer's own-words grant |
+| First PR run | `40387745942` on `a99dd653`: `Build and test (current)` and `(latest)` red in `partition_monitor_test.exs` (fixed above), `Build and test (min)` green (job `121800408825`) |
+| Green PR run | `40392212575` on `525ea1d5`: all 15 checks green, `CI required` = pass; `Build and test (min)` job `121815845365` green with `partition-timings-min-40392212575` = 4 TSVs (D-13 Elixir 1.15 proof) |
+| Merge | `gh pr merge --squash --match-head-commit 525ea1d5` at 2026-10-26T20:16:59Z |
+| B1 squash SHA on origin/main | `3463fa7416696578faa8a9933de0900e61dc9d48` (parent `9f69a904`, the A2 removal squash) |
+| Squash subject | `ci: publish browser spec timings, name hung tests, and scope repo contracts to the current lane (247)` (non-releasable, D-03) |
+| Squash tree check | `git diff --quiet 3463fa74 525ea1d5` exit 0: the squash tree equals the proven land head |
+| Main runs read (D-02 step 2) | `40394247390` (push), `40396194471` (workflow_dispatch), `40398138085` (workflow_dispatch); attempt 1, all success, head `3463fa74`; dispatched one at a time. Numbers in `247-OBSERVATION.md` |
+| D-16(c) repro run | `40387548421` on `throwaway/247-hang-repro` (`e1c2a3f0`): failure, `Build and test (min)` job `121799736736` red in 525 s with `Threadline.ZzHangReproTest (setup_all)` named (see `247-OBSERVATION.md`) |
+| Remote branches | `land/v1.47-b1` and `throwaway/247-hang-repro` deleted on origin by the orchestrator after the reads (`git ls-remote --heads` returns nothing); both local branches kept (`[gone]`) |
+| Archive tag | `archive/ui-critic-loop` pushed by the orchestrator: `git ls-remote origin refs/tags/archive/ui-critic-loop` = `9afd6c92…` (closes the Land A2 hand-off) |
+| Temp worktrees | land and repro worktrees removed with `git worktree remove`; neither is in `git worktree list` |
+| Postgres containers | none left: `docker ps -a --filter label=dev.threadline.plan=247-08` and `…=247-08-fix` are empty |
