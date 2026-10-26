@@ -8,8 +8,8 @@ seed: .planning/research/QUALITY-ROADMAP-2026-10-24.md §Carried-debt register +
 verified_against: 37dc883d04a3ead7395f5e6d10f5798b9a84f100
 closed: 64
 waived: 44
-routed: 23
-total: 131
+routed: 24
+total: 132
 status: complete
 ---
 
@@ -21,7 +21,7 @@ status: complete
 (to a named milestone, v1.48 to v1.51, or a seed). The close check
 `tools/verify-phase.sh --close` reads this table.
 
-All **131 items** are accounted for (none silently dropped):
+All **132 items** are accounted for (none silently dropped):
 
 - the 12 rows of the QUALITY-ROADMAP carried-debt table, expanded to one row per finding;
 - the D-00a..D-00c corrections, which add 223 WR-01..05, the omitted 215/216 findings, the
@@ -31,7 +31,9 @@ All **131 items** are accounted for (none silently dropped):
 - the 11 phase-217 round-1/round-2 review findings;
 - the 198 review finding CR-05, which also has WINDOWS row W7 (the two rows cross-reference
   each other and are not merged);
-- the 60 open WINDOWS rows, as `W<id>` anchors.
+- the 60 open WINDOWS rows, as `W<id>` anchors;
+- the 246-07 D-24 gate finding that `operator-screenshot-regression.spec.ts:101` fails
+  standalone (pre-existing on origin/main), as `UI-HOME-SHOT-101`.
 
 Evidence was re-checked at `37dc883d`. Commits named `(#NN)` are squash merges on main.
 Hashes from phase branches that were squashed (for example 217-06's 09817a77) are not
@@ -52,7 +54,7 @@ What is still real is routed, never waived:
 - **v1.49:** 216 WR-01/WR-02, the clean_checkout tmp collision, and 215 IN-04.
 - **v1.51:** 215 WR-09 with WR-10.
 - **SEED-008:** the operator-UI items (DR-243-01, typography, the Redaction copy, and the
-  8 screenshot baselines in W14 to W17 and W62).
+  10 screenshot baselines: W14 to W17 and W62, plus `UI-HOME-SHOT-101` for the :101 pair).
 
 One disposition departs from D-19's wording: 218 WR-03 is waived, not closed or routed by the
 REL-02 test. See its row.
@@ -129,6 +131,7 @@ REL-02 test. See its row.
 | `DR-243-01` | History drawer title partly under the fixed header (medium) | .planning/milestones/v1.46-MILESTONE-AUDIT.md | .planning/milestones/v1.46-MILESTONE-AUDIT.md:121 | routed | SEED-008 (operator-UI carry; UI parked until 1.0.0) |
 | `UI-TYPOGRAPHY` | Dense typography uses sizes outside the four-size contract | .planning/milestones/v1.46-MILESTONE-AUDIT.md | .planning/milestones/v1.46-MILESTONE-AUDIT.md:122 | routed | SEED-008 (operator-UI carry) |
 | `UI-REDACTION-COPY` | Redaction empty-category copy reads awkwardly beside the zero-row heading | .planning/milestones/v1.46-MILESTONE-AUDIT.md | lib/threadline/operator_surface/live/policy_redaction_live.ex:450-454 | routed | SEED-008 (operator-UI carry) |
+| `UI-HOME-SHOT-101` | Home full-page screenshot height drift (:101, desktop and mobile), pre-existing on origin/main 23178fb0 | .planning/phases/246-debt-closeout-and-critic-retirement/deferred-items.md | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts:101; 246-LANDING.md gate (419/10/58) | routed | SEED-008 (screenshot baselines wait for the UI work; never regenerated outside it) |
 | `198-CR-05` | Ruleset snapshot never diffed against live bypass_actors (same defect as W7) | .planning/milestones/v1.41-phases/198-green-bringup/198-VERIFICATION.md | bin/verify-branch-protection has no bypass check; .github/rulesets/main.json:5 | routed | v1.48 (safe by default); WINDOWS row W7 carries the same defect |
 | <a id="W1"></a>W1 | GREEN-11 two-dispatch flake-issue dedup was never run live | .github/workflows/flake-detection.yml | .github/workflows/flake-detection.yml:297,320; test/threadline/ci_issue_upsert_contract_test.exs | closed | Fixed: dedup moved to bin/upsert-ci-issue (218-02), which is contract-tested and runs on main |
 | <a id="W3"></a>W3 | mix ci.all failed at verify.example (DemoContractTest) | .planning/milestones/v1.41-phases/198-green-bringup/deferred-items.md | 3d148435 (#26, 0.10.0) | closed | Fixed: ci.all and verify.example have been green on main since the v1.41 landing |

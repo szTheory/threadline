@@ -31,16 +31,22 @@ seed they would be waived without a reason or lost. Each item below is a `routed
 - **Redaction copy.** The empty-category labels in
   `lib/threadline/operator_surface/live/policy_redaction_live.ex:450-454` read awkwardly
   next to the zero-row heading.
-- **The 8 screenshot-regression baselines.** The failures are
+- **The 10 screenshot-regression baselines.** The failures are
   `examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts:108/:115/:136/:145`
-  (dense Timeline, row-history drawer, Exports, Retention), each on desktop-chromium and
-  mobile-chromium. WINDOWS rows 14-17 and 62 record them. The baselines were last written in
-  180-04 and have been proven pre-existing. Until the UI work reopens, a healthy browser
-  lane has exactly these 8 failures. Regenerate the baselines only as part of that UI work.
+  (dense Timeline, row-history drawer, Exports, Retention; WINDOWS rows 14-17 and 62; the
+  baselines were last written in 180-04 and have been proven pre-existing) plus
+  `operator-screenshot-regression.spec.ts:101` ("global chrome and Home workflow launchers
+  stay stable"), each on desktop-chromium and mobile-chromium. For `:101` the full-page Home
+  screenshot height drifted: the committed `home.png` baseline is 1281 px desktop / 2013 px
+  mobile, origin/main `23178fb0` renders 1274 / 2048 px, and it already fails before the
+  phase-246 slices at `614cb1fd`. The 246-07 D-24 gate found it; register row
+  `UI-HOME-SHOT-101` records it. Until the UI work reopens, a healthy standalone browser lane
+  has exactly these 10 failures; any other failure, or a different failing set, is a
+  regression. Regenerate the baselines only as part of that UI work.
 - **Degraded timeline twin.** Untangle the degraded timeline twin from v1.46 evidence
   custody. This is follow-up work for when the UI reopens (246-CONTEXT deferred ideas).
 
 ## Done-when
 
 Each item is fixed or explicitly re-dispositioned inside the reopened UI work, and the
-8-failure browser baseline is replaced by regenerated, reviewed screenshots.
+10-failure browser baseline is replaced by regenerated, reviewed screenshots.

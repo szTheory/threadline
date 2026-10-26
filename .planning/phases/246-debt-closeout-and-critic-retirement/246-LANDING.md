@@ -90,7 +90,8 @@ The two `:101` failures are **not caused by this phase**:
 
 The real standalone baseline is therefore **10 failures** on this machine: the four known
 pairs plus `:101` × 2. Baselines were not regenerated. The `:101` drift is logged in
-`deferred-items.md` for SEED-008, where screenshot baselines are owned. A failure outside
+`deferred-items.md` for SEED-008, where screenshot baselines are owned, and is routed as
+register row `UI-HOME-SHOT-101`; SEED-008 Scope now owns the 10-failure threshold. A failure outside
 these 10 is a regression. RESEARCH predicted about 421/8/58 standalone; the measured result
 is 419/10/58.
 
