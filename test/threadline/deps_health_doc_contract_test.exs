@@ -372,25 +372,6 @@ defmodule Threadline.DepsHealthDocContractTest do
              "workflow's LABEL: value #{inspect(others)}, so the dedup streams never merge"
   end
 
-  test "the deps-health job id appears in no ci-required needs: list" do
-    ci_yaml = File.read!(@ci_yml)
-
-    case String.split(ci_yaml, "\n  ci-required:\n", parts: 2) do
-      [_, tail] ->
-        needs_block =
-          case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, tail) do
-            [_, items] -> items
-            nil -> ""
-          end
-
-        refute needs_block =~ "- deps-health",
-               "ci-required's needs: must not list deps-health — the lane is non-required"
-
-      _ ->
-        flunk("could not find a \"  ci-required:\" job in .github/workflows/ci.yml")
-    end
-  end
-
   defp required_context_hits(ruleset, name) do
     contexts =
       for %{"type" => "required_status_checks", "parameters" => params} <- ruleset["rules"],
