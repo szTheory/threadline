@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-release-shape, verify-repo-hygiene, verify-format, verify-deps-audit, verify-compile-no-optional, verify-hex-evaluator, verify-pgbouncer-topology, verify-credo, verify-bump-rehearsal, verify-dialyzer, verify-test, verify-example-browser, ci-required
+# verify-release-shape, verify-repo-hygiene, verify-format, verify-deps-audit, verify-compile-no-optional, verify-hex-evaluator, verify-pgbouncer-topology, verify-credo, verify-bump-rehearsal, verify-dialyzer, verify-test, verify-example-browser, verify-example-browser-receipt, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -904,15 +904,26 @@ jobs:
   # coverage cut (DEBT-02; UI work is parked until 1.0.0).
 
   verify-example-browser:
-    name: Example app browser E2E (2 projects)
+    name: Example app browser E2E
+    # One leg per Playwright project (247 D-07). Base axis `project` drives the
+    # check-name suffix, so GitHub posts exactly
+    # "Example app browser E2E (desktop-chromium)" and
+    # "Example app browser E2E (mobile-chromium)" from this static `name:`, the
+    # same construction as verify-test's `lane` axis. fail-fast: false keeps a
+    # red leg from cancelling the other, so both legs always report. The legs
+    # upload their evidence; verify-example-browser-receipt reconciles it.
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop-chromium, mobile-chromium]
     runs-on: ubuntu-24.04
-    # 18 is a BUDGET (D-16), not a multiple of an observed green p95 — this lane
-    # has no observed green duration to size against. Its two recorded runs are
-    # 1h33m38s while systemically broken (run 28214113903) and 2m04s while
-    # fast-failing (run 33113148222). 18 is therefore a deliberate ceiling: it
-    # will fail a lane that regresses back toward the 1h33m case rather than
-    # silently absorbing it. Re-derive from a real green run when one exists.
-    timeout-minutes: 18
+    # Per-leg budget (247 D-07c, D-16 style: step < job), from the CI-01 means in
+    # 247-OBSERVATION.md "CI-02 split design inputs": slowest projected leg step
+    # 365 s, worst-case 389 s. Step 9 min = 540 s (1.48x projected, 1.39x worst
+    # case); job 12 min = 720 s >= 540 s step + 62 s setup + ~60 s upload margin
+    # (662 s). If a leg step goes above 450 s, raise to 10 / 13 rather than let
+    # the timeout become the flake.
+    timeout-minutes: 12
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -1028,14 +1039,16 @@ jobs:
       # The branch-protection context is `CI required` alone. This job's `name:`
       # is free to change and is pinned only by the phase 221 name contract
       # (`@ci_check_names`); it votes through `ci-required`'s needs list.
-      # Strictly less than the job-level 18 so the STEP fails first — a job-level
+      # Strictly less than the job-level 12 so the STEP fails first — a job-level
       # timeout kills the runner outright and the failure-artifact upload below
-      # never executes. 14 < 18 keeps the diagnosis path alive.
+      # never executes. 9 < 12 keeps the diagnosis path alive. playwright.config.ts
+      # `maxFailures: 5` now applies per leg: each leg aborts after its own 5th
+      # failure, so a fully red run can retain up to 10 traces across both legs.
       - name: Run example Playwright suite
-        timeout-minutes: 14
+        timeout-minutes: 9
         env:
-          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json
-        run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json
+        run: mix verify.example_browser --project=${{ matrix.project }}
 
       # CI-01 (247 D-04/D-05): slowest specs from the JSON report written above.
       # Diagnostic only: always() so a red run still shows its timings, and a
@@ -1044,11 +1057,11 @@ jobs:
         if: always()
         working-directory: examples/threadline_phoenix/e2e
         env:
-          BROWSER_TIMINGS_JSON: ${{ runner.temp }}/browser-timings-all-${{ github.run_id }}.json
+          BROWSER_TIMINGS_JSON: ${{ runner.temp }}/browser-timings-${{ matrix.project }}-${{ github.run_id }}.json
         run: |
-          report="${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
+          report="${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json"
           if [ -f "$report" ] && [ -x ./node_modules/.bin/tsx ]; then
-            ./node_modules/.bin/tsx support/slow-specs.ts "$report" --label all --out "$BROWSER_TIMINGS_JSON"
+            ./node_modules/.bin/tsx support/slow-specs.ts "$report" --label ${{ matrix.project }} --out "$BROWSER_TIMINGS_JSON"
           else
             echo "::warning::slow-specs: no Playwright JSON report"
           fi
@@ -1057,37 +1070,39 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: browser-timings-all-${{ github.run_id }}
-          path: ${{ runner.temp }}/browser-timings-all-${{ github.run_id }}.json
+          name: browser-timings-${{ matrix.project }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/browser-timings-${{ matrix.project }}-${{ github.run_id }}.json
           if-no-files-found: warn
           retention-days: 14
 
       - name: Discover required operator journeys
         working-directory: examples/threadline_phoenix/e2e
         env:
-          OPERATOR_CI_DISCOVERED_JSON: ${{ runner.temp }}/operator-ci-discovered-${{ github.run_id }}.txt
-        run: ./node_modules/.bin/playwright test --list --project=desktop-chromium --project=mobile-chromium > "$OPERATOR_CI_DISCOVERED_JSON"
+          OPERATOR_CI_DISCOVERED_JSON: ${{ runner.temp }}/operator-ci-discovered-${{ matrix.project }}-${{ github.run_id }}.txt
+        run: ./node_modules/.bin/playwright test --list --project=${{ matrix.project }} > "$OPERATOR_CI_DISCOVERED_JSON"
 
-      - name: Reconcile required operator journey evidence
-        working-directory: examples/threadline_phoenix/e2e
-        env:
-          OPERATOR_CI_RECEIPT: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
-        run: >-
-          ./node_modules/.bin/tsx support/operator-ci-evidence.ts --verify
-          support/operator-journey-inventory.json
-          "${{ runner.temp }}/operator-ci-discovered-${{ github.run_id }}.txt"
-          "${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
-          "$OPERATOR_CI_RECEIPT"
-
-      - name: Upload validated operator journey receipt
+      # Each leg uploads its executed report and its discovered list; the
+      # verify-example-browser-receipt job below downloads every leg's pair and
+      # reconciles them against the inventory in one receipt (247 D-07a). The
+      # project in each file and artifact name keeps merge-multiple from
+      # overwriting one leg with the other.
+      - name: Upload executed operator journey report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: operator-ci-evidence-${{ github.run_id }}
-          path: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
+          name: operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json
           if-no-files-found: error
           retention-days: 14
 
-      # Diagnosis half of D-18. maxFailures aborts the run after 5 failures, so
+      - name: Upload discovered operator journey list
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: operator-ci-discovered-${{ matrix.project }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/operator-ci-discovered-${{ matrix.project }}-${{ github.run_id }}.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      # Diagnosis half of D-18. maxFailures aborts the leg after 5 failures, so
       # this step is what makes that abort useful: it preserves the retained
       # traces (playwright.config.ts `trace: "retain-on-failure"`) for the
       # failures that DID occur, plus the phx.server boot log that explains a
@@ -1097,7 +1112,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: example-browser-e2e-diagnostics
+          name: example-browser-e2e-diagnostics-${{ matrix.project }}
           path: |
             examples/threadline_phoenix/e2e/test-results
             examples/threadline_phoenix/e2e/playwright-report
@@ -1105,8 +1120,75 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # Fan-in (247 D-07a): reconciles every required operator journey across the
+  # merged per-leg evidence, so a journey that ran in no leg, or a leg that
+  # uploaded nothing, fails here. It is the only job besides ci-required that
+  # carries `needs:` (the exact exemption in ci_workflow_parity_contract_test).
+  # No `if:` on purpose: a failed leg SKIPS this job, and ci-required's
+  # alls-green scores that skip as a failure. Same-run artifacts only (no
+  # `run-id`/`github-token`), and the two download patterns cannot match this
+  # job's own `operator-ci-evidence-` upload. The receipt script imports only
+  # node:* modules, so plain node is enough (no npm ci, no setup-node cache).
+  # The checkout is a plain shallow one, not sparse: in this repository a sparse
+  # checkout is reserved for the `.tool-versions`-only toolchain pin shape
+  # (ci_workflow_parity_contract_test's toolchain source rule).
+  verify-example-browser-receipt:
+    name: Browser journey receipt
+    needs: verify-example-browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .tool-versions
+
+      - name: Download executed operator journey reports
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: operator-ci-executed-*-${{ github.run_id }}
+          path: ${{ runner.temp }}/legs
+          merge-multiple: true
+
+      - name: Download discovered operator journey lists
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: operator-ci-discovered-*-${{ github.run_id }}
+          path: ${{ runner.temp }}/legs
+          merge-multiple: true
+
+      - name: Reconcile required operator journey evidence
+        working-directory: examples/threadline_phoenix/e2e
+        env:
+          LEGS_DIR: ${{ runner.temp }}/legs
+          OPERATOR_CI_RECEIPT: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
+        run: |
+          shopt -s nullglob
+          discovered=("$LEGS_DIR"/operator-ci-discovered-*.txt)
+          executed=("$LEGS_DIR"/operator-ci-executed-*.json)
+          if [ "${#discovered[@]}" -eq 0 ] || [ "${#executed[@]}" -eq 0 ]; then
+            echo "::error::no leg evidence downloaded (discovered: ${#discovered[@]}, executed: ${#executed[@]})"
+            exit 1
+          fi
+          args=()
+          for f in "${discovered[@]}"; do args+=(--discovered "$f"); done
+          for f in "${executed[@]}"; do args+=(--executed "$f"); done
+          node --experimental-strip-types support/operator-ci-evidence.ts --verify \
+            support/operator-journey-inventory.json "${args[@]}" "$OPERATOR_CI_RECEIPT"
+
+      - name: Upload validated operator journey receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: operator-ci-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
+          if-no-files-found: error
+          retention-days: 14
+
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not twelve,
+  # into one pass/fail signal so branch protection names one context, not thirteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -1128,6 +1210,7 @@ jobs:
       - verify-test
       - verify-hex-evaluator
       - verify-example-browser
+      - verify-example-browser-receipt
       - verify-pgbouncer-topology
       - verify-release-shape
       - verify-bump-rehearsal
@@ -1145,5 +1228,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all twelve jobs above run unconditionally, so neither
+          # today — all thirteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

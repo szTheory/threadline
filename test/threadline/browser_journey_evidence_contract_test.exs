@@ -136,7 +136,12 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
   test "required CI reconciles native evidence and ci-required still fails on every non-success" do
     workflow = read!(@workflow_path)
     config = read!(@config_path)
-    [browser_job, required_job] = String.split(workflow, "  ci-required:\n", parts: 2)
+    [browser_jobs, required_job] = String.split(workflow, "  ci-required:\n", parts: 2)
+
+    # 247 D-07/D-07a: one matrix leg per project, then the fan-in receipt job.
+    [browser_job, receipt_job] =
+      String.split(browser_jobs, "\n  verify-example-browser-receipt:\n", parts: 2)
+
     [_, test_workflow] = String.split(workflow, "  verify-test:\n", parts: 2)
     [test_job, _] = String.split(test_workflow, "\n  verify-example-browser:\n", parts: 2)
 
@@ -160,27 +165,49 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
 
     assert browser_job =~ "  verify-example-browser:\n", "stable browser job ID changed"
 
-    assert browser_job =~
-             "mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
+    assert browser_job =~ "        project: [desktop-chromium, mobile-chromium]\n"
+    assert browser_job =~ "mix verify.example_browser --project=${{ matrix.project }}"
 
     assert browser_job =~
-             "PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
+             "PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json"
 
     assert config =~ "process.env.PLAYWRIGHT_JSON_OUTPUT_FILE"
     assert config =~ "[[\"github\"], [\"json\"]]"
 
     assert browser_job =~
-             "./node_modules/.bin/playwright test --list --project=desktop-chromium --project=mobile-chromium"
+             "./node_modules/.bin/playwright test --list --project=${{ matrix.project }}"
 
-    assert browser_job =~ "support/operator-ci-evidence.ts --verify"
-    assert browser_job =~ "operator-journey-inventory.json"
+    # Each leg uploads its own executed report and discovered list; the leg
+    # reconciles nothing itself.
+    assert browser_job =~ "name: operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}"
+
+    assert browser_job =~
+             "name: operator-ci-discovered-${{ matrix.project }}-${{ github.run_id }}"
+
+    assert browser_job =~ "name: browser-timings-${{ matrix.project }}-${{ github.run_id }}"
+    assert browser_job =~ "name: example-browser-e2e-diagnostics-${{ matrix.project }}"
     assert browser_job =~ "actions/upload-artifact@"
-    assert browser_job =~ "retention-days: 14"
-    assert browser_job =~ "operator-ci-receipt-${{ github.run_id }}.json"
+    refute browser_job =~ "support/operator-ci-evidence.ts --verify"
     refute browser_job =~ "path: examples/threadline_phoenix/e2e/test-results"
 
+    # The fan-in reconciles every leg's evidence into one receipt.
+    assert receipt_job =~ "    needs: verify-example-browser\n"
+    assert receipt_job =~ "pattern: operator-ci-executed-*-${{ github.run_id }}"
+    assert receipt_job =~ "pattern: operator-ci-discovered-*-${{ github.run_id }}"
+    assert receipt_job =~ "merge-multiple: true"
+    assert receipt_job =~ "support/operator-ci-evidence.ts --verify"
+    assert receipt_job =~ "operator-journey-inventory.json"
+    assert receipt_job =~ "args+=(--discovered \"$f\")"
+    assert receipt_job =~ "args+=(--executed \"$f\")"
+    assert receipt_job =~ "actions/upload-artifact@"
+    assert receipt_job =~ "retention-days: 14"
+    assert receipt_job =~ "operator-ci-receipt-${{ github.run_id }}.json"
+    assert receipt_job =~ "name: operator-ci-evidence-${{ github.run_id }}"
+    refute receipt_job =~ "path: examples/threadline_phoenix/e2e/test-results"
+
     assert required_job =~ "    if: always()"
-    assert required_job =~ "      - verify-example-browser"
+    assert required_job =~ "      - verify-example-browser\n"
+    assert required_job =~ "      - verify-example-browser-receipt\n"
     assert required_job =~ "jobs: ${{ toJSON(needs) }}"
     assert workflow =~ "\n  ci-required:\n", "stable required job ID changed"
   end
@@ -195,8 +222,9 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     # step anywhere else in ci.yml cannot satisfy the contract.
     defp browser_job_block(workflow_yaml) do
       with [before_required, _] <- String.split(workflow_yaml, "  ci-required:\n", parts: 2),
-           [_, job] <- String.split(before_required, "  verify-example-browser:\n", parts: 2) do
-        job
+           [_, jobs] <- String.split(before_required, "  verify-example-browser:\n", parts: 2) do
+        # Stop at the fan-in receipt job: the timings belong to the matrix legs.
+        jobs |> String.split("\n  verify-example-browser-receipt:\n", parts: 2) |> hd()
       else
         _ -> ""
       end
@@ -225,12 +253,12 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
       [
         {"rule=timings-step",
          step != "" and step =~ "working-directory: examples/threadline_phoenix/e2e" and
-           step =~ "support/slow-specs.ts \"$report\" --label all --out"},
+           step =~ "support/slow-specs.ts \"$report\" --label ${{ matrix.project }} --out"},
         {"rule=timings-always", step =~ ~r/^        if: always\(\)$/m},
         {"rule=timings-fail-soft", step != "" and not (step =~ "continue-on-error")},
         {"rule=timings-guard",
          step =~
-           "report=\"${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json\"" and
+           "report=\"${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json\"" and
            step =~ "if [ -f \"$report\" ]"},
         {"rule=timings-artifact",
          upload =~ ~r/^        if: always\(\)$/m and
@@ -277,8 +305,11 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
         {"rule=timings-guard", String.replace(workflow, "if [ -f \"$report\" ] && ", "if "),
          package_json},
         {"rule=timings-artifact",
-         String.replace(workflow, "name: browser-timings-all-", "name: browser-durations-all-"),
-         package_json},
+         String.replace(
+           workflow,
+           "name: browser-timings-${{ matrix.project }}-",
+           "name: browser-durations-${{ matrix.project }}-"
+         ), package_json},
         {"rule=timings-artifact",
          String.replace(workflow, upload_header, "      - name: #{@timings_upload}\n"),
          package_json},

@@ -24,6 +24,7 @@ defmodule Threadline.CiActionRuntimeContractTest do
     {"actions/cache/restore", "v5"} => :node24,
     {"actions/cache/save", "v5"} => :node24,
     {"actions/upload-artifact", "v7"} => :node24,
+    {"actions/download-artifact", "v8"} => :node24,
     {"actions/github-script", "v8"} => :node24,
     {"googleapis/release-please-action", "v5"} => :node24,
     {"re-actors/alls-green", "v1"} => :composite
