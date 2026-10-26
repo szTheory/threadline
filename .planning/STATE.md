@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-02-PLAN.md
-last_updated: "2026-10-26T18:40:04.694Z"
+stopped_at: Completed 247-08-PLAN.md
+last_updated: "2026-10-26T21:07:42.101Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-02 Land A2 complete: critic removal squash 9f69a904 on main (PR #93), archive/ui-critic-loop tagged locally on fea5250b, register Rows 12; tag push handed to the maintainer"
-state_head: 999b835dba51ebdfc74c2f068117ad90c9f4f936
+last_activity_desc: "247-08 Land B1 complete: B1 squash 3463fa74 on main (PR #94), 3 main runs read into 247-OBSERVATION.md (median wall 764 s), CI-04 repro red in 525 s naming the setup_all module"
+state_head: 9abecc41cbfc9c374176b4523c603319255e7ea4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 33
+  completed_plans: 34
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 8 of 13 executed (247-01, 247-02, 247-03, 247-04, 247-05, 247-06, 247-07 and 247-09 complete; 247-08 Land B1 not yet run)
+Plan: 9 of 13 executed (247-01 through 247-09 complete; next 247-10)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-02 Land A2 complete (removal squash 9f69a904 on main; local tag archive/ui-critic-loop; tag push pending maintainer)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 8/13 executed: 247-01, 247-02, 247-03, 247-04, 247-05, 247-06, 247-07, 247-09)
+Last activity: 2026-10-26 — 247-08 Land B1 complete (squash 3463fa74 on main; CI-01 observed on 3 main runs; CI-04 repro run 40387548421 red in 525 s naming the hung setup_all)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 9/13 executed: 247-01 through 247-09)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -329,6 +329,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P07 | 50min | 3 tasks | 63 files |
 | Phase 247 P09 | 25min | 2 tasks | 4 files |
 | Phase 247 P02 | about 6h (incl. maintainer checkpoint) | 3 tasks | 2 files |
+| Phase 247 P08 | 6.5h | 3 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1168,6 +1169,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-09: bin/browser-full-projects fails closed when matrix include:/exclude: rows name a project at all (not only include-only)
 - [Phase 247]: 247-09: operator-ci-evidence.ts picks flag vs legacy form by whether any arg after --verify starts with --; flag form needs >=1 --discovered, >=1 --executed and exactly two positionals (strict parseArgs)
 - [Phase 247]: 247-02: slice proof for Land A2 is patch-id equality of the residual with 46efd9d4 reversed (421fbeb9); 46efd9d4 lands with Land B
+- [Phase 247]: 247-08: CI-02 split keeps 9 min step / 12 min job per leg; projected heaviest leg mobile 365 s step / 427 s job, run about 457 s; observed share 51/49 so neither the 60/40 nor the 65/35 band applies
+- [Phase 247]: 247-08: stress_router_test.exs is about 21% of an even current-lane share, so the D-11 split-by-module contingency is not triggered
+- [Phase 247]: 247-08: the CI-04 repro fired on the in-VM monitor path (exit 1 at 450 s), not the bash watchdog; CI-03 stays Pending until the 247-12 weights refresh
 
 ### Blockers
 
@@ -1188,8 +1192,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T18:40:04.301Z
-**Stopped at:** Completed 247-02-PLAN.md
+**Last session:** 2026-10-26T21:07:41.723Z
+**Stopped at:** Completed 247-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

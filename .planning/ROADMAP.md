@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 8/13 plans executed
+**Plans**: 9/13 plans executed
 
 Plans:
 **Wave 1**
@@ -179,7 +179,7 @@ Plans:
 - [x] 247-07-PLAN.md — CI-03 classification: D-09 no-dodging / no-unclassified contract, `@moduletag :repo_contract` on ~50 files, drop Node from min/latest
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 247-08-PLAN.md — Land B1 `ci:` PR from a pinned `B1 end SHA`; observe ≥ 3 main runs (CI-01 data, ratios); D-16(c) PR #89-shape reproduction
+- [x] 247-08-PLAN.md — Land B1 `ci:` PR from a pinned `B1 end SHA`; observe ≥ 3 main runs (CI-01 data, ratios); D-16(c) PR #89-shape reproduction
 - [x] 247-09-PLAN.md — CI-02 prep: N-file journey receipt (plain node) + `bin/browser-full-projects` matrix resolution (fail closed)
 
 **Wave 7** *(blocked on Wave 6 completion)*
@@ -201,7 +201,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 8/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 9/13 | In Progress | - |
 
 ## Current Position
 
