@@ -2,6 +2,7 @@ defmodule Threadline.CiAttestationContractTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   describe "the recorder itself" do
     test "bin/record-ci-attestation is present and executable" do

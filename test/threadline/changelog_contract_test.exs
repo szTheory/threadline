@@ -20,6 +20,7 @@ defmodule Threadline.ChangelogContractTest do
   published history would make this module fail for a reason no one can fix.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @root File.cwd!()
 

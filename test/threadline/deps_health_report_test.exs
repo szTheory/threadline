@@ -24,6 +24,7 @@ defmodule Threadline.DepsHealthReportTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
   @script Path.join(@repo_root, "bin/deps-health-report")

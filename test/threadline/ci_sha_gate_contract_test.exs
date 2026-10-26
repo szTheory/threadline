@@ -10,6 +10,7 @@ defmodule Threadline.CiShaGateContractTest do
       would silently turn off the only flake signal.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @moduletag :tmp_dir
 
   @script Path.expand("../../bin/ci-sha-gate", __DIR__)

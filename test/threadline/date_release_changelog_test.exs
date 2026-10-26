@@ -10,6 +10,7 @@ defmodule Threadline.DateReleaseChangelogTest do
   and drives the repo script against it with `--root`.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @moduletag :tmp_dir
 

@@ -30,6 +30,7 @@ defmodule Threadline.DepsHealthDocContractTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.Test.CiIssuePairing
 

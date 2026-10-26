@@ -1,5 +1,6 @@
 defmodule Threadline.BrowserJourneyEvidenceContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root Path.expand("../..", __DIR__)
   @e2e_root Path.join(@repo_root, "examples/threadline_phoenix/e2e")
