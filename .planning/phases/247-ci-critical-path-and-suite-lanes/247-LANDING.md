@@ -191,3 +191,81 @@ git ls-remote origin refs/tags/archive/ui-critic-loop
 ```
 
 This push does not block Phase 247.
+
+## Land B1
+B1 end SHA: be29f3c70b449050dae9fd1c723fd6c18e008a13
+
+The Phase 247 CI critical-path work (CI-01, D-13 monitor, D-14/D-15 watchdog and timeout
+layering, D-12 ratio row, D-09/D-10 lane scope, `bin/measure-main-ci`) plus the six 246-05
+`test:` fixes, as one non-releasable `ci:` squash (D-02 step 1, second half; D-03).
+
+**Status: BRANCH BUILT AND PROVEN, awaiting the maintainer push, PR and merge.**
+
+| Field | Value |
+|-------|-------|
+| B1 end SHA | `be29f3c7` = `git log -1 --diff-filter=A --format=%H milestone/v1.47 -- .planning/phases/247-ci-critical-path-and-suite-lanes/247-07-SUMMARY.md` (`docs(247-07): complete CI-03 classification plan`), an ancestor of milestone/v1.47 |
+| `(247-09)` commits in `4b2c3f89..B1_END` | 0 |
+| Land branch | `land/v1.47-b1` (local; temporary worktree `${TMPDIR}/threadline-land-247-b1`) |
+| origin/main at cut | `9f69a904cf99f7691d50754785d42d8feef1162c` (the A2 removal squash) |
+| Pick list | `git log --reverse --format=%H 4b2c3f89..B1_END -- . ':!.planning'` minus the `Removal-Slice:` commits (8 of the 9 are in that range; C1 `4b2c3f89` is its exclusive base) |
+| Picked commits | 20 (`cherry-pick -x`, exit 0, no conflicts, none touch `.planning/`); first `f29a40bf` (215 WR-04), last `58a7cd3d` (247-07 Node on the current lane) |
+| 246-05 `test:` commits carried | 6: `f29a40bf`, `1df4c803`, `f9764172`, `9ff63692`, `6e439225`, `46efd9d4` (246-LANDING landing-order step 2.3) |
+| Phase 247 commits carried | 14 (247-03 ×3, 247-04 ×2, 247-05 ×3, 247-06 ×2, 247-07 ×4) |
+| Planning sync commit | 1 (`docs(planning): sync v1.47 planning through 247-08`, `git checkout milestone/v1.47 -- .planning`); no stale planning files to remove (0 tracked on the land branch but absent on milestone/v1.47) |
+| Land branch commits over origin/main | 21 |
+| Land branch head | `a99dd65346a1e26159c97608022aa34590022277` |
+| `Removal-Slice:` trailers on the branch (`origin/main..HEAD`) | 0 |
+| CHANGELOG | `git diff origin/main HEAD -- CHANGELOG.md` is empty: no adopter-facing entry |
+| PR diff outside `.planning` | 76 files, 3665 insertions, 63 deletions |
+
+### Tree proof
+
+```
+git diff --quiet be29f3c70b449050dae9fd1c723fd6c18e008a13 HEAD -- . ':!.planning'   # exit 0 (land worktree)
+git diff --cached --quiet milestone/v1.47 -- .planning                                  # exit 0 (planning mirror, before the sync commit)
+```
+
+### Hygiene
+
+`bin/verify-repo-hygiene` in the land worktree: exit 0
+(`4542 tracked text file(s) clean; 8 allowlist entries used, 0 inert`).
+
+### Gate
+
+Which tree: **the land worktree.** `git diff --quiet "$B1_END" HEAD -- . ':!.planning'`
+exited 1 in the quality-baseline worktree, because 247-09 code (`bin/browser-full-projects`
+and its tests) has already landed on milestone/v1.47 after `B1_END`. So the gate ran on the
+land branch tree, which equals `B1_END` outside `.planning`, after `mix deps.get`.
+
+Command: `DB_HOST=127.0.0.1 DB_PORT=<port> CI=true mix ci.all` on an ephemeral `postgres:16`
+container labelled `dev.threadline.plan=247-08`, log ANSI-stripped. Result: **exit 0**, and no
+`[1-9][0-9]* failures?` line.
+
+| Step | Decisive line |
+|------|---------------|
+| credo | `5670 mods/funs, found no issues.` |
+| deps audit | `findings: none` (the example-only Bandit advisories report as the non-blocking tier, as designed) |
+| repo hygiene | `verify-repo-hygiene: 4542 tracked text file(s) clean; 8 allowlist entries used, 0 inert` |
+| xref cycles | `No cycles found` |
+| library tests | `32 properties, 3361 tests, 0 failures, 3 excluded` |
+| example tests | `132 tests, 0 failures` |
+| Dialyzer | `Total errors: 0, Skipped: 0, Unnecessary Skips: 0` / `done (passed successfully)` |
+| Dialyzer slice | `17 tests, 0 failures, 16 excluded` |
+| CI browser lane (desktop + mobile chromium) | `418 passed (6.7m)`, `56 skipped`, 0 failed |
+
+The first gate attempt on the fresh worktree exited 2 for two environmental reasons. Neither
+needed a code change. (1) Two `BrowserJourneyEvidenceContractTest` cases failed with
+`Playwright CLI is missing; install the locked E2E dependencies`: in a fresh checkout,
+`verify.test` runs before the browser step's `npm ci`. (2) Dialyzer stopped with `Could not
+read PLT file ... no_such_file`, the known PLT cache miss. After `npm ci` in
+`examples/threadline_phoenix/e2e` and `mix dialyzer --plt`, the unchanged tree passed with the
+lines above.
+
+### D-16(c) repro branch (local only)
+
+| Field | Value |
+|-------|-------|
+| Branch | `throwaway/247-hang-repro` (local; temporary worktree `${TMPDIR}/threadline-247-repro`), cut from `land/v1.47-b1` head `a99dd653` |
+| Commit | `e1c2a3f0ec5f0acda09b9ac43bb63d0173817f3a` `test: throwaway PR #89 hang-shape reproduction (do not merge)` |
+| Content | `test/threadline/zz_hang_repro_test.exs` (`Threadline.ZzHangReproTest`, `async: false`, `setup_all` → `Process.sleep(:infinity)`, one trivial test, no tag) plus the weights row `1000 test/threadline/zz_hang_repro_test.exs` in sorted position (last) |
+| Pushed | no: a maintainer checkpoint command; never merged, never a PR |
