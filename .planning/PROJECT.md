@@ -906,7 +906,7 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 | Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | — Pending (v1.48, D-1) |
 | Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | — Pending (v1.48, D-2) |
 | Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
-| Retire the parked UI-critic loop to a tag (2026-10-24) | About 3k lines + 3.6 MB of fixtures with no active use; restorable from the tag | — Pending (v1.47, D-4) |
+| Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
 
 ## Evolution

@@ -141,7 +141,7 @@ evidence that its entire current milestone has passed.
 | Mailglass **f574f838 / 5fa6a380 / b5b2de00 / f2223fa0** (Oct 8) fixed pending scope feedback and proved complete values at real 200% browser zoom, including 320 CSS px layout. | Test browser zoom separately from viewport emulation. Keep old identity and old data paired while new scope loads; do not relabel old evidence prematurely. Hold a real request/patch to inspect pending feedback. |
 | Accrue **519ef895** (Oct 8), quick `261008-cjc`, separated normal verification from destructive baseline capture; **748751c7** repaired an incompletely exercised journey. Its summary still records another suite regenerating tracked PNGs. | Make ordinary tests read-only over baselines; explicit capture writes to a fresh destination. Verify full control sequences and actual served asset identity. Keep a review demo separate from fixture resets. |
 | Mailglass **5c42d563** (Sep 17), Phase 166 summary: 325 of 510 Admin tests had been omitted by a nine-file CI allowlist. | Prove tests are discovered and required checks actually execute them. A local pass, artifact inventory, advisory browser job, and protected CI result are different evidence. |
-| Accrue v1.56's model-based UI ratchet did not converge on information architecture and was parked; current sibling guidance favors finite review batches. | Keep Threadline's paid critic parked. A more elaborate scoring pipeline is not the default solution to hierarchy problems. |
+| Accrue v1.56's model-based UI ratchet did not converge on information architecture and was parked; current sibling guidance favors finite review batches. | Threadline's paid critic is retired (tag `archive/ui-critic-loop`). A more elaborate scoring pipeline is not the default solution to hierarchy problems. |
 | Mailglass Phase 168 currently blocks a broad readability contract over 2px utilities after functional reflow passed (dirty verification). | Agree on a semantic spacing scale and legitimate optical exceptions. Avoid imposing literal arithmetic on every border, focus ring, or icon offset. This is a planning caution, not authority to waive its approved contract. |
 
 Sibling paths worth revisiting at scope time: Accrue
@@ -237,14 +237,14 @@ Reuse the existing proof layers:
 | Domain and LiveView behavior | `mix verify.test`, targeted existing tests | State, scope, authorization, redaction, validation and event outcomes |
 | Shared primitives and stress | `mix verify.operator_component_contracts`, `mix verify.operator_stress`, Storybook | Reusable states, structural/geometry floors, overlays and motion behavior |
 | Connected browser jobs | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`, `mix verify.example_browser_light` | Actual controls, focus, URL/context, host integration and theme behavior |
-| Capture and mechanical floors | `mix verify.capture`, `mix verify.mechanical` | Fresh deterministic artifacts and specific measurable checks; not a verdict on visual quality |
+| Capture and mechanical floors | Retired in v1.47 Phase 246; restore from tag `archive/ui-critic-loop` | Not an active proof layer |
 | Delivery regression | Existing required CI and `mix ci.all` | Required proof on the delivered source; preserve job IDs and current browser partition ownership |
 
 Verify entrypoint discovery on the implementation baseline before claiming scope.
 The current automated browser engine is Chromium; do not claim Safari/Firefox or
 physical-device validation from it. Whole-shell review must supplement captures
-clipped to `#tl-main`. `mix verify.critic_trust` checks retained evidence offline;
-it is not a reason to restart paid judging. Retired Tier C pixel machinery stays
+clipped to `#tl-main`. The paid UI-critic loop is retired; restore it from tag
+`archive/ui-critic-loop` (v1.47 Phase 246). Retired Tier C pixel machinery stays
 retired unless a distinct failure class warrants reconsideration.
 
 Capture contract: record source SHA, relevant uncommitted diff if any, served

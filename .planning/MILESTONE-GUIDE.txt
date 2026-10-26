@@ -108,7 +108,7 @@ case justify it. Never imply certification or compliance from a test suite.
 The base-library ladder through 1.0.0 is complete. Re-derive the baseline
 before selecting further work or stopping. Operator/admin UI work is eligible
 for evaluation from maintainer feedback, but is not selected by default. The
-paid critic remains parked unless explicitly un-parked.
+paid critic is retired; restore from tag `archive/ui-critic-loop` (v1.47 Phase 246).
 
 Re-derived baseline, 2026-10-08: recommend narrow sustainment, with no new
 milestone selected. Current `main` is green on the required, minimum, current,
@@ -298,8 +298,9 @@ MID (signal-gated, after 1.0.0):
   - Operator/admin UI work is eligible for evaluation using maintainer
     feedback, but is not selected by default. v1.46 consumed one explicitly
     approved refinement tranche; further broad UI scope requires fresh
-    evidence. The paid critic loop stays parked unless explicitly un-parked.
-  - SEED-005 reconnect banner, if it wasn't absorbed earlier.
+    evidence. The paid critic loop is retired; restore from tag
+    `archive/ui-critic-loop` (v1.47 Phase 246). UI carry items live in SEED-008.
+  - SEED-005 reconnect banner: closed, shipped (v1.47 Phase 246).
 
 LONG (only on sustained demand, clear ownership, bounded support cost):
   - Post-hoc erasure/scrub of captured rows (GDPR)
