@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-07-PLAN.md
-last_updated: "2026-10-26T17:54:36.335Z"
+stopped_at: Completed 247-09-PLAN.md
+last_updated: "2026-10-26T18:03:02.825Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-07 CI-03 classification (D-09 no-dodging/no-unclassified/node-direction contract, 63 files tagged, 58 exempt, Node current-lane only) complete (070a9635, 7644105c, e22050a8, 58a7cd3d)"
-state_head: 58a7cd3d23c25147d9529a045e81558162adccc6
+last_activity_desc: "247-09 CI-02 prep (N-file journey receipt under plain node; bin/browser-full-projects resolves ${{ matrix.project }}, fail closed) complete (b2c16eef, a209ccbe)"
+state_head: a209ccbef0db37e85f7f9ab669e653fb9ae4307b
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 31
+  completed_plans: 32
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 6 of 13 executed (247-01, 247-03, 247-04, 247-05, 247-06 and 247-07 complete; 247-02 paused at a maintainer checkpoint)
+Plan: 7 of 13 executed (247-01, 247-03, 247-04, 247-05, 247-06, 247-07 and 247-09 complete; 247-02 paused at a maintainer checkpoint; 247-08 Land B1 not yet run)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-07 CI-03 classification complete (070a9635, 7644105c, e22050a8, 58a7cd3d)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 6/13 executed: 247-01, 247-03, 247-04, 247-05, 247-06, 247-07)
+Last activity: 2026-10-26 — 247-09 CI-02 prep complete (b2c16eef, a209ccbe)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 7/13 executed: 247-01, 247-03, 247-04, 247-05, 247-06, 247-07, 247-09)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -327,6 +327,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P05 | 50min | 3 tasks | 5 files |
 | Phase 247 P06 | 35min | 2 tasks | 7 files |
 | Phase 247 P07 | 50min | 3 tasks | 63 files |
+| Phase 247 P09 | 25min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1163,6 +1164,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-07: deps_audit_gate_test and ci_topology_contract_test stay exempt (Mix.Project.config call; sources a mix-running bin script); no marker weakened
 - [Phase 247]: 247-07: lib-module dodging scan blanks strings/heredocs/comments; bin-script lines count only when they build or run the path; bash -n is not a run
 - [Phase 247]: 247-07: verify-test Node steps run on the current lane only; the node-direction rule keeps every Node-running test tagged
+- [Phase 247]: 247-09: bin/browser-full-projects fails closed when matrix include:/exclude: rows name a project at all (not only include-only)
+- [Phase 247]: 247-09: operator-ci-evidence.ts picks flag vs legacy form by whether any arg after --verify starts with --; flag form needs >=1 --discovered, >=1 --executed and exactly two positionals (strict parseArgs)
 
 ### Blockers
 
@@ -1183,8 +1186,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T17:54:36.004Z
-**Stopped at:** Completed 247-07-PLAN.md
+**Last session:** 2026-10-26T18:03:02.444Z
+**Stopped at:** Completed 247-09-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
