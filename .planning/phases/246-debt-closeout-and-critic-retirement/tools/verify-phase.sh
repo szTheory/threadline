@@ -102,6 +102,8 @@ D09_ALLOW=(
   'test/threadline/upgrading_to_0_11_doc_contract_test.exs:ADOPT\|COMP\|CRITIC'
   "test/threadline/ci_topology_contract_test.exs:ui-critic-loop"
   "test/threadline/ui_critic_retirement_doc_contract_test.exs"
+  # The partition row names the allowlisted retirement contract by filename.
+  "test/partition_weights.txt:ui_critic_retirement_doc_contract_test"
 )
 RETIRED_HEADING="## Retired: UI critic loop"
 D09_PATTERN='critic([^a]|$)|tier[-_]a|mechanical_checker|verify\.(capture|mechanical|critic_trust|ui_critique)'
