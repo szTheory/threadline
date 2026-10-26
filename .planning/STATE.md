@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 246
 current_phase_name: Debt Close-out and Critic Retirement
-status: executing
-stopped_at: Completed 246-08-PLAN.md
-last_updated: "2026-10-26T02:08:26.389Z"
+status: verifying
+stopped_at: Completed 246-09-PLAN.md
+last_updated: "2026-10-26T02:11:53.731Z"
 last_activity: 2026-10-25
-last_activity_desc: 246-08 complete (WR-01/IN-02 fixed as removal slice C7 f57237d6); 246-09 next
-state_head: 3352cb1283d2584170f94f8aa3090d57e676a663
+last_activity_desc: 246-09 complete (:101 Home screenshot drift routed to SEED-008 as register row UI-HOME-SHOT-101, cea43407); all 9 plans done, phase verification next
+state_head: f1909b4fa6490d6ce3be958699912b54f62cfba0
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 50
 milestone_name: Release on autopilot
 ---
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 Phase: 246 (Debt Close-out and Critic Retirement) — EXECUTING
 Plan: 9 of 9
-Status: Executing Phase 246 gap closure (246-08 done, 246-09 next)
-Last activity: 2026-10-25 — 246-08 complete: Browser-full coverage wording (CONTRIBUTING CI Coverage, browser-full.yml header, playwright.config.ts) now says 6 curated operator routes at 1280 with inventory-wide 1280/768/375 only in evidence mode, pinned by a spec-derived contract in ci_coverage_doc_contract_test.exs; job display name `Example app browser E2E (projects ci.yml does not run)` (IN-02). Committed as removal slice C7 f57237d6; 246-LANDING.md now cherry-picks 8 slices (528 paths, 479 deletions); WR-01/IN-02 fixed in 246-REVIEW-DISPOSITION.md (9cfe8b16). Next: 246-09 (route :101 x2 screenshot failures into SEED-008/register)
+Status: Phase complete — ready for verification
+Last activity: 2026-10-25 — 246-09 complete: SEED-008 Scope now owns 10 screenshot baselines (:101 x2 added, 10-failure threshold, origin/main 23178fb0 height evidence); register row UI-HOME-SHOT-101 routed to SEED-008 (routed 24 / total 132), pinned in verify-phase.sh REQUIRED_IDS; deferred-items.md and 246-LANDING.md cite it (cea43407). 246-08 before it: removal slice C7 f57237d6. Next: re-verify Phase 246 (gaps 1 and 2 closed)
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
@@ -319,6 +319,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 245 P03 | 45min | 3 tasks | 16 files |
 | Phase 245 P04 | 50min | 2 tasks | 8 files |
 | Phase 245 P05 | 75min | 3 tasks | 6 files |
+| Phase 246 P09 | 5 min | 2 tasks | 5 files |
 
 ## Deferred Items
 
@@ -1138,6 +1139,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 245]: verify-action-pins fails closed and counts distinct (repo, tag, sha) triples; 8 today
 - [Phase 245]: Pin provenance is an independent unknown source in deps-health; a suppression does not skip it and a finding still outranks it
 - [Phase 245]: D-06 supersedes v1.43 T-215-19: .github/dependabot.yml now exists (github-actions only, grouped monthly, 7-day cooldown, ci(deps) prefix)
+- [Phase 246]: 246-09: :101 Home screenshot drift routed to SEED-008 as UI-HOME-SHOT-101; healthy standalone browser lane is exactly 10 failures
 
 ### Blockers
 
@@ -1158,8 +1160,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T02:08:26.108Z
-**Stopped at:** Completed 246-08-PLAN.md
+**Last session:** 2026-10-26T02:11:53.490Z
+**Stopped at:** Completed 246-09-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
