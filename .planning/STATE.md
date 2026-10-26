@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 246
-current_phase_name: Debt closeout and critic retirement
+current_phase_name: Debt Close-out and Critic Retirement
 status: executing
-stopped_at: Phase 246 executed 7/7; verification gaps_found (9/11) — 2 gaps, next /gsd-plan-phase 246 --gaps
-last_updated: "2026-10-25T23:04:35.637Z"
+stopped_at: Completed 246-08-PLAN.md
+last_updated: "2026-10-26T02:08:26.389Z"
 last_activity: 2026-10-25
-last_activity_desc: Phase 246 executed 7/7 plans; verification gaps_found (2 doc/routing gaps)
-state_head: 0364446a31c392d78e0347fd940db8d79a304bd9
+last_activity_desc: 246-08 complete (WR-01/IN-02 fixed as removal slice C7 f57237d6); 246-09 next
+state_head: 3352cb1283d2584170f94f8aa3090d57e676a663
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 23
   percent: 50
 milestone_name: Release on autopilot
 ---
@@ -25,14 +25,14 @@ milestone_name: Release on autopilot
 See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 246 — Debt closeout and critic retirement
+**Current focus:** Phase 246 — Debt Close-out and Critic Retirement
 
 ## Current Position
 
-Phase: 246 (Debt closeout and critic retirement) — EXECUTING
-Plan: 7 of 7 complete
-Status: Executed — verification gaps_found (9/11 must-haves); gap closure next
-Last activity: 2026-10-25 — Phase 246 executed sequentially on this tree, 7 plans in 7 waves (94413c28..bdd8e2a0). Removal slices C1 4b2c3f89, C2 cbb804a6, C3a 9ea29dc4, C3b 1258c014, C4 35243789, C5 61f58954, C6 8eb54275 (C6 = test fix for a C4 regression; must land with the squash). `verify-phase.sh --close` exits 0; CI=true ci.all exit 0 (lib 3328/0, example 132/0). Code review 0 critical / 5 warning / 5 info, all open in 246-REVIEW-DISPOSITION.md. Verification gaps: (1) WR-01 Browser-full coverage misdescribed in CONTRIBUTING.md:311-312, browser-full.yml:6, playwright.config.ts:25-28; (2) operator-screenshot-regression.spec.ts:101 ×2 (pre-existing on origin/main) routed in deferred-items.md but not into SEED-008/register. Archive tag archive/ui-critic-loop not created by design (D-13; maintainer step in 246-LANDING.md)
+Phase: 246 (Debt Close-out and Critic Retirement) — EXECUTING
+Plan: 9 of 9
+Status: Executing Phase 246 gap closure (246-08 done, 246-09 next)
+Last activity: 2026-10-25 — 246-08 complete: Browser-full coverage wording (CONTRIBUTING CI Coverage, browser-full.yml header, playwright.config.ts) now says 6 curated operator routes at 1280 with inventory-wide 1280/768/375 only in evidence mode, pinned by a spec-derived contract in ci_coverage_doc_contract_test.exs; job display name `Example app browser E2E (projects ci.yml does not run)` (IN-02). Committed as removal slice C7 f57237d6; 246-LANDING.md now cherry-picks 8 slices (528 paths, 479 deletions); WR-01/IN-02 fixed in 246-REVIEW-DISPOSITION.md (9cfe8b16). Next: 246-09 (route :101 x2 screenshot failures into SEED-008/register)
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
@@ -1158,9 +1158,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-25T21:43:15.014Z
-**Stopped at:** Phase 246 context gathered
-**Resume file:** .planning/phases/246-debt-closeout-and-critic-retirement/246-CONTEXT.md
+**Last session:** 2026-10-26T02:08:26.108Z
+**Stopped at:** Completed 246-08-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
