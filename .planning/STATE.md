@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-03-PLAN.md
-last_updated: "2026-10-26T14:44:27.379Z"
+stopped_at: Completed 247-02-PLAN.md
+last_updated: "2026-10-26T18:40:04.694Z"
 last_activity: 2026-10-26
-last_activity_desc: Phase 247 execution started
-state_head: 2d74d00a61eaa47bd3c85b2cb75eaee1f7190151
+last_activity_desc: "247-02 Land A2 complete: critic removal squash 9f69a904 on main (PR #93), archive/ui-critic-loop tagged locally on fea5250b, register Rows 12; tag push handed to the maintainer"
+state_head: 999b835dba51ebdfc74c2f068117ad90c9f4f936
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 26
+  completed_plans: 33
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 1 of 13 executed (247-03 complete)
+Plan: 8 of 13 executed (247-01, 247-02, 247-03, 247-04, 247-05, 247-06, 247-07 and 247-09 complete; 247-08 Land B1 not yet run)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — Phase 247 execution started
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 1/13 executed: 247-03)
+Last activity: 2026-10-26 — 247-02 Land A2 complete (removal squash 9f69a904 on main; local tag archive/ui-critic-loop; tag push pending maintainer)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 8/13 executed: 247-01, 247-02, 247-03, 247-04, 247-05, 247-06, 247-07, 247-09)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -322,6 +322,13 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 246 P09 | 5 min | 2 tasks | 5 files |
 | Phase 246 P10 | 18min | 3 tasks | 6 files |
 | Phase 247 P03 | 10min | 3 tasks | 8 files |
+| Phase 247 P01 | 2h | 3 tasks | 1 files |
+| Phase 247 P04 | 15min | 3 tasks | 4 files |
+| Phase 247 P05 | 50min | 3 tasks | 5 files |
+| Phase 247 P06 | 35min | 2 tasks | 7 files |
+| Phase 247 P07 | 50min | 3 tasks | 63 files |
+| Phase 247 P09 | 25min | 2 tasks | 4 files |
+| Phase 247 P02 | about 6h (incl. maintainer checkpoint) | 3 tasks | 2 files |
 
 ## Deferred Items
 
@@ -1145,6 +1152,22 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 246]: 246-10: residual WR-01 fixed as removal slice C8 (e9a97139), not a C7 amendment; derived coverage phrase counts the degraded twin as a twin, not a sixth route
 - [Phase 247]: 247-03: bin/measure-main-ci reports median_wall_s null unless state is measured, so a partial median is never read as the D-08 number
 - [Phase 247]: 247-03: slow-specs.ts is fail-soft by construction (::warning::, exit 0, no continue-on-error); contract pins 7 rules each with a mutation control
+- [Phase 247]: 247-01: mixed code+planning commit b2b152a1 applied path-scoped on the land branch; planning hunks carried by the sync commit, backed by the tree proof
+- [Phase 247]: 247-01: land planning sync mirrors deletions (old v1.44/v1.45 phase dirs removed after archive check) so main has no duplicate phase dirs
+- [Phase 247]: 247-01: A1 landed as non-releasable ci: squash fea5250b (PR #91); CHANGELOG diff only touched the maintainer header comment
+- [Phase 247]: 247-04: hang report selects in-flight processes by stack frames from in-flight test modules or ExUnit.Runner (ExUnit 1.15 carries no pids); process dictionaries never read
+- [Phase 247]: 247-04: CI_TEST_PARTITIONS_BUDGET_S <= 30 disarms the in-VM watcher (non-positive deadline); --ingest-weights uses the lower-middle median and dies on a TSV without the partition-timings/1 header
+- [Phase 247]: 247-05: the budget watchdog writes the .budget marker before any signal; the partition's own status writer then exits 124 and WATCHDOG_KILLED forces fail=1 after the byte-pinned wait loop
+- [Phase 247]: 247-05: the Hung partitions table prefers the monitor's HANG: in-flight names over ExUnit's abort list (a real QUIT yields both)
+- [Phase 247]: 247-05: a fake that must answer QUIT is perl, not bash (background commands start with QUIT ignored; bash cannot trap a signal ignored on entry; the BEAM installs its own handler)
+- [Phase 247]: 247-06: lane scope is file filtering in bin/ci-test-partitions (THREADLINE_TEST_SCOPE=toolchain on min/latest), not an ExUnit exclude; rule filter-literal requires exact equality with the whole-line tag regex
+- [Phase 247]: 247-06: test-scope sits right after otp: in the min/latest rows so the parity contract's adjacency needles keep matching
+- [Phase 247]: 247-07: deps_audit_gate_test and ci_topology_contract_test stay exempt (Mix.Project.config call; sources a mix-running bin script); no marker weakened
+- [Phase 247]: 247-07: lib-module dodging scan blanks strings/heredocs/comments; bin-script lines count only when they build or run the path; bash -n is not a run
+- [Phase 247]: 247-07: verify-test Node steps run on the current lane only; the node-direction rule keeps every Node-running test tagged
+- [Phase 247]: 247-09: bin/browser-full-projects fails closed when matrix include:/exclude: rows name a project at all (not only include-only)
+- [Phase 247]: 247-09: operator-ci-evidence.ts picks flag vs legacy form by whether any arg after --verify starts with --; flag form needs >=1 --discovered, >=1 --executed and exactly two positionals (strict parseArgs)
+- [Phase 247]: 247-02: slice proof for Land A2 is patch-id equality of the residual with 46efd9d4 reversed (421fbeb9); 46efd9d4 lands with Land B
 
 ### Blockers
 
@@ -1165,8 +1188,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T14:44:27.070Z
-**Stopped at:** Completed 247-03-PLAN.md
+**Last session:** 2026-10-26T18:40:04.301Z
+**Stopped at:** Completed 247-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

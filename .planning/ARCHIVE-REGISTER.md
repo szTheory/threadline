@@ -42,8 +42,9 @@ git diff main...archive/<original-branch-name>
 <!-- archive-subject: local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/local-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b|git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b -->
 | `ci/198-round6` (`origin` subject) | `23c16267d11a63858aad23eab63c9fbfc385ef4b` | 2026-09-09 | GREEN-12 round-11 preservation. Annotated tag `archive/ci/198-round6/origin-23c16267d11a`; merge bases equal SHA; ancestry true; ahead 0; unique commits/diffstats empty. Evidence: round-11 JSON. | **Retire.** Fully ancestral origin round-6 handle, independently archived. | `git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b` |
 <!-- archive-subject: origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b|archive/ci/198-round6/origin-23c16267d11a|23c16267d11a63858aad23eab63c9fbfc385ef4b|git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b -->
+| `archive/ui-critic-loop` | `fea5250bf91a582754e82c57ec9196077e4e6c00` | 2026-10-26 | DEBT-02 / D-4 critic retirement (v1.47 Phase 246). An annotated **tag pinning a main commit**, not a branch: the parent of the removal squash `9f69a904cf99f7691d50754785d42d8feef1162c` on main, the last main state that carries the UI critic loop (critic-trust tooling, the TS critic runner, capture projects plus the verify-capture job, the mechanical floor, critic stress stories and the fixture corpus). | **Archive (retired, restorable)**. The loop is retired from main; operator-UI work is parked until 1.0.0 (SEED-008), and this tag is how it comes back. | `git revert 9f69a904cf99f7691d50754785d42d8feef1162c` (fallback: `git checkout archive/ui-critic-loop -- <paths>` plus the hand-restored mix.exs aliases, as in the tag message) |
 
-**Rows: 11.** This register is not empty. Had there been no stale branches at execution time, this
+**Rows: 12.** This register is not empty. Had there been no stale branches at execution time, this
 section would say so explicitly rather than being absent — an absent register is indistinguishable
 from a forgotten one.
 
