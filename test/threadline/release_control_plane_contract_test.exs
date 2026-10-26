@@ -1,5 +1,6 @@
 defmodule Threadline.ReleaseControlPlaneContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @root File.cwd!()
 
   # --- 216 CR-01: release.yml checkout credentials ----------------------------

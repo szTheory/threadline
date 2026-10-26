@@ -1,6 +1,7 @@
 defmodule Threadline.SupportPlaybookDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
 

@@ -1,5 +1,6 @@
 defmodule Threadline.RowHistoryFocusEvidenceContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @script "bin/verify-row-history-focus-red-control"
   @spec_path "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"

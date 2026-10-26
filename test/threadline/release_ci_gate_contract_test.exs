@@ -1,5 +1,6 @@
 defmodule Threadline.ReleaseCiGateContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @release_workflow Path.expand("../../.github/workflows/release.yml", __DIR__)
 

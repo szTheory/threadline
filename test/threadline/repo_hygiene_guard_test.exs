@@ -8,6 +8,7 @@ defmodule Threadline.RepoHygieneGuardTest do
   must never need to touch this file.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @moduletag :tmp_dir
 
   @script Path.expand("../../bin/verify-repo-hygiene", __DIR__)

@@ -16,6 +16,7 @@ defmodule Threadline.RepoHygieneContractTest do
   modules, per the same-commit roster rule's isolation convention.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
   @job_id "verify-repo-hygiene"
