@@ -4,11 +4,11 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: planning
-stopped_at: Phase 246 complete, ready to plan Phase 247
-last_updated: "2026-10-26T03:20:48.435Z"
+stopped_at: Phase 247 context gathered
+last_updated: "2026-10-26T13:15:02.905Z"
 last_activity: 2026-10-25
 last_activity_desc: Phase 246 complete, transitioned to Phase 247
-state_head: dfeb06d0e541f17a5d62145c3fe02a8048a8eaf1
+state_head: 99dc8ac1a028e3a1fcc160f0cd7aea824a24ac2b
 progress:
   total_phases: 4
   completed_phases: 3
@@ -1162,9 +1162,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T03:12:08.293Z
-**Stopped at:** Phase 246 complete, ready to plan Phase 247
-**Resume file:** None
+**Last session:** 2026-10-26T13:15:02.561Z
+**Stopped at:** Phase 247 context gathered
+**Resume file:** .planning/phases/247-ci-critical-path-and-suite-lanes/247-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
