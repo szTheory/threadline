@@ -319,7 +319,13 @@ defmodule Threadline.DepsAuditGateTest do
       assert status != 0
       assert out =~ "requires Hex >= 2.6.0"
       assert out =~ version
-      assert String.trim(log) == "#{root}|hex.info" or String.contains?(log, "|hex.info")
+
+      commands =
+        for line <- String.split(log, "\n", trim: true),
+            do: line |> String.split("|", parts: 2) |> List.last()
+
+      assert commands == ["hex.info"]
+      refute log =~ "deps.unlock"
       refute log =~ "deps.get"
       refute log =~ "hex.audit"
     end
@@ -627,7 +633,6 @@ defmodule Threadline.DepsAuditGateTest do
     assert status == 0
     contents = File.read!(log)
     lines = contents |> String.trim() |> String.split("\n")
-    pwds = Enum.map(lines, fn line -> line |> String.split("|", parts: 2) |> hd() end)
 
     # The first three lines (hex.info, hex.config x2) run in ROOT. Each
     # directory starts with its own `deps.get --check-locked`; only the root
@@ -638,7 +643,6 @@ defmodule Threadline.DepsAuditGateTest do
       |> Enum.map(fn line -> line |> String.split("|", parts: 2) |> hd() end)
 
     assert length(dir_pwds) == 3
-    _ = pwds
 
     tree_pwds =
       lines
@@ -647,9 +651,11 @@ defmodule Threadline.DepsAuditGateTest do
 
     assert tree_pwds == [real_root]
 
-    assert Enum.at(dir_pwds, 0) |> String.ends_with?(real_root)
-    assert Enum.at(dir_pwds, 1) |> String.ends_with?("/bench")
-    assert Enum.at(dir_pwds, 2) |> String.ends_with?("/examples/threadline_phoenix")
+    assert dir_pwds == [
+             real_root,
+             Path.join(real_root, "bench"),
+             Path.join(real_root, "examples/threadline_phoenix")
+           ]
   end
 
   describe "lock hygiene (REL-04)" do
