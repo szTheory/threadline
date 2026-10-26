@@ -181,10 +181,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert Path.type(root) == :absolute
       assert fixtures.ledger!() == Path.join(root, "design-system-ledger.json")
-      assert fixtures.scorecards!() == Path.join(root, "scorecards")
-      assert fixtures.golden!() == Path.join(root, "golden")
-      assert fixtures.refute!() == Path.join(root, "refute")
-      assert fixtures.critic_scores!() == Path.join(root, "critic-scores")
     end
 
     test "compiling a secure throwaway stress router registers the stress LiveView route" do
@@ -376,12 +372,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Phase 173 Primitives Matrix"
       refute html =~ "Phase 176 Data Display"
       refute html =~ "Phase 176 Data States"
-
-      {:ok, _view, refute_html} =
-        live(conn, "/audit/__stress?story=refute.rhythm.doubled-padding.polished")
-
-      assert refute_html =~ "Refute Twin — design principle under test"
-      refute refute_html =~ "Phase 195 Refute Twin"
     end
 
     test "stress route renders the decoded ledger supplied by its live session", %{conn: conn} do

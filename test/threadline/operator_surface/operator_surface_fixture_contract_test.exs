@@ -15,23 +15,13 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     corpus = Path.join(repo, "operator-surface")
 
     tracked = %{
-      "critic-scores/.gitkeep" => "",
-      "design-system-ledger.json" =>
-        ~s({"mechanical_floors":{},"required_scorecards":["page.timeline.happy__dark-1280"]}\n),
-      "golden/golden-set.json" =>
-        ~s({"version":"1","items":[{"cell_id":"page.timeline.happy__dark-1280"}]}\n),
-      "golden/synthetic-set.json" =>
-        ~s({"version":"1","items":[{"cell_id":"page.timeline.happy__dark-1280"}]}\n),
-      "refute/refute-set.json" =>
-        ~s({"version":"1","items":[{"twin_id":"refute.timeline","polished_cell_id":"page.timeline.happy__dark-1280","flawed_cell_id":"page.timeline.happy__dark-1280"}]}\n),
-      "scorecards/page.timeline.happy__dark-1280.aria.yml" => "role: main\n",
-      "scorecards/page.timeline.happy__dark-1280.json" =>
-        ~s({"cell_id":"page.timeline.happy__dark-1280"}\n)
+      "design-system-ledger.json" => ledger_json("page.timeline.happy"),
+      "local/.gitkeep" => ""
     }
 
     File.mkdir_p!(repo)
     git!(repo, ["init", "--quiet"])
-    File.write!(Path.join(repo, ".gitignore"), "operator-surface/critic-scores/*.json\n")
+    File.write!(Path.join(repo, ".gitignore"), "operator-surface/local/*.json\n")
 
     for {relative, bytes} <- tracked do
       path = Path.join(corpus, relative)
@@ -39,7 +29,7 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
       File.write!(path, bytes)
     end
 
-    File.write!(Path.join(corpus, "critic-scores/local-generated.json"), ~s({"score":91}\n))
+    File.write!(Path.join(corpus, "local/local-generated.json"), ~s({"score":91}\n))
     git!(repo, ["add", ".gitignore", "operator-surface"])
 
     on_exit(fn -> File.rm_rf!(repo) end)
@@ -58,7 +48,7 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
                %{path: path, sha256: sha256(Map.fetch!(tracked, path))}
              end)
 
-    refute Enum.any?(manifest, &(&1.path == "critic-scores/local-generated.json"))
+    refute Enum.any?(manifest, &(&1.path == "local/local-generated.json"))
     assert manifest == tracked_manifest(repo, "operator-surface")
   end
 
@@ -94,7 +84,7 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     before = tracked_manifest(repo, "operator-surface")
     tracked = Path.join(repo, "operator-surface/design-system-ledger.json")
 
-    File.write!(tracked, ~s({"mechanical_floors":{"spacing":4}}\n))
+    File.write!(tracked, ledger_json("page.home.happy"))
 
     after_mutation = tracked_manifest(repo, "operator-surface")
     refute after_mutation == before
@@ -106,8 +96,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     refute changed.sha256 == original.sha256
   end
 
-  test "ignored score changes are manifest-independent until the score is tracked", %{repo: repo} do
-    generated = Path.join(repo, "operator-surface/critic-scores/local-generated.json")
+  test "ignored local output is manifest-independent until it is tracked", %{repo: repo} do
+    generated = Path.join(repo, "operator-surface/local/local-generated.json")
     before = tracked_manifest(repo, "operator-surface")
 
     File.write!(generated, ~s({"score":17}\n))
@@ -117,11 +107,11 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     assert tracked_manifest(repo, "operator-surface") == before
 
     File.write!(generated, ~s({"score":42}\n))
-    git!(repo, ["add", "--force", "operator-surface/critic-scores/local-generated.json"])
+    git!(repo, ["add", "--force", "operator-surface/local/local-generated.json"])
 
     promoted = tracked_manifest(repo, "operator-surface")
     refute promoted == before
-    assert Enum.any?(promoted, &(&1.path == "critic-scores/local-generated.json"))
+    assert Enum.any?(promoted, &(&1.path == "local/local-generated.json"))
   end
 
   test "corpus validation rejects missing roots, malformed structure, and broken joins", %{
@@ -132,19 +122,36 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     assert {:error, {:missing_root, missing_path}} = validate_corpus(repo, "missing-corpus")
     assert missing_path == Path.join(repo, "missing-corpus")
 
-    golden = Path.join(repo, "operator-surface/golden/golden-set.json")
-    File.write!(golden, "{not-json")
+    ledger = Path.join(repo, "operator-surface/design-system-ledger.json")
+    File.write!(ledger, "{not-json")
 
-    assert {:error, {:malformed_json, ^golden}} = validate_corpus(repo, "operator-surface")
+    assert {:error, {:malformed_json, ^ledger}} = validate_corpus(repo, "operator-surface")
+
+    File.write!(ledger, ~s({"entries":[],"screenshot_allowlist":{"ci":[],"local_review":[]}}\n))
+
+    assert {:error, {:malformed_structure, ^ledger}} = validate_corpus(repo, "operator-surface")
 
     File.write!(
-      golden,
-      ~s({"version":"1","items":[{"cell_id":"page.missing.happy__dark-1280"}]}\n)
+      ledger,
+      ~s({"entries":[{"id":"page.timeline.happy"}],"screenshot_allowlist":{"ci":[{"ledger_id":"page.missing.happy"}],"local_review":[]}}\n)
     )
 
     assert {:error, {:broken_reference, details}} = validate_corpus(repo, "operator-surface")
-    assert details.source == "golden/golden-set.json"
-    assert details.cell_id == "page.missing.happy__dark-1280"
+    assert details.source == "design-system-ledger.json"
+    assert details.ledger_id == "page.missing.happy"
+
+    git!(repo, [
+      "rm",
+      "--quiet",
+      "--cached",
+      "--force",
+      "operator-surface/design-system-ledger.json"
+    ])
+
+    assert {:error, {:missing_required_entry, missing}} =
+             validate_corpus(repo, "operator-surface")
+
+    assert missing == ledger
   end
 
   defp validate_corpus(repo, corpus_root) do
@@ -159,12 +166,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
 
       with :ok <- require_corpus_entries(manifest_paths, root),
            {:ok, ledger} <- decode_json(root, "design-system-ledger.json"),
-           {:ok, golden} <- decode_json(root, "golden/golden-set.json"),
-           {:ok, synthetic} <- decode_json(root, "golden/synthetic-set.json"),
-           {:ok, refute} <- decode_json(root, "refute/refute-set.json"),
-           {:ok, scorecards} <- decode_scorecards(root, manifest_paths),
-           :ok <- validate_aria_pairs(manifest_paths) do
-        validate_references(ledger, golden, synthetic, refute, scorecards)
+           {:ok, entry_ids, allowlisted} <- ledger_shape(root, ledger) do
+        validate_references(entry_ids, allowlisted)
       end
     else
       {:error, {:missing_root, root}}
@@ -172,44 +175,9 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
   end
 
   defp require_corpus_entries(paths, root) do
-    required = [
-      "critic-scores/.gitkeep",
-      "design-system-ledger.json",
-      "golden/golden-set.json",
-      "golden/synthetic-set.json",
-      "refute/refute-set.json"
-    ]
-
-    case Enum.find(required, &(not MapSet.member?(paths, &1))) do
-      nil -> :ok
-      missing -> {:error, {:missing_required_entry, Path.join(root, missing)}}
-    end
-  end
-
-  defp decode_scorecards(root, manifest_paths) do
-    paths =
-      manifest_paths
-      |> Enum.filter(&(String.starts_with?(&1, "scorecards/") and String.ends_with?(&1, ".json")))
-      |> Enum.sort()
-
-    if paths == [] do
-      {:error, {:empty_scorecards, Path.join(root, "scorecards")}}
-    else
-      Enum.reduce_while(paths, {:ok, %{}}, &load_scorecard(root, &1, &2))
-    end
-  end
-
-  defp load_scorecard(root, path, {:ok, scorecards}) do
-    case decode_json(root, path) do
-      {:ok, %{"cell_id" => cell_id}} when is_binary(cell_id) and cell_id != "" ->
-        {:cont, {:ok, Map.put(scorecards, cell_id, path)}}
-
-      {:ok, _document} ->
-        {:halt, {:error, {:malformed_structure, Path.join(root, path)}}}
-
-      {:error, _reason} = error ->
-        {:halt, error}
-    end
+    if MapSet.member?(paths, "design-system-ledger.json"),
+      do: :ok,
+      else: {:error, {:missing_required_entry, Path.join(root, "design-system-ledger.json")}}
   end
 
   defp decode_json(root, relative_path) do
@@ -221,90 +189,34 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     end
   end
 
-  defp validate_aria_pairs(paths) do
-    paths
-    |> Enum.filter(&String.ends_with?(&1, ".aria.yml"))
-    |> Enum.find_value(:ok, fn aria_path ->
-      scorecard_path = String.replace_suffix(aria_path, ".aria.yml", ".json")
+  # The ledger must carry a non-empty entry list and the screenshot allowlist that the
+  # stress session and operator-stress.spec.ts read.
+  defp ledger_shape(root, %{"entries" => [_ | _] = entries, "screenshot_allowlist" => lanes})
+       when is_map(lanes) do
+    ids = for %{"id" => id} <- entries, is_binary(id) and id != "", do: id
+    allowlisted = for {_lane, items} <- lanes, is_list(items), item <- items, do: item
 
-      if MapSet.member?(paths, scorecard_path) do
-        false
-      else
-        {:error, {:broken_pair, %{source: aria_path, missing: scorecard_path}}}
-      end
-    end)
+    if length(ids) == length(entries),
+      do: {:ok, MapSet.new(ids), allowlisted},
+      else: {:error, {:malformed_structure, Path.join(root, "design-system-ledger.json")}}
   end
 
-  defp validate_references(ledger, golden, synthetic, refute, scorecards) do
-    with {:ok, references} <- corpus_references(ledger, golden, synthetic, refute) do
-      references
-      |> unreferenced_cell(scorecards)
-      |> broken_reference()
+  defp ledger_shape(root, _ledger),
+    do: {:error, {:malformed_structure, Path.join(root, "design-system-ledger.json")}}
+
+  defp validate_references(entry_ids, allowlisted) do
+    case Enum.find(allowlisted, &(not MapSet.member?(entry_ids, &1["ledger_id"]))) do
+      nil ->
+        :ok
+
+      item ->
+        {:error,
+         {:broken_reference, %{source: "design-system-ledger.json", ledger_id: item["ledger_id"]}}}
     end
   end
 
-  defp unreferenced_cell(references, scorecards) do
-    Enum.find(references, fn {_source, cell_id} ->
-      not scorecard_reference?(scorecards, cell_id)
-    end)
-  end
-
-  defp broken_reference(nil), do: :ok
-
-  defp broken_reference({source, cell_id}),
-    do: {:error, {:broken_reference, %{source: source, cell_id: cell_id}}}
-
-  defp corpus_references(ledger, golden, synthetic, refute) do
-    required = ledger_references(ledger)
-
-    with required when is_list(required) and required != [] <- required,
-         golden_items when is_list(golden_items) <- golden["items"],
-         synthetic_items when is_list(synthetic_items) and synthetic_items != [] <-
-           synthetic["items"],
-         refute_items when is_list(refute_items) and refute_items != [] <- refute["items"] do
-      references =
-        Enum.map(required, &{"design-system-ledger.json", &1}) ++
-          Enum.map(golden_items, &{"golden/golden-set.json", &1["cell_id"]}) ++
-          Enum.map(synthetic_items, &{"golden/synthetic-set.json", &1["cell_id"]}) ++
-          Enum.flat_map(refute_items, &refute_references/1)
-
-      named_references(references)
-    else
-      _invalid -> {:error, {:malformed_structure, "corpus roots"}}
-    end
-  end
-
-  defp named_references(references) do
-    if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
-      {:ok, references}
-    else
-      {:error, {:malformed_structure, "corpus references"}}
-    end
-  end
-
-  defp refute_references(%{"class" => "veto_ordering"} = item),
-    do: [{"refute/refute-set.json", item["polished_cell_id"]}]
-
-  defp refute_references(item) do
-    [
-      {"refute/refute-set.json", item["polished_cell_id"]},
-      {"refute/refute-set.json", item["flawed_cell_id"]}
-    ]
-  end
-
-  defp ledger_references(%{"required_scorecards" => required}) when is_list(required),
-    do: required
-
-  defp ledger_references(%{"mechanical_floors" => floors}) when is_map(floors),
-    do: Map.keys(floors)
-
-  defp ledger_references(_ledger), do: :invalid
-
-  defp scorecard_reference?(scorecards, cell_id) do
-    Map.has_key?(scorecards, cell_id) or
-      Enum.any?(scorecards, fn {candidate, _path} ->
-        String.starts_with?(candidate, cell_id <> "__")
-      end)
+  defp ledger_json(entry_id) do
+    ~s({"entries":[{"id":"#{entry_id}"}],"screenshot_allowlist":{"ci":[{"ledger_id":"#{entry_id}"}],"local_review":[]}}\n)
   end
 
   defp tracked_manifest(repo, corpus_root) do
