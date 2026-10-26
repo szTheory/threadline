@@ -1,8 +1,8 @@
 ---
 phase: 246-debt-closeout-and-critic-retirement
-verified: 2026-10-26T01:34:33Z
+verified: 2026-10-26T02:31:50Z
 status: gaps_found
-score: 9/11 must-haves verified
+score: 10/11 must-haves verified
 covered_files:
   - ".github/workflows/browser-full.yml"
   - ".github/workflows/ci.yml"
@@ -21,8 +21,13 @@ covered_files:
   - ".planning/phases/246-debt-closeout-and-critic-retirement/246-06-SUMMARY.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/246-07-PLAN.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/246-07-SUMMARY.md"
+  - ".planning/phases/246-debt-closeout-and-critic-retirement/246-08-PLAN.md"
+  - ".planning/phases/246-debt-closeout-and-critic-retirement/246-08-SUMMARY.md"
+  - ".planning/phases/246-debt-closeout-and-critic-retirement/246-09-PLAN.md"
+  - ".planning/phases/246-debt-closeout-and-critic-retirement/246-09-SUMMARY.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/246-DEBT-REGISTER.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/246-LANDING.md"
+  - ".planning/phases/246-debt-closeout-and-critic-retirement/246-REVIEW-DISPOSITION.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/deferred-items.md"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/tools/register-check.py"
   - ".planning/phases/246-debt-closeout-and-critic-retirement/tools/verify-phase.sh"
@@ -39,65 +44,67 @@ covered_files:
   - "test/fixtures/operator_surface/design-system-ledger.json"
   - "test/fixtures/operator_surface/manifest.sha256"
   - "test/partition_weights.txt"
+  - "test/threadline/ci_coverage_doc_contract_test.exs"
   - "test/threadline/ci_topology_contract_test.exs"
+  - "test/threadline/ci_workflow_parity_contract_test.exs"
   - "test/threadline/operator_surface/stress_ledger_test.exs"
   - "test/threadline/ui_critic_retirement_doc_contract_test.exs"
-covered_digest: "v3:sha256:38d8b21ef9be8cc4647586800a84d4f9acb7acd7e60012a2fd16f8a7d847dcb0"
+covered_digest: "v3:sha256:cdcefbdae873c2f099cd5e3e6d48b9eb2f9b5b2de039ae5549d6df3d3bc2f30c"
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 9/11
+  gaps_closed:
+    - "D-24 phase gate: the :101 Home screenshot drift is routed (SEED-008 Scope + register row UI-HOME-SHOT-101), and the healthy standalone threshold reads the measured 10"
+  gaps_remaining:
+    - "Docs stay consistent after the removal: CONTRIBUTING.md and browser-full.yml are now true, but the playwright.config.ts route-capture comment still has the scorecard half of round-1 WR-01 the wrong way round"
+  regressions: []
 gaps:
   - truth: "Docs stay consistent after the removal (goal clause 'docs consistent for the CI phase to measure'; SC4 'honest-default test docs remain true')"
-    status: failed
-    reason: >-
-      C3a (9ea29dc4) wrote a description of Browser-full coverage that does not match the code.
-      CONTRIBUTING.md:311-312 says route-capture is "a render smoke over every inventoried route
-      at three viewports"; browser-full.yml:6 says "every inventoried route". Without
-      THREADLINE_E2E_EVIDENCE (which the new contract forbids in browser-full.yml), the only
-      test that runs is "renders every curated operator route at 1280"
-      (operator-page-capture.spec.ts:425). It covers 6 hard-coded ROUTES at BREAKPOINTS = [1280]
-      (:35, :88). The per-inventory 1280/768/375 tests (:377-378) skip outside evidence mode.
-      Phase 247 measures CI from this coverage table, so it would start from a false baseline.
-      This is review finding WR-01, confirmed independently.
-    artifacts:
-      - path: "CONTRIBUTING.md"
-        issue: ":311-312 claims inventory-wide, three-viewport coverage; the code runs 6 curated routes at 1280"
-      - path: ".github/workflows/browser-full.yml"
-        issue: ":6 claims 'every inventoried route'"
-      - path: "examples/threadline_phoenix/e2e/playwright.config.ts"
-        issue: "route-capture comment describes the evidence and non-evidence modes the wrong way round (review WR-01)"
-    missing:
-      - "Reword the three descriptions to match the code: 6 curated routes at 1280, plus inventory-wide 1280/768/375 only in evidence mode, which Browser-full never sets"
-      - "Optionally pin the wording in browser_journey_evidence_contract_test.exs or the ui_critic_retirement doc contract"
-  - truth: "D-24 phase gate: the standalone browser run has exactly the 8 known :108/:115/:136/:145 screenshot failures, and any deviation is honestly routed"
     status: partial
     reason: >-
-      The measured standalone result is 419/10/58. The 2 extra failures are
-      operator-screenshot-regression.spec.ts:101 (Home), desktop and mobile. They are
-      pre-existing, not a phase regression. The slices touch only the stress lab (stress_live.ex,
-      sections.ex, stress_fixtures.ex) and never Home (/audit) render code. The recorded heights
-      show :101 already fails on origin/main 23178fb0 (1274/2048 px against the 1281/2013
-      baseline). However, the "routed to SEED-008" claim in deferred-items.md and 246-LANDING.md
-      is not reflected in SEED-008 itself. SEED-008 lists only :108/:115/:136/:145 and still
-      says "a healthy browser lane has exactly these 8 failures" and "the 8-failure browser
-      baseline". 246-DEBT-REGISTER.md has no :101 row either. The plan criterion is therefore
-      neither met nor formally waived, and the seed that is supposed to own the item gives the
-      next phase the wrong regression threshold (8, when 10 is what was measured).
+      C7 (f57237d6) fixed the coverage half of WR-01 in all three sources, and the
+      CONTRIBUTING.md and browser-full.yml wording now matches the code. The
+      playwright.config.ts route-capture comment (:27-29), which C7 also rewrote, still says
+      "the inventory-wide 1280/768/375 tests and the route scorecards run only in evidence
+      mode". The scorecard clause is the reverse of what the code does. Round-1 WR-01 called
+      out exactly this inversion ("the non-evidence path writes `route-scorecards/`"), and the
+      previous gap listed this comment as describing the modes the wrong way round. The
+      non-evidence test "renders every curated operator route at 1280"
+      (operator-page-capture.spec.ts:425) is Browser-full's only test, and it skips in
+      evidence mode (:430). It calls captureCell, which writes
+      `writeJson(scorecardPath(id), scorecard)` (:371) into `routeScorecardsDir` =
+      test/generated/operator_surface/route-scorecards (operator-surface-paths.ts:79). So
+      `route-scorecards/` is written only outside evidence mode, by the lane Browser-full runs.
+      The spec's own header (:17-18, "Outside evidence mode it ... writes its route
+      scorecard") contradicts the config comment. The new CiCoverageDocContractTest cannot
+      catch this, because its denylist is just the two strings "every inventoried route" and
+      "at three viewports" (R2-WR-02). Round-2 review recorded the inversion as resolved,
+      which is incorrect. This is a carried-forward gap, so the re-verification evidence gate
+      lets it block. It is a one-clause comment fix, not a code defect, and the coverage table
+      Phase 247 measures from is now true.
     artifacts:
-      - path: ".planning/seeds/SEED-008-operator-ui-carry.md"
-        issue: "Scope and Done-when name 8 failures; :101 x2 is absent"
-      - path: ".planning/phases/246-debt-closeout-and-critic-retirement/246-DEBT-REGISTER.md"
-        issue: "no row for the :101 Home screenshot drift, which deferred-items.md says is routed"
+      - path: "examples/threadline_phoenix/e2e/playwright.config.ts"
+        issue: ":28-29 'and the route scorecards run only in evidence mode' is inverted; the curated non-evidence smoke is what writes route-scorecards/"
     missing:
-      - "Add :101 (desktop and mobile Home full-page height drift, pre-existing on origin/main 23178fb0) to SEED-008 Scope and change 'exactly these 8' and '8-failure' to 10"
-      - "Add a routed register row (-> SEED-008) for :101, or accept an override for the D-24 'exactly 8' criterion citing the origin/main evidence"
+      - "Reword the playwright.config.ts route-capture comment so the scorecard clause matches the code. For example: the curated 1280 smoke (what Browser-full runs) writes route-scorecards/, and evidence mode adds the inventory-wide 1280/768/375 tests with per-width evidence scorecards in its run root. Or drop the scorecard clause."
+      - "Optionally pin the inversion in CiCoverageDocContractTest (R2-WR-02's pattern `in evidence mode,? writes the route scorecards` plus a 'scorecards run only in evidence mode' pattern, each with a mutation control). As removal-slice work it must be a C7 amendment or a C8 commit with a Removal-Slice trailer and no .planning/ path, with 246-LANDING.md updated."
 ---
 
 # Phase 246: Debt closeout and critic retirement Verification Report
 
 **Phase Goal:** The carried-debt register is fully dispositioned, and the parked UI-critic loop is gone from main yet restorable, leaving the suite, CI topology and docs consistent for the CI phase to measure.
-**Verified:** 2026-10-26T01:34:33Z
+**Verified:** 2026-10-26T02:31:50Z
 **Status:** gaps_found
-**Re-verification:** No (initial verification)
+**Re-verification:** Yes, after gap closure (plans 246-08 and 246-09)
+
+## Previous round (442c38bf, gaps_found 9/11) and how each gap was handled
+
+| # | Previous gap | Closure | Result now |
+|---|--------------|---------|------------|
+| 1 | WR-01: Browser-full coverage misdescribed in CONTRIBUTING.md, browser-full.yml and playwright.config.ts | 246-08: removal slice C7 f57237d6 (three rewordings, the spec-derived `CiCoverageDocContractTest`, and the IN-02 job rename), with `.planning/` follow-up 9cfe8b16 | **Mostly closed.** CONTRIBUTING.md:311-313 and browser-full.yml:6-8 match the code. The playwright.config.ts comment still inverts the scorecard clause (see gap) |
+| 2 | `:101` Home drift said to be "routed to SEED-008", but neither SEED-008 nor the register carried it | 246-09: cea43407 (SEED-008 Scope and the 10-failure threshold, register row `UI-HOME-SHOT-101`, the REQUIRED_IDS pin, cross-references) | **Closed** |
 
 ## Goal Achievement
 
@@ -105,110 +112,109 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | SC1 / DEBT-01: every carried-debt row has a disposition; obsolete rows (incl. WINDOWS) are waived with a reason; real items are routed to a named milestone or seed | VERIFIED | `verify-phase.sh --close` exit 0 at HEAD 2d86fe9c (checks 1-7 ok). Register frontmatter shows 64 closed, 44 waived, 23 routed, 131 total. WINDOWS: `open_count: 0`, JSON 27 fixed / 40 waived / 0 open (counted independently). The routes are in QUALITY-ROADMAP (v1.48 :38-41, v1.49 :52-55, v1.51 :71-72), and the Disposition (246) pointer is at :100 |
-| 2 | D-15 close check is mechanical, read-only and self-tested | VERIFIED | `--close` exit 0 and `--self-test` exit 0 (24 negative and positive controls). `git status --porcelain` was the same before and after (only the pre-existing STATE.md edit) |
-| 3 | SC2: the cheap 215/223 self-test findings are fixed and their tests pass | VERIFIED | Commits f29a40bf, 1df4c803, f9764172, 9ff63692, 6e439225 and 46efd9d4 (216 IN-01). A targeted run of deps_health_doc_contract, deps_audit_gate, repo_hygiene_contract and changelog_contract, with others, gave 126 + 48 tests, 0 failures |
-| 4 | SC3: critic code, tests, fixtures, capture projects and doc references are absent from main's tree (no live references) | VERIFIED | critic_trust/, critic.* tasks, e2e/critic/, mechanical_checker* and the scorecards/golden/refute/critic-scores fixtures are all gone. `bin/browser-full-projects --list config` prints `desktop-chromium mobile-chromium route-capture`. package.json `test:unit` runs only operator-surface-paths.test.ts. manifest.sha256 has 1 line. stress_fixtures.ex is 753 lines. The remaining `critic`/`verify-capture` hits are the allowlisted .gitignore lines, clean-checkout probes, the reworded guard, removed-job contracts, the Retired section and historical CHANGELOG-GENERATED entries. The D-09 grep passes |
-| 5 | Removal slices are separable: C1-C6 touch no `.planning/` path and carry Removal-Slice trailers | VERIFIED | 4b2c3f89 C1, cbb804a6 C2, 9ea29dc4 C3a, 1258c014 C3b, 35243789 C4, 61f58954 C5 and 8eb54275 C6 each have 0 `.planning/` paths and the trailer. C6 is a 3-line test-only wait in operator-accessibility.spec.ts:1296-1298 for the focus race that C4 exposed at :1281. The fix is legitimate and touches no product code |
-| 6 | Restorable (DEBT-02 / D-11 / D-13): judged against the hand-off, not the tag | VERIFIED | The tag `archive/ui-critic-loop` is deliberately absent (`git tag -l` is empty). Per D-13 the maintainer creates and pushes it after the removal squash lands. 246-LANDING.md gives the target (`<removal-squash-sha>^` on origin/main, never a milestone commit), a D-31 message, `git revert` as the primary restore, and a checkout fallback. I checked it independently: the 25 fallback pathspecs cover all 479 files the seven slices delete, with 0 uncovered. It also gives the hand-restore mix.exs list, the ARCHIVE-REGISTER row, the D-14 evidence commands and `! git push origin refs/tags/archive/ui-critic-loop`. SC3's "a tag marks the last commit" therefore waits on the maintainer push decision. It is not a phase gap |
-| 7 | SC4: `mix ci.all` green after removal; partition contract lists no deleted files; no orphaned capture project | VERIFIED | The recorded CI=true ci.all exit 0 (lib 3328/0, example 132/0, Dialyzer 0, CI browser 415+3 flaky/0) is consistent with the tree. I did not re-run the full suite. The close check confirms partition rows name existing files, and the only added row is ui_critic_retirement_doc_contract_test.exs. The targeted ci_topology_contract, source_size, rendered_output and ui_critic_retirement contracts are green. Required CI on GitHub has not run, because nothing is pushed (a landing/push decision) |
-| 8 | SEED-005 closed / SEED-008 planted with reopen_when (D-21/D-22) | VERIFIED | SEED-005 has `status: closed`, closed_on, closed_during and closed_reason citing page.ex:295 / script.ex:58,101, and its body Status line reads Closed. SEED-008 has `reopen_when` |
-| 9 | CI topology consistent: verify-capture removed from roster and contracts, recorded as a coverage cut | VERIFIED | ci.yml:850 has the `# Removed: verify-capture` comment. `@removed_job_ids` includes verify-capture (ci_topology_contract_test.exs:1269) with a re-add negative control (:1375-1381). CONTRIBUTING:594 has the removed-proof bullet |
-| 10 | Docs consistent for the CI phase to measure (goal clause; SC4 honest docs) | FAILED | CONTRIBUTING.md:311-312 and browser-full.yml:6, both written by C3a 9ea29dc4, describe Browser-full as an inventory-wide, three-viewport smoke. The code runs 6 curated routes at 1280 (operator-page-capture.spec.ts:35, :88, :425); the 1280/768/375 tests skip outside evidence mode (:377-378), and Browser-full is contract-forbidden from setting evidence mode |
-| 11 | D-24 browser gate: exactly the 8 known failures, with deviations honestly routed | PARTIAL (gap) | The 10 failures are the 8 known plus :101 x2. :101 is pre-existing: the slices never touch Home, and it already failed on origin/main 23178fb0. But SEED-008 still says "exactly these 8", and neither SEED-008 nor the register carries :101, so the route that deferred-items.md claims does not exist at its destination |
+| 1 | SC1 / DEBT-01: every carried-debt row has a disposition; obsolete rows waived with a reason; real items routed to a named milestone or seed | VERIFIED (regression check) | `verify-phase.sh --close` passed at 87c78f9f (checks 1-7 ok). The frontmatter reads closed 64 / waived 44 / routed 24 / total 132, and 64+44+24 = 132 |
+| 2 | The D-15 close check is mechanical, read-only and self-tested | VERIFIED | `--close` and `--self-test` both print `verify-phase: all checks passed`. `git status --porcelain` was empty before and after |
+| 3 | SC2: the cheap 215/223 self-test findings are fixed | VERIFIED (regression) | No gap-closure commit touches them. Previous evidence stands |
+| 4 | SC3: critic code, tests, fixtures, capture projects and doc references are absent from main's tree | VERIFIED (regression) | `bin/browser-full-projects --list config` prints `desktop-chromium mobile-chromium route-capture`. The D-09 grep passes (check 6), and the allowlist has no stale entries |
+| 5 | Removal slices are separable: they touch no `.planning/` path and carry Removal-Slice trailers | VERIFIED | `git log --grep='^Removal-Slice:'` lists 8 slices, C1-C7 plus the C6 focus wait. C7 f57237d6 touches 0 `.planning/` paths and carries `Removal-Slice: C7` |
+| 6 | Restorable (DEBT-02 / D-11 / D-13), judged against the hand-off | VERIFIED | 246-LANDING.md names eight slices, its cherry-pick line ends with `f57237d6` (:293) and its slice table row 8 is C7 (:258). The fallback pathspec list includes `ci_coverage_doc_contract_test.exs (C7)` (:162). Creating the tag is a maintainer step after landing (D-13), so it is not a gap |
+| 7 | SC4: `mix ci.all` green after removal; partition contract lists no deleted files; no orphaned capture project | VERIFIED | The orchestrator gate at 70bead26 against an ephemeral postgres:16: `CI=true mix ci.all` exit 0 (lib 32 properties / 3331 tests / 0 failures, example 132/0, Dialyzer 0, CI browser 418/56/0). Since then only planning docs changed (87c78f9f), so the result still applies. My targeted re-run of six contract files gave 125 tests / 0 failures. Close-check partition rows name existing files. Required GitHub CI waits on the push decision |
+| 8 | SEED-005 closed / SEED-008 planted with reopen_when | VERIFIED (regression) | Close check 7 ok |
+| 9 | CI topology consistent: verify-capture removed and recorded as a coverage cut | VERIFIED (regression) | ci_topology_contract_test.exs is in the green targeted run |
+| 10 | Docs consistent for the CI phase to measure (goal clause; SC4 honest docs) | PARTIAL (gap) | **CONTRIBUTING.md:311-313** says "a render smoke over the 6 curated operator routes at 1280; the inventory-wide 1280/768/375 route tests run only in evidence mode ... which Browser-full never sets". That is true: spec:425-440 loops `ROUTES` x `BREAKPOINTS = [1280]` (:35, :88-95), and the inventory tests skip outside evidence mode (:377-378). **browser-full.yml:6-8** is true as well. The IN-02 job name is `Example app browser E2E (projects ci.yml does not run)` (:48), id unchanged. **playwright.config.ts:28-29** is still inverted on scorecards, as detailed in the gap |
+| 11 | D-24 browser gate: deviations from the expected failure set are honestly routed | VERIFIED | SEED-008:34-52 is titled "The 10 screenshot-regression baselines". It names `:101` with the 1281/2013 vs 1274/2048 px evidence on origin/main 23178fb0, and says "exactly these 10 failures" and "10-failure browser baseline". Register row `UI-HOME-SHOT-101` (:134) is `routed` to SEED-008, the Verdict bullet (:57) names it, and verify-phase.sh REQUIRED_IDS pins it (:90). deferred-items.md:23 and 246-LANDING.md:94 cite the row. This is a documented deviation from "exactly 8" backed by origin/main evidence, not an override |
 
-**Score:** 9/11 truths verified (0 present, behavior-unverified)
+**Score:** 10/11 truths verified (0 present, behavior-unverified)
 
-### Decision on the 2 extra browser failures
+### Judgment on R2-WR-01 ("6 curated operator routes" vs 5 distinct routes plus a degraded twin)
 
-They are **not a phase regression**:
-- All three product files the slices modify are stress-lab files (`stress_live.ex`, `stress_live/sections.ex`, `stress_fixtures.ex`). The `:101` test renders `/audit` (Home).
-- The recorded geometry shows `:101` failing on origin/main 23178fb0 before any slice.
+**Verdict: an acceptable wording nit, not a failed truth. Recorded as a warning.**
 
-The plan's "exactly 8" criterion is **not met as written and not formally waived**:
-- There is no override.
-- The owning seed contradicts the measured baseline.
+The facts:
+- `ROUTES` (spec:88-95) has 6 entries, each with its own ledger id. One of them, `route.timeline.degraded`, is the same `/audit/timeline` path with `DEGRADE_CSS` injected (spec:90).
+- The spec names this list "curated operator routes" itself: the test is "renders every curated operator route at 1280" (:425).
+- The sentence counts entries of that list, and Browser-full renders exactly 6 cells. Nothing in it overstates the property Phase 247 measures: curated rather than inventory-wide, 1280 only, evidence mode never set.
+- The overstatement is one distinct URL path, and it is internally consistent with the spec's own vocabulary.
+- It is not the kind of misdescription WR-01 was, which claimed inventory-wide, three-viewport coverage that never ran.
+- R2-WR-01's precision point is fair. Its commented-out-entry concern is hypothetical today: no `//` lines exist inside `ROUTES`.
 
-That makes it a gap. The gap is cheap and confined to docs and routing: update SEED-008 and add a register row, or record an override. It is not a code defect.
+Recommendation: fold "5 curated operator routes plus a degraded Timeline twin at 1280" into the same C7 amendment that fixes the scorecard clause. It does not block on its own.
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `tools/verify-phase.sh` | D-15 close check + self-test | VERIFIED | exit 0 / exit 0 |
-| `246-DEBT-REGISTER.md` | one row per item, counts match | VERIFIED | 131 rows; check 1 ok |
-| `.planning/WINDOWS.md` | open_count 0 | VERIFIED | 0 open in JSON |
-| `SEED-008-operator-ui-carry.md` | owns UI carry incl. screenshot baselines | PARTIAL | lacks :101; says 8 |
-| `246-LANDING.md` | D-11/D-12/D-13/D-14 hand-off | VERIFIED | restore list complete (479/479) |
-| `ui_critic_retirement_doc_contract_test.exs` | Retired pointer guard | VERIFIED | passes; replaces critic_iteration_runbook contract |
-| `CONTRIBUTING.md` | Retired section + honest CI tables | PARTIAL | Retired section ok; :311 Browser-full claim false |
+| `test/threadline/ci_coverage_doc_contract_test.exs` | spec-derived wording contract with negative controls | VERIFIED | in green run; derives from `const ROUTES` / `const BREAKPOINTS` |
+| `CONTRIBUTING.md` | honest Browser-full sentence | VERIFIED | :311-313 |
+| `.github/workflows/browser-full.yml` | honest header and renamed display name | VERIFIED | :6-8, :48 |
+| `examples/threadline_phoenix/e2e/playwright.config.ts` | route-capture comment with the modes the right way round | PARTIAL | coverage half right; scorecard clause inverted (:28-29) |
+| `246-LANDING.md` | eight-slice recipe including C7 | VERIFIED | :258, :293, :162 |
+| `SEED-008-operator-ui-carry.md` | 10-failure baseline including :101 x2 | VERIFIED | :34-52 |
+| `246-DEBT-REGISTER.md` | routed `UI-HOME-SHOT-101` row, counts 64/44/24/132 | VERIFIED | :134; check 1 ok |
+| `tools/verify-phase.sh` | REQUIRED_IDS pin | VERIFIED | :90 |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `bin/browser-full-projects` | playwright.config projects | `--list config` | WIRED | 3 projects; Browser-full = route-capture |
-| register routed rows | QUALITY-ROADMAP candidate lists | D-23 append | WIRED | v1.48/v1.49/v1.51 entries present |
-| deferred-items `:101` | SEED-008 | "routed to SEED-008" | NOT_WIRED | SEED-008 does not mention :101 |
-| LANDING fallback restore | deleted file set | pathspec list | WIRED | 0 uncovered of 479 |
+| `ci_coverage_doc_contract_test.exs` | `operator-page-capture.spec.ts` | parses `const ROUTES` / `const BREAKPOINTS` | WIRED | the phrase "6 curated operator routes at 1280" is derived, not hard-coded |
+| LANDING recipe | C7 commit | Removal-Slice trailer and cherry-pick list | WIRED | `--grep` derive returns f57237d6 |
+| register row `UI-HOME-SHOT-101` | SEED-008 Scope | routed reason names SEED-008 | WIRED | check 3 ok; SEED-008:43 names the row |
+| deferred-items `:101` entry | register | row id citation | WIRED | deferred-items.md:23 |
+| `CiCoverageDocContractTest` denylist | inverted scorecard claim | refusal pattern | NOT_WIRED | denylist covers 2 strings only (R2-WR-02); the residual inversion passes |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Close check | `bash tools/verify-phase.sh --close` | `verify-phase: all checks passed`, exit 0 | PASS |
-| Self-test | `bash tools/verify-phase.sh --self-test` | exit 0 | PASS |
-| Targeted contracts | `mix test` on ui_critic_retirement, deps_health, deps_audit_gate, source_size, rendered_output | 126 tests, 0 failures | PASS |
-| Targeted CI contracts | `mix test` on ci_topology, repo_hygiene_contract, changelog_contract | 48 tests, 0 failures | PASS |
-| Repo hygiene | `bin/verify-repo-hygiene` | exit 0 | PASS |
-| Browser lane | not re-run (per instruction) | recorded 419/10/58 | SKIP |
+| Close check | `bash tools/verify-phase.sh --close` | `verify-phase: all checks passed` | PASS |
+| Self-test | `bash tools/verify-phase.sh --self-test` | `verify-phase: all checks passed` | PASS |
+| Targeted contracts | `mix test` on ci_coverage_doc, ci_workflow_parity, browser_journey_evidence, ui_critic_retirement, ci_topology, browser_full_projects | 125 tests, 0 failures | PASS |
+| Browser-full project set | `bin/browser-full-projects --list config` | desktop-chromium, mobile-chromium, route-capture | PASS |
+| Full gate | not re-run (shared local Postgres); orchestrator's ephemeral PG16 run at 70bead26 | exit 0 | PASS (recorded) |
 
 ### Probe Execution
 
 | Probe | Command | Result | Status |
 |-------|---------|--------|--------|
-| `.planning/phases/246-.../tools/verify-phase.sh` | `--close` / `--self-test` | exit 0 / exit 0 | PASS |
+| `.planning/phases/246-.../tools/verify-phase.sh` | `--close` / `--self-test` | both pass | PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| DEBT-01 | 01, 05, 06, 07 | every carried-debt row dispositioned; cheap 215/223 fixed | SATISFIED | truths 1-3, 8 |
-| DEBT-02 | 01, 02, 03, 04, 07 | critic loop removed, tagged for restore, suite/CI/docs consistent | PARTIAL | removal and restore hand-off verified (truths 4-7, 9); docs consistency has gap (truth 10); tag creation deferred to maintainer per D-13 |
+| DEBT-01 | 01, 05, 06, 07, 09 | every carried-debt row dispositioned; cheap 215/223 fixed | SATISFIED | truths 1-3, 8, 11 |
+| DEBT-02 | 01-04, 07, 08 | critic loop removed, tagged for restore, suite/CI/docs consistent | PARTIAL | removal, restore hand-off, suite and topology verified; one inverted doc clause remains (truth 10); tag creation is a maintainer step (D-13) |
 
-No orphaned requirement IDs. REQUIREMENTS.md maps only DEBT-01/02 to Phase 246, and both are claimed. Both still read Pending, as expected before phase completion.
+No orphaned IDs. REQUIREMENTS.md maps only DEBT-01/02 to Phase 246 (:63-64), and both are claimed by plans.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| CONTRIBUTING.md / browser-full.yml | 311 / 6 | doc claim contradicts code | Blocker (goal clause) | false CI coverage baseline for Phase 247 |
-| test/threadline/operator_surface/stress_ledger_test.exs | - | ratchet scalar test deleted while `ratchet_rule` kept (review WR-04, confirmed: no test now checks target_score >= current_score or the ratchet watermark) | Warning | a kept rule now has no enforcement |
-| ci_topology_contract_test.exs | 1262-1381 | "still caught by" claims for removed jobs not pinned (review WR-03) | Warning | dominance unguarded |
-| operator-surface-paths.ts | 80-81 | output-root guard narrowed to the ledger file (review WR-05) | Warning | guard disagrees with the manifest writer |
-| CONTRIBUTING.md | 285-289 | restore pointer names a tag that does not exist yet (review WR-02) | Info | expected under D-13 until landing; the D-14 landing evidence commands cover it |
+| playwright.config.ts | 28-29 | comment contradicts code and the spec header (scorecard mode) | Blocker (carried-forward gap) | the residual of WR-01 |
+| ci_coverage_doc_contract_test.exs | 57-58 | denylist too narrow; whole-file prose match (R2-WR-02) | Warning | this is why the residual inversion passes the contract |
+| CONTRIBUTING.md / browser-full.yml / playwright.config.ts | 311 / 6 / 27 | "6 curated operator routes" counts the degraded twin (R2-WR-01) | Warning | wording nit, see judgment above |
+| verify-phase.sh | 90 | pin checks presence, not the routed disposition (R2-IN-04) | Info | |
+| stress_ledger_test.exs, ci_topology_contract_test.exs, operator-surface-paths.ts | - | round-1 WR-03/04/05 still open | Warning | unchanged from the previous round; not goal-blocking |
 
-No unreferenced TBD/FIXME/XXX markers were found in the phase's implementation files.
+No TBD/FIXME/XXX markers in the gap-closure files.
 
 ### Human Verification Required
 
-None. Every judgment call was resolved by the verifier. The only outstanding external step is the tag creation and push after landing (D-13), which is a maintainer push decision and not a verification item.
+None. The judgment calls (R2-WR-01 and the scorecard clause) were resolved here.
 
 ### Gaps Summary
 
-The core of the phase is achieved:
-- The register and WINDOWS are fully dispositioned and mechanically checked.
-- The critic loop is removed in seven separable slices.
-- The restore hand-off is complete and covers every deleted path.
-- The suite gate was green.
+Gap 2 is fully closed: the `:101` drift is routed at every destination and pinned by the close check.
 
-Two gaps remain, both in docs and routing honesty, and both cheap:
-1. **Browser-full coverage is misdescribed** in CONTRIBUTING.md:311 and browser-full.yml:6. Phase 246 introduced this, and it is exactly the docs that Phase 247 will measure CI against.
-2. **The `:101` screenshot drift is called "routed to SEED-008" but SEED-008 doesn't carry it.** SEED-008 still states an 8-failure healthy baseline when 10 was measured, and the register has no row for it. The failures themselves are pre-existing, not a regression.
+Gap 1 is closed for the two sources Phase 247 measures from, CONTRIBUTING.md and browser-full.yml. In the third source, the playwright.config.ts route-capture comment, C7 corrected the coverage half but kept "the route scorecards run only in evidence mode". The code does the reverse: Browser-full's curated non-evidence smoke is the only writer of `route-scorecards/`. Round 1 named this exact inversion, and round 2 marked it resolved, which is incorrect.
 
-Review warnings WR-03/04/05 are recorded as warnings. They do not block the goal.
+The fix is one clause in a comment. Ship it as a C7 amendment or a C8 removal slice, so the removal squash lands with honest docs. Optionally:
+- widen the contract denylist (R2-WR-02) so the inversion cannot come back;
+- adopt the "5 routes plus a degraded twin" wording (R2-WR-01) in the same commit.
 
 ---
 
-_Verified: 2026-10-26T01:34:33Z_
+_Verified: 2026-10-26T02:31:50Z_
 _Verifier: Claude (gsd-verifier)_
