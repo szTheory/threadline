@@ -1,6 +1,7 @@
 defmodule Threadline.EvidenceCliDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @canonical "mix threadline.evidence.show"
   @legacy "mix verify.evidence"

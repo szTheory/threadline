@@ -9,6 +9,7 @@ defmodule Threadline.MeasureMainCiContractTest do
   reach gh.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @script Path.expand("../../bin/measure-main-ci", __DIR__)
   @since String.duplicate("a", 40)

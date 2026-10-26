@@ -22,6 +22,7 @@ defmodule Threadline.FlakeClassifierContractTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @moduletag :tmp_dir
 
   alias Threadline.Test.CiIssuePairing

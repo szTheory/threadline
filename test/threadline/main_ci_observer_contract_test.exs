@@ -1,5 +1,6 @@
 defmodule Threadline.MainCiObserverContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   @script Path.expand("../../bin/observe-main-ci", __DIR__)
   @sha String.duplicate("a", 40)
 

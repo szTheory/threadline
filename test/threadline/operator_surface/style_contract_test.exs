@@ -1,6 +1,7 @@
 defmodule Threadline.OperatorSurface.StyleContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   alias Threadline.Test.StyleSource
 

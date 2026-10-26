@@ -16,6 +16,7 @@ defmodule Threadline.HexPinContractTest do
   emits a `rule=<tag>` message and has a mutation control that turns it red.
   """
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @repo_root File.cwd!()
   @deps_audit "bin/verify-deps-audit"

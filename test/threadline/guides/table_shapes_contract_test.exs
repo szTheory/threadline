@@ -1,5 +1,6 @@
 defmodule Threadline.Guides.TableShapesContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @guide "guides/supported-tables.md"
   @primary_key_sql "lib/threadline/capture/primary_key_sql.ex"
