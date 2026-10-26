@@ -1,16 +1,23 @@
 ---
 id: SEED-005
-status: closed (shipped Phase 178; ui/page.ex mounts the banner)
+status: closed
 planted: 2026-06-18
 planted_during: Phase 177 UAT shift-left automation
 scope: Small
 target_phase: 178
+closed_on: 2026-10-25
+closed_during: v1.47 Phase 246
+closed_reason: >-
+  shipped; Overlay.reconnect_banner mounted at
+  lib/threadline/operator_surface/ui/page.ex:295, data-tl-mutating wired at
+  lib/threadline/operator_surface/script.ex:58,101 (verified at 37dc883d)
+register: .planning/phases/246-debt-closeout-and-critic-retirement/246-DEBT-REGISTER.md
 ---
 
 # Reconnect / offline banner — mount in the operator shell
 
 **Domain:** Operator surface shell (`lib/threadline/operator_surface/`)
-**Status:** Open implementation follow-up — surfaced while automating Phase 177 UAT #4.
+**Status:** Closed (v1.47 Phase 246). The banner shipped; see Outcome. It was first surfaced while automating Phase 177 UAT #4.
 
 ## What's missing
 
@@ -45,3 +52,15 @@ Phase 178 (per-page & flow stress pass), where shell offline behavior is exercis
 across all 11 pages. Pull this into 178 planning. See
 `.planning/threads/2026-06-18-shift-left-uat-173-175.md` and
 `177-VERIFICATION.md` (follow_up).
+
+## Outcome
+
+**CLOSED — shipped.** The shell renders `<Overlay.reconnect_banner />` once, above
+`#tl-main` (`lib/threadline/operator_surface/ui/page.ex:295`). The shared operator
+script finds mutating controls through `.threadline-ui button[data-tl-mutating]`
+(`lib/threadline/operator_surface/script.ex:58,101`). The record said "shipped Phase 178",
+but git cannot confirm that phase, so the closure cites the code at HEAD instead.
+
+This seed reopens only if the shell stops mounting the banner, or if a mutating control
+ships without `data-tl-mutating`. Row `SEED-005` in `246-DEBT-REGISTER.md` records the
+disposition.
