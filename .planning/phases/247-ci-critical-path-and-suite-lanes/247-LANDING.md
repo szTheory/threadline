@@ -352,8 +352,9 @@ The CI-02 browser split and receipt fan-in (247-09, 247-10, 247-11), the CI-deri
 weights and fitted async factor (247-12), and the `bin/measure-main-ci` gh 2.101 fix (247-13),
 as one non-releasable `ci:` squash (D-02 step 3, D-03).
 
-**Status: BUILT, not pushed.** The push, the PR, the merge and the main sample dispatches are
-orchestrator checkpoint commands (247-13 Task 2).
+**Status: LANDED** (PR #95, squash `29abf565`, see `### Landed` below). The push, the PR,
+the merge and the main sample dispatches were orchestrator checkpoint commands (247-13 Task 2),
+run under the maintainer's own-words grant.
 
 | Field | Value |
 |-------|-------|
@@ -460,3 +461,18 @@ one refuses the bare logs read, and the old one rejects the flag. Two new contra
 the flag choice and show that the probe never runs without `--ratios`. A mutation check that
 forces the flag off fails the new case. A live read-only smoke on gh 2.101.0 against main run
 `40394247390` returned `{"min":[1.68],"latest":[1.52],"current":[1.49]}` with no `GH_BIN` shim.
+
+### Landed
+
+| Field | Value |
+|-------|-------|
+| PR | #95, head `land/v1.47-b2` at `e85195dac39e347534bcf66e9afb5b34c1ad0284` |
+| PR CI run | `40412545694`: all 17 checks green, incl. both browser legs, `Browser journey receipt` and `CI required`; no 403 on the receipt download |
+| Merge | squash with `--match-head-commit e85195da`, 2026-10-26T22:35:26Z |
+| Squash on main | `29abf5653a0e1c31b70d73d71a3f6c552d9b9712` (parent `3463fa74`) |
+| Main vs milestone | `git diff --quiet origin/main milestone/v1.47 -- . ':!.planning'` exits 0 |
+| Remote branch | `land/v1.47-b2` deleted by the orchestrator; local branch kept |
+| Main samples (sequential, attempt 1, success) | `40413601357` (push), `40414924903`, `40416330436`, `40417290637`, `40418204130` (workflow_dispatch) |
+| Local gate decision | ci.all run 1 was red on two time-sensitive `as_of` cases outside the B2 diff (see `### Gate`). The orchestrator took run 2 (green, same tree) as the local gate, with the PR CI run as the deciding gate. |
+
+Measurements on these samples: `247-MEASUREMENT.md` (CI-02 median 468 s PASS; CI-03 ratios MISS).
