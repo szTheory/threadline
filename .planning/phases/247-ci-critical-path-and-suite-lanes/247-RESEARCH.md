@@ -494,11 +494,14 @@ Estimated effect: Tag A + B ≈ 102 s raw local weight removed from min/latest (
 | A7 | `node:util.parseArgs` `multiple: true` on Node 22.14 | Receipt | Low. Fallback: manual flag loop |
 | A8 | The PR #89 hang shape (setup_all / on_exit / VM shutdown / PG contention) | CI-04 | The attempt-1 log is unrecoverable. D-16(c) reproduces the shape synthetically and VERIFICATION must say so |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Whether the A1 (244/245) squash should be releasable.** CONTEXT D-03 says this phase's work is non-releasable, and 244/245 carry `feat(...)` per-commit subjects that are CI/release tooling only. Recommendation: `ci:`. No adopter-facing CHANGELOG entry exists to strand. Confirm by diffing `CHANGELOG.md` on the land branch for `Security`/`Fixed` entries before merging.
+   **RESOLVED:** `ci:`. 247-01 diffs `CHANGELOG.md` against origin/main on the A1 land branch and stops at its checkpoint for the maintainer if any adopter-facing `## Unreleased` entry would be stranded.
 2. **Per-leg budget numbers.** Provisional: step 9 / job 12 min. Final values come from CI-01 data in the D-16 budget style (D-07c is Claude's discretion).
+   **RESOLVED:** 247-08 derives the provisional per-leg step/job timeouts from ≥ 3 main runs of CI-01 data (`247-OBSERVATION.md` `## CI-02 split design inputs`, arithmetic shown); 247-10 writes them into ci.yml with the arithmetic in the comment.
 3. **Whether min/latest still miss 1.15 after a current-lane refresh.** D-11 allows per-lane weights only on evidence. The ingest mode should accept `--lane` from the first version, at little cost.
+   **RESOLVED:** 247-04 ships `--ingest-weights <dir> [--lane <name>]` from the first version, selecting TSVs by a `lane=` header field the monitor writes from `THREADLINE_CI_LANE` (set to `${{ matrix.lane }}` in ci.yml by 247-05). 247-12 refreshes with `--lane current`. If 247-13 measures a min/latest ratio miss, the per-lane weights file and its selection in the runner are the gap-closure plan (D-11 fallback); the ingest side needs no change.
 
 ## Environment Availability
 

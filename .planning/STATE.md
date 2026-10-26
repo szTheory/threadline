@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
-status: planning
-stopped_at: Phase 247 context gathered
-last_updated: "2026-10-26T13:15:02.905Z"
-last_activity: 2026-10-25
-last_activity_desc: Phase 246 complete, transitioned to Phase 247
-state_head: 99dc8ac1a028e3a1fcc160f0cd7aea824a24ac2b
+status: executing
+stopped_at: Phase 247 planned (13 plans, 9 waves)
+last_updated: "2026-10-26T14:35:46.626Z"
+last_activity: 2026-10-26
+last_activity_desc: Phase 247 planned — 13 plans in 9 waves, plan-checker passed (iteration 3)
+state_head: 7c83524d842a7fe5c90240df1ebd5e048a1beab4
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 25
+  total_plans: 38
   completed_plans: 25
   percent: 75
 milestone_name: Release on autopilot
@@ -29,11 +29,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 247 — CI critical path and suite lanes
+Phase: 247 (CI critical path and suite lanes) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-25 — Phase 246 complete (re-verified passed 11/11, dfeb06d0; removal slices C1-C8 ready for the D-12 squash, archive tag is a maintainer step per D-13), transitioned to Phase 247
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 TBD)
+Status: Ready to execute
+Last activity: 2026-10-26 — Phase 247 planned: 13 plans in 9 waves (research 7c83524d, checker passed after 2 revisions); plans 01, 02, 08, 13 pause at maintainer push/merge/dispatch checkpoints
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 0/13 planned)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
