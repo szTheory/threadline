@@ -77,3 +77,47 @@ reads `_Nothing yet for the next release._`. There is no adopter-facing entry, s
 | Remote branch | `git ls-remote --heads origin land/v1.47-a1` returns nothing: already gone on origin (local branch kept, tracking shows `[gone]`) |
 | Land worktree | removed with `git worktree remove`; no longer in `git worktree list` |
 | Postgres container | none started (main had not moved); `docker ps -q --filter label=dev.threadline.plan=247-01` is empty |
+
+## Land A2
+
+The 246 critic removal as its own non-releasable `chore:` squash (246 D-12, D-02 step 1).
+
+**Status: HALTED at the slice proof (Task 1).** The branch is built and unpushed; no PR
+exists. See "Slice proof" below.
+
+| Field | Value |
+|-------|-------|
+| Land branch | `land/v1.47-critic-removal` (local; temporary worktree `${TMPDIR}/threadline-land-247-a2`) |
+| origin/main at cut | `fea5250bf91a582754e82c57ec9196077e4e6c00` (the A1 squash; `^ci: land v1.47 release flow` count = 1) |
+| Slice path set | union of the nine `Removal-Slice:` commits' file lists: **528** paths, **0** under `.planning/` |
+| Readiness check | `git diff --quiet 4b2c3f89^ origin/main -- $paths` **exit 0** |
+| Cherry-pick | `git cherry-pick 4b2c3f89 cbb804a6 9ea29dc4 1258c014 35243789 61f58954 8eb54275 f57237d6 e9a97139` (nine names) exit 0, no conflicts |
+| Land branch commits over origin/main | 9 (9 `Removal-Slice:` trailers) |
+| Land branch head | `c3babc69ebceaec09083c15558e422c3f5eab6c5` |
+| PR diff | 528 files, 985 insertions, 114609 deletions; `.planning/` paths: **0** |
+
+Picks, in order: C1 `c862dd4d`, C2 `9a2eb4af`, C3a `747fad7d`, C3b `a36a0255`, C4 `c231591f`,
+C5 `c1a297cb`, C6 `a497c3bb`, C7 `7b8573ad`, C8 `c3babc69`.
+
+### Slice proof
+
+`git diff --quiet e9a97139 HEAD -- $paths` **exit 1**. One file differs:
+
+```
+test/threadline/ci_workflow_parity_contract_test.exs | 20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
+```
+
+Cause: `e9a97139`'s tree is not the slices alone. Between C5 and C6 sit the six 246-05
+`test:` commits (246-LANDING Prerequisite 3 names them), and one of them,
+`46efd9d4 test: compare the cache-key runner label with runs-on (216 IN-01)`, edits a slice
+path. It is the only non-slice, non-planning commit in `4b2c3f89^..e9a97139` that touches the
+528 paths. The residual is exactly that commit, reversed:
+`git patch-id --stable` of `git diff e9a97139 HEAD -- <file>` and of
+`git diff 46efd9d4 46efd9d4^ -- <file>` are both `421fbeb9e0c3749e4ee84a61f1ae05783a859a13`.
+
+So the branch carries the nine slices and nothing else, as intended; the proof as written
+in 247-02-PLAN cannot exit 0 while `46efd9d4` lands after the removal (246-LANDING landing
+order step 2.3). Per the plan's halt rule, no slice was re-ordered, edited, dropped or
+squashed, and the branch was not pushed. A decision is needed on the proof (see the 247-02
+checkpoint).
