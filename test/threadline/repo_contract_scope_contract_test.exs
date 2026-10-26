@@ -338,7 +338,8 @@ defmodule Threadline.RepoContractScopeContractTest do
 
   # bin/ scripts that run a real mix. A file trips this only when it runs a
   # process and a line builds or invokes the script path; a quoted path in an
-  # assertion about workflow text does not count.
+  # assertion about workflow text does not count, and neither does a
+  # `bash -n` syntax check, which executes nothing.
   defp mix_running_scripts do
     for name <- [
           "verify-clean-checkout",
@@ -357,10 +358,16 @@ defmodule Threadline.RepoContractScopeContractTest do
       lines = String.split(source, "\n")
 
       invocation =
-        ~r/#{Regex.escape(cmd)}|Path\.(join|expand)\(|^[[:space:]]*@\w+[[:space:]]|^[[:space:]]*\w+[[:space:]]*=[[:space:]]/
+        ~r/#{Regex.escape(cmd)}|Path\.(join|expand)\(|^[[:space:]]*(@\w+[[:space:]]+|\w+[[:space:]]*=[[:space:]]*)"/
+
+      syntax_check = ~r/#{Regex.escape(cmd)}[[:space:]]*"bash",[[:space:]]*\["-n",/
 
       for script <- mix_running_scripts(),
-          Enum.any?(lines, &(String.contains?(&1, script) and Regex.match?(invocation, &1))),
+          Enum.any?(
+            lines,
+            &(String.contains?(&1, script) and Regex.match?(invocation, &1) and
+                not Regex.match?(syntax_check, &1))
+          ),
           do: "System.cmd on " <> script
     else
       []
@@ -384,7 +391,19 @@ defmodule Threadline.RepoContractScopeContractTest do
     {MapSet.new(lib_modules), regexes}
   end
 
+  # Library references are checked with string literals, heredocs and
+  # comments blanked out: a doc contract asserting that a guide says `Threadline.as_of(` is
+  # text, not a call. Fixed markers and script checks still see the strings.
+  defp strip_strings(source) do
+    source
+    |> String.replace(~r/"{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}/, ~s(""))
+    |> String.replace(~r/"(?:[^"\\\n]|\\.)*"/, ~s(""))
+    |> String.replace(~r/#(?!\{)[^\n]*/, "")
+  end
+
   defp lib_module_offenders(source, {set, regexes}) do
+    source = strip_strings(source)
+
     direct =
       case regexes do
         nil ->
@@ -569,7 +588,9 @@ defmodule Threadline.RepoContractScopeContractTest do
           "Code" <> ".fetch_docs(Threadline)",
           "Mix" <> ".Tasks.Threadline.Install.run([])",
           "Mix" <> ".Project.config()",
-          cmd <> "Path.join(@root, " <> ~s(") <> "bin/" <> "verify-clean-checkout" <> ~s("\), [])
+          cmd <> "Path.join(@root, " <> ~s(") <> "bin/" <> "verify-clean-checkout" <> ~s("\), []),
+          cmd <> ~s("bash", [") <> "bin/" <> "demo-up" <> ~s("]\)),
+          "Threadline" <> ".row_history(repo, schema, id)"
         ] do
       assert flagged?(body), "expected a dodging offender for: #{body}"
     end
@@ -577,10 +598,17 @@ defmodule Threadline.RepoContractScopeContractTest do
 
   test "mutation controls no-dodging: text and test-support references are not flagged" do
     cmd = "System" <> ".cmd("
+    heredoc = String.duplicate(~s("), 3)
 
     for body <- [
           "Threadline" <> ".Test.OperatorSurfaceFixtures.x()",
           "assert doc =~ " <> ~s(") <> "Threadline" <> ".Plug" <> ~s("),
+          "assert doc =~ " <> ~s(") <> "Threadline" <> ".row_history(" <> ~s("),
+          "# the guide calls " <> "Threadline" <> ".history(repo)",
+          "@guide " <> heredoc <> "\n  " <> "Threadline" <> ".as_of(repo, at)\n  " <> heredoc,
+          "helper = File.read!(" <>
+            ~s(") <> "bin/" <> "demo-up" <> ~s("\)) <> "\n  " <> cmd <> ~s("git", []\)),
+          cmd <> ~s("bash", ["-n", ") <> "bin/" <> "demo-up" <> ~s("]\)),
           "@fixture ~S(defmodule X do\n  use Mix" <> ".Project\nend)",
           cmd <>
             ~s("git", ["status"]\)\n  assert ci =~ ") <>

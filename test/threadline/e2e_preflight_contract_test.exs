@@ -1,5 +1,6 @@
 defmodule Threadline.E2ePreflightContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @moduletag :tmp_dir
 

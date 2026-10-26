@@ -1,5 +1,6 @@
 defmodule Threadline.Guides.RedactionContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @guide "guides/redaction.md"
 

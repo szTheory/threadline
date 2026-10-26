@@ -1,5 +1,6 @@
 defmodule Threadline.IncidentPlaybookDocContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @playbook_path "guides/incident-playbook.md"
 

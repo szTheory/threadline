@@ -1,5 +1,6 @@
 defmodule Threadline.Guides.StabilityContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @guide "guides/stability.md"
   @required_claims [

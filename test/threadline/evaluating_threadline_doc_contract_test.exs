@@ -1,5 +1,6 @@
 defmodule Threadline.EvaluatingThreadlineDocContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
 
   @guide "guides/evaluating-threadline.md"
   @backlog "guides/adoption-pilot-backlog.md"
