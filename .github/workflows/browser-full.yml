@@ -3,9 +3,9 @@
 # (`verify-example-browser`: desktop-chromium + mobile-chromium). THIS workflow
 # runs only the default-config projects ci.yml does NOT run, derived by
 # bin/browser-full-projects, on push to main, nightly and on dispatch. Today that
-# is one project, route-capture: a render smoke over the 6 curated operator
-# routes at 1280. Its inventory-wide 1280/768/375 route tests run only in
-# evidence mode, which this workflow never enables.
+# is one project, route-capture: a render smoke over the 5 curated operator
+# routes plus a degraded Timeline twin at 1280. Its inventory-wide 1280/768/375
+# route tests run only in evidence mode, which this workflow never enables.
 # The two lanes partition the config
 # (test/threadline/browser_full_projects_contract_test.exs), so no project is run
 # twice and none is run nowhere.
