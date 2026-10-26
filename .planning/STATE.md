@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-01-PLAN.md
-last_updated: "2026-10-26T16:29:28.028Z"
+stopped_at: Completed 247-04-PLAN.md
+last_updated: "2026-10-26T16:47:49.644Z"
 last_activity: 2026-10-26
-last_activity_desc: 247-01 Land A1 merged to main (PR #91, squash fea5250b)
-state_head: c3067961b22fed065024402139c6c045785626ea
+last_activity_desc: "247-04 PartitionMonitor, --ingest-weights and D-16(b) sandbox test complete (b7f214d5, 4a888caf)"
+state_head: 817bb02e5e667f41d72037983b8cadbcaa7949ef
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 27
+  completed_plans: 28
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 2 of 13 executed (247-01 and 247-03 complete)
+Plan: 3 of 13 executed (247-01, 247-03 and 247-04 complete; 247-02 paused at a maintainer checkpoint)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-01 Land A1 merged to main (PR #91, squash fea5250b)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 2/13 executed: 247-01, 247-03)
+Last activity: 2026-10-26 — 247-04 PartitionMonitor, --ingest-weights and D-16(b) sandbox test complete (b7f214d5, 4a888caf)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 3/13 executed: 247-01, 247-03, 247-04)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -323,6 +323,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 246 P10 | 18min | 3 tasks | 6 files |
 | Phase 247 P03 | 10min | 3 tasks | 8 files |
 | Phase 247 P01 | 2h | 3 tasks | 1 files |
+| Phase 247 P04 | 15min | 3 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1149,6 +1150,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-01: mixed code+planning commit b2b152a1 applied path-scoped on the land branch; planning hunks carried by the sync commit, backed by the tree proof
 - [Phase 247]: 247-01: land planning sync mirrors deletions (old v1.44/v1.45 phase dirs removed after archive check) so main has no duplicate phase dirs
 - [Phase 247]: 247-01: A1 landed as non-releasable ci: squash fea5250b (PR #91); CHANGELOG diff only touched the maintainer header comment
+- [Phase 247]: 247-04: hang report selects in-flight processes by stack frames from in-flight test modules or ExUnit.Runner (ExUnit 1.15 carries no pids); process dictionaries never read
+- [Phase 247]: 247-04: CI_TEST_PARTITIONS_BUDGET_S <= 30 disarms the in-VM watcher (non-positive deadline); --ingest-weights uses the lower-middle median and dies on a TSV without the partition-timings/1 header
 
 ### Blockers
 
@@ -1169,8 +1172,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T16:29:27.659Z
-**Stopped at:** Completed 247-01-PLAN.md
+**Last session:** 2026-10-26T16:47:49.333Z
+**Stopped at:** Completed 247-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
