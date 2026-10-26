@@ -25,7 +25,7 @@ Earlier milestones are recorded in MILESTONES.md and their archives under milest
 
 - [x] **Phase 244: Release flow** - The release workflow dates the CHANGELOG and refreshes stale release PRs; network fetches retry; Hex lock drift cannot recur silently (completed 2026-10-25)
 - [x] **Phase 245: Supply chain** - grouped monthly Dependabot for SHA-pinned actions, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue (completed 2026-10-25)
-- [ ] **Phase 246: Debt closeout and critic retirement** - Every carried-debt row has a disposition, and the parked UI-critic loop is removed from main and tagged for restoration
+- [x] **Phase 246: Debt closeout and critic retirement** - Every carried-debt row has a disposition, and the parked UI-critic loop is removed from main and tagged for restoration (completed 2026-10-25)
 - [ ] **Phase 247: CI critical path and suite lanes** - Browser-spec timing visibility, then a per-project browser split, contract tests on one lane, rebalanced partitions, and hang-proof partitions
 
 **Ordering note.** Debt closeout (246) runs before the CI phase (247): DEBT-02 deletes tests and the critic Playwright capture projects, so the CI-02 per-project split and the CI-02/CI-03 measured gates (median ≤ 9 min over 5 runs, ratio ≤ 1.15 over 3 runs) are taken once on the final suite instead of being split, measured, and re-measured. This swaps the numbers of the two approved phases; their contents are unchanged.
@@ -114,7 +114,7 @@ Plans:
   3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
   4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
 
-**Plans**: 10/10 plans executed (3 gap-closure plans added; 246-10 planned)
+**Plans**: 10/10 plans complete (3 gap-closure plans added)
 
 Plans:
 **Wave 1**
@@ -168,7 +168,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
-| 246. Debt closeout and critic retirement | 10/10 | In Progress | - |
+| 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
 
 ## Current Position

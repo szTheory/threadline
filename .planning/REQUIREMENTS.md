@@ -29,8 +29,8 @@
 
 ### Debt closeout
 
-- [ ] **DEBT-01**: Every row of the 2026-10-24 carried-debt register has a recorded disposition. Fixed items are closed, obsolete items (including stale WINDOWS rows) are waived with a reason, and the cheap 215/223 CI self-test findings are fixed.
-- [ ] **DEBT-02**: The parked UI-critic loop (code, tests, fixtures, capture projects, docs references) is removed from main, its last commit is tagged for restoration, and the suite, CI topology and docs stay consistent (decision D-4).
+- [x] **DEBT-01**: Every row of the 2026-10-24 carried-debt register has a recorded disposition. Fixed items are closed, obsolete items (including stale WINDOWS rows) are waived with a reason, and the cheap 215/223 CI self-test findings are fixed.
+- [x] **DEBT-02**: The parked UI-critic loop (code, tests, fixtures, capture projects, docs references) is removed from main, its last commit is tagged for restoration, and the suite, CI topology and docs stay consistent (decision D-4).
 
 ## Future Requirements
 
@@ -60,8 +60,8 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 | SUP-02 | Phase 245 | Complete |
 | SUP-03 | Phase 245 | Complete |
 | SUP-04 | Phase 245 | Complete |
-| DEBT-01 | Phase 246 | Pending |
-| DEBT-02 | Phase 246 | Pending |
+| DEBT-01 | Phase 246 | Complete |
+| DEBT-02 | Phase 246 | Complete |
 | CI-01 | Phase 247 | Pending |
 | CI-02 | Phase 247 | Pending |
 | CI-03 | Phase 247 | Pending |

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.47
-current_phase: 246
-current_phase_name: Debt Close-out and Critic Retirement
-status: executing
-stopped_at: Completed 246-10-PLAN.md
-last_updated: "2026-10-26T03:12:08.588Z"
+current_phase: 247
+current_phase_name: CI critical path and suite lanes
+status: planning
+stopped_at: Phase 246 complete, ready to plan Phase 247
+last_updated: "2026-10-26T03:20:48.435Z"
 last_activity: 2026-10-25
-last_activity_desc: Phase 246 execution started
-state_head: 2a2d9e9e6de8cd3e58e8bf28e5891030a079120c
+last_activity_desc: Phase 246 complete, transitioned to Phase 247
+state_head: dfeb06d0e541f17a5d62145c3fe02a8048a8eaf1
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 25
   completed_plans: 25
-  percent: 50
+  percent: 75
 milestone_name: Release on autopilot
 ---
 
@@ -29,11 +29,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 246 (Debt Close-out and Critic Retirement) — EXECUTING
-Plan: 10 of 10
-Status: 246-10 complete (10/10 plans); awaiting re-verification
-Last activity: 2026-10-26 — 246-10 gap closure complete (removal slice C8 e9a97139)
-Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
+Phase: 247 — CI critical path and suite lanes
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-25 — Phase 246 complete (re-verified passed 11/11, dfeb06d0; removal slices C1-C8 ready for the D-12 squash, archive tag is a maintainer step per D-13), transitioned to Phase 247
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -1163,7 +1163,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-26T03:12:08.293Z
-**Stopped at:** Completed 246-10-PLAN.md
+**Stopped at:** Phase 246 complete, ready to plan Phase 247
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
