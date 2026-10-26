@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Phase 247 planned (13 plans, 9 waves)
-last_updated: "2026-10-26T14:35:46.626Z"
+stopped_at: Completed 247-03-PLAN.md
+last_updated: "2026-10-26T14:44:27.379Z"
 last_activity: 2026-10-26
-last_activity_desc: Phase 247 planned — 13 plans in 9 waves, plan-checker passed (iteration 3)
-state_head: 7c83524d842a7fe5c90240df1ebd5e048a1beab4
+last_activity_desc: Phase 247 execution started
+state_head: 2d74d00a61eaa47bd3c85b2cb75eaee1f7190151
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 25
+  completed_plans: 26
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -25,15 +25,15 @@ milestone_name: Release on autopilot
 See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 246 — Debt Close-out and Critic Retirement
+**Current focus:** Phase 247 — CI critical path and suite lanes
 
 ## Current Position
 
-Phase: 247 (CI critical path and suite lanes) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-10-26 — Phase 247 planned: 13 plans in 9 waves (research 7c83524d, checker passed after 2 revisions); plans 01, 02, 08, 13 pause at maintainer push/merge/dispatch checkpoints
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 0/13 planned)
+Phase: 247 (CI critical path and suite lanes) — EXECUTING
+Plan: 1 of 13 executed (247-03 complete)
+Status: Executing Phase 247
+Last activity: 2026-10-26 — Phase 247 execution started
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 1/13 executed: 247-03)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -321,6 +321,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 245 P05 | 75min | 3 tasks | 6 files |
 | Phase 246 P09 | 5 min | 2 tasks | 5 files |
 | Phase 246 P10 | 18min | 3 tasks | 6 files |
+| Phase 247 P03 | 10min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -1142,6 +1143,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 245]: D-06 supersedes v1.43 T-215-19: .github/dependabot.yml now exists (github-actions only, grouped monthly, 7-day cooldown, ci(deps) prefix)
 - [Phase 246]: 246-09: :101 Home screenshot drift routed to SEED-008 as UI-HOME-SHOT-101; healthy standalone browser lane is exactly 10 failures
 - [Phase 246]: 246-10: residual WR-01 fixed as removal slice C8 (e9a97139), not a C7 amendment; derived coverage phrase counts the degraded twin as a twin, not a sixth route
+- [Phase 247]: 247-03: bin/measure-main-ci reports median_wall_s null unless state is measured, so a partial median is never read as the D-08 number
+- [Phase 247]: 247-03: slow-specs.ts is fail-soft by construction (::warning::, exit 0, no continue-on-error); contract pins 7 rules each with a mutation control
 
 ### Blockers
 
@@ -1162,9 +1165,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T13:15:02.561Z
-**Stopped at:** Phase 247 context gathered
-**Resume file:** .planning/phases/247-ci-critical-path-and-suite-lanes/247-CONTEXT.md
+**Last session:** 2026-10-26T14:44:27.070Z
+**Stopped at:** Completed 247-03-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
