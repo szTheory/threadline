@@ -252,6 +252,16 @@ defmodule Threadline.RepoHygieneContractTest do
            "the alias-arg mutation did not change the input"
   end
 
+  test "CONTRIBUTING.md states that only the allowlist's literal column is exempt (223 D-18)" do
+    contributing = read_rel!(["CONTRIBUTING.md"]) |> String.replace(~r/\s+/, " ")
+
+    assert String.contains?(
+             contributing,
+             "no file or directory is exempt from the scan other than the allowlist's own literal column"
+           ),
+           "CONTRIBUTING.md lost the 223 D-18 sentence that bounds the repo-hygiene allowlist"
+  end
+
   test "CONTRIBUTING.md roster and job table document verify-repo-hygiene" do
     contributing = read_rel!(["CONTRIBUTING.md"])
 

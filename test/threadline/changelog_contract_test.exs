@@ -285,4 +285,14 @@ defmodule Threadline.ChangelogContractTest do
              "bumping the minor version before 1.0.0; turning this on would ship them as patch " <>
              "releases, which adopters read as bug fixes only."
   end
+
+  test "CONTRIBUTING.md keeps the releasable-squash-subject rule for fix entries (223 D-06)" do
+    contributing = read!("CONTRIBUTING.md")
+
+    assert contributing =~ "must merge under a releasable squash subject",
+           "CONTRIBUTING.md lost the 223 D-06 rule that a Security/Fixed landing PR needs a releasable squash subject"
+
+    assert contributing =~ "`BEGIN_COMMIT_OVERRIDE`",
+           "CONTRIBUTING.md lost the 223 D-06 BEGIN_COMMIT_OVERRIDE escape hatch"
+  end
 end
