@@ -470,6 +470,7 @@ end
 
 defmodule Threadline.OperatorSurface.OperatorEvidenceContractTest do
   use ExUnit.Case, async: true
+  @moduletag :repo_contract
   alias Threadline.OperatorSurface.EvidenceContract, as: Contract
 
   @root Path.expand("../../..", __DIR__)
