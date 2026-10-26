@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 8/13 plans executed
+**Plans**: 12/13 plans executed
 
 Plans:
 **Wave 1**
@@ -179,15 +179,15 @@ Plans:
 - [x] 247-07-PLAN.md — CI-03 classification: D-09 no-dodging / no-unclassified contract, `@moduletag :repo_contract` on ~50 files, drop Node from min/latest
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 247-08-PLAN.md — Land B1 `ci:` PR from a pinned `B1 end SHA`; observe ≥ 3 main runs (CI-01 data, ratios); D-16(c) PR #89-shape reproduction
+- [x] 247-08-PLAN.md — Land B1 `ci:` PR from a pinned `B1 end SHA`; observe ≥ 3 main runs (CI-01 data, ratios); D-16(c) PR #89-shape reproduction
 - [x] 247-09-PLAN.md — CI-02 prep: N-file journey receipt (plain node) + `bin/browser-full-projects` matrix resolution (fail closed)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 247-10-PLAN.md — CI-02 split: matrix `verify-example-browser` + `verify-example-browser-receipt` fan-in, contracts/rosters/docs in one commit; action-pin provenance
-- [ ] 247-12-PLAN.md — CI-03 balance: weights ingested from CI timings (`--lane current`), fitted async factor, conditional stress_router split
+- [x] 247-10-PLAN.md — CI-02 split: matrix `verify-example-browser` + `verify-example-browser-receipt` fan-in, contracts/rosters/docs in one commit; action-pin provenance
+- [x] 247-12-PLAN.md — CI-03 balance: weights ingested from CI timings (`--lane current`), fitted async factor, conditional stress_router split
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 247-11-PLAN.md — CI-02 hardening: matrix == votingProjects, exact receipt needs, unconditional receipt, leg artifact names; full `ci.all` gate
+- [x] 247-11-PLAN.md — CI-02 hardening: matrix == votingProjects, exact receipt needs, unconditional receipt, leg artifact names; full `ci.all` gate
 
 **Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 247-13-PLAN.md — Land B2 (range from `B1 end SHA`); measure median ≤ 9 min over 5 runs and ratio ≤ 1.15 over 3 runs per lane; SEED-006 rewrite or recorded miss
@@ -201,7 +201,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 8/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 12/13 | In Progress | - |
 
 ## Current Position
 
