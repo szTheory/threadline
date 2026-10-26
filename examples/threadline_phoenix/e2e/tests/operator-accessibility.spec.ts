@@ -1293,6 +1293,9 @@ test.describe("operator accessibility baseline", () => {
       const toast = page.locator("#stress-toast");
       const toastClose = toast.getByRole("button", { name: "Close" });
       await expect(toast).toHaveClass(/tl-overlay-visible/);
+      // show_drawer's JS.focus chain lands on [data-tl-initial-focus] asynchronously;
+      // wait for it, or it can steal focus back from the toast after the focus() below.
+      await expect(drawer.locator("[data-tl-initial-focus]")).toBeFocused();
       await toastClose.focus();
       await expect(toastClose).toBeFocused();
       await page.keyboard.press("Escape");
