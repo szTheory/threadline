@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, truncateSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { identityKey, parseDiscovered, parseExecuted, parseExecutedJson, validateEvidence, type OperatorJourneyIdentity } from "./operator-ci-evidence.js";
@@ -153,4 +155,164 @@ test("native Playwright list and executed JSON prove both voting projects", () =
   assert.equal(receipt.jobId, "verify-example-browser");
   assert.deepEqual(receipt.identities.map((item) => item.identity), projects.map(identity));
   assert.equal(JSON.stringify(receipt).includes("attachments"), false);
+});
+
+// D-07a: the fan-in job reconciles one discovered/executed pair per matrix leg.
+// These cases drive the real CLI under plain `node --experimental-strip-types`
+// (no tsx), which is how the fan-in job runs it without `npm ci`.
+const script = resolve(dirname(fileURLToPath(import.meta.url)), "operator-ci-evidence.ts");
+const trustedEnv = { GITHUB_SHA: "a".repeat(40), GITHUB_RUN_ID: "123456789" };
+
+function legDiscovered(project: string): string {
+  return `Listing tests:\n  [${project}] › ${file}:660:3 › ${titlePath.join(" › ")}\nTotal: 1 test in 1 file\n`;
+}
+
+function legExecuted(project: string): string {
+  const full = report();
+  return JSON.stringify({ suites: full.suites.filter((_, index) => projects[index] === project) });
+}
+
+function workspace() {
+  const dir = mkdtempSync(join(tmpdir(), "operator-ci-evidence-"));
+  const write = (name: string, contents: string) => {
+    const path = join(dir, name);
+    writeFileSync(path, contents);
+    return path;
+  };
+  const inventoryPath = write("inventory.json", JSON.stringify(inventory));
+  const legs = Object.fromEntries(projects.map((project) => [project, {
+    discovered: write(`discovered-${project}.txt`, legDiscovered(project)),
+    executed: write(`executed-${project}.json`, legExecuted(project)),
+  }])) as Record<(typeof projects)[number], { discovered: string; executed: string }>;
+  return { dir, write, inventoryPath, legs, receiptPath: join(dir, "receipt.json"), cleanup: () => rmSync(dir, { recursive: true, force: true }) };
+}
+
+function runCli(args: string[]) {
+  const env = { ...process.env, ...trustedEnv };
+  delete env.NODE_OPTIONS;
+  const result = spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", script, ...args], { env, encoding: "utf8" });
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+test("plain node loads the receipt script without tsx and prints both usage forms", () => {
+  const result = runCli([]);
+  assert.equal(result.status, 1);
+  assert.doesNotMatch(result.stderr, /ERR_MODULE_NOT_FOUND|SyntaxError/);
+  assert.match(result.stderr, /usage: .*--discovered .*--executed/);
+  assert.match(result.stderr, /usage: .*--verify inventory discovered-json executed-json output-receipt/);
+});
+
+test("split matrix legs reconcile across repeated --discovered and --executed files", () => {
+  const ws = workspace();
+  try {
+    const { legs } = ws;
+    const result = runCli([
+      "--verify", ws.inventoryPath,
+      "--discovered", legs["desktop-chromium"].discovered, "--discovered", legs["mobile-chromium"].discovered,
+      "--executed", legs["desktop-chromium"].executed, "--executed", legs["mobile-chromium"].executed,
+      ws.receiptPath,
+    ]);
+    assert.equal(result.status, 0, result.stderr);
+    const receipt = JSON.parse(readFileSync(ws.receiptPath, "utf8"));
+    assert.equal(receipt.jobId, "verify-example-browser");
+    assert.deepEqual(receipt.counts, { expected: 2, discovered: 2, executed: 2, passed: 2 });
+    assert.deepEqual(receipt.identities.map((item: { identity: OperatorJourneyIdentity }) => item.identity), projects.map(identity));
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("a dropped matrix leg's executed file fails closed as not executed", () => {
+  const ws = workspace();
+  try {
+    const { legs } = ws;
+    const result = runCli([
+      "--verify", ws.inventoryPath,
+      "--discovered", legs["desktop-chromium"].discovered, "--discovered", legs["mobile-chromium"].discovered,
+      "--executed", legs["desktop-chromium"].executed,
+      ws.receiptPath,
+    ]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /required journey was not executed/);
+    assert.equal(existsSync(ws.receiptPath), false);
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("the same executed test supplied in two leg files is rejected as a duplicate", () => {
+  const ws = workspace();
+  try {
+    const { legs } = ws;
+    const copy = ws.write("executed-desktop-copy.json", readFileSync(legs["desktop-chromium"].executed, "utf8"));
+    const result = runCli([
+      "--verify", ws.inventoryPath,
+      "--discovered", legs["desktop-chromium"].discovered, "--discovered", legs["mobile-chromium"].discovered,
+      "--executed", legs["desktop-chromium"].executed, "--executed", copy, "--executed", legs["mobile-chromium"].executed,
+      ws.receiptPath,
+    ]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /executed report contains duplicate journey identity/);
+    assert.equal(existsSync(ws.receiptPath), false);
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("zero --executed or --discovered files and stray positionals are usage errors", () => {
+  const ws = workspace();
+  try {
+    const { legs } = ws;
+    const discovered = ["--discovered", legs["desktop-chromium"].discovered, "--discovered", legs["mobile-chromium"].discovered];
+    const executed = ["--executed", legs["desktop-chromium"].executed, "--executed", legs["mobile-chromium"].executed];
+    for (const args of [
+      ["--verify", ws.inventoryPath, ...discovered, ws.receiptPath],
+      ["--verify", ws.inventoryPath, ...executed, ws.receiptPath],
+      ["--verify", ws.inventoryPath, ...discovered, ...executed],
+      ["--verify", ws.inventoryPath, ...discovered, ...executed, ws.receiptPath, "extra"],
+      ["--verify", ws.inventoryPath, ...discovered, ...executed, "--unknown", "x", ws.receiptPath],
+    ]) {
+      const result = runCli(args);
+      assert.equal(result.status, 1, args.join(" "));
+      assert.match(result.stderr, /usage|unknown option/i, args.join(" "));
+    }
+    assert.equal(existsSync(ws.receiptPath), false);
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("the report size cap applies to every repeated input file", () => {
+  const ws = workspace();
+  try {
+    const { legs } = ws;
+    const oversized = ws.write("executed-oversized.json", "");
+    truncateSync(oversized, 20 * 1024 * 1024 + 1);
+    const result = runCli([
+      "--verify", ws.inventoryPath,
+      "--discovered", legs["desktop-chromium"].discovered, "--discovered", legs["mobile-chromium"].discovered,
+      "--executed", legs["desktop-chromium"].executed, "--executed", oversized,
+      ws.receiptPath,
+    ]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /exceeds the report size limit/);
+  } finally {
+    ws.cleanup();
+  }
+});
+
+test("the legacy four-positional --verify form still writes the receipt", () => {
+  const ws = workspace();
+  try {
+    const listed = projects.map((project) => `  [${project}] › ${file}:660:3 › ${titlePath.join(" › ")}`).join("\n");
+    const discoveredPath = ws.write("discovered.txt", `Listing tests:\n${listed}\nTotal: 2 tests in 1 file\n`);
+    const executedPath = ws.write("executed.json", JSON.stringify(report()));
+    const result = runCli(["--verify", ws.inventoryPath, discoveredPath, executedPath, ws.receiptPath]);
+    assert.equal(result.status, 0, result.stderr);
+    const receipt = JSON.parse(readFileSync(ws.receiptPath, "utf8"));
+    assert.equal(receipt.jobId, "verify-example-browser");
+    assert.deepEqual(receipt.counts, { expected: 2, discovered: 2, executed: 2, passed: 2 });
+  } finally {
+    ws.cleanup();
+  }
 });
