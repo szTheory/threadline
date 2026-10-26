@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-10-PLAN.md
-last_updated: "2026-10-26T21:19:46.508Z"
+stopped_at: Completed 247-12-PLAN.md
+last_updated: "2026-10-26T21:35:22.920Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-10 CI-02 split complete: verify-example-browser matrix legs (desktop-chromium, mobile-chromium) + verify-example-browser-receipt fan-in, contracts moved atomically in e8df648b; download-artifact v8.0.2 provenance verified"
-state_head: c988a4e11172375e37e33d519025219f0a884b7f
+last_activity_desc: "247-12 D-11 balance complete: weights ingested from 3 CI current-lane runs (5ba88242), ASYNC_FACTOR_PERMILLE=292 fitted by least squares (c87eaecc), stress_router split not triggered"
+state_head: 01d40857ce6b9fc7f4eed7e2ef615d8fbaa0dc4f
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 35
+  completed_plans: 36
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 10 of 13 executed (247-01 through 247-10 complete; next 247-12, then 247-11)
+Plan: 11 of 13 executed (247-01 through 247-10 and 247-12 complete; next 247-11, then 247-13)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-10 CI-02 split complete (matrix browser legs + Browser journey receipt fan-in, e8df648b; contract list 213/0; bin/verify-action-pins 9/9)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 10/13 executed: 247-01 through 247-10)
+Last activity: 2026-10-26 — 247-12 D-11 balance complete (CI current-lane weights 5ba88242; fitted async factor k=0.2918 c87eaecc; split not triggered 74510 ms vs share 321223 ms; local verify.test 3371/0, verify.test_partitioned green, local max/min 1.80)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 11/13 executed: 247-01 through 247-10 and 247-12)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -331,6 +331,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P02 | about 6h (incl. maintainer checkpoint) | 3 tasks | 2 files |
 | Phase 247 P08 | 6.5h | 3 tasks | 4 files |
 | Phase 247 P10 | 45 min | 2 tasks | 7 files |
+| Phase 247 P12 | 15 min | 3 tasks | 2 files |
 
 ## Deferred Items
 
@@ -1175,6 +1176,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-08: the CI-04 repro fired on the in-VM monitor path (exit 1 at 450 s), not the bash watchdog; CI-03 stays Pending until the 247-12 weights refresh
 - [Phase 247]: 247-10: browser receipt fan-in uses a shallow checkout (persist-credentials: false), not sparse; the toolchain source rule reserves sparse checkouts for the .tool-versions pin shape
 - [Phase 247]: 247-10: order_needs_errors exemption @needs_exemptions is exact-list via List.wrap; composed_check_names/2 takes the matrix axis (lane | project)
+- [Phase 247]: 247-12: async partition factor fitted by least squares at k=0.2918 (ASYNC_FACTOR_PERMILLE=292) over 3 runs x 4 current-lane partitions
+- [Phase 247]: 247-12: stress_router_test.exs split not triggered (74510 ms vs even share 321223 ms)
+- [Phase 247]: 247-12: one CI current-lane weights file; per-lane weights deferred to a 247-13 data decision
 
 ### Blockers
 
@@ -1195,8 +1199,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T21:19:46.064Z
-**Stopped at:** Completed 247-10-PLAN.md
+**Last session:** 2026-10-26T21:35:22.510Z
+**Stopped at:** Completed 247-12-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
