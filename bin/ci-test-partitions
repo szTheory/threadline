@@ -62,8 +62,38 @@
 #                                    # from its per-module timings (summed per
 #                                    # file). Needs Elixir >= 1.17 and the
 #                                    # local test database.
+#   bin/ci-test-partitions --ingest-weights <dir> [--lane <name>]
+#                                    # rewrite test/partition_weights.txt from
+#                                    # the partition-timings-*.tsv files the
+#                                    # partition monitor wrote on CI (found
+#                                    # anywhere under <dir>): per file, the
+#                                    # median wall_ms across the TSVs (the
+#                                    # lower middle value for an even count).
+#                                    # Files absent from the TSVs keep their
+#                                    # current weight. With --lane, only TSVs
+#                                    # whose header says lane=<name> are read.
+#                                    # Prints `moved >2x: <old> -> <new>
+#                                    # <file>` for every large change.
+#                                    # --write-weights stays as the offline
+#                                    # fallback.
 #   bin/ci-test-partitions --self-test
 #   bin/ci-test-partitions -h
+#
+# Partition monitor (real-path env, not test-only seams). Every partition's
+# `mix test` gets `--formatter ExUnit.CLIFormatter --formatter
+# Threadline.Test.PartitionMonitor` (test/support/partition_monitor.ex) after
+# its files, so the normal ExUnit output is unchanged and plain `mix test`
+# never loads the monitor. Each partition is started with:
+#   THREADLINE_TEST_DEADLINE_MS       CI_TEST_PARTITIONS_BUDGET_S x 1000 - 30000.
+#                                     A VM-relative deadline: when the VM has
+#                                     run this long, the monitor prints a
+#                                     `HANG: in-flight:` block naming the
+#                                     running tests with stacks and halts the
+#                                     VM. Zero or less disarms it.
+#   THREADLINE_PARTITION_TIMINGS_FILE $log_dir/partition-timings-<i>.tsv, the
+#                                     per-file timings --ingest-weights reads.
+#   CI_TEST_PARTITIONS_BUDGET_S       per-partition wall budget in seconds,
+#                                     default 480, a positive integer.
 #
 # Seams (both test-only, never used by real callers):
 #   MIX_BIN                       (default `mix`) lets --self-test substitute
@@ -92,7 +122,12 @@
 # the exactly-once check rejects a duplicated, a dropped and an
 # out-of-range assignment; (p) --write-weights turns `--slowest-modules`
 # output into a sorted per-file weights file; (q) files grouped on one line
-# of a colocate file share a partition, still exactly once. This is the runtime mutation
+# of a colocate file share a partition, still exactly once; (r)
+# --ingest-weights takes the per-file median over partition-timings TSVs,
+# keeps absent files' weights and the header, sorts by path, reports a >2x
+# move, rejects malformed rows, and with --lane reads only that lane's TSVs
+# (an invalid or unmatched lane exits 2). The partitions also receive the
+# monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
 
@@ -107,12 +142,15 @@ usage() {
   cat <<'EOF'
 Usage: bin/ci-test-partitions [N]
        bin/ci-test-partitions --write-weights
+       bin/ci-test-partitions --ingest-weights <dir> [--lane <name>]
        bin/ci-test-partitions --self-test
        bin/ci-test-partitions -h
 
 N is a positive integer from 1 to 8. Omit it to use the default (4, per
 225-CONTEXT.md D-03b). --write-weights refreshes test/partition_weights.txt
-from one full local run.
+from one full local run. --ingest-weights refreshes it from the
+partition-timings-*.tsv files under <dir> (per-file median), optionally only
+those whose header says lane=<name>.
 EOF
 }
 
@@ -341,6 +379,18 @@ print_failing_logs() {
 run_partitions() {
   local n="$1"
   local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
+  local budget_s="${CI_TEST_PARTITIONS_BUDGET_S:-480}"
+
+  case "$budget_s" in
+    '' | *[!0-9]* | 0*) die "CI_TEST_PARTITIONS_BUDGET_S must be a positive integer of seconds, got '$budget_s'" ;;
+  esac
+  # The monitor's in-VM deadline leaves 30 s of the budget for its stack dump
+  # and halt; a budget of 30 s or less disarms it (the value is not positive).
+  local deadline_ms=$((budget_s * 1000 - 30000))
+  # Appended after the assigned files on every partition's `mix test`: the
+  # CLI formatter keeps the normal output, the monitor adds timings and the
+  # hang report. Only this script attaches the monitor.
+  local monitor_args=(--formatter ExUnit.CLIFormatter --formatter Threadline.Test.PartitionMonitor)
 
   cd "$ROOT"
   rm -rf "$log_dir"
@@ -415,7 +465,9 @@ run_partitions() {
         # several times slower than in a lone `mix test` (CI runs 36799589565,
         # 36800563728 and 36818463238 timed such tests out at 60 s). A plain
         # local `mix test` keeps the default.
-        MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}" \
+        THREADLINE_TEST_DEADLINE_MS="$deadline_ms" \
+          THREADLINE_PARTITION_TIMINGS_FILE="$log_dir/partition-timings-$i.tsv" \
+          MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}" ${monitor_args[@]+"${monitor_args[@]}"} \
           >"$log_dir/partition-$i.log" 2>&1
         p_status=$?
       fi
@@ -477,6 +529,17 @@ parse_slowest_modules() {
   ' "$1" | LC_ALL=C sort -k2,2
 }
 
+# The comment block at the top of test/partition_weights.txt, shared by
+# --write-weights and --ingest-weights so both write the same file shape.
+weights_header() {
+  printf '# Measured test time per file, in milliseconds, used by bin/ci-test-partitions\n'
+  printf '# to balance the CI test partitions. One "<milliseconds> <test file>" per line,\n'
+  printf '# sorted by path.\n'
+  printf '# Regenerate with: bin/ci-test-partitions --write-weights\n'
+  printf '# The runner tolerates stale or missing weights for assignment; every discovered test\n'
+  printf '# still runs exactly once. The committed-inventory CI contract rejects either condition.\n'
+}
+
 write_weights() {
   local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
   local log tmp status count
@@ -507,12 +570,7 @@ write_weights() {
 
   tmp="$(mktemp "$log_dir/partition-weights.XXXXXX")"
   {
-    printf '# Measured test time per file, in milliseconds, used by bin/ci-test-partitions\n'
-    printf '# to balance the CI test partitions. One "<milliseconds> <test file>" per line,\n'
-    printf '# sorted by path.\n'
-    printf '# Regenerate with: bin/ci-test-partitions --write-weights\n'
-    printf '# The runner tolerates stale or missing weights for assignment; every discovered test\n'
-    printf '# still runs exactly once. The committed-inventory CI contract rejects either condition.\n'
+    weights_header
     parse_slowest_modules "$log"
   } >"$tmp"
 
@@ -526,6 +584,115 @@ write_weights() {
 
   mv "$tmp" "$WEIGHTS_REL"
   printf 'ci-test-partitions: wrote %s weights to %s\n' "$count" "$WEIGHTS_REL"
+}
+
+# --- --ingest-weights ------------------------------------------------------------
+
+# Rewrites test/partition_weights.txt from the threadline.partition-timings/1
+# TSVs that Threadline.Test.PartitionMonitor writes at suite end: a header
+# line `# threadline.partition-timings/1 partition=<i> lane=<lane> ...` and
+# one `<file>\t<wall_ms>\t<test_ms>` row per test file. Only rows whose file
+# is a `test/...*_test.exs` path and whose wall_ms is a whole number are
+# read; anything else in a TSV is ignored. TSVs are selected by their header
+# `lane=` field, never by path or artifact name.
+# Args: <dir> [--lane <name>].
+ingest_weights() {
+  local dir="${1:-}" lane="" lane_set=0
+  [ -n "$dir" ] || die "--ingest-weights needs a directory of partition-timings-*.tsv files"
+  shift
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --lane)
+        [ $# -ge 2 ] || die "--lane needs a lane name"
+        lane="$2"
+        lane_set=1
+        shift 2
+        ;;
+      *) die "--ingest-weights: unexpected argument '$1'" ;;
+    esac
+  done
+  if [ "$lane_set" -eq 1 ]; then
+    case "$lane" in
+      [a-z]*) case "$lane" in *[!a-z0-9-]*) lane_set=bad ;; esac ;;
+      *) lane_set=bad ;;
+    esac
+    [ "$lane_set" = 1 ] || die "--lane must match ^[a-z][a-z0-9-]*\$, got '$lane'"
+  fi
+  [ -d "$dir" ] || die "--ingest-weights: no such directory: $dir"
+  dir="$(cd "$dir" && pwd -P)"
+
+  cd "$ROOT"
+
+  local tsvs rows moved tmp f header tsv_lane total=0 used=0 skipped=0
+  tsvs="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-tsvs.XXXXXX")"
+  rows="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-rows.XXXXXX")"
+  moved="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-moved.XXXXXX")"
+  tmp=""
+  # shellcheck disable=SC2064 # expand now: the paths are fixed for this run
+  trap "rm -f '$tsvs' '$rows' '$moved' \"\${tmp:-}\"" EXIT
+
+  find "$dir" -type f -name 'partition-timings-*.tsv' | LC_ALL=C sort >"$tsvs"
+
+  while IFS= read -r f; do
+    total=$((total + 1))
+    header="$(head -n 1 "$f")"
+    case "$header" in
+      '# threadline.partition-timings/1 '*) ;;
+      *) die "--ingest-weights: $f does not start with a threadline.partition-timings/1 header" ;;
+    esac
+    tsv_lane="$(printf '%s\n' "$header" | awk '{ for (i = 1; i <= NF; i++) if ($i ~ /^lane=/) { sub(/^lane=/, "", $i); print $i; exit } }')"
+    if [ "$lane_set" -eq 1 ] && [ "$tsv_lane" != "$lane" ]; then
+      skipped=$((skipped + 1))
+      continue
+    fi
+    used=$((used + 1))
+    awk -F'\t' 'NR > 1 && NF >= 2 && $1 ~ /^test\/[A-Za-z0-9_.\/-]*_test\.exs$/ && $2 ~ /^[0-9]+$/ { printf "%s\t%d\n", $1, $2 }' "$f" >>"$rows"
+  done <"$tsvs"
+
+  [ "$total" -gt 0 ] || die "--ingest-weights: found no partition-timings-*.tsv under $dir"
+  if [ "$used" -eq 0 ]; then
+    die "--ingest-weights: none of the $total TSVs under $dir has lane=$lane"
+  fi
+
+  tmp="$(mktemp "$(dirname "$WEIGHTS_REL")/.partition_weights.XXXXXX")"
+  {
+    weights_header
+    # Median per file: rows sorted by file, then by wall_ms; the middle value
+    # of an odd count, the lower middle of an even one. Merged with the old
+    # weights (files absent from the TSVs keep theirs) and sorted by path.
+    LC_ALL=C sort -t "$(printf '\t')" -k1,1 -k2,2n "$rows" |
+      awk -F'\t' '
+        function flush() { if (c > 0) printf "%d %s\n", v[int((c + 1) / 2)], key }
+        $1 != key { flush(); key = $1; c = 0 }
+        { v[++c] = $2 + 0 }
+        END { flush() }
+      ' |
+      awk -v wf="$WEIGHTS_REL" -v mf="$moved" '
+        BEGIN {
+          while ((getline line < wf) > 0) {
+            if (line ~ /^[ \t]*#/ || line ~ /^[ \t]*$/) continue
+            c = split(line, p, /[ \t]+/)
+            if (c >= 2 && p[1] ~ /^[0-9]+$/) old[p[2]] = p[1] + 0
+          }
+        }
+        { new[$2] = $1 + 0 }
+        END {
+          for (f in old) if (!(f in new)) printf "%d %s\n", old[f], f
+          for (f in new) {
+            printf "%d %s\n", new[f], f
+            if ((f in old) && (new[f] > 2 * old[f] || old[f] > 2 * new[f]))
+              printf "moved >2x: %d -> %d %s\n", old[f], new[f], f > mf
+          }
+        }
+      ' |
+      LC_ALL=C sort -k2,2
+  } >"$tmp"
+
+  mv "$tmp" "$WEIGHTS_REL"
+  tmp=""
+  printf 'ingest-weights: %s files from %s TSVs (%s skipped by --lane)\n' \
+    "$(cut -f1 "$rows" | LC_ALL=C sort -u | wc -l | tr -d ' ')" "$used" "$skipped"
+  LC_ALL=C sort -k6,6 "$moved"
 }
 
 # --- Fake mix for --self-test -------------------------------------------------
@@ -566,8 +733,16 @@ case "${1:-}" in
     has_no_compile=0
     has_no_deps_check=0
     files=()
+    formatters=()
+    want_formatter=0
     for a in "$@"; do
+      if [ "$want_formatter" -eq 1 ]; then
+        formatters+=("$a")
+        want_formatter=0
+        continue
+      fi
       case "$a" in
+        --formatter) want_formatter=1 ;;
         --partitions)
           echo "fake-mix: --partitions must not be passed (files are assigned by weight)" >&2
           exit 3
@@ -582,6 +757,10 @@ case "${1:-}" in
         *) files+=("$a") ;;
       esac
     done
+    if [ "$want_formatter" -eq 1 ]; then
+      echo "fake-mix: --formatter needs a value" >&2
+      exit 3
+    fi
     if [ "$has_no_compile" -ne 1 ] || [ "$has_no_deps_check" -ne 1 ]; then
       echo "fake-mix: missing a required flag (got: $*)" >&2
       exit 3
@@ -597,6 +776,12 @@ case "${1:-}" in
       fi
       echo "FAKE_MIX_FILE=$f"
     done
+
+    for f in ${formatters[@]+"${formatters[@]}"}; do
+      echo "FAKE_MIX_FORMATTER=$f"
+    done
+    echo "FAKE_MIX_DEADLINE_MS=${THREADLINE_TEST_DEADLINE_MS:-unset}"
+    echo "FAKE_MIX_TIMINGS_FILE=${THREADLINE_PARTITION_TIMINGS_FILE:-unset}"
 
     idx="${MIX_TEST_PARTITION:-0}"
     echo "FAKE_MIX_PARTITION_MARKER=$idx"
@@ -779,6 +964,28 @@ run_self_test() {
   cmp -s "$received" "$expected_files" ||
     die "self-test: the partitions must receive every enumerated file exactly once; got: $(cat "$received")"
 
+  # (i, cont.) every partition that ran mix got both formatters, after the
+  # files, plus the monitor's deadline (480 s budget - 30 s) and its own
+  # timings file
+  local i
+  for i in 1 2 3; do
+    [ "$(sed -n 's/^FAKE_MIX_FORMATTER=//p' "$all_pass_logs/partition-$i.log" | tr '\n' ' ')" = "ExUnit.CLIFormatter Threadline.Test.PartitionMonitor " ] ||
+      die "self-test: partition $i must get --formatter ExUnit.CLIFormatter --formatter Threadline.Test.PartitionMonitor: $(cat "$all_pass_logs/partition-$i.log")"
+    grep -qx 'FAKE_MIX_DEADLINE_MS=450000' "$all_pass_logs/partition-$i.log" ||
+      die "self-test: partition $i must get THREADLINE_TEST_DEADLINE_MS=450000 from the default budget"
+    grep -qx "FAKE_MIX_TIMINGS_FILE=$all_pass_logs/partition-timings-$i.tsv" "$all_pass_logs/partition-$i.log" ||
+      die "self-test: partition $i must get its own THREADLINE_PARTITION_TIMINGS_FILE"
+  done
+  for bad_budget in 0 -5 abc 0480; do
+    set +e
+    CI_TEST_PARTITIONS_BUDGET_S="$bad_budget" MIX_BIN="$fake_mix" \
+      CI_TEST_PARTITIONS_LOG_DIR="$self_test_dir/bad-budget" "$sandbox_script" 3 >/dev/null 2>&1
+    bad_status=$?
+    set -e
+    [ "$bad_status" -eq 2 ] ||
+      die "self-test: CI_TEST_PARTITIONS_BUDGET_S='$bad_budget' must exit 2, got $bad_status"
+  done
+
   # (j) the unweighted file still ran
   grep -qx 'test/b/unweighted_test.exs' "$received" ||
     die "self-test: a file with no weight entry must still run"
@@ -806,7 +1013,6 @@ run_self_test() {
     "$all_pass_logs"/partition-*.log | wc -l | tr -d ' ')"
   [ "$heavy_bins" -eq 3 ] ||
     die "self-test: the three heaviest files must land in three different partitions, got $heavy_bins"
-  local i
   for i in 1 2 3; do
     [ "$(grep -cE '^FAKE_MIX_FILE=test/(a/heavy1|a/heavy2|b/heavy3)_test.exs$' "$all_pass_logs/partition-$i.log")" -eq 1 ] ||
       die "self-test: partition $i must hold exactly one of the three heaviest files"
@@ -876,7 +1082,102 @@ run_self_test() {
     grep -q '^# still runs exactly once. The committed-inventory CI contract rejects either condition\.$' "$proj/test/partition_weights.txt" ||
     die "self-test: regenerated weights must distinguish assignment tolerance from committed-inventory rejection"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group)\n'
+  # (r) --ingest-weights: per-file median over TSVs, absent files keep their
+  # weight, header kept, rows path-sorted, >2x moves reported, malformed rows
+  # ignored, and --lane selects TSVs by their header lane= field
+  local ing="$self_test_dir/ingest"
+  mkdir -p "$ing/run-2/nested"
+  cat >"$proj/test/partition_weights.txt" <<'WEIGHTS'
+# old header
+100 test/a/heavy1_test.exs
+5000 test/a/shrink_test.exs
+7000 test/b/kept_test.exs
+250 test/b/light2_test.exs
+WEIGHTS
+  {
+    printf '# threadline.partition-timings/1 partition=1 lane=current boot_ms=900 wall_ms=5000\n'
+    printf 'test/a/heavy1_test.exs\t900\t800\n'
+    printf 'test/b/light2_test.exs\t100\t90\n'
+    printf 'test/a/new_test.exs\t50\t40\n'
+    printf 'test/a/shrink_test.exs\t1000\t900\n'
+    printf 'lib/not_a_test.ex\t5\t5\n'
+    printf 'test/b/bad_ms_test.exs\tabc\t1\n'
+  } >"$ing/partition-timings-1.tsv"
+  {
+    printf '# threadline.partition-timings/1 partition=2 lane=current boot_ms=900 wall_ms=5000\n'
+    printf 'test/a/heavy1_test.exs\t1000\t900\n'
+    printf 'test/b/light2_test.exs\t300\t250\n'
+  } >"$ing/run-2/partition-timings-2.tsv"
+  {
+    printf '# threadline.partition-timings/1 partition=1 lane=current boot_ms=900 wall_ms=5000\n'
+    printf 'test/a/heavy1_test.exs\t800\t700\n'
+    printf 'test/b/light2_test.exs\t200\t150\n'
+  } >"$ing/run-2/nested/partition-timings-1.tsv"
+  {
+    printf '# threadline.partition-timings/1 partition=3 lane=min boot_ms=900 wall_ms=5000\n'
+    printf 'test/b/light2_test.exs\t9000\t9000\n'
+    printf 'test/b/min_only_test.exs\t4000\t3000\n'
+  } >"$ing/partition-timings-3.tsv"
+  local weights_before
+  weights_before="$(cat "$proj/test/partition_weights.txt")"
+
+  for bad_lane in 'x y' MIN 1abc '' nosuch; do
+    set +e
+    "$sandbox_script" --ingest-weights "$ing" --lane "$bad_lane" >/dev/null 2>&1
+    bad_status=$?
+    set -e
+    [ "$bad_status" -eq 2 ] ||
+      die "self-test: --ingest-weights --lane '$bad_lane' must exit 2, got $bad_status"
+    [ "$(cat "$proj/test/partition_weights.txt")" = "$weights_before" ] ||
+      die "self-test: a rejected --ingest-weights must leave the weights file unchanged"
+  done
+  mkdir -p "$self_test_dir/no-tsvs"
+  set +e
+  "$sandbox_script" --ingest-weights "$self_test_dir/no-tsvs" >/dev/null 2>&1
+  bad_status=$?
+  set -e
+  [ "$bad_status" -eq 2 ] || die "self-test: --ingest-weights with no TSVs must exit 2, got $bad_status"
+
+  set +e
+  output="$("$sandbox_script" --ingest-weights "$ing" --lane current 2>&1)"
+  status=$?
+  set -e
+  [ "$status" -eq 0 ] || die "self-test: --ingest-weights --lane current must exit 0, got $status: $output"
+  [ "$(grep -v '^#' "$proj/test/partition_weights.txt")" = "900 test/a/heavy1_test.exs
+50 test/a/new_test.exs
+1000 test/a/shrink_test.exs
+7000 test/b/kept_test.exs
+200 test/b/light2_test.exs" ] ||
+    die "self-test: --ingest-weights --lane current must take the per-file median, keep absent files and sort by path, got: $(cat "$proj/test/partition_weights.txt")"
+  grep -qx 'ingest-weights: 4 files from 3 TSVs (1 skipped by --lane)' <<<"$output" ||
+    die "self-test: --ingest-weights must report files, TSVs and lane skips: $output"
+  grep -qx 'moved >2x: 100 -> 900 test/a/heavy1_test.exs' <<<"$output" ||
+    die "self-test: --ingest-weights must report a >2x move: $output"
+  grep -qx 'moved >2x: 5000 -> 1000 test/a/shrink_test.exs' <<<"$output" ||
+    die "self-test: --ingest-weights must report a >2x drop: $output"
+  grep -q 'moved >2x: .* test/b/light2_test.exs' <<<"$output" &&
+    die "self-test: a change under 2x must not be reported as moved: $output"
+  grep -q '^# Regenerate with: bin/ci-test-partitions --write-weights$' "$proj/test/partition_weights.txt" &&
+    grep -q '^# The runner tolerates stale or missing weights for assignment; every discovered test$' "$proj/test/partition_weights.txt" &&
+    grep -q '^# still runs exactly once. The committed-inventory CI contract rejects either condition\.$' "$proj/test/partition_weights.txt" ||
+    die "self-test: --ingest-weights must write the standard header block"
+  ls -A "$proj/test" | grep -q '^\.partition_weights' &&
+    die "self-test: --ingest-weights must not leave its temporary file behind"
+
+  # Without --lane every TSV counts: the min-lane file appears and the 4-value
+  # median of light2 (100, 200, 300, 9000) is the lower middle, 200.
+  set +e
+  output="$("$sandbox_script" --ingest-weights "$ing" 2>&1)"
+  status=$?
+  set -e
+  [ "$status" -eq 0 ] || die "self-test: --ingest-weights without --lane must exit 0, got $status: $output"
+  grep -qx 'ingest-weights: 5 files from 4 TSVs (0 skipped by --lane)' <<<"$output" ||
+    die "self-test: --ingest-weights without --lane must read every TSV: $output"
+  grep -qx "4000 test/b/min_only_test.exs" "$proj/test/partition_weights.txt" &&
+    grep -qx "200 test/b/light2_test.exs" "$proj/test/partition_weights.txt" ||
+    die "self-test: --ingest-weights without --lane must include the min-lane TSV: $(cat "$proj/test/partition_weights.txt")"
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
@@ -892,6 +1193,11 @@ case "${1:-}" in
     ;;
   --write-weights)
     write_weights
+    exit 0
+    ;;
+  --ingest-weights)
+    shift
+    ingest_weights "$@"
     exit 0
     ;;
 esac
