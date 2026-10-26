@@ -104,7 +104,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # AFTER the Wave-2 workflow/doc edits, so no test is born red (D-27).
 
   # Derived by glob, not hardcoded. The previous literal list broke the moment
-  # Phase 198 deleted ui-critic.yml and hex-publish.yml (File.Error on a missing
+  # Phase 198 deleted the retired UI scoring workflow and hex-publish.yml (File.Error on a missing
   # path), and it had silently never covered browser-full.yml at all — so the
   # :latest guard below was not actually checking every workflow it claimed to.
   # A hardcoded filename list rots in both directions: it fails when a file goes

@@ -673,7 +673,7 @@ defmodule Threadline.CiTopologyContractTest do
 
   # GREEN-09 / D-24 / D-25 resurrection guard.
   #
-  # Globs every workflow rather than naming ui-critic.yml, so re-introducing the
+  # Globs every workflow rather than naming the deleted workflow file, so re-introducing the
   # retired paid UI scoring lane under ANY filename is caught. The needle is built by concatenation
   # because this file is itself read by nothing that scans for it — but the
   # concatenation also keeps a naive `grep -rl ANTHROPIC .github/` gate honest if
