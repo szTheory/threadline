@@ -20,6 +20,9 @@ topology_pooler? = System.get_env("THREADLINE_PGBOUNCER_TOPOLOGY") == "1"
 # Topology tests need PgBouncer + bootstrap DDL; keep them out of default `mix test`.
 # `:live_dialyzer` needs a restored `.dialyzer` PLT and runs only in the `verify-dialyzer`
 # CI job via `mix verify.dialyzer_slice`.
+# `:repo_contract` is NOT an exclude: CI drops those files by file filtering in
+# bin/ci-test-partitions (THREADLINE_TEST_SCOPE=toolchain) on min/latest only,
+# so local `mix test` and the current lane run them.
 exclude =
   if(topology_pooler?,
     do: [live_dialyzer: true],

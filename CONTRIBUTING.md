@@ -380,6 +380,12 @@ red (failing partition)` step (`bin/ci-test-partitions --self-test`, every
 lane) and by `test/threadline/ci_topology_contract_test.exs`'s partition
 topology mutation controls.
 
+Repo-file contract tests (`@moduletag :repo_contract`: their outcome does not
+depend on the Elixir/OTP/PostgreSQL toolchain) run only on the current lane in
+CI: `bin/ci-test-partitions` drops them on the min and latest lanes
+(`THREADLINE_TEST_SCOPE=toolchain`), while local `mix test` and the current
+lane run every test.
+
 - `verify-format`
 - `verify-credo`
 - `verify-dialyzer`
