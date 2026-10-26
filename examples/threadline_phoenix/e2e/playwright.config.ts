@@ -79,6 +79,10 @@ export default defineConfig({
   // setting below only pays off if more than one failure is allowed to happen.
   // Failing fast and DIAGNOSING fast are different requirements — five retained
   // traces are a diagnostic sample, one is an anecdote.
+  //
+  // Since 247 (D-07c) ci.yml runs one Playwright invocation per project, as
+  // parallel `verify-example-browser` matrix legs, so this bound applies per
+  // leg: each leg aborts at its own 5th failure, up to 10 across the two legs.
   maxFailures: process.env.CI ? 5 : 0,
   workers: 1,
   reporter: process.env.PLAYWRIGHT_JSON_OUTPUT_FILE
