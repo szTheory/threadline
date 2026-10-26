@@ -305,7 +305,7 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       assert "--project=canary-capture" in lines(output)
     end
 
-    test "dropping --project=mobile-chromium from ci.yml moves it into the output", %{
+    test "dropping mobile-chromium from the ci.yml matrix moves it into the output", %{
       tmp_dir: tmp_dir
     } do
       root =
@@ -314,8 +314,8 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "--project=desktop-chromium --project=mobile-chromium",
-            "--project=desktop-chromium"
+            "        project: [desktop-chromium, mobile-chromium]\n",
+            "        project: [desktop-chromium]\n"
           )
         )
 
@@ -372,8 +372,10 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "--project=desktop-chromium --project=mobile-chromium",
-            Enum.join(flags(["desktop-chromium", "mobile-chromium" | @live_browser_full]), " ")
+            "        project: [desktop-chromium, mobile-chromium]\n",
+            "        project: [" <>
+              Enum.join(["desktop-chromium", "mobile-chromium" | @live_browser_full], ", ") <>
+              "]\n"
           )
         )
 
@@ -508,9 +510,9 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "      - name: Run example Playwright suite\n        timeout-minutes: 14\n",
+            "      - name: Run example Playwright suite\n        timeout-minutes: 9\n",
             "      - name: Run example Playwright suite\n" <>
-              "        if: github.event_name == 'schedule'\n        timeout-minutes: 14\n"
+              "        if: github.event_name == 'schedule'\n        timeout-minutes: 9\n"
           )
         )
 
@@ -584,14 +586,154 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium\n",
+            "run: mix verify.example_browser --project=${{ matrix.project }}\n",
             "run: |\n          mix verify.example_browser \\\n" <>
-              "            --project=desktop-chromium --project=mobile-chromium\n"
+              "            --project=${{ matrix.project }}\n"
           )
         )
 
       assert {output, 0} = run_script([], root)
       assert lines(output) == flags(@live_browser_full)
+    end
+  end
+
+  describe "matrix resolution (247-09, D-07 / RESEARCH Pitfall 1)" do
+    # Since 247-10, verify-example-browser is a `strategy.matrix.project` job
+    # whose run steps pass `--project=${{ matrix.project }}`. The script resolves
+    # that expression from the enclosing job's matrix list and fails closed on
+    # every other `${{ }}` value, so the split can never silently move the CI
+    # projects into Browser-full or drop them from both lanes.
+    @matrix_flag "--project=${{ matrix.project }}"
+    @literal_flags "--project=desktop-chromium --project=mobile-chromium"
+    @strategy_header "    strategy:\n      fail-fast: false\n      matrix:\n"
+    @inline_matrix "        project: [desktop-chromium, mobile-chromium]\n"
+
+    # Swap the live browser job's inline matrix list for `matrix_body`. The
+    # anchors are asserted unique so a moved literal fails loudly instead of
+    # leaving the live shape in place.
+    defp to_matrix_form(yaml, matrix_body \\ @inline_matrix) do
+      header = "  verify-example-browser:\n"
+      assert length(String.split(yaml, header)) == 2, "job header anchor is not unique"
+
+      assert length(String.split(yaml, @strategy_header <> @inline_matrix)) == 2,
+             "live matrix list anchor moved"
+
+      assert length(String.split(yaml, @matrix_flag)) == 3, "matrix flag anchors moved"
+
+      String.replace(yaml, @inline_matrix, matrix_body)
+    end
+
+    defp matrix_root(tmp_dir, rewrite), do: mutated_root(tmp_dir, @ci_rel, rewrite)
+
+    test "the live inline matrix list resolves to CI and Browser-full excludes it" do
+      yaml = live(@ci_rel)
+      # The anchors to_matrix_form/2 mutates are the live shape, unchanged.
+      assert to_matrix_form(yaml) == yaml
+      assert yaml =~ @strategy_header <> @inline_matrix
+      refute yaml =~ @literal_flags
+
+      assert list!("ci") == @live_ci
+      assert list!("browser-full") == @live_browser_full
+      assert {output, 0} = run_script([])
+      assert lines(output) == flags(@live_browser_full)
+    end
+
+    test "a block-sequence matrix list resolves the same way", %{tmp_dir: tmp_dir} do
+      block =
+        "        project:\n          - desktop-chromium # leg 1\n          - \"mobile-chromium\"\n"
+
+      root = matrix_root(tmp_dir, &to_matrix_form(&1, block))
+
+      assert list!("ci", root) == @live_ci
+      assert list!("browser-full", root) == @live_browser_full
+    end
+
+    test "a matrix list missing mobile-chromium moves it into Browser-full", %{tmp_dir: tmp_dir} do
+      root = matrix_root(tmp_dir, &to_matrix_form(&1, "        project: [desktop-chromium]\n"))
+
+      assert list!("ci", root) == ["desktop-chromium"]
+      assert "mobile-chromium" in list!("browser-full", root)
+      assert {output, 0} = run_script([], root)
+      assert "--project=mobile-chromium" in lines(output)
+      refute "--project=desktop-chromium" in lines(output)
+    end
+
+    for {label, expression, reason} <- [
+          {"${{ matrix.other }}", "${{ matrix.other }}", "matrix.other"},
+          {"${{ env.P }}", "${{ env.P }}", "env.P"}
+        ] do
+      test "--project=#{label} exits 1 with a named message", %{tmp_dir: tmp_dir} do
+        root =
+          matrix_root(tmp_dir, fn yaml ->
+            yaml
+            |> to_matrix_form()
+            |> String.replace(@matrix_flag, "--project=" <> unquote(expression), global: false)
+          end)
+
+        assert {output, 1} = run_script(["--list", "ci"], root)
+        assert output =~ "job verify-example-browser"
+        assert output =~ unquote(reason)
+        assert output =~ "only ${{ matrix.project }} resolves"
+      end
+    end
+
+    test "a project defined only under include: exits 1 with a named message", %{
+      tmp_dir: tmp_dir
+    } do
+      include =
+        "        include:\n          - project: desktop-chromium\n          - project: mobile-chromium\n"
+
+      root = matrix_root(tmp_dir, &to_matrix_form(&1, include))
+
+      assert {output, 1} = run_script(["--list", "ci"], root)
+      assert output =~ "job verify-example-browser"
+      assert output =~ "include:"
+    end
+
+    test "an empty matrix list exits 1 with a named message", %{tmp_dir: tmp_dir} do
+      root = matrix_root(tmp_dir, &to_matrix_form(&1, "        project: []\n"))
+
+      assert {output, 1} = run_script(["--list", "ci"], root)
+      assert output =~ "job verify-example-browser"
+      assert output =~ "strategy.matrix.project is empty"
+    end
+
+    test "an unparseable matrix list exits 1 with a named message", %{tmp_dir: tmp_dir} do
+      dynamic = "        project: ${{ fromJSON(needs.plan.outputs.projects) }}\n"
+      root = matrix_root(tmp_dir, &to_matrix_form(&1, dynamic))
+
+      assert {output, 1} = run_script(["--list", "ci"], root)
+      assert output =~ "job verify-example-browser"
+      assert output =~ "cannot parse strategy.matrix.project"
+    end
+
+    test "a matrix flag in a job with no strategy.matrix exits 1", %{tmp_dir: tmp_dir} do
+      root =
+        matrix_root(tmp_dir, fn yaml ->
+          assert yaml =~ @strategy_header <> @inline_matrix, "strategy anchor moved"
+          String.replace(yaml, @strategy_header <> @inline_matrix, "")
+        end)
+
+      assert {output, 1} = run_script(["--list", "ci"], root)
+      assert output =~ "job verify-example-browser"
+      assert output =~ "no strategy.matrix.project"
+    end
+
+    test "a matrix flag behind a job-level if: is still refused", %{tmp_dir: tmp_dir} do
+      root =
+        matrix_root(tmp_dir, fn yaml ->
+          yaml
+          |> to_matrix_form()
+          |> String.replace(
+            "  verify-example-browser:\n",
+            "  verify-example-browser:\n    if: github.event_name == 'schedule'\n",
+            global: false
+          )
+        end)
+
+      assert {output, 1} = run_script(["--list", "ci"], root)
+      assert output =~ "verify-example-browser carries a job-level if:"
+      assert output =~ "desktop-chromium"
     end
   end
 

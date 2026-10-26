@@ -1301,7 +1301,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @time_to_red_order ~w(verify-release-shape verify-repo-hygiene verify-format verify-deps-audit
                         verify-compile-no-optional verify-hex-evaluator verify-pgbouncer-topology
                         verify-credo verify-bump-rehearsal verify-dialyzer verify-test
-                        verify-example-browser)
+                        verify-example-browser verify-example-browser-receipt)
 
   # D-10: pure over ci.yml text. Order is read through the keyword reader and
   # cross-checked against the map reader, so a duplicate key, a merge key or a
@@ -1359,14 +1359,33 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   # D-07: no preflight `needs:` chain. Only ci-required may carry `needs`;
   # yaml_field/2 case-folds and trims the key, so `Needs` or a quoted key count.
+  # The one exemption is the 247 D-07a fan-in: the browser receipt job needs
+  # exactly the browser matrix legs, compared as an exact list (a scalar
+  # `needs: verify-example-browser` reads as the one-element list).
+  @needs_exemptions %{"verify-example-browser-receipt" => ["verify-example-browser"]}
+
   defp order_needs_errors(jobs) do
-    for {id, job} <- jobs, id != "ci-required", yaml_field(job, "needs") != :error do
+    for {id, job} <- jobs,
+        id != "ci-required",
+        needs = yaml_field(job, "needs"),
+        needs != :error,
+        not exempt_needs?(id, needs) do
       "job=#{id} rule=order-needs: no preflight needs: chain (221 D-07)"
     end
   end
 
+  defp exempt_needs?(id, {:ok, needs}) do
+    case Map.fetch(@needs_exemptions, id) do
+      {:ok, expected} -> List.wrap(needs) == expected
+      :error -> false
+    end
+  end
+
+  defp exempt_needs?(_id, _needs), do: false
+
   # SC-1 (221 D-02): each job's display name, by job id. verify-test's static
-  # name gets the ` (<lane>)` suffix from GitHub (D-04).
+  # name gets the ` (<lane>)` suffix from GitHub (D-04); verify-example-browser's
+  # gets ` (<project>)` the same way (247 D-07).
   @ci_check_names %{
     "verify-release-shape" => "CHANGELOG matches version",
     "verify-repo-hygiene" => "Repo hygiene (no machine-local paths)",
@@ -1379,7 +1398,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "verify-bump-rehearsal" => "Next-minor release rehearsal (docs + contracts)",
     "verify-dialyzer" => "Dialyzer (full optional build)",
     "verify-test" => "Build and test",
-    "verify-example-browser" => "Example app browser E2E (2 projects)",
+    "verify-example-browser" => "Example app browser E2E",
+    "verify-example-browser-receipt" => "Browser journey receipt",
     "ci-required" => "CI required"
   }
 
@@ -1389,9 +1409,23 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "Build and test (latest)"
   ]
 
+  # 247 D-07: one posted check per Playwright project leg.
+  @verify_example_browser_check_names [
+    "Example app browser E2E (desktop-chromium)",
+    "Example app browser E2E (mobile-chromium)"
+  ]
+
+  # Matrix jobs whose static name composes one posted check per base-axis value:
+  # {job id, base axis, the exact composed names}.
+  @composed_name_jobs [
+    {"verify-test", "lane", @verify_test_check_names},
+    {"verify-example-browser", "project", @verify_example_browser_check_names}
+  ]
+
   # The pre-221 job names that changed (read from 27e4ac61:.github/workflows/ci.yml),
   # plus the old verify-test lane names GitHub composed from them, plus the names
-  # of jobs removed later (246: verify-capture), so none can silently come back.
+  # of jobs removed later (246: verify-capture), plus the single browser job's
+  # name from before the 247 per-project split, so none can silently come back.
   @retired_check_names [
     "Check formatting",
     "Run Credo (strict)",
@@ -1409,7 +1443,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "Run test suite (latest)",
     # WR-06 (221 review): the job audits only the three Mix lockfiles (root,
     # bench, example); the e2e npm lockfile is not audited.
-    "Dependency audit (all lockfiles)"
+    "Dependency audit (all lockfiles)",
+    # 247 D-07: the browser job before its per-project matrix split.
+    "Example app browser E2E (2 projects)"
   ]
 
   # D-01 says names stay near 40 characters; the locked D-02 name
@@ -1451,15 +1487,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   defp name_static_errors(ci_text, names) do
-    name = Enum.find_value(names, fn {id, n} -> if id == "verify-test", do: n end) || ""
-    composed = composed_check_names(workflow_job(ci_text, "verify-test"))
-
-    if String.contains?(name, "${{") or composed != @verify_test_check_names,
-      do: [
-        "job=verify-test rule=name-static: expected the static name to compose " <>
-          "#{inspect(@verify_test_check_names)}, got #{inspect(composed)} (221 D-04)"
-      ],
-      else: []
+    for {id, axis, expected} <- @composed_name_jobs,
+        name = names |> List.keyfind(id, 0, {id, ""}) |> elem(1),
+        composed = composed_check_names(workflow_job(ci_text, id), axis),
+        String.contains?(name, "${{") or composed != expected do
+      "job=#{id} rule=name-static: expected the static name to compose " <>
+        "#{inspect(expected)}, got #{inspect(composed)} (221 D-04, 247 D-07)"
+    end
   end
 
   defp name_shape_errors(names) do
@@ -1522,8 +1556,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
       ]
   end
 
-  defp posted_check_names(ci_text, "verify-test"),
-    do: composed_check_names(workflow_job(ci_text, "verify-test"))
+  defp posted_check_names(ci_text, "verify-test" = id),
+    do: composed_check_names(workflow_job(ci_text, id), "lane")
+
+  defp posted_check_names(ci_text, "verify-example-browser" = id),
+    do: composed_check_names(workflow_job(ci_text, id), "project")
 
   defp posted_check_names(ci_text, id) do
     case yaml_get(parsed_job(parsed_doc(ci_text), id), "name") do
@@ -1748,7 +1785,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_doc)
   end
 
-  # SC-3 id pin (D-11): the 13 ci.yml job ids, frozen as a literal. Adding or
+  # SC-3 id pin (D-11): the 14 ci.yml job ids, frozen as a literal. Adding or
   # renaming a job updates this literal on purpose in the same commit. It is not
   # derived from any other attribute, so one edit can never move two pins.
   # Phase 222's escape hatch (D-11) adds its new id here together with
@@ -1761,6 +1798,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     verify-deps-audit
     verify-dialyzer
     verify-example-browser
+    verify-example-browser-receipt
     verify-format
     verify-hex-evaluator
     verify-pgbouncer-topology
@@ -2330,6 +2368,174 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp resolve_shell_defaults(text) do
     resolved = Regex.replace(@shell_default_interpolation, text, "\\1")
     if resolved == text, do: text, else: resolve_shell_defaults(resolved)
+  end
+
+  # 247 D-07/D-07a: the browser split's fan-in. Pure over ci.yml text.
+  # receipt-unconditional: the receipt job has no job-level `if:` (a skipped
+  # receipt must reach ci-required as a skip, and ci-required, which runs
+  # `if: always()`, needs it with no `allowed-skips`, so the skip fails the
+  # gate). receipt-needs: the receipt needs exactly the browser legs.
+  # matrix-fail-fast: the legs keep `fail-fast: false`, so one red leg cannot
+  # cancel the other and hide its evidence.
+  @browser_receipt_job "verify-example-browser-receipt"
+  @browser_leg_job "verify-example-browser"
+
+  defp browser_split_errors(ci_text) do
+    doc = parsed_doc(ci_text)
+    receipt = parsed_job(doc, @browser_receipt_job)
+    legs = parsed_job(doc, @browser_leg_job)
+    required = parsed_job(doc, "ci-required")
+
+    [
+      {"rule=receipt-unconditional",
+       is_map(receipt) and yaml_field(receipt, "if") == :error and
+         yaml_get(required, "if") == "always()" and
+         @browser_receipt_job in ci_required_needs(ci_text) and
+         not yaml_key_anywhere?(required, "allowed-skips")},
+      {"rule=receipt-needs",
+       is_map(receipt) and
+         match?({:ok, _}, yaml_field(receipt, "needs")) and
+         List.wrap(yaml_get(receipt, "needs")) ==
+           Map.fetch!(@needs_exemptions, @browser_receipt_job)},
+      {"rule=matrix-fail-fast",
+       is_map(legs) and yaml_get_in(legs, ["strategy", "fail-fast"]) === false}
+    ]
+    |> Enum.reject(fn {_rule, ok?} -> ok? end)
+    |> Enum.map(fn {rule, _} -> "job=#{@browser_receipt_job} #{rule}" end)
+  end
+
+  describe "browser split fan-in (CI-02, 247 D-07/D-07a)" do
+    test "the live receipt is unconditional, needs exactly the legs, and the legs never fail fast" do
+      ci = all_workflows()[@ci_path]
+
+      assert browser_split_errors(ci) == []
+      assert ci_order_errors(ci) == []
+
+      assert Map.fetch!(@needs_exemptions, @browser_receipt_job) == [@browser_leg_job]
+      assert map_size(@needs_exemptions) == 1, "only the browser receipt may carry needs"
+
+      # The exact-list exemption accepts the scalar and the one-element list alike.
+      flow =
+        String.replace(
+          ci,
+          "    needs: verify-example-browser\n",
+          "    needs: [verify-example-browser]\n"
+        )
+
+      refute flow == ci, "flow-list positive control did not change the input"
+      assert browser_split_errors(flow) == []
+      assert ci_order_errors(flow) == []
+    end
+
+    test "each fan-in rule goes red under its mutation" do
+      ci = all_workflows()[@ci_path]
+      receipt_needs = "    needs: verify-example-browser\n"
+      receipt_name = "    name: Browser journey receipt\n"
+      fail_fast = "      fail-fast: false\n      matrix:\n        project: ["
+      leg_name = "    name: Example app browser E2E\n"
+      required_need = "      - verify-example-browser-receipt\n"
+
+      controls = [
+        {"receipt gains an if:",
+         String.replace(ci, receipt_name, receipt_name <> "    if: success()\n"),
+         ["rule=receipt-unconditional"], []},
+        {"receipt gains an always() if:",
+         String.replace(ci, receipt_name, receipt_name <> "    if: ${{ always() }}\n"),
+         ["rule=receipt-unconditional"], []},
+        {"ci-required stops needing the receipt", String.replace(ci, required_need, ""),
+         ["rule=receipt-unconditional"], []},
+        {"receipt needs a second job",
+         String.replace(ci, receipt_needs, "    needs: [verify-example-browser, verify-test]\n"),
+         ["rule=receipt-needs"], ["job=verify-example-browser-receipt rule=order-needs"]},
+        {"receipt needs another job",
+         String.replace(ci, receipt_needs, "    needs: verify-test\n"), ["rule=receipt-needs"],
+         ["job=verify-example-browser-receipt rule=order-needs"]},
+        {"a leg gains needs",
+         String.replace(ci, leg_name, leg_name <> "    needs: verify-format\n"), [],
+         ["job=verify-example-browser rule=order-needs"]},
+        {"legs fail fast",
+         String.replace(
+           ci,
+           fail_fast,
+           "      fail-fast: true\n      matrix:\n        project: ["
+         ), ["rule=matrix-fail-fast"], []},
+        {"fail-fast removed (defaults to true)",
+         String.replace(ci, fail_fast, "      matrix:\n        project: ["),
+         ["rule=matrix-fail-fast"], []}
+      ]
+
+      for {control, mutated, split_rules, order_fragments} <- controls do
+        refute mutated == ci, "#{control} control did not change the input"
+        assert parsed_doc(mutated) != nil, "#{control} mutation must stay valid YAML"
+
+        split = browser_split_errors(mutated)
+        order = ci_order_errors(mutated)
+
+        for rule <- split_rules do
+          assert Enum.any?(split, &String.ends_with?(&1, rule)),
+                 "#{control} mutation must report #{rule}, got #{inspect(split)}"
+        end
+
+        for fragment <- order_fragments do
+          assert Enum.any?(order, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{fragment}, got #{inspect(order)}"
+        end
+      end
+    end
+
+    test "the composed-name helper takes an ordered axis list (D-08 fallback, RESEARCH A4)" do
+      job = """
+        verify-example-browser:
+          name: Example app browser E2E
+          strategy:
+            fail-fast: false
+            matrix:
+              project: [desktop-chromium, mobile-chromium]
+              shard: [1, 2]
+          runs-on: ubuntu-24.04
+      """
+
+      assert composed_check_names(job, ["project", "shard"]) == [
+               "Example app browser E2E (desktop-chromium, 1)",
+               "Example app browser E2E (desktop-chromium, 2)",
+               "Example app browser E2E (mobile-chromium, 1)",
+               "Example app browser E2E (mobile-chromium, 2)"
+             ]
+
+      # One named axis over a two-axis matrix models nothing, so it composes nothing.
+      assert composed_check_names(job, "project") == []
+
+      excluded =
+        String.replace(
+          job,
+          "        shard: [1, 2]\n",
+          "        shard: [1, 2]\n        exclude:\n          - project: mobile-chromium\n            shard: 2\n"
+        )
+
+      refute excluded == job, "exclude control did not change the input"
+
+      assert composed_check_names(excluded, ["project", "shard"]) == [
+               "Example app browser E2E (desktop-chromium, 1)",
+               "Example app browser E2E (desktop-chromium, 2)",
+               "Example app browser E2E (mobile-chromium, 1)"
+             ]
+
+      # A partial exclude row is a shape the composer does not model: fail closed.
+      partial =
+        String.replace(
+          job,
+          "        shard: [1, 2]\n",
+          "        shard: [1, 2]\n        exclude:\n          - shard: 2\n"
+        )
+
+      assert composed_check_names(partial, ["project", "shard"]) == []
+
+      # The live single-axis jobs compose the same through the list form.
+      ci = all_workflows()[@ci_path]
+      live = workflow_job(ci, @browser_leg_job)
+      assert composed_check_names(live, ["project"]) == @verify_example_browser_check_names
+      assert composed_check_names(live, "project") == @verify_example_browser_check_names
+    end
   end
 
   describe "dependency cache contract" do
@@ -3209,35 +3415,41 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   # The check names GitHub posts for a matrix job, read from the parsed job
-  # block (WR-01, 221 review): a static job `name:` gets each posted `lane`
-  # value appended as ` (value)`. `exclude` drops a lane before `include` runs,
-  # and an `include` row that only adds keys to a kept lane leaves the posted
-  # names alone. Any shape this does not model (a second axis, an `exclude` row
-  # keyed on anything but `lane`, an `include` row that would add a new
+  # block (WR-01, 221 review): a static job `name:` gets each posted
+  # combination of the base `axes` appended as ` (v1, v2, ...)`. `axes` is one
+  # axis (`lane` for verify-test, `project` for verify-example-browser, 247
+  # D-07) or an ordered list, in the matrix's YAML key order, for a multi-axis
+  # matrix (the D-08 `project` + `shard` fallback composes
+  # `(desktop-chromium, 1)`, 247 RESEARCH A4, assumed from GitHub's multi-axis
+  # naming). Combinations run first axis outermost. `exclude` drops a
+  # combination before `include` runs, and an `include` row that only adds keys
+  # to a kept combination leaves the posted names alone. Any shape this does
+  # not model (an axis the caller did not name, an `exclude` row keyed on
+  # anything but exactly the axes, an `include` row that would add a new
   # combination, an expression-valued matrix) composes nothing, so every rule
   # built on it fails closed. A `${{ … }}` expression in the name switches the
   # suffix off, so it composes nothing too. Comments never reach parsed data.
-  defp composed_check_names(job_block) do
+  defp composed_check_names(job_block, axes \\ "lane") do
     with {:ok, %{} = doc} <- parse_yaml(job_block),
          [job] <- Map.values(doc),
          name when is_binary(name) <- yaml_get(job, "name"),
          false <- String.contains?(name, "${{"),
-         {:ok, lanes} <- posted_lanes(yaml_get_in(job, ["strategy", "matrix"])) do
-      Enum.map(lanes, &"#{name} (#{&1})")
+         {:ok, combos} <- posted_lanes(yaml_get_in(job, ["strategy", "matrix"]), List.wrap(axes)) do
+      Enum.map(combos, &"#{name} (#{Enum.join(&1, ", ")})")
     else
       _ -> []
     end
   end
 
-  defp posted_lanes(%{} = matrix) do
-    axes = matrix |> Map.keys() |> Enum.map(&yaml_key/1) |> Kernel.--(["exclude", "include"])
-    lanes = yaml_get(matrix, "lane")
+  defp posted_lanes(%{} = matrix, [_ | _] = axes) do
+    keys = matrix |> Map.keys() |> Enum.map(&yaml_key/1) |> Kernel.--(["exclude", "include"])
+    value_lists = Enum.map(axes, &matrix_axis_values(yaml_get(matrix, &1)))
 
-    with ["lane"] <- axes,
-         true <- is_list(lanes) and Enum.all?(lanes, &is_binary/1),
-         {:ok, excluded} <- matrix_row_lanes(yaml_get(matrix, "exclude"), :exclude),
-         {:ok, included} <- matrix_row_lanes(yaml_get(matrix, "include"), :include),
-         kept = Enum.reject(lanes, &(&1 in excluded)),
+    with true <- axes == Enum.uniq(axes) and Enum.sort(keys) == Enum.sort(axes),
+         false <- :error in value_lists,
+         {:ok, excluded} <- matrix_row_lanes(yaml_get(matrix, "exclude"), :exclude, axes),
+         {:ok, included} <- matrix_row_lanes(yaml_get(matrix, "include"), :include, axes),
+         kept = value_lists |> matrix_combinations() |> Enum.reject(&(&1 in excluded)),
          true <- Enum.all?(included, &(&1 in kept)) do
       {:ok, kept}
     else
@@ -3245,25 +3457,47 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  defp posted_lanes(_matrix), do: :error
+  defp posted_lanes(_matrix, _axes), do: :error
 
-  # The `lane` of each exclude/include row. An exclude row may name `lane` only;
-  # an include row must name a `lane` (it may add other keys). Anything else is
-  # a shape the composer does not model.
-  defp matrix_row_lanes(nil, _kind), do: {:ok, []}
-
-  defp matrix_row_lanes(rows, kind) when is_list(rows) do
-    lanes =
-      for %{} = row <- rows,
-          lane = yaml_get(row, "lane"),
-          is_binary(lane),
-          kind == :include or map_size(row) == 1,
-          do: lane
-
-    if length(lanes) == length(rows), do: {:ok, lanes}, else: :error
+  # An axis's values as strings (GitHub posts `shard: [1, 2]` as `1`, `2`);
+  # anything but a list of strings or integers is a shape the composer does
+  # not model.
+  defp matrix_axis_values(values) when is_list(values) do
+    scalars = Enum.map(values, &matrix_scalar/1)
+    if nil in scalars, do: :error, else: scalars
   end
 
-  defp matrix_row_lanes(_rows, _kind), do: :error
+  defp matrix_axis_values(_values), do: :error
+
+  defp matrix_scalar(value) when is_binary(value), do: value
+  defp matrix_scalar(value) when is_integer(value), do: Integer.to_string(value)
+  defp matrix_scalar(_value), do: nil
+
+  defp matrix_combinations(value_lists) do
+    value_lists
+    |> Enum.reverse()
+    |> Enum.reduce([[]], fn values, acc ->
+      for value <- values, rest <- acc, do: [value | rest]
+    end)
+  end
+
+  # The axis combination of each exclude/include row. An exclude row may name
+  # exactly the axes; an include row must name every axis (it may add other
+  # keys). Anything else is a shape the composer does not model.
+  defp matrix_row_lanes(nil, _kind, _axes), do: {:ok, []}
+
+  defp matrix_row_lanes(rows, kind, axes) when is_list(rows) do
+    combos =
+      for %{} = row <- rows,
+          combo = Enum.map(axes, &matrix_scalar(yaml_get(row, &1))),
+          nil not in combo,
+          kind == :include or map_size(row) == length(axes),
+          do: combo
+
+    if length(combos) == length(rows), do: {:ok, combos}, else: :error
+  end
+
+  defp matrix_row_lanes(_rows, _kind, _axes), do: :error
 
   defp strip_comment_lines(block) do
     block
@@ -5877,9 +6111,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_consumer_parts(:browser) do
     {~S"""
        verify-example-browser:
-         name: Example app browser E2E (2 projects)
+         name: Example app browser E2E
+         strategy:
+           fail-fast: false
+           matrix:
+             project: [desktop-chromium, mobile-chromium]
          runs-on: ubuntu-24.04
-         timeout-minutes: 18
+         timeout-minutes: 12
          env:
            DB_HOST: localhost
            DB_PORT: 5432
@@ -5890,14 +6128,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
      """,
      ~S"""
            - name: Run example Playwright suite
-             timeout-minutes: 14
-             run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
+             timeout-minutes: 9
+             run: mix verify.example_browser --project=${{ matrix.project }}
 
            - name: Upload Playwright traces and e2e boot log on failure
              if: failure()
              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
              with:
-               name: example-browser-e2e-diagnostics
+               name: example-browser-e2e-diagnostics-${{ matrix.project }}
                path: |
                  examples/threadline_phoenix/e2e/test-results
                  /tmp/threadline_phoenix_e2e.log

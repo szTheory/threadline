@@ -318,13 +318,19 @@ not run on pull requests. It is named below.
 
 | Playwright project | Pull request | `main` | Nightly | Runs via |
 |---|---|---|---|---|
-| `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
-| `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
+| `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**; its own matrix leg) |
+| `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**; its own matrix leg) |
 | `route-capture` | no | yes | yes | `verify-example-browser-full` |
 | `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
 
 **Both lanes run on `main`; only Browser-full runs nightly.** `ci.yml` runs its
-two projects on every pull request and every push to `main`. Job
+two projects on every pull request and every push to `main`, as two parallel
+legs of the `verify-example-browser` matrix (checks
+`Example app browser E2E (desktop-chromium)` and
+`Example app browser E2E (mobile-chromium)`). The
+`verify-example-browser-receipt` job (`Browser journey receipt`) then
+reconciles every required operator journey across both legs' evidence; a
+failed leg skips it, which `CI required` counts as a failure. Job
 `verify-example-browser-full` in
 [`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
 `route-capture` (a render smoke over the 5 curated operator routes plus a
@@ -393,6 +399,7 @@ lane run every test.
 - `verify-test`
 - `verify-hex-evaluator`
 - `verify-example-browser`
+- `verify-example-browser-receipt`
 - `verify-pgbouncer-topology`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
@@ -603,7 +610,8 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `bin/ci-test-partitions --self-test` + `mix verify.test_partitioned` (N partitions, one database each, Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
-| `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
+| `verify-example-browser` | `mix verify.example_browser --project=<project>` — operator-surface Playwright e2e on the example app, one matrix leg per CI project (`desktop-chromium`, `mobile-chromium`) running in parallel |
+| `verify-example-browser-receipt` | fan-in after both browser legs: downloads each leg's executed report and discovered list and reconciles every required operator journey against `support/operator-journey-inventory.json` into one receipt (`support/operator-ci-evidence.ts --verify`) |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.6.0 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
@@ -861,7 +869,9 @@ pass. The posted check names, in `ci.yml` order:
 - Build and test (min) (`verify-test` min lane)
 - Build and test (current) (`verify-test` current lane)
 - Build and test (latest) (`verify-test` latest lane)
-- Example app browser E2E (2 projects) (`verify-example-browser`)
+- Example app browser E2E (desktop-chromium) (`verify-example-browser` desktop-chromium leg)
+- Example app browser E2E (mobile-chromium) (`verify-example-browser` mobile-chromium leg)
+- Browser journey receipt (`verify-example-browser-receipt`)
 
 `test/threadline/ci_workflow_parity_contract_test.exs` keeps this list equal to
 the names GitHub posts, so it cannot drift from the workflow.

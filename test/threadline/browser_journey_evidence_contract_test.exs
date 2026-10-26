@@ -136,7 +136,12 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
   test "required CI reconciles native evidence and ci-required still fails on every non-success" do
     workflow = read!(@workflow_path)
     config = read!(@config_path)
-    [browser_job, required_job] = String.split(workflow, "  ci-required:\n", parts: 2)
+    [browser_jobs, required_job] = String.split(workflow, "  ci-required:\n", parts: 2)
+
+    # 247 D-07/D-07a: one matrix leg per project, then the fan-in receipt job.
+    [browser_job, receipt_job] =
+      String.split(browser_jobs, "\n  verify-example-browser-receipt:\n", parts: 2)
+
     [_, test_workflow] = String.split(workflow, "  verify-test:\n", parts: 2)
     [test_job, _] = String.split(test_workflow, "\n  verify-example-browser:\n", parts: 2)
 
@@ -160,27 +165,49 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
 
     assert browser_job =~ "  verify-example-browser:\n", "stable browser job ID changed"
 
-    assert browser_job =~
-             "mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
+    assert browser_job =~ "        project: [desktop-chromium, mobile-chromium]\n"
+    assert browser_job =~ "mix verify.example_browser --project=${{ matrix.project }}"
 
     assert browser_job =~
-             "PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json"
+             "PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json"
 
     assert config =~ "process.env.PLAYWRIGHT_JSON_OUTPUT_FILE"
     assert config =~ "[[\"github\"], [\"json\"]]"
 
     assert browser_job =~
-             "./node_modules/.bin/playwright test --list --project=desktop-chromium --project=mobile-chromium"
+             "./node_modules/.bin/playwright test --list --project=${{ matrix.project }}"
 
-    assert browser_job =~ "support/operator-ci-evidence.ts --verify"
-    assert browser_job =~ "operator-journey-inventory.json"
+    # Each leg uploads its own executed report and discovered list; the leg
+    # reconciles nothing itself.
+    assert browser_job =~ "name: operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}"
+
+    assert browser_job =~
+             "name: operator-ci-discovered-${{ matrix.project }}-${{ github.run_id }}"
+
+    assert browser_job =~ "name: browser-timings-${{ matrix.project }}-${{ github.run_id }}"
+    assert browser_job =~ "name: example-browser-e2e-diagnostics-${{ matrix.project }}"
     assert browser_job =~ "actions/upload-artifact@"
-    assert browser_job =~ "retention-days: 14"
-    assert browser_job =~ "operator-ci-receipt-${{ github.run_id }}.json"
+    refute browser_job =~ "support/operator-ci-evidence.ts --verify"
     refute browser_job =~ "path: examples/threadline_phoenix/e2e/test-results"
 
+    # The fan-in reconciles every leg's evidence into one receipt.
+    assert receipt_job =~ "    needs: verify-example-browser\n"
+    assert receipt_job =~ "pattern: operator-ci-executed-*-${{ github.run_id }}"
+    assert receipt_job =~ "pattern: operator-ci-discovered-*-${{ github.run_id }}"
+    assert receipt_job =~ "merge-multiple: true"
+    assert receipt_job =~ "support/operator-ci-evidence.ts --verify"
+    assert receipt_job =~ "operator-journey-inventory.json"
+    assert receipt_job =~ "args+=(--discovered \"$f\")"
+    assert receipt_job =~ "args+=(--executed \"$f\")"
+    assert receipt_job =~ "actions/upload-artifact@"
+    assert receipt_job =~ "retention-days: 14"
+    assert receipt_job =~ "operator-ci-receipt-${{ github.run_id }}.json"
+    assert receipt_job =~ "name: operator-ci-evidence-${{ github.run_id }}"
+    refute receipt_job =~ "path: examples/threadline_phoenix/e2e/test-results"
+
     assert required_job =~ "    if: always()"
-    assert required_job =~ "      - verify-example-browser"
+    assert required_job =~ "      - verify-example-browser\n"
+    assert required_job =~ "      - verify-example-browser-receipt\n"
     assert required_job =~ "jobs: ${{ toJSON(needs) }}"
     assert workflow =~ "\n  ci-required:\n", "stable required job ID changed"
   end
@@ -195,8 +222,9 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     # step anywhere else in ci.yml cannot satisfy the contract.
     defp browser_job_block(workflow_yaml) do
       with [before_required, _] <- String.split(workflow_yaml, "  ci-required:\n", parts: 2),
-           [_, job] <- String.split(before_required, "  verify-example-browser:\n", parts: 2) do
-        job
+           [_, jobs] <- String.split(before_required, "  verify-example-browser:\n", parts: 2) do
+        # Stop at the fan-in receipt job: the timings belong to the matrix legs.
+        jobs |> String.split("\n  verify-example-browser-receipt:\n", parts: 2) |> hd()
       else
         _ -> ""
       end
@@ -225,12 +253,12 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
       [
         {"rule=timings-step",
          step != "" and step =~ "working-directory: examples/threadline_phoenix/e2e" and
-           step =~ "support/slow-specs.ts \"$report\" --label all --out"},
+           step =~ "support/slow-specs.ts \"$report\" --label ${{ matrix.project }} --out"},
         {"rule=timings-always", step =~ ~r/^        if: always\(\)$/m},
         {"rule=timings-fail-soft", step != "" and not (step =~ "continue-on-error")},
         {"rule=timings-guard",
          step =~
-           "report=\"${{ runner.temp }}/operator-ci-executed-${{ github.run_id }}.json\"" and
+           "report=\"${{ runner.temp }}/operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}.json\"" and
            step =~ "if [ -f \"$report\" ]"},
         {"rule=timings-artifact",
          upload =~ ~r/^        if: always\(\)$/m and
@@ -277,8 +305,11 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
         {"rule=timings-guard", String.replace(workflow, "if [ -f \"$report\" ] && ", "if "),
          package_json},
         {"rule=timings-artifact",
-         String.replace(workflow, "name: browser-timings-all-", "name: browser-durations-all-"),
-         package_json},
+         String.replace(
+           workflow,
+           "name: browser-timings-${{ matrix.project }}-",
+           "name: browser-durations-${{ matrix.project }}-"
+         ), package_json},
         {"rule=timings-artifact",
          String.replace(workflow, upload_header, "      - name: #{@timings_upload}\n"),
          package_json},
@@ -313,6 +344,103 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
         |> String.replace("  ci-required:\n", "  ci-required:\n    steps:\n" <> step)
 
       assert "rule=timings-step" in slow_specs_errors(relocated, package_json)
+    end
+  end
+
+  describe "CI-02 browser matrix legs (247 D-07, D-07a)" do
+    @leg_job "verify-example-browser"
+
+    # The parsed leg job, or nil. A mutation that breaks the YAML reads as no
+    # job, so every rule below fails closed.
+    defp leg_job(workflow_yaml) do
+      case YamlElixir.read_from_string(workflow_yaml) do
+        {:ok, %{"jobs" => %{@leg_job => %{} = job}}} -> job
+        _ -> nil
+      end
+    end
+
+    defp leg_upload_names(nil), do: []
+
+    defp leg_upload_names(job) do
+      for %{} = step <- List.wrap(job["steps"]),
+          is_binary(step["uses"]),
+          String.starts_with?(step["uses"], "actions/upload-artifact@"),
+          do: get_in(step, ["with", "name"])
+    end
+
+    # Pure over ci.yml text and the decoded inventory. matrix-projects: the leg
+    # matrix runs exactly the inventory's voting projects, in inventory order,
+    # so a dropped or added leg cannot read green. leg-artifact-name: every leg
+    # upload carries the project, so two legs can never write one artifact name
+    # (upload-artifact v4+ fails or overwrites on a name clash).
+    defp split_leg_errors(workflow_yaml, inventory) do
+      job = leg_job(workflow_yaml)
+      projects = get_in(job || %{}, ["strategy", "matrix", "project"])
+      voting = inventory["votingProjects"]
+      uploads = leg_upload_names(job)
+
+      [
+        {"rule=matrix-projects", is_list(voting) and voting != [] and projects == voting},
+        {"rule=leg-artifact-name",
+         uploads != [] and
+           Enum.all?(uploads, &(is_binary(&1) and String.contains?(&1, "${{ matrix.project }}")))}
+      ]
+      |> Enum.reject(fn {_rule, ok?} -> ok? end)
+      |> Enum.map(fn {rule, _} -> rule end)
+    end
+
+    test "the live leg matrix equals votingProjects and every leg artifact names its project" do
+      workflow = read!(@workflow_path)
+      inventory = inventory!()
+
+      assert split_leg_errors(workflow, inventory) == []
+      assert get_in(leg_job(workflow), ["strategy", "matrix", "project"]) == @projects
+
+      # Non-vacuous: the four per-leg uploads (executed, discovered, timings,
+      # diagnostics) are all read.
+      assert length(leg_upload_names(leg_job(workflow))) == 4
+    end
+
+    test "each CI-02 leg rule goes red under its mutation" do
+      workflow = read!(@workflow_path)
+      inventory = inventory!()
+      matrix_line = "        project: [desktop-chromium, mobile-chromium]\n"
+
+      controls = [
+        {"rule=matrix-projects",
+         String.replace(workflow, matrix_line, "        project: [desktop-chromium]\n"),
+         inventory},
+        {"rule=matrix-projects",
+         String.replace(
+           workflow,
+           matrix_line,
+           "        project: [mobile-chromium, desktop-chromium]\n"
+         ), inventory},
+        {"rule=matrix-projects", workflow,
+         Map.update!(inventory, "votingProjects", &(&1 ++ ["route-capture"]))},
+        {"rule=leg-artifact-name",
+         String.replace(
+           workflow,
+           "          name: example-browser-e2e-diagnostics-${{ matrix.project }}\n",
+           "          name: example-browser-e2e-diagnostics\n"
+         ), inventory},
+        {"rule=leg-artifact-name",
+         String.replace(
+           workflow,
+           "          name: operator-ci-executed-${{ matrix.project }}-${{ github.run_id }}\n",
+           "          name: operator-ci-executed-${{ github.run_id }}\n"
+         ), inventory}
+      ]
+
+      for {rule, mutated_workflow, mutated_inventory} <- controls do
+        refute {mutated_workflow, mutated_inventory} == {workflow, inventory},
+               "mutation anchor missing for #{rule}"
+
+        assert leg_job(mutated_workflow) != nil, "#{rule} mutation must stay valid YAML"
+
+        assert rule in split_leg_errors(mutated_workflow, mutated_inventory),
+               "#{rule} stayed green under its mutation"
+      end
     end
   end
 end

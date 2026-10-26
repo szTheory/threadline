@@ -22,10 +22,10 @@
 
 ### CI critical path and suite lanes
 
-- [ ] **CI-01**: Every main CI run publishes the slowest browser specs (at least the top 20 with durations) in the job summary or an artifact.
+- [x] **CI-01**: Every main CI run publishes the slowest browser specs (at least the top 20 with durations) in the job summary or an artifact.
 - [ ] **CI-02**: Browser E2E runs as one parallel job per Playwright project. The operator-journey receipt still reconciles every journey, and median CI wall time over 5 main runs is ≤ 9 minutes. This is the measured gate for SEED-006's reopen condition.
 - [ ] **CI-03**: Repo-file contract tests run only on the current lane (local `mix test` stays whole and the honest-default docs stay true), and partition weights are refreshed from CI timings so the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
-- [ ] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
+- [x] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
 ### Debt closeout
 
@@ -62,10 +62,10 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 | SUP-04 | Phase 245 | Complete |
 | DEBT-01 | Phase 246 | Complete |
 | DEBT-02 | Phase 246 | Complete |
-| CI-01 | Phase 247 | Pending |
+| CI-01 | Phase 247 | Complete |
 | CI-02 | Phase 247 | Pending |
 | CI-03 | Phase 247 | Pending |
-| CI-04 | Phase 247 | Pending |
+| CI-04 | Phase 247 | Complete |
 
 **Coverage:**
 - v1.47 requirements: 14 total
