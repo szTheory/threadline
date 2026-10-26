@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-12-PLAN.md
-last_updated: "2026-10-26T21:35:22.920Z"
+stopped_at: Completed 247-11-PLAN.md
+last_updated: "2026-10-26T21:51:33.628Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-12 D-11 balance complete: weights ingested from 3 CI current-lane runs (5ba88242), ASYNC_FACTOR_PERMILLE=292 fitted by least squares (c87eaecc), stress_router split not triggered"
-state_head: 01d40857ce6b9fc7f4eed7e2ef615d8fbaa0dc4f
+last_activity_desc: "247-11 CI-02 hardening complete: matrix-projects, leg-artifact-name, receipt-unconditional, receipt-needs, matrix-fail-fast with mutation controls + axis-list composed names (3613a9f4); CI=true mix ci.all green on ephemeral postgres:16"
+state_head: b26d1c8a1189568a32a5104475696c158abfe1c4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 36
+  completed_plans: 37
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 11 of 13 executed (247-01 through 247-10 and 247-12 complete; next 247-11, then 247-13)
+Plan: 12 of 13 executed (247-01 through 247-12 complete; next 247-13 Land B2)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-12 D-11 balance complete (CI current-lane weights 5ba88242; fitted async factor k=0.2918 c87eaecc; split not triggered 74510 ms vs share 321223 ms; local verify.test 3371/0, verify.test_partitioned green, local max/min 1.80)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 11/13 executed: 247-01 through 247-10 and 247-12)
+Last activity: 2026-10-26 — 247-11 CI-02 hardening complete (split rules + 13 mutation controls 3613a9f4; CI=true mix ci.all exit 0: 3376 tests/0 failures, Playwright 418 passed/56 skipped, Dialyzer 0 errors)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 12/13 executed: 247-01 through 247-12)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -332,6 +332,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P08 | 6.5h | 3 tasks | 4 files |
 | Phase 247 P10 | 45 min | 2 tasks | 7 files |
 | Phase 247 P12 | 15 min | 3 tasks | 2 files |
+| Phase 247 P11 | 35 min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -1179,6 +1180,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-12: async partition factor fitted by least squares at k=0.2918 (ASYNC_FACTOR_PERMILLE=292) over 3 runs x 4 current-lane partitions
 - [Phase 247]: 247-12: stress_router_test.exs split not triggered (74510 ms vs even share 321223 ms)
 - [Phase 247]: 247-12: one CI current-lane weights file; per-lane weights deferred to a 247-13 data decision
+- [Phase 247]: 247-11: receipt-unconditional pins both ends: receipt has no job-level if:, ci-required keeps if: always(), needs the receipt, no allowed-skips
+- [Phase 247]: 247-11: composed_check_names/2 takes an ordered axis list (caller supplies YAML key order); two-axis naming (desktop-chromium, 1) stays RESEARCH A4 assumed
 
 ### Blockers
 
@@ -1199,8 +1202,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T21:35:22.510Z
-**Stopped at:** Completed 247-12-PLAN.md
+**Last session:** 2026-10-26T21:51:33.266Z
+**Stopped at:** Completed 247-11-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
