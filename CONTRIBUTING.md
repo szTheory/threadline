@@ -192,6 +192,25 @@ the name or path, the same way `config/test.exs`'s own database name does —
 otherwise two concurrent partitions can collide on the same cluster-wide
 object or file.
 
+**A hung partition fails fast and names itself.** Each partition has a 480 s
+wall budget (`CI_TEST_PARTITIONS_BUDGET_S`). 30 s before it, the in-VM
+partition monitor (`test/support/partition_monitor.ex`) prints a
+`HANG: in-flight:` dump naming the stuck test (or the `setup_all` module) with
+stacks, and halts the VM with a non-zero exit. If the VM cannot report, the
+script stops the partition at the budget: it asks the BEAM for ExUnit's own
+abort list, prints a backstop (log tail, process tree, `pg_stat_activity`),
+then kills the partition's process group, and the partition's row shows Exit
+`124`. The step summary carries only the table and the in-flight test names;
+the stacks are in the log. On failure the partition logs are uploaded as
+`partition-logs-<lane>-<run>`. The `Run tests` step's 12-minute timeout sits
+between the budget and the 20-minute job timeout, so the upload still runs.
+`mix verify.test_partitioned` stays the canonical CI step. Every run uploads
+per-file CI timings as `partition-timings-<lane>-<run>`. Download them and
+refresh the weights with `bin/ci-test-partitions --ingest-weights <dir>`
+(optionally `--lane current`), with `--write-weights` as the offline
+fallback. The step summary also shows a `max/min` ratio of the slowest to
+the fastest partition, and warns above 1.15 without failing the run.
+
 **Rules of thumb:**
 
 - **Never `Process.sleep` to wait for a condition.** Use

@@ -434,17 +434,22 @@ report() {
 }
 
 # `| <i> | <in-flight name> |` rows for a budget-killed partition: the lines
-# of the monitor's `HANG: in-flight:` block, or ExUnit's `* <test> [file:line]`
-# lines after `Aborting test suite`. At most 10 rows of 100 characters, with
-# `|` replaced, so the step summary never carries stacks or raw log text.
+# of the monitor's `HANG: in-flight:` block or, when there is none, ExUnit's
+# `* <test> [file:line]` lines after `Aborting test suite` (both name the same
+# tests after a QUIT). At most 10 rows of 100 characters, with `|` replaced,
+# so the step summary never carries stacks or raw log text.
 hung_rows() {
   local i="$1" log="$2" names
   names="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | awk '
     /HANG: in-flight:/ { on = 1; next }
     /HANG: processes/ { on = 0; next }
     /Aborting test suite/ { ab = 1; next }
-    on && /^  [^ ]/ { sub(/^  /, ""); print; next }
-    ab && /^[[:space:]]*\* / { sub(/^[[:space:]]*\* /, ""); print }
+    on && /^  [^ ]/ { sub(/^  /, ""); hang[++h] = $0; next }
+    ab && /^[[:space:]]*\* / { sub(/^[[:space:]]*\* /, ""); abort[++a] = $0 }
+    END {
+      if (h > 0) for (k = 1; k <= h; k++) print hang[k]
+      else for (k = 1; k <= a; k++) print abort[k]
+    }
   ' | awk '!seen[$0]++' | head -n 10 | cut -c1-100 | tr '|' '/' || true)"
   if [ -z "$names" ]; then
     printf '| %s | (no in-VM report; see the partition log) |' "$i"
