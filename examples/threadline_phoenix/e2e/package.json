@@ -6,7 +6,7 @@
     "test": "npm run test:unit && playwright test",
     "test:headed": "playwright test --headed",
     "capture:pages": "playwright test --project=route-capture operator-page-capture.spec.ts",
-    "test:unit": "tsx --test support/operator-surface-paths.test.ts",
+    "test:unit": "tsx --test support/operator-surface-paths.test.ts support/operator-ci-evidence.test.ts support/slow-specs.test.ts",
     "test:paths": "tsx --test support/operator-surface-paths.test.ts"
   },
   "devDependencies": {
