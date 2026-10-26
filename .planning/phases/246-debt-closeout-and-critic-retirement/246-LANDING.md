@@ -103,7 +103,7 @@ D-26 scope held: no branch-protection or ruleset change was made.
 
 ### Prerequisites
 
-**1. Why a landing base is needed.** The eight removal slices were authored on top of the
+**1. Why a landing base is needed.** The nine removal slices were authored on top of the
 v1.47 Phase 244 and 245 code commits. `origin/main` at plan time (`23178fb0`, still the local
 `origin/main` at hand-off) has neither `b7b80289` nor `6912fa96` as an ancestor
 (`git merge-base --is-ancestor` exited 1 for both). The slices edit the same files those
@@ -121,10 +121,10 @@ phases edit: `.github/workflows/ci.yml`, `.github/workflows/browser-full.yml`, `
 
 **3. Readiness check.** This check compares content, not SHA ancestry. A squash landing
 rewrites SHAs, so an ancestry test on milestone SHAs can never pass. The path set is every
-path the eight slices touch: the union of the per-slice file lists, computed now with the
+path the nine slices touch: the union of the per-slice file lists, computed now with the
 loop below. That gives 528 paths, none under `.planning/`. A plain range diff
-`4b2c3f89^..f57237d6` would be wrong, because the six 246-05 `test:` commits sit between C5
-and C6, and planning commits sit between C6 and C7. Of the 528 paths, 479 are deletions;
+`4b2c3f89^..e9a97139` would be wrong, because the six 246-05 `test:` commits sit between C5
+and C6, and planning commits sit between C6 and C7 and between C7 and C8. Of the 528 paths, 479 are deletions;
 their compacted form is the restore list under the archive tag below. The 49 modified or
 added paths are:
 
@@ -159,7 +159,7 @@ test/partition_weights.txt
 test/support/operator_surface_fixtures.ex
 test/threadline/browser_full_projects_contract_test.exs
 test/threadline/browser_journey_evidence_contract_test.exs
-test/threadline/ci_coverage_doc_contract_test.exs   (C7)
+test/threadline/ci_coverage_doc_contract_test.exs   (C7, C8)
 test/threadline/ci_topology_contract_test.exs
 test/threadline/ci_workflow_parity_contract_test.exs
 test/threadline/dialyzer_ignore_contract_test.exs
@@ -191,7 +191,7 @@ git diff --quiet 4b2c3f89^ origin/main -- $paths   # must exit 0 before the remo
 ```
 
 **4. Fallback when main has moved on those paths.**
-1. On a local landing branch cut from `origin/main`, cherry-pick the eight slices in the order below.
+1. On a local landing branch cut from `origin/main`, cherry-pick the nine slices in the order below.
 2. On an ephemeral postgres:16, run `mix compile --warnings-as-errors` and then the union of the
    slices' targeted test files (from plans 246-02..04):
 
@@ -256,11 +256,13 @@ From `git log --reverse --format='%H %s' --grep='^Removal-Slice:'`:
 | 6 | C5 | `61f589541675db4cab1cfb40be01f5843953abbf` | chore: remove residual references to the retired UI critic loop |
 | 7 | C6 | `8eb5427552a1305fe7cac97c2b2b9af1523484d1` | chore: wait for drawer initial focus before focusing the stress toast |
 | 8 | C7 | `f57237d6314bfa63c0fa26e17c46ed0a827bbfea` | chore: describe Browser-full route-capture coverage as the code runs it |
+| 9 | C8 | `e9a97139504005c2d8797180b622451e9a5b5d33` | chore: refuse the inverted route-scorecard claim and count curated routes exactly |
 
 The slices are not contiguous in history. Two `.planning/` commits sit between C1..C5
 (`00048f2e`, docs 246-02; `c2c20837`, docs 246-03). Between C5 and C6 sit the six 246-05
 `test:` commits and the 246-06/246-07 planning commits; between C6 and C7 sit the 246-07
-close-out, review, verification and gap-planning commits. Cherry-pick the eight SHAs by
+close-out, review, verification and gap-planning commits; between C7 and C8 sit the 246-08
+docs, 246-09, round-2 review and re-verification commits. Cherry-pick the nine SHAs by
 name, never a range.
 
 C6 was added by plan 246-07. The D-24 gate found `operator-accessibility.spec.ts:1281` red
@@ -277,6 +279,14 @@ inventory-wide 1280/768/375 route tests run only in evidence mode) and the job d
 `ci_coverage_doc_contract_test.exs`. C7 must travel with C3a, so main never carries the
 false description.
 
+C8 was added by gap-closure plan 246-10. It fixes the residual of WR-01: the
+`playwright.config.ts` route-capture comment had the scorecard writer the wrong way round. The
+curated non-evidence smoke is what writes `route-scorecards/`; evidence mode writes per-width
+scorecards under its run root instead. It also adopts R2-WR-01 (the spec-derived phrase is now
+"5 curated operator routes plus a degraded Timeline twin at 1280", counting the degraded entry
+as a twin, not a sixth route) and R2-WR-02 (a regex denylist that refuses both scorecard
+inversions and the paraphrases, over block-scoped sources). C8 must travel with C3a and C7.
+
 **No slice touches `.planning/`** (checked per slice; each printed 0):
 
 ```bash
@@ -290,7 +300,7 @@ done
 ```bash
 git fetch origin main
 git switch -c land/v1.47-critic-removal origin/main   # after the prerequisites hold
-git cherry-pick 4b2c3f89 cbb804a6 9ea29dc4 1258c014 35243789 61f58954 8eb54275 f57237d6
+git cherry-pick 4b2c3f89 cbb804a6 9ea29dc4 1258c014 35243789 61f58954 8eb54275 f57237d6 e9a97139
 ```
 
 - Open one squash PR titled `chore: retire the UI critic loop (DEBT-02)`. It is non-releasable:

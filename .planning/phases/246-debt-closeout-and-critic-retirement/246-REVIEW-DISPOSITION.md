@@ -46,11 +46,11 @@ findings:
     title: "Leftover e2e dev dependency after `typescript` and `typecheck` were removed"
   - id: R2-WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The derived phrase says \"6 curated operator routes\", but `ROUTES` holds 5 routes plus a degraded twin, and the contract enforces the overcount"
   - id: R2-WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The false-claim denylist misses WR-01's third misstatement and trivial paraphrases; the positive phrase is matched anywhere in the file"
   - id: R2-IN-01
     severity: info
@@ -87,8 +87,8 @@ recorded: 2026-10-26T01:30:58.000Z
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |
-| R2-WR-01 | warning | open | - |
-| R2-WR-02 | warning | open | - |
+| R2-WR-01 | warning | fixed | e9a97139 |
+| R2-WR-02 | warning | fixed | e9a97139 |
 | R2-IN-01 | info | open | - |
 | R2-IN-02 | info | open | - |
 | R2-IN-03 | info | open | - |
