@@ -545,11 +545,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"quoted continue-on-error key on verify-test",
          &String.replace(&1, job_header, job_header <> ~s(    "continue-on-error": true\n)),
          "rule=continue-on-error"},
+        # Inserted before Run tests: the keys after its `run:` line
+        # (timeout-minutes, env) would otherwise follow the flow step.
         {"flow-mapped step with continue-on-error",
          &String.replace(
            &1,
            run_tests,
-           run_tests <> "      - { name: Extra, run: mix help, continue-on-error: true }\n"
+           "      - { name: Extra, run: mix help, continue-on-error: true }\n" <> run_tests
          ), "rule=continue-on-error"},
         {"quoted allowed-failures key in ci-required",
          &String.replace(
