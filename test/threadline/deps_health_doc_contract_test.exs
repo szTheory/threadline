@@ -42,8 +42,6 @@ defmodule Threadline.DepsHealthDocContractTest do
   @contributing Path.join(@repo_root, "CONTRIBUTING.md")
   @policy_heading "## Dependency freshness policy"
 
-  @lockfiles ["mix.lock", "bench/mix.lock", "examples/threadline_phoenix/mix.lock"]
-
   defp deps_health_yaml, do: File.read!(@deps_health_workflow)
 
   defp crons do
@@ -64,6 +62,16 @@ defmodule Threadline.DepsHealthDocContractTest do
       [_, dirs] -> dirs
       nil -> flunk("no CANONICAL_DIRS=(...) literal found in #{path}")
     end
+  end
+
+  defp lockfiles do
+    @verify_deps_audit
+    |> canonical_dir_line!()
+    |> String.split()
+    |> Enum.map(fn
+      "." -> "mix.lock"
+      dir -> dir <> "/mix.lock"
+    end)
   end
 
   defp rank_names!(path) do
@@ -158,7 +166,12 @@ defmodule Threadline.DepsHealthDocContractTest do
   test "every canonical lockfile path appears in the freshness policy section" do
     section = policy_section()
 
-    for lockfile <- @lockfiles do
+    lockfiles = lockfiles()
+
+    assert length(lockfiles) >= 3,
+           "expected >= 3 CANONICAL_DIRS lockfiles, got #{inspect(lockfiles)}"
+
+    for lockfile <- lockfiles do
       assert section =~ lockfile,
              "CONTRIBUTING.md's #{@policy_heading} section is missing the lockfile path " <>
                "#{inspect(lockfile)}"
