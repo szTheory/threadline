@@ -1,6 +1,7 @@
 ---
 phase: 246
 review: 246-REVIEW.md
+review_r2: 246-REVIEW-R2.md
 titles: json
 findings:
   - id: WR-01
@@ -43,8 +44,32 @@ findings:
     severity: info
     disposition: open
     title: "Leftover e2e dev dependency after `typescript` and `typecheck` were removed"
-open: 8
-total: 10
+  - id: R2-WR-01
+    severity: warning
+    disposition: open
+    title: "The derived phrase says \"6 curated operator routes\", but `ROUTES` holds 5 routes plus a degraded twin, and the contract enforces the overcount"
+  - id: R2-WR-02
+    severity: warning
+    disposition: open
+    title: "The false-claim denylist misses WR-01's third misstatement and trivial paraphrases; the positive phrase is matched anywhere in the file"
+  - id: R2-IN-01
+    severity: info
+    disposition: open
+    title: "The inventory widths in the prose are hand-written, not derived"
+  - id: R2-IN-02
+    severity: info
+    disposition: open
+    title: "Missing negative controls for two of the four wording checks"
+  - id: R2-IN-03
+    severity: info
+    disposition: open
+    title: "The \"non-vacuous\" test is partly redundant"
+  - id: R2-IN-04
+    severity: info
+    disposition: open
+    title: "The `REQUIRED_IDS` pin checks that `UI-HOME-SHOT-101` is present, not that it is routed to SEED-008"
+open: 14
+total: 16
 recorded: 2026-10-26T01:30:58.000Z
 ---
 
@@ -62,3 +87,11 @@ recorded: 2026-10-26T01:30:58.000Z
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
 | IN-05 | info | open | - |
+| R2-WR-01 | warning | open | - |
+| R2-WR-02 | warning | open | - |
+| R2-IN-01 | info | open | - |
+| R2-IN-02 | info | open | - |
+| R2-IN-03 | info | open | - |
+| R2-IN-04 | info | open | - |
+
+Round 1 ids (WR-01..05, IN-01..05) come from 246-REVIEW.md. Round 2 (246-REVIEW-R2.md, scoped to the 246-08/246-09 gap-closure diff d8b8422f..70bead26) restarts its ids, so its rows carry an R2- prefix. Hand-merged; the gsd-core disposition step was not run.
