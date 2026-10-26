@@ -11,9 +11,33 @@
 # `wait "$pid" || fail=1` -- never a bare `wait` (always returns 0) and never
 # `a & b & wait` (returns only the last job's status). On any partition
 # failure, only the failing partitions' logs are printed, and the script
-# exits non-zero. An INT or TERM signal kills every recorded partition
-# process and exits non-zero, so a cancelled job leaves no orphan and never
-# reports success.
+# exits non-zero. Each partition runs in its own process group (`set -m`
+# around the fork loop, so the group id is the partition subshell's PID). An
+# INT or TERM signal kills every partition's process group (TERM, then KILL
+# after the kill grace) and exits non-zero, so a cancelled job leaves no
+# orphan and never reports success.
+#
+# Budget watchdog (D-14). Before the per-PID wait loop, watch_partitions polls
+# every partition with `kill -0` and its age since the fork. A partition
+# older than CI_TEST_PARTITIONS_BUDGET_S prints `ci-test-partitions: partition
+# <i> exceeded budget <s>s`. Unless its log already holds the in-VM monitor's
+# `HANG: in-flight:` block, the watchdog sends QUIT to that partition's BEAM
+# (ExUnit's own trap prints `Aborting test suite` with the unfinished tests)
+# and waits up to 30 s for either marker. With neither, it prints a backstop:
+# the last 40 log lines, the partition's process tree and, when psql exists,
+# pg_stat_activity for threadline_test<i>. Then it sends TERM to the process
+# group, waits 10 s, sends KILL to the group and to any descendant from a
+# pre-kill snapshot that left the group (same PID and start time only). The
+# partition is recorded as `status=124 reason=budget`, its report row shows
+# Exit 124, and a `Hung partitions` table names its in-flight tests (at most
+# 10 lines of 100 characters; never stacks or raw log text). Stacks and the
+# backstop go to stdout and the partition log only. Portable to macOS
+# /bin/bash 3.2: no timeout, gtimeout, setsid or `wait -n`.
+#
+# The report ends with a `| max/min | - | <ratio> | - |` row: slowest over
+# fastest partition seconds, over partitions with at least one file. Above
+# 1.15 it prints `::warning::partition ratio <r> exceeds 1.15` on stdout only
+# (D-12). It never changes the exit status.
 #
 # File assignment (D-03a). The script enumerates the test files exactly as
 # plain `mix test` would (mix.exs sets no test_paths/test_pattern, so Mix's
@@ -95,7 +119,7 @@
 #   CI_TEST_PARTITIONS_BUDGET_S       per-partition wall budget in seconds,
 #                                     default 480, a positive integer.
 #
-# Seams (both test-only, never used by real callers):
+# Seams (all test-only, never used by real callers):
 #   MIX_BIN                       (default `mix`) lets --self-test substitute
 #                                  a fake `mix` binary to exercise this
 #                                  script's aggregation and flag-passing fully
@@ -103,6 +127,17 @@
 #   CI_TEST_PARTITIONS_LOG_DIR    (default $ROOT/tmp/ci-test-partitions) lets
 #                                  --self-test redirect partition logs into a
 #                                  throwaway directory instead of the real one.
+#   CI_TEST_PARTITIONS_DIAG_WAIT_S  (default 30) seconds the watchdog waits
+#                                  after QUIT for an in-VM report.
+#   CI_TEST_PARTITIONS_KILL_GRACE_S (default 10) seconds between the group
+#                                  TERM and the group KILL.
+#   CI_TEST_PARTITIONS_PSQL       (default `psql`) the backstop's
+#                                  pg_stat_activity client.
+#   CI_TEST_PARTITIONS_REPORT_ONLY  a directory of prepared partition-<i>
+#                                  status/files/log files: print only the
+#                                  report for them and exit 0.
+#   These four let --self-test shrink the hang cases to seconds and stay
+#   offline.
 #
 # --self-test runs a copy of this script inside a throwaway project (its own
 # test/ tree and weights file) with a fake `mix`, fully offline, and proves
@@ -126,8 +161,12 @@
 # --ingest-weights takes the per-file median over partition-timings TSVs,
 # keeps absent files' weights and the header, sorts by path, reports a >2x
 # move, rejects malformed rows, and with --lane reads only that lane's TSVs
-# (an invalid or unmatched lane exits 2). The partitions also receive the
-# monitor formatter and its env. This is the runtime mutation
+# (an invalid or unmatched lane exits 2); (s) a hung partition that ignores
+# QUIT is stopped at a 3 s budget with the backstop, a group TERM, Exit 124
+# and no leftover process; (t) one that also ignores TERM is escalated to
+# SIGKILL; (u) one that answers QUIT with ExUnit's abort list skips the
+# backstop and has its unfinished tests named in the summary. The
+# partitions also receive the monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
 
@@ -326,9 +365,10 @@ parse_counts() {
 
 report() {
   local n="$1" log_dir="$2" step_seconds="$3"
-  local i status start end seconds counts body
+  local i status start end seconds counts body hung
 
   body=""
+  hung=""
   for i in $(seq 1 "$n"); do
     status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
     start="$(grep -oE 'start=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
@@ -349,6 +389,10 @@ report() {
     fi
     body="${body}| ${i} | ${status:-unknown} | ${seconds} | ${counts} |
 "
+    if [ -f "$log_dir/partition-$i.budget" ]; then
+      hung="${hung}$(hung_rows "$i" "$log_dir/partition-$i.log")
+"
+    fi
   done
 
   {
@@ -357,7 +401,34 @@ report() {
     printf '|---|---|---|---|\n'
     printf '%s' "$body"
     printf '| total | - | %s | - |\n' "$step_seconds"
+    if [ -n "$hung" ]; then
+      printf '\nHung partitions (killed at the %ss budget; stacks are in the partition log):\n\n' \
+        "${CI_TEST_PARTITIONS_BUDGET_S:-480}"
+      printf '| Partition | In flight |\n'
+      printf '|---|---|\n'
+      printf '%s' "$hung"
+    fi
   } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+
+# `| <i> | <in-flight name> |` rows for a budget-killed partition: the lines
+# of the monitor's `HANG: in-flight:` block, or ExUnit's `* <test> [file:line]`
+# lines after `Aborting test suite`. At most 10 rows of 100 characters, with
+# `|` replaced, so the step summary never carries stacks or raw log text.
+hung_rows() {
+  local i="$1" log="$2" names
+  names="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | awk '
+    /HANG: in-flight:/ { on = 1; next }
+    /HANG: processes/ { on = 0; next }
+    /Aborting test suite/ { ab = 1; next }
+    on && /^  [^ ]/ { sub(/^  /, ""); print; next }
+    ab && /^[[:space:]]*\* / { sub(/^[[:space:]]*\* /, ""); print }
+  ' | awk '!seen[$0]++' | head -n 10 | cut -c1-100 | tr '|' '/' || true)"
+  if [ -z "$names" ]; then
+    printf '| %s | (no in-VM report; see the partition log) |' "$i"
+  else
+    printf '%s\n' "$names" | awk -v i="$i" 'NR > 1 { printf "\n" } { printf "| %s | %s |", i, $0 }'
+  fi
 }
 
 print_failing_logs() {
@@ -374,6 +445,168 @@ print_failing_logs() {
   done
 }
 
+# --- Budget watchdog (D-14) -----------------------------------------------------
+
+# A non-negative integer of seconds from a test-only seam, or exit 2.
+seconds_env() {
+  local name="$1" default="$2" value
+  eval "value=\"\${$name:-$default}\""
+  case "$value" in
+    '' | *[!0-9]*) die "$name must be a non-negative integer of seconds, got '$value'" ;;
+  esac
+  printf '%s' "$value"
+}
+
+# Prints `<pid> <start time>` for every live process in process group $1 and
+# every descendant of those, from one `ps` snapshot. Children that started a
+# new session left the group but are still found by descent while their
+# parent lives. The start time lets a later KILL skip a reused PID.
+partition_tree() {
+  local pgid="$1" pid_list
+  pid_list="$(ps -A -o pid=,ppid=,pgid= 2>/dev/null | awk -v g="$pgid" '
+    { pid[NR] = $1; ppid[NR] = $2; if ($3 == g) keep[$1] = 1 }
+    END {
+      do {
+        added = 0
+        for (k = 1; k <= NR; k++) if (!(pid[k] in keep) && (ppid[k] in keep)) { keep[pid[k]] = 1; added = 1 }
+      } while (added)
+      for (p in keep) print p
+    }
+  ' | LC_ALL=C sort -n | tr '\n' ',' | sed 's/,$//' || true)"
+  [ -n "$pid_list" ] || return 0
+  ps -o pid=,lstart= -p "$pid_list" 2>/dev/null || true
+}
+
+# The backstop when no in-VM report arrived: last log lines, the partition's
+# process tree and its database sessions. Stdout only.
+partition_backstop() {
+  local i="$1" pgid="$2" log="$3" tree="$4" psql_bin pids
+  psql_bin="${CI_TEST_PARTITIONS_PSQL:-psql}"
+
+  printf 'ci-test-partitions: partition %s: no in-VM report; backstop diagnostics follow\n' "$i"
+  printf -- '----- partition %s: last 40 log lines -----\n' "$i"
+  tail -n 40 "$log" 2>/dev/null | sed 's/^/  | /' || true
+  printf -- '----- partition %s: process tree (ps -A -o pid,ppid,etime,args) -----\n' "$i"
+  pids="$(awk '{ printf "%s ", $1 }' "$tree" 2>/dev/null || true)"
+  ps -A -ww -o pid,ppid,etime,args 2>/dev/null | awk -v keep="$pids" '
+    BEGIN { n = split(keep, k, " "); for (j = 1; j <= n; j++) want[k[j]] = 1 }
+    NR == 1 || ($1 in want) { print "  " substr($0, 1, 200) }
+  ' || true
+  printf -- '----- partition %s: pg_stat_activity for threadline_test%s -----\n' "$i" "$i"
+  if command -v "$psql_bin" >/dev/null 2>&1; then
+    PGPASSWORD="${PGPASSWORD:-postgres}" PGCONNECT_TIMEOUT=5 "$psql_bin" -X -A \
+      -h "${DB_HOST:-localhost}" -p "${DB_PORT:-5432}" -U postgres -d postgres \
+      -c "SET statement_timeout = 5000" \
+      -c "SELECT pid, state, wait_event_type, wait_event, now() - query_start AS age, left(query, 200) AS query FROM pg_stat_activity WHERE datname = 'threadline_test$i' ORDER BY query_start" \
+      2>&1 </dev/null | sed 's/^/  | /' || true
+  else
+    printf '  (psql not found)\n'
+  fi
+}
+
+# Diagnose, then stop a partition that exceeded its budget. $2 is the
+# partition subshell's PID, which is also its process group id.
+stop_over_budget() {
+  local i="$1" pgid="$2" log_dir="$3" budget_s="$4" diag_wait_s="$5" kill_grace_s="$6"
+  local log="$log_dir/partition-$i.log" tree="$log_dir/partition-$i.tree"
+  local beam waited p lstart now_lstart line marker
+
+  # Written first, so the partition's own status writer never overwrites the
+  # budget record and an exit during diagnosis still counts as a failure.
+  : >"$log_dir/partition-$i.budget"
+  marker="ci-test-partitions: partition $i exceeded budget ${budget_s}s"
+  printf '%s\n' "$marker"
+
+  if ! grep -q 'HANG: in-flight:' "$log" 2>/dev/null; then
+    beam="$(cat "$log_dir/partition-$i.beam.pid" 2>/dev/null || true)"
+    if [ -n "$beam" ] && kill -0 "$beam" 2>/dev/null; then
+      printf 'ci-test-partitions: partition %s: sending QUIT to its BEAM (pid %s) for the in-flight report\n' "$i" "$beam"
+      kill -QUIT "$beam" 2>/dev/null || true
+    fi
+    waited=0
+    while [ "$waited" -lt "$diag_wait_s" ]; do
+      grep -qE 'HANG: in-flight:|Aborting test suite' "$log" 2>/dev/null && break
+      kill -0 -- -"$pgid" 2>/dev/null || break
+      sleep 1
+      waited=$((waited + 1))
+    done
+  fi
+
+  partition_tree "$pgid" >"$tree"
+  if ! grep -qE 'HANG: in-flight:|Aborting test suite' "$log" 2>/dev/null; then
+    partition_backstop "$i" "$pgid" "$log" "$tree"
+  fi
+
+  kill -TERM -- -"$pgid" 2>/dev/null || true
+  waited=0
+  while [ "$waited" -lt "$kill_grace_s" ] && kill -0 -- -"$pgid" 2>/dev/null; do
+    sleep 1
+    waited=$((waited + 1))
+  done
+  if kill -0 -- -"$pgid" 2>/dev/null; then
+    printf 'ci-test-partitions: partition %s ignored SIGTERM for %ss; sending SIGKILL to its process group\n' "$i" "$kill_grace_s"
+  fi
+  kill -KILL -- -"$pgid" 2>/dev/null || true
+  # Descendants that left the group: KILL only a PID whose start time still
+  # matches the snapshot, never a reused one.
+  while IFS= read -r line; do
+    p="${line%% *}"
+    p="${p## }"
+    lstart="$(printf '%s' "$line" | sed 's/^ *[0-9][0-9]* *//')"
+    [ -n "$p" ] || continue
+    now_lstart="$(ps -o lstart= -p "$p" 2>/dev/null | sed 's/^ *//' || true)"
+    if [ -n "$now_lstart" ] && [ "$now_lstart" = "$lstart" ]; then
+      kill -KILL "$p" 2>/dev/null || true
+    fi
+  done < <(sed 's/^ *//' "$tree")
+
+  printf 'status=124 reason=budget start=%s end=%s\n' "${starts[i]}" "$(date +%s)" \
+    >"$log_dir/partition-$i.status"
+  printf '%s; killed (status=124 reason=budget)\n' "$marker" >>"$log"
+}
+
+# Polls every partition until each has exited or has been stopped at its
+# budget. Never blocks on `wait`, so a hung partition cannot stall the poll.
+# Reads `pids` and `starts` from run_partitions; sets WATCHDOG_KILLED=1 when
+# it stopped any partition.
+watch_partitions() {
+  local n="$1" log_dir="$2"
+  local budget_s="${CI_TEST_PARTITIONS_BUDGET_S:-480}"
+  local diag_wait_s kill_grace_s
+  diag_wait_s="$(seconds_env CI_TEST_PARTITIONS_DIAG_WAIT_S 30)"
+  kill_grace_s="$(seconds_env CI_TEST_PARTITIONS_KILL_GRACE_S 10)"
+  local i pid now alive poll=0
+  local finished=()
+
+  while :; do
+    alive=0
+    now="$(date +%s)"
+    for i in $(seq 1 "$n"); do
+      [ -z "${finished[i]:-}" ] || continue
+      pid="${pids[i]}"
+      if ! kill -0 "$pid" 2>/dev/null; then
+        finished[i]=1
+        continue
+      fi
+      if [ $((now - starts[i])) -gt "$budget_s" ]; then
+        WATCHDOG_KILLED=1
+        stop_over_budget "$i" "$pid" "$log_dir" "$budget_s" "$diag_wait_s" "$kill_grace_s"
+        finished[i]=1
+        continue
+      fi
+      alive=1
+    done
+    [ "$alive" -eq 1 ] || break
+    # Short first polls keep fast runs fast; then once a second.
+    case "$poll" in
+      0) sleep 0.1 ;;
+      1) sleep 0.3 ;;
+      *) sleep 1 ;;
+    esac
+    poll=$((poll + 1))
+  done
+}
+
 # --- Run N partitions ----------------------------------------------------------
 
 run_partitions() {
@@ -384,6 +617,9 @@ run_partitions() {
   case "$budget_s" in
     '' | *[!0-9]* | 0*) die "CI_TEST_PARTITIONS_BUDGET_S must be a positive integer of seconds, got '$budget_s'" ;;
   esac
+  # Fail fast on a bad watchdog seam, before anything runs.
+  seconds_env CI_TEST_PARTITIONS_DIAG_WAIT_S 30 >/dev/null
+  seconds_env CI_TEST_PARTITIONS_KILL_GRACE_S 10 >/dev/null
   # The monitor's in-VM deadline leaves 30 s of the budget for its stack dump
   # and halt; a budget of 30 s or less disarms it (the value is not positive).
   local deadline_ms=$((budget_s * 1000 - 30000))
@@ -432,13 +668,30 @@ run_partitions() {
   fi
 
   local pids=()
+  local starts=()
+  WATCHDOG_KILLED=0
 
   # Armed before the first fork, so a signal during forking still kills every
-  # partition already started (an empty pids list is a no-op).
+  # partition already started (an empty pids list is a no-op). Each PID is a
+  # process group id (set -m below), so the whole partition tree is signalled:
+  # TERM, then KILL for any group still alive after the kill grace.
   kill_all() {
-    local pid
-    for pid in "${pids[@]}"; do
-      kill -TERM "$pid" 2>/dev/null || true
+    local pid waited=0 grace
+    grace="$(seconds_env CI_TEST_PARTITIONS_KILL_GRACE_S 10)"
+    for pid in ${pids[@]+"${pids[@]}"}; do
+      kill -TERM -- -"$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
+    done
+    while [ "$waited" -lt "$grace" ]; do
+      local any=0
+      for pid in ${pids[@]+"${pids[@]}"}; do
+        if kill -0 -- -"$pid" 2>/dev/null; then any=1; fi
+      done
+      [ "$any" -eq 1 ] || break
+      sleep 1
+      waited=$((waited + 1))
+    done
+    for pid in ${pids[@]+"${pids[@]}"}; do
+      kill -KILL -- -"$pid" 2>/dev/null || true
     done
     wait 2>/dev/null || true
     printf 'ci-test-partitions: interrupted, killed every partition process\n' >&2
@@ -446,8 +699,18 @@ run_partitions() {
   }
   trap kill_all INT TERM
 
+  # Job control on for the forks only: each `( ... ) &` partition then leads
+  # its own process group (PGID == its PID), which the budget watchdog and
+  # kill_all signal as a unit. Stdin is /dev/null, as for any background job
+  # without job control.
+  set -m
   for i in $(seq 1 "$n"); do
+    starts[i]="$(date +%s)"
     (
+      # A handler, never `trap ''` (an ignored signal is inherited by mix):
+      # a group TERM interrupts the wait below instead of killing this
+      # subshell, so it can still exit with a status.
+      trap ':' TERM
       p_start="$(date +%s)"
       files=()
       while IFS= read -r f; do
@@ -468,22 +731,36 @@ run_partitions() {
         THREADLINE_TEST_DEADLINE_MS="$deadline_ms" \
           THREADLINE_PARTITION_TIMINGS_FILE="$log_dir/partition-timings-$i.tsv" \
           MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}" ${monitor_args[@]+"${monitor_args[@]}"} \
-          >"$log_dir/partition-$i.log" 2>&1
+          >"$log_dir/partition-$i.log" 2>&1 &
+        # mix execs through elixir and erl, so this PID is the BEAM: the
+        # watchdog sends QUIT to it alone.
+        beam_pid="$!"
+        printf '%s\n' "$beam_pid" >"$log_dir/partition-$i.beam.pid"
+        wait "$beam_pid"
         p_status=$?
       fi
       set -e
       p_end="$(date +%s)"
+      if [ -f "$log_dir/partition-$i.budget" ]; then
+        # The watchdog owns this partition's status record.
+        exit 124
+      fi
       printf 'status=%s start=%s end=%s\n' "$p_status" "$p_start" "$p_end" \
         >"$log_dir/partition-$i.status"
       exit "$p_status"
-    ) &
+    ) </dev/null &
     pids[i]="$!"
   done
+  set +m
 
+  watch_partitions "$n" "$log_dir"
   local fail=0
   for i in $(seq 1 "$n"); do
     wait "${pids[i]}" || fail=1
   done
+  # A partition stopped at its budget is a failure even if it exited 0
+  # during diagnosis.
+  [ "$WATCHDOG_KILLED" -eq 0 ] || fail=1
 
   trap - INT TERM
 
@@ -803,6 +1080,24 @@ case "${1:-}" in
       killed)
         kill -KILL $$
         ;;
+      hang)
+        # A VM that cannot report: QUIT is ignored, TERM still kills it. The
+        # argv token lets the self-test prove no process is left behind.
+        trap '' QUIT
+        exec bash -c 'while :; do sleep 1; done' 247hangsentinel
+        ;;
+      hang_ignore_term)
+        # Ignores QUIT and TERM, so only the group KILL stops it.
+        trap '' QUIT TERM
+        exec bash -c 'while :; do sleep 1; done' 247hangsentinel
+        ;;
+      hang_quit)
+        # Answers QUIT like ExUnit's own trap: names the unfinished tests and
+        # exits non-zero. Perl, because a background command starts with
+        # QUIT ignored and bash cannot trap a signal ignored on entry (the
+        # BEAM, like perl, installs its own handler).
+        exec perl -e '$| = 1; $SIG{QUIT} = sub { print "Aborting test suite, the following have not completed:\n\n* test waits on a lock forever [test/a/heavy1_test.exs:7]\n* Sandbox.SetupAllTest [test/b/heavy3_test.exs]\n"; exit 1 }; sleep 1 while 1'
+        ;;
       *)
         echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
         echo "1 test, 0 failures"
@@ -984,6 +1279,14 @@ run_self_test() {
     set -e
     [ "$bad_status" -eq 2 ] ||
       die "self-test: CI_TEST_PARTITIONS_BUDGET_S='$bad_budget' must exit 2, got $bad_status"
+  done
+  for bad_seam in CI_TEST_PARTITIONS_DIAG_WAIT_S CI_TEST_PARTITIONS_KILL_GRACE_S; do
+    set +e
+    env "$bad_seam=abc" MIX_BIN="$fake_mix" \
+      CI_TEST_PARTITIONS_LOG_DIR="$self_test_dir/bad-budget" "$sandbox_script" 3 >/dev/null 2>&1
+    bad_status=$?
+    set -e
+    [ "$bad_status" -eq 2 ] || die "self-test: $bad_seam=abc must exit 2, got $bad_status"
   done
 
   # (j) the unweighted file still ran
@@ -1177,7 +1480,66 @@ WEIGHTS
     grep -qx "200 test/b/light2_test.exs" "$proj/test/partition_weights.txt" ||
     die "self-test: --ingest-weights without --lane must include the min-lane TSV: $(cat "$proj/test/partition_weights.txt")"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights)\n'
+  # (s) hang: partition 2 never finishes and ignores QUIT. With a 3 s budget
+  # the watchdog names it, prints the backstop, TERMs its group (enough here)
+  # and records Exit 124; the siblings pass; nothing is left running.
+  local fake_psql="$self_test_dir/fake-psql"
+  printf '#!/usr/bin/env bash\necho "FAKE_PSQL $*"\n' >"$fake_psql"
+  chmod +x "$fake_psql"
+  local hang_t0 hang_secs hang_limit
+  hang_limit=$((3 + 2 + 2 + 6))
+  hang_t0="$(date +%s)"
+  CI_TEST_PARTITIONS_BUDGET_S=3 CI_TEST_PARTITIONS_DIAG_WAIT_S=2 CI_TEST_PARTITIONS_KILL_GRACE_S=2 \
+    CI_TEST_PARTITIONS_PSQL="$fake_psql" run_case "hang" "pass,hang,pass"
+  hang_secs=$(($(date +%s) - hang_t0))
+  [ "$case_status" -ne 0 ] || die "self-test: a hung partition must exit non-zero: $output"
+  [ "$hang_secs" -lt "$hang_limit" ] ||
+    die "self-test: a hung partition must be stopped within budget + diagnosis + grace, took ${hang_secs}s"
+  grep -qx 'status=124 reason=budget start=[0-9]* end=[0-9]*' "$case_logs/partition-2.status" ||
+    die "self-test: a budget-killed partition must record status=124 reason=budget: $(cat "$case_logs/partition-2.status" 2>/dev/null)"
+  grep -q '^| 2 | 124 |' "$case_summary" || die "self-test: the hung partition's row must show Exit 124: $(cat "$case_summary")"
+  grep -q '^| 1 | 0 |' "$case_summary" && grep -q '^| 3 | 0 |' "$case_summary" ||
+    die "self-test: the hung partition's siblings must pass: $(cat "$case_summary")"
+  grep -qx 'ci-test-partitions: partition 2 exceeded budget 3s' <<<"$output" ||
+    die "self-test: the watchdog must say the partition exceeded its budget: $output"
+  grep -q 'sending QUIT to its BEAM' <<<"$output" || die "self-test: the watchdog must QUIT the BEAM first: $output"
+  grep -q 'last 40 log lines' <<<"$output" && grep -q 'FAKE_MIX_PARTITION_MARKER=2' <<<"$output" &&
+    grep -q '247hangsentinel' <<<"$output" && grep -q "FAKE_PSQL .*threadline_test2" <<<"$output" ||
+    die "self-test: without an in-VM report the backstop must print the log tail, process tree and pg_stat_activity: $output"
+  grep -q 'ignored SIGTERM' <<<"$output" && die "self-test: a TERM-able hang must not need SIGKILL: $output"
+  grep -q 'exceeded budget 3s; killed' "$case_logs/partition-2.log" || die "self-test: the partition log must record the budget kill"
+  grep -q '^| 2 | (no in-VM report; see the partition log) |$' "$case_summary" ||
+    die "self-test: the hung table must say no in-VM report arrived: $(cat "$case_summary")"
+  grep -qE 'FAKE_MIX|last 40|247hangsentinel|::warning' "$case_summary" &&
+    die "self-test: the step summary must never carry raw log text: $(cat "$case_summary")"
+  pgrep -f 247hangsentinel >/dev/null && die "self-test: a hung partition's process was left running"
+  pgrep -f "$fake_mix" >/dev/null && die "self-test: a fake mix process was left running"
+
+  # (t) hang_ignore_term: partition 3 ignores QUIT and TERM; only the group
+  # KILL after the grace stops it.
+  CI_TEST_PARTITIONS_BUDGET_S=3 CI_TEST_PARTITIONS_DIAG_WAIT_S=1 CI_TEST_PARTITIONS_KILL_GRACE_S=2 \
+    CI_TEST_PARTITIONS_PSQL="$fake_psql" run_case "hang ignoring TERM" "pass,pass,hang_ignore_term"
+  [ "$case_status" -ne 0 ] || die "self-test: a TERM-ignoring hang must exit non-zero: $output"
+  grep -q 'partition 3 ignored SIGTERM for 2s; sending SIGKILL' <<<"$output" ||
+    die "self-test: a TERM-ignoring hang must be escalated to SIGKILL: $output"
+  grep -q '^| 3 | 124 |' "$case_summary" || die "self-test: the TERM-ignoring partition must show Exit 124: $(cat "$case_summary")"
+  pgrep -f 247hangsentinel >/dev/null && die "self-test: a TERM-ignoring partition's process was left running"
+  pgrep -f "$fake_mix" >/dev/null && die "self-test: a fake mix process was left running"
+
+  # (u) hang_quit: partition 1 answers QUIT with ExUnit's abort list; no
+  # backstop, and the summary names the unfinished tests.
+  CI_TEST_PARTITIONS_BUDGET_S=3 CI_TEST_PARTITIONS_DIAG_WAIT_S=5 CI_TEST_PARTITIONS_KILL_GRACE_S=2 \
+    CI_TEST_PARTITIONS_PSQL="$fake_psql" run_case "hang answering QUIT" "hang_quit,pass,pass"
+  [ "$case_status" -ne 0 ] || die "self-test: a QUIT-answering hang must exit non-zero: $output"
+  grep -q '^| 1 | 124 |' "$case_summary" || die "self-test: the QUIT-answering partition must show Exit 124: $(cat "$case_summary")"
+  grep -q 'backstop' <<<"$output" && die "self-test: an in-VM report must skip the backstop: $output"
+  grep -qF '| 1 | test waits on a lock forever [test/a/heavy1_test.exs:7] |' "$case_summary" &&
+    grep -qF '| 1 | Sandbox.SetupAllTest [test/b/heavy3_test.exs] |' "$case_summary" ||
+    die "self-test: the hung table must name the in-flight tests: $(cat "$case_summary")"
+  grep -q 'Aborting test suite' "$case_summary" && die "self-test: the step summary must not carry raw log lines"
+  pgrep -f "$fake_mix" >/dev/null && die "self-test: a fake mix process was left running"
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
