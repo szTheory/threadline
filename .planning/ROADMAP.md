@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 7/13 plans executed
+**Plans**: 8/13 plans executed
 
 Plans:
 **Wave 1**
@@ -166,7 +166,7 @@ Plans:
 - [x] 247-03-PLAN.md — CI-01: slow-specs.ts summary + `browser-timings` artifact + contract; read-only `bin/measure-main-ci`
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 247-02-PLAN.md — Land A2: 246 critic removal as its own `chore:` squash; local archive tag + register row (tag push = maintainer hand-off)
+- [x] 247-02-PLAN.md — Land A2: 246 critic removal as its own `chore:` squash; local archive tag + register row (tag push = maintainer hand-off)
 - [x] 247-04-PLAN.md — CI-04/D-11: `Threadline.Test.PartitionMonitor` (timings TSV with `lane=` + named hang dump), attached by the partition runner; `--ingest-weights [--lane]`; D-16(b) sandbox test
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -201,7 +201,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 7/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 8/13 | In Progress | - |
 
 ## Current Position
 
