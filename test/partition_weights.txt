@@ -192,6 +192,7 @@
 6 test/threadline/option_allowlist_test.exs
 75 test/threadline/optional_deps_contract_test.exs
 331 test/threadline/page_test.exs
+5200 test/threadline/partition_monitor_test.exs
 0 test/threadline/performance_doc_contract_test.exs
 0 test/threadline/persona_routing_doc_contract_test.exs
 114 test/threadline/pgbouncer_topology_test.exs
