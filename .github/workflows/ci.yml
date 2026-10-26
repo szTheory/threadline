@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-release-shape, verify-repo-hygiene, verify-format, verify-deps-audit, verify-compile-no-optional, verify-hex-evaluator, verify-pgbouncer-topology, verify-credo, verify-bump-rehearsal, verify-dialyzer, verify-test, verify-capture, verify-example-browser, ci-required
+# verify-release-shape, verify-repo-hygiene, verify-format, verify-deps-audit, verify-compile-no-optional, verify-hex-evaluator, verify-pgbouncer-topology, verify-credo, verify-bump-rehearsal, verify-dialyzer, verify-test, verify-example-browser, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -125,8 +125,8 @@ jobs:
       # what to install: the OTP and Elixir segments come from the same `beam`
       # step outputs, led by `${{ matrix.runner }}`.
       #
-      # The test jobs verify-test, verify-pgbouncer-topology,
-      # verify-example-browser and verify-capture restore deps-only `_build`
+      # The test jobs verify-test, verify-pgbouncer-topology and
+      # verify-example-browser restore deps-only `_build`
       # caches with split actions/cache/restore + actions/cache/save steps
       # (verify-pgbouncer-topology restores only, never saves). Their keys add
       # `build-v1`, the project (`root` or `example`), MIX_ENV, the `full`
@@ -839,172 +839,23 @@ jobs:
         if: matrix.lane == 'current'
         run: mix verify.example
 
-  # Removed: verify-mechanical (mix verify.mechanical over the committed scorecards).
-  # Failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by
-  # verify-test (min and current lanes), which runs mechanical_checker_test.exs in
-  # the default suite, on push to main, pull_request and workflow_dispatch.
+  # Removed: verify-mechanical (the MODE-A/MODE-B floor over the committed
+  # scorecards). The floor is retired with the UI scoring loop (DEBT-02), a
+  # deliberate, recorded coverage cut. Contrast and token checks are still caught
+  # by verify-test running test/threadline/operator_surface/style_contract_test.exs,
+  # and accessibility by verify-example-browser running
+  # operator-accessibility.spec.ts, on push to main, pull_request and
+  # workflow_dispatch.
 
-  # Heavy recurring gate: regenerate the Tier A capture from scratch against a
-  # migrated example DB + real browser, and assert (1) the evidence bundle is
-  # non-empty and complete (every aria.yml has a matching scorecard JSON) and
-  # (2) regeneration is byte-stable against the committed evidence (no drift).
-  # This is the recurring proof of the two former human-UAT items (194-UAT.md).
-  verify-capture:
-    name: Capture evidence byte-stable
-    runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    env:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      MIX_ENV: test
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-
-      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-          install-hex: false
-
-      - name: Pin Hex (CI and local must agree)
-        run: bin/retry-network mix local.hex 2.6.0 --force
-
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
-        with:
-          node-version-file: .tool-versions
-          cache: npm
-          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
-
-      - name: Cache deps
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
-          restore-keys: ubuntu-24.04-playwright-
-
-      - name: Install root dependencies
-        run: bin/retry-network mix deps.get
-
-      - name: Ensure threadline_phoenix_test database exists (threadline on search_path)
-        env:
-          PGPASSWORD: postgres
-        run: |
-          createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
-          # The audit tables live in the dedicated `threadline` schema; the demo
-          # seed queries them unqualified, so `threadline` must be on the DB
-          # search_path (nothing in app config or a migration sets it).
-          psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
-            -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
-
-      - name: Restore example deps and deps-only build cache
-        id: example-build-restore
-        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: |
-            examples/threadline_phoenix/deps
-            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
-          key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
-
-      - name: Install example dependencies
-        working-directory: examples/threadline_phoenix
-        run: ../../bin/retry-network mix deps.get
-
-      - name: Compile example dependencies on cache miss
-        if: steps.example-build-restore.outputs.cache-hit != 'true'
-        working-directory: examples/threadline_phoenix
-        run: mix deps.compile --skip-local-deps
-
-      - name: Remove example app's own build (never cached, never reused)
-        env:
-          EXAMPLE_BUILD_KEY: ${{ steps.example-build-restore.outputs.cache-primary-key }}
-          EXAMPLE_BUILD_HIT: ${{ steps.example-build-restore.outputs.cache-hit }}
-        run: |
-          if [ -n "$EXAMPLE_BUILD_KEY" ]; then
-            if [ "$EXAMPLE_BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
-            echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"
-          fi
-          rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
-            "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
-
-      - name: Save example deps and deps-only build cache
-        if: steps.example-build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: |
-            examples/threadline_phoenix/deps
-            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
-          key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
-
-      - name: Regenerate Tier A capture
-        run: mix verify.capture
-
-      - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
-        run: |
-          json=$(find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
-          aria=$(find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.aria.yml' | wc -l | tr -d ' ')
-          echo "scorecards: ${json} json, ${aria} aria.yml"
-          # Non-vacuity floor: a zero count means the capture produced nothing,
-          # which a broken glob or an aborted run would also produce.
-          if [ "$json" -eq 0 ]; then
-            echo "::error::a zero scorecard JSON count means the capture produced nothing"
-            exit 1
-          fi
-          if [ "$aria" -eq 0 ]; then
-            echo "::error::a zero aria.yml count means the capture produced nothing"
-            exit 1
-          fi
-          # Completeness: this is what "complete bundle" actually means, and it
-          # stays true at any bundle size (unlike a pinned absolute count).
-          missing=""
-          for f in test/fixtures/operator_surface/scorecards/*.aria.yml; do
-            stem=$(basename "$f" .aria.yml)
-            if [ ! -f "test/fixtures/operator_surface/scorecards/${stem}.json" ]; then
-              missing="${missing} ${stem}"
-            fi
-          done
-          if [ -n "$missing" ]; then
-            echo "::error::orphan aria.yml with no matching scorecard JSON:${missing}"
-            exit 1
-          fi
-
-      - name: Assert byte-stable regeneration (no drift from committed evidence)
-        run: |
-          if [ -n "$(git status --porcelain test/fixtures/operator_surface/scorecards/)" ]; then
-            echo "::error::Tier A capture is not byte-stable, or committed evidence is stale."
-            echo "Regenerate locally with 'mix verify.capture' and commit the result."
-            git status --porcelain test/fixtures/operator_surface/scorecards/
-            git diff -- test/fixtures/operator_surface/scorecards/ | head -200
-            exit 1
-          fi
-          echo "Regeneration is byte-identical to the committed evidence."
-
-      # Removed: the trailing `mix verify.mechanical` step. Failure class
-      # "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by the
-      # byte-stable step above (regenerated == committed) plus verify-test running
-      # mechanical_checker_test.exs over the committed JSON, on push to main,
-      # pull_request and workflow_dispatch.
+  # Removed: verify-capture (regenerate the stress-lab capture against a real
+  # browser and assert it is byte-stable against committed evidence). Failure
+  # class "a component regresses contrast, tokens or accessibility" is still
+  # caught by verify-test running
+  # test/threadline/operator_surface/style_contract_test.exs (contrast and token
+  # checks) and verify-example-browser running operator-accessibility.spec.ts
+  # (accessibility), on push to main, pull_request and workflow_dispatch.
+  # Byte-stable stress-lab regeneration is retired, not replaced: a recorded
+  # coverage cut (DEBT-02; UI work is parked until 1.0.0).
 
   verify-example-browser:
     name: Example app browser E2E (2 projects)
@@ -1184,7 +1035,7 @@ jobs:
           retention-days: 14
 
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not thirteen,
+  # into one pass/fail signal so branch protection names one context, not twelve,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -1206,7 +1057,6 @@ jobs:
       - verify-test
       - verify-hex-evaluator
       - verify-example-browser
-      - verify-capture
       - verify-pgbouncer-topology
       - verify-release-shape
       - verify-bump-rehearsal
@@ -1224,5 +1074,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all thirteen jobs above run unconditionally, so neither
+          # today — all twelve jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

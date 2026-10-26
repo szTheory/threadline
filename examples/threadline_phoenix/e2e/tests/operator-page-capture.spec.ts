@@ -9,20 +9,15 @@ import {
 } from "../support/operator-surface-paths.js";
 import { writeRouteBundle } from "../support/operator-evidence-manifest.js";
 
-// Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
-//
-// Storybook `story.*` cells render real components but in isolation with static
-// fixtures (a swatch grid, a button matrix) — great for component-level lenses,
-// useless for "does this assembled screen guide an operator?" (hierarchy/density).
-// The Tier-A `page.*` cells are fullPage captures of the /audit/__stress dev lab
-// (harness chrome) — invalid for critique.
+// Real operator-route capture (Phase 196); Browser-full's render smoke since 246.
 //
 // This spec authenticates against the seeded example app (run-e2e.sh runs
 // `mix demo.seed`), navigates to the REAL `/audit/*` operator routes, and clips
-// to the operator content region (`#tl-main`) — excluding the persistent nav
-// sidebar (a sibling above #tl-main inside `.threadline-ui`). The output is the
-// same evidence-bundle shape the critic reads, so `critic:score --page route.*`
-// judges a fully-assembled page with realistic audit data.
+// to the operator content region (`#tl-main`), excluding the persistent nav
+// sidebar (a sibling above #tl-main inside `.threadline-ui`). Outside evidence
+// mode it renders every curated route and writes its route scorecard; in evidence
+// mode (THREADLINE_E2E_EVIDENCE=1) it expands to every inventoried route at
+// 1280/768/375.
 //
 // Determinism: fixed viewport, deviceScaleFactor:1, reducedMotion:"reduce"
 // (global), fonts.ready before observing styles, dynamic <time>/[data-dynamic]
@@ -39,7 +34,7 @@ const SCHEMA_VERSION = 1;
 // Single desktop hero view for the Phase-196 proof; widen later if it proves out.
 const BREAKPOINTS = [1280] as const;
 
-// Card / panel selector set for the card-nesting-depth DOM walk (matches Tier-A).
+// Card / panel selector set for the card-nesting-depth DOM walk.
 const CARD_SELECTOR =
   '.tl-home__card, .tl-home__earned-panel, [class*="-panel"], [class*="-card"]';
 
@@ -53,12 +48,10 @@ const ADMIN_PASSWORD = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 // Evidence runs save allowlisted screenshots/metadata, never session-bearing traces.
 test.use({ trace: process.env.THREADLINE_E2E_EVIDENCE === "1" ? "off" : "retain-on-failure" });
 
-// Ranking trust-test (Phase 196): a deliberately-DEGRADED twin of the same page,
-// same data — off-brand generic font, garish clashing recolor of every accent,
-// a collapsed single type size, flattened weight, and destroyed vertical rhythm.
-// It targets the exact properties the trusted lenses (brand_fidelity, rhythm) and
-// typography/color_contrast judge. A working critic must RANK the real page above
-// this twin — that's the validated strength (ranking), not absolute per-page finds.
+// Degraded twin (Phase 196): a deliberately-DEGRADED copy of the same page, same
+// data — off-brand generic font, garish clashing recolor of every accent, a
+// collapsed single type size, flattened weight, and destroyed vertical rhythm. It
+// stays a separate route state (`route.timeline.degraded`) in the evidence lane.
 const DEGRADE_CSS = `
   #tl-main, #tl-main * { font-family: "Times New Roman", Times, serif !important; }
   #tl-main * {
@@ -85,9 +78,7 @@ const DEGRADE_CSS = `
 `;
 
 // The curated real operator routes. ledger id → authed route path. `degrade` marks
-// the ranking-test twin. The five weakest-page candidates (196-D8), each backed by a
-// committed `page.<x>.happy` twin in `mechanical_floors` for the deterministic floor
-// the forward-only gate gates on (see CONTRIBUTING.md → route ↔ page twin table).
+// the degraded twin.
 //
 // Paths are the REAL router mounts (lib/threadline/operator_surface/router.ex):
 //   /timeline, /coverage, /evidence are direct; retention lives under
@@ -306,7 +297,7 @@ async function captureCell(
   // Let the LiveView settle (rows/table stream in) so the hero shot is populated.
   await page.waitForLoadState("networkidle");
 
-  // Ranking-test twin: inject the degradation stylesheet AFTER the page settles,
+  // Degraded twin: inject the degradation stylesheet AFTER the page settles,
   // so it recolors/reflows the real rendered content in place.
   if (degrade) {
     await page.addStyleTag({ content: DEGRADE_CSS });
@@ -325,9 +316,9 @@ async function captureCell(
     path: resolveContainedPath(artifactDir, "screenshot.png"),
     scale: "css",
     mask: dynamicMasks(page),
-    // Playwright's default mask color is #FF00FF, which the LLM critic scores as
-    // the most salient element on the page (a harness artifact, not the UI).
-    // Mask with the dark surface token instead so masked regions stay non-salient.
+    // Playwright's default mask color is #FF00FF, the most salient element on any
+    // page (a harness artifact, not the UI). Mask with the dark surface token
+    // instead so masked regions stay non-salient.
     maskColor: "#0B1020",
   });
   atomicWriteFile(
@@ -431,7 +422,7 @@ test.describe("operator real-route deterministic capture", () => {
     writeRouteBundle(runRoot(), [...selectedEvidence], [...inventory.routes.map(r => r.id), "route.timeline.degraded"]);
   });
 
-  test("emits the real operator-page evidence bundle", async ({ page }, testInfo) => {
+  test("renders every curated operator route at 1280", async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== "route-capture",
       "Route capture runs only under the route-capture project",

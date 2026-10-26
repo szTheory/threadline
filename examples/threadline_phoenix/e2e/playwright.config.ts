@@ -22,79 +22,12 @@ const lightLane = process.env.THREADLINE_E2E_THEME === "system";
 const projects = [
   { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
   { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
-  // Tier A deterministic capture lane (Phase 194, MECH-04). Two projects — one per
-  // theme — drive operator-tier-a-capture.spec.ts at the 1280 desktop breakpoint;
-  // the spec resizes to 375/768 per cell via page.setViewportSize. deviceScaleFactor:1
-  // is set at PROJECT level (never global) so it does not perturb the 3 existing
-  // Tier C 1024 baselines (Pitfall 5). reducedMotion:"reduce" is already global.
-  {
-    name: "tier-a-capture",
-    testMatch: /operator-tier-a-capture\.spec\.ts/,
-    use: {
-      ...devices["Desktop Chrome"],
-      viewport: { width: 1280, height: 900 },
-      deviceScaleFactor: 1,
-      colorScheme: "dark" as const,
-    },
-  },
-  {
-    name: "tier-a-capture-light",
-    testMatch: /operator-tier-a-capture\.spec\.ts/,
-    use: {
-      ...devices["Desktop Chrome"],
-      viewport: { width: 1280, height: 900 },
-      deviceScaleFactor: 1,
-      colorScheme: "light" as const,
-    },
-  },
-  // Storybook capture lane (Phase 195-09) — the critic's real-UI golden-set source.
-  // Captures the `.threadline-ui` sandbox of each `:page` story (dark; stories render
-  // through <.threadline_preview theme="dark">). deviceScaleFactor:1 at project level.
-  {
-    name: "storybook-capture",
-    testMatch: /operator-storybook-capture\.spec\.ts/,
-    use: {
-      ...devices["Desktop Chrome"],
-      viewport: { width: 1280, height: 900 },
-      deviceScaleFactor: 1,
-      colorScheme: "dark" as const,
-    },
-  },
-  // Graded-ladder capture lane (Phase 195 D-12 — synthetic twin oracle). Captures each
-  // graded refute story (lens × scenario × severity rung) clipped to the twin content,
-  // emitting the committed scorecard + gitignored PNG the critic scores against.
-  {
-    name: "graded-capture",
-    testMatch: /operator-graded-capture\.spec\.ts/,
-    use: {
-      ...devices["Desktop Chrome"],
-      viewport: { width: 1280, height: 900 },
-      deviceScaleFactor: 1,
-      colorScheme: "dark" as const,
-    },
-  },
-  // Refute-pole clean re-capture lane (Phase 195-09 follow-up). Re-emits the 10
-  // refute pole `screenshot.png` binaries clipped to the twin content (excludes the
-  // /audit/__stress lab chrome) so the golden-set labeler shows a clean twin.
-  // It only overwrites PNGs inside the artifacts/tier-a cell directories that
-  // tier-a-capture creates in the same checkout, so it declares that project as a
-  // dependency: Playwright runs tier-a-capture first whenever refute-capture is
-  // selected. Browser-full selects only projects ci.yml does not run (218-07), so
-  // without this edge refute-capture ran with no cell directories (218-08).
-  {
-    name: "refute-capture",
-    testMatch: /operator-refute-capture\.spec\.ts/,
-    dependencies: ["tier-a-capture"],
-    use: {
-      ...devices["Desktop Chrome"],
-      viewport: { width: 1280, height: 900 },
-      deviceScaleFactor: 1,
-      colorScheme: "dark" as const,
-    },
-  },
-  // Real operator-route capture lane (Phase 196) — the critic's realistic-page
-  // source. Drives operator-page-capture.spec.ts against the seeded, authed
-  // /audit/* routes and clips to #tl-main (assembled page, no sidebar chrome).
+  // Route render smoke (Phase 196; Browser-full's only project since 246). Drives
+  // operator-page-capture.spec.ts against the seeded, authed /audit/* routes.
+  // Outside evidence mode it renders the 5 curated operator routes plus a
+  // degraded Timeline twin at 1280 and writes their route scorecards to
+  // route-scorecards/; that is what Browser-full runs. The inventory-wide 1280/768/375 route tests run only in evidence mode,
+  // which writes per-width scorecards under its run root instead.
   // deviceScaleFactor:1 at project level; dark hero view.
   {
     name: "route-capture",

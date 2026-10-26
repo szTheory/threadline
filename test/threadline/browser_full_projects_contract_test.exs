@@ -20,9 +20,10 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   allowed way that happens (`--list executed` minus `--list browser-full` must
   be exactly the dependency closure), and every cross-project filesystem
   prerequisite a spec states (`run the <project> lane first`) must be declared
-  as such an edge. Before 218-08, `refute-capture` needed the `tier-a-capture`
-  cell directories but declared nothing: it passed only while Browser-full ran
-  every project, and went red the moment the partition removed `tier-a-capture`.
+  as such an edge (218-08). Since 246 the live config declares no edge and no
+  spec states a prerequisite, and Browser-full runs exactly one project,
+  `route-capture`; the edge, prerequisite and mix-alias controls run on
+  synthetic mutations of copied inputs, so those rules stay tested.
 
   The test parses nothing itself: it runs the script against the live repo
   and against mutated copies under `tmp_dir` (`THREADLINE_BROWSER_FULL_ROOT`).
@@ -46,18 +47,18 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   @specs_dir Path.join(@repo_root, "examples/threadline_phoenix/e2e/tests")
 
   # Cross-project filesystem prerequisites the specs state, keyed by the
-  # dependent project: {spec file that states it, prerequisite project}.
-  # operator-refute-capture.spec.ts only overwrites screenshot binaries inside
-  # the artifacts/tier-a cell directories that tier-a-capture creates in the
-  # same checkout, and fails with "run the tier-a-capture lane first" otherwise.
-  @stated_prerequisites %{
-    "refute-capture" => {"operator-refute-capture.spec.ts", "tier-a-capture"}
-  }
+  # dependent project: {spec file that states it, prerequisite project}. None
+  # today: the last one left with the capture specs in 246.
+  @stated_prerequisites %{}
   @stated_prerequisite ~r/run the ([a-z0-9-]+) lane first/
 
-  @live_browser_full ~w(graded-capture refute-capture route-capture storybook-capture)
-  @live_ci ~w(desktop-chromium mobile-chromium tier-a-capture tier-a-capture-light)
-  @live_deps ["refute-capture tier-a-capture"]
+  @live_browser_full ~w(route-capture)
+  @live_ci ~w(desktop-chromium mobile-chromium)
+  @live_deps []
+
+  # A synthetic Browser-full project for the controls that need a second one.
+  @canary ~s(  { name: "canary-capture", use: {} },\n)
+  @canary_on_desktop ~s(  { name: "canary-capture", dependencies: ["desktop-chromium"], use: {} },\n)
 
   defp run_script(args, root \\ @repo_root) do
     assert File.regular?(@script) and
@@ -81,29 +82,76 @@ defmodule Threadline.BrowserFullProjectsContractTest do
 
   # Copy the three live inputs into tmp_dir at the same relative paths, apply
   # one mutation to one of them, and return the copy's root.
-  defp mutated_root(tmp_dir, rel, mutate) do
+  defp mutated_root(tmp_dir, rel, mutate), do: mutated_root(tmp_dir, [{rel, mutate}])
+
+  # The same, with one mutation per listed input (each must change its input).
+  defp mutated_root(tmp_dir, mutations) do
     for input <- [@config_rel, @ci_rel, @mix_rel] do
       dest = Path.join(tmp_dir, input)
       File.mkdir_p!(Path.dirname(dest))
       File.write!(dest, live(input))
     end
 
-    original = live(rel)
-    mutated = mutate.(original)
-    refute mutated == original, "control did not change #{rel}"
-    File.write!(Path.join(tmp_dir, rel), mutated)
+    for {rel, mutate} <- mutations do
+      original = live(rel)
+      mutated = mutate.(original)
+      refute mutated == original, "control did not change #{rel}"
+      File.write!(Path.join(tmp_dir, rel), mutated)
+    end
+
     tmp_dir
+  end
+
+  defp add_project(config, object),
+    do: String.replace(config, "const projects = [\n", "const projects = [\n" <> object)
+
+  # A `mix verify.fixture` alias whose function carries --project flags, the
+  # shape bin/browser-full-projects resolves behind a ci.yml `run: mix <alias>`.
+  defp add_fixture_alias(mix_src, project) do
+    mix_src
+    |> String.replace(
+      ~s(      "verify.example_browser": &verify_example_browser/1,\n),
+      ~s(      "verify.example_browser": &verify_example_browser/1,\n) <>
+        ~s(      "verify.fixture": &verify_fixture/1,\n),
+      global: false
+    )
+    |> String.replace(
+      "  defp verify_operator_stress(args),\n",
+      "  defp verify_fixture(args),\n" <>
+        "    do: verify_example_browser([\"--project=#{project}\" | args])\n\n" <>
+        "  defp verify_operator_stress(args),\n",
+      global: false
+    )
+  end
+
+  defp run_fixture_alias(yaml),
+    do:
+      String.replace(
+        yaml,
+        "run: mix verify.format\n",
+        "run: mix verify.format && mix verify.fixture\n"
+      )
+
+  defp stated_prerequisites(specs_dir) do
+    specs = for spec <- File.ls!(specs_dir), String.ends_with?(spec, ".spec.ts"), do: spec
+    assert specs != [], "#{specs_dir} lists no specs; the prerequisite scan would pass vacuously"
+
+    for spec <- specs,
+        [_, prerequisite] <-
+          Regex.scan(@stated_prerequisite, File.read!(Path.join(specs_dir, spec))),
+        uniq: true,
+        do: {spec, prerequisite}
   end
 
   defp flags(names), do: Enum.map(names, &"--project=#{&1}")
 
   # Every stated prerequisite of a Browser-full project that ci.yml owns must be
   # a declared `dependencies` edge, or Browser-full runs the dependent without it.
-  defp prerequisite_violations(root) do
+  defp prerequisite_violations(root, table \\ @stated_prerequisites) do
     full = list!("browser-full", root)
     deps = list!("deps", root)
 
-    for {project, {_spec, prerequisite}} <- @stated_prerequisites,
+    for {project, {_spec, prerequisite}} <- table,
         project in full,
         prerequisite not in full,
         "#{project} #{prerequisite}" not in deps do
@@ -114,12 +162,12 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   end
 
   describe "live repo partition" do
-    test "--list config is the eight default-config projects" do
+    test "--list config is the three default-config projects" do
       assert list!("config") ==
                Enum.sort(@live_ci ++ @live_browser_full)
     end
 
-    test "--list ci is the projects ci.yml runs, including those behind mix verify.capture" do
+    test "--list ci is the projects ci.yml runs (inline flags; no alias carries one today)" do
       assert list!("ci") == @live_ci
     end
 
@@ -182,23 +230,26 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       assert MapSet.subset?(pulled, MapSet.new(ci)),
              "a dependency pulls in a project that is in neither lane's flag set"
 
-      assert executed == Enum.sort(@live_browser_full ++ ["tier-a-capture"])
+      assert executed == @live_browser_full
     end
 
     test "every stated cross-project filesystem prerequisite is in the table" do
-      stated =
-        for spec <- File.ls!(@specs_dir),
-            String.ends_with?(spec, ".spec.ts"),
-            [_, prerequisite] <-
-              Regex.scan(@stated_prerequisite, File.read!(Path.join(@specs_dir, spec))),
-            uniq: true,
-            do: {spec, prerequisite}
-
-      assert stated != [], "the prerequisite scan found nothing; it would pass vacuously"
-
-      assert Enum.sort(stated) == Enum.sort(Map.values(@stated_prerequisites)),
+      assert Enum.sort(stated_prerequisites(@specs_dir)) ==
+               Enum.sort(Map.values(@stated_prerequisites)),
              "a spec states a `run the <project> lane first` prerequisite that " <>
                "@stated_prerequisites does not model (or the table names one no spec states)"
+    end
+
+    test "the prerequisite scan finds a stated prerequisite (non-vacuity)", %{tmp_dir: tmp_dir} do
+      specs = Path.join(tmp_dir, "specs")
+      File.mkdir_p!(specs)
+
+      File.write!(
+        Path.join(specs, "operator-canary.spec.ts"),
+        ~s|test("canary", () => { throw new Error("run the desktop-chromium lane first"); });\n|
+      )
+
+      assert stated_prerequisites(specs) == [{"operator-canary.spec.ts", "desktop-chromium"}]
     end
 
     test "every stated prerequisite of a Browser-full project is a declared dependencies edge" do
@@ -272,18 +323,33 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       refute "--project=desktop-chromium" in lines(output)
     end
 
-    test "removing run: mix verify.capture from ci.yml moves both tier-a projects into the output",
-         %{tmp_dir: tmp_dir} do
+    test "a mix alias whose function carries --project flags counts as a ci.yml run", %{
+      tmp_dir: tmp_dir
+    } do
       root =
-        mutated_root(
-          tmp_dir,
-          @ci_rel,
-          &String.replace(&1, "        run: mix verify.capture\n", "")
-        )
+        mutated_root(tmp_dir, [
+          {@config_rel, &add_project(&1, @canary)},
+          {@mix_rel, &add_fixture_alias(&1, "canary-capture")},
+          {@ci_rel, &run_fixture_alias/1}
+        ])
 
+      assert "canary-capture" in list!("ci", root)
       assert {output, 0} = run_script([], root)
-      assert "--project=tier-a-capture" in lines(output)
-      assert "--project=tier-a-capture-light" in lines(output)
+      assert lines(output) == flags(@live_browser_full)
+    end
+
+    test "removing the run: of that alias moves its project into the output", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(tmp_dir, [
+          {@config_rel, &add_project(&1, @canary)},
+          {@mix_rel, &add_fixture_alias(&1, "canary-capture")}
+        ])
+
+      refute "canary-capture" in list!("ci", root)
+      assert {output, 0} = run_script([], root)
+      assert "--project=canary-capture" in lines(output)
     end
 
     test "an empty projects array exits non-zero", %{tmp_dir: tmp_dir} do
@@ -314,20 +380,33 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       assert status != 0
     end
 
-    test "removing refute-capture's dependencies declaration turns the contract red", %{
+    test "a declared dependencies edge executes a ci.yml project in Browser-full", %{
       tmp_dir: tmp_dir
     } do
-      root =
-        mutated_root(
-          tmp_dir,
-          @config_rel,
-          &Regex.replace(~r/\n\s*dependencies: \["tier-a-capture"\],/, &1, "")
-        )
+      root = mutated_root(tmp_dir, @config_rel, &add_project(&1, @canary_on_desktop))
+      table = %{"canary-capture" => {"operator-canary.spec.ts", "desktop-chromium"}}
 
-      assert list!("browser-full", root) == @live_browser_full
+      assert list!("browser-full", root) == ["canary-capture" | @live_browser_full]
+      assert list!("deps", root) == ["canary-capture desktop-chromium"]
+
+      assert list!("executed", root) == [
+               "canary-capture",
+               "desktop-chromium" | @live_browser_full
+             ]
+
+      assert prerequisite_violations(root, table) == []
+    end
+
+    test "a stated prerequisite without its dependencies declaration turns the contract red", %{
+      tmp_dir: tmp_dir
+    } do
+      root = mutated_root(tmp_dir, @config_rel, &add_project(&1, @canary))
+      table = %{"canary-capture" => {"operator-canary.spec.ts", "desktop-chromium"}}
+
+      assert list!("browser-full", root) == ["canary-capture" | @live_browser_full]
       assert list!("deps", root) == []
-      assert [violation] = prerequisite_violations(root)
-      assert violation =~ "refute-capture needs tier-a-capture"
+      assert [violation] = prerequisite_violations(root, table)
+      assert violation =~ "canary-capture needs desktop-chromium"
     end
 
     test "a dependency naming an unregistered project exits non-zero", %{tmp_dir: tmp_dir} do
@@ -335,10 +414,9 @@ defmodule Threadline.BrowserFullProjectsContractTest do
         mutated_root(
           tmp_dir,
           @config_rel,
-          &String.replace(
+          &add_project(
             &1,
-            ~s(dependencies: ["tier-a-capture"]),
-            ~s(dependencies: ["ghost-capture"])
+            ~s(  { name: "canary-capture", dependencies: ["ghost-capture"], use: {} },\n)
           )
         )
 
@@ -371,7 +449,7 @@ defmodule Threadline.BrowserFullProjectsContractTest do
         mutated_root(
           tmp_dir,
           @ci_rel,
-          &String.replace(&1, "\njobs:\n", "\njobs:\n  # see --project=graded-capture\n",
+          &String.replace(&1, "\njobs:\n", "\njobs:\n  # see --project=route-capture\n",
             global: false
           )
         )
@@ -390,7 +468,7 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           )
           |> String.replace(
             "run: mix verify.format\n",
-            "run: mix verify.format # --project=storybook-capture\n"
+            "run: mix verify.format # --project=route-capture\n"
           )
         end)
 
@@ -405,8 +483,8 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "- name: Regenerate Tier A capture\n",
-            "- name: Regenerate Tier A capture --project=refute-capture\n"
+            "- name: Run example Playwright suite\n",
+            "- name: Run example Playwright suite --project=route-capture\n"
           )
         )
 
@@ -450,14 +528,14 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "  verify-capture:\n    name: ",
-            "  verify-capture:\n    if: github.event_name == 'schedule'\n    name: "
+            "  verify-example-browser:\n    name: ",
+            "  verify-example-browser:\n    if: github.event_name == 'schedule'\n    name: "
           )
         )
 
       assert {output, status} = run_script([], root)
       assert status == 1
-      assert output =~ "verify-capture"
+      assert output =~ "verify-example-browser"
     end
 
     test "an if: on a step with no --project flag leaves the output unchanged", %{
@@ -469,10 +547,10 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            "      - name: Regenerate Tier A capture\n        run: mix verify.capture\n",
-            "      - name: Regenerate Tier A capture\n        run: mix verify.capture\n\n" <>
-              "      - name: Unrelated conditional step\n" <>
-              "        if: github.event_name == 'schedule'\n        run: mix verify.format\n"
+            "      - name: Discover required operator journeys\n",
+            "      - name: Unrelated conditional step\n" <>
+              "        if: github.event_name == 'schedule'\n        run: mix verify.format\n\n" <>
+              "      - name: Discover required operator journeys\n"
           )
         )
 
@@ -487,8 +565,8 @@ defmodule Threadline.BrowserFullProjectsContractTest do
           @ci_rel,
           &String.replace(
             &1,
-            ~s(echo "Regenerate locally with 'mix verify.capture' and commit the result."),
-            ~s(echo "Regenerate locally with 'mix verify.capture --project=graded-capture' and commit the result.")
+            ~s(echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"),
+            ~s(echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY} --project=route-capture")
           )
         )
 

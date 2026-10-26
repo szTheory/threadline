@@ -673,12 +673,12 @@ defmodule Threadline.CiTopologyContractTest do
 
   # GREEN-09 / D-24 / D-25 resurrection guard.
   #
-  # Globs every workflow rather than naming ui-critic.yml, so re-introducing the
-  # paid lane under ANY filename is caught. The needle is built by concatenation
+  # Globs every workflow rather than naming the deleted workflow file, so re-introducing the
+  # retired paid UI scoring lane under ANY filename is caught. The needle is built by concatenation
   # because this file is itself read by nothing that scans for it — but the
   # concatenation also keeps a naive `grep -rl ANTHROPIC .github/` gate honest if
   # this guard is ever moved under .github/.
-  test "no workflow references the paid critic API key (GREEN-09 resurrection guard)" do
+  test "no workflow references a paid LLM API key (GREEN-09 resurrection guard; retired UI loop, tag archive/ui-critic-loop)" do
     needle = "ANTHROPIC" <> "_API_KEY"
     paths = workflow_paths()
 
@@ -688,9 +688,10 @@ defmodule Threadline.CiTopologyContractTest do
 
     for path <- paths do
       refute String.contains?(read_rel!([path]), needle),
-             "#{path} references #{needle} — the paid critic lane must stay structurally " <>
-               "unreachable from CI (GREEN-09). Deleting the workflow, not defaulting its " <>
-               "score input to false, is what satisfies this requirement."
+             "#{path} references #{needle} — the retired paid UI scoring loop (tag " <>
+               "archive/ui-critic-loop) must stay structurally unreachable from CI " <>
+               "(GREEN-09). Deleting the workflow, not defaulting its score input to " <>
+               "false, is what satisfies this requirement."
     end
   end
 
@@ -1261,12 +1262,11 @@ defmodule Threadline.CiTopologyContractTest do
   # --- Plan 218-04: removed CI proofs stay justified and dominated ---------
   #
   # A proof leaves CI only when another job catches its failure class on the same
-  # triggers. Each removal carries a "still caught by" bullet in CONTRIBUTING.md,
-  # and these pins keep the proof that still catches it from lapsing silently.
+  # triggers, or as a deliberate, recorded coverage cut (246 D-02: verify-capture
+  # and the mechanical floor). Each removal carries a "still caught by" bullet in
+  # CONTRIBUTING.md and a `# Removed:` comment in ci.yml, so no cut is silent.
   @removed_proofs_heading "### Removed CI proofs and what still catches them"
-  @byte_stable_step "Assert byte-stable regeneration (no drift from committed evidence)"
-  @mechanical_checker_test "test/threadline/operator_surface/mechanical_checker_test.exs"
-  @removed_job_ids ["verify-mechanical", "verify-docs", "verify-hex-package"]
+  @removed_job_ids ["verify-mechanical", "verify-docs", "verify-hex-package", "verify-capture"]
 
   defp removed_proof_bullets(contributing) do
     case String.split(contributing, @removed_proofs_heading, parts: 2) do
@@ -1286,20 +1286,6 @@ defmodule Threadline.CiTopologyContractTest do
     contributing
     |> removed_proof_bullets()
     |> Enum.any?(&(String.contains?(&1, "still caught by") and String.contains?(&1, needle)))
-  end
-
-  # Tags that `mix test` excludes by default, from the app-env copy test_helper
-  # writes, plus the two sanctioned gates by name so a broken read cannot pass.
-  defp default_excluded_tag_names do
-    :threadline
-    |> Application.get_env(:default_test_excludes, [])
-    |> Enum.map(fn
-      {tag, _value} -> tag
-      tag -> tag
-    end)
-    |> Kernel.++([:pgbouncer_topology, :live_dialyzer])
-    |> Enum.map(&Atom.to_string/1)
-    |> Enum.uniq()
   end
 
   defp header_roster(yaml) do
@@ -1331,33 +1317,11 @@ defmodule Threadline.CiTopologyContractTest do
     end)
   end
 
-  defp removed_proof_errors(yaml, contributing, checker_test) do
-    capture = workflow_job(yaml, "verify-capture")
-
-    excluded_tags_in_checker =
-      for tag <- default_excluded_tag_names(),
-          Regex.match?(~r/@(?:module)?tag\b[^\n]*\b#{tag}\b/, checker_test),
-          do: tag
-
+  defp removed_proof_errors(yaml, contributing) do
     [
-      {capture != "", "verify-capture is gone from ci.yml"},
-      {workflow_step(capture, @byte_stable_step) != "",
-       "verify-capture lost its byte-stable regeneration step. The capture lane's mechanical " <>
-         "step was removed because that step proves regenerated evidence equals the committed " <>
-         "evidence; without it a rule breach in regenerated evidence reaches main unseen"},
-      {not String.contains?(strip_comment_lines(capture), "mix verify.mechanical"),
-       "verify-capture runs mix verify.mechanical again, which duplicates what verify-test " <>
-         "already runs over the committed scorecard JSON"},
-      {excluded_tags_in_checker == [],
-       "#{@mechanical_checker_test} carries a default-excluded tag " <>
-         "#{inspect(excluded_tags_in_checker)}, so verify-test no longer runs it and a " <>
-         "committed scorecard that breaches MODE-A/MODE-B is caught by nothing"},
       {String.contains?(contributing, @removed_proofs_heading),
        "CONTRIBUTING.md lost the \"#{@removed_proofs_heading}\" section, so the removed " <>
-         "proofs no longer say what still catches their failure class"},
-      {justified_removal?(contributing, "capture"),
-       "CONTRIBUTING.md has no \"still caught by\" bullet for the capture lane's removed " <>
-         "mechanical step"}
+         "proofs no longer say what still catches their failure class"}
     ]
     |> Kernel.++(removed_job_checks(yaml, contributing))
     |> Enum.reject(&elem(&1, 0))
@@ -1375,50 +1339,20 @@ defmodule Threadline.CiTopologyContractTest do
   test "removed CI proofs stay justified and dominated" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
     contributing = read_rel!(["CONTRIBUTING.md"])
-    checker_test = read_rel!([@mechanical_checker_test])
 
-    assert removed_proof_errors(yaml, contributing, checker_test) == []
-
-    byte_stable_step = workflow_step(yaml, @byte_stable_step)
-    assert byte_stable_step != "", "the byte-stable step must exist to mutate"
-
-    capture_bullet =
-      contributing
-      |> removed_proof_bullets()
-      |> Enum.find(&(String.contains?(&1, "still caught by") and String.contains?(&1, "capture")))
-
-    assert is_binary(capture_bullet), "the capture bullet must exist to mutate"
-
-    yaml_controls = [
-      {"mechanical step re-added to verify-capture",
-       String.replace(
-         yaml,
-         byte_stable_step,
-         byte_stable_step <>
-           "      - name: Assert mechanical checker clean over real evidence\n" <>
-           "        run: mix verify.mechanical\n\n"
-       )},
-      {"byte-stable step deleted", String.replace(yaml, byte_stable_step, "")}
-    ]
-
-    for {control, mutated} <- yaml_controls do
-      refute mutated == yaml, "#{control} control did not change the input"
-
-      refute removed_proof_errors(mutated, contributing, checker_test) == [],
-             "#{control} mutation must make the removed-proof contract fail"
-    end
+    assert removed_proof_errors(yaml, contributing) == []
 
     for {label, bullet} <- [
-          {"capture", capture_bullet},
           {"verify-docs", removed_job_bullet(contributing, "`verify-docs`")},
           {"verify-hex-package", removed_job_bullet(contributing, "`verify-hex-package`")},
-          {"verify-mechanical", removed_job_bullet(contributing, "`verify-mechanical`")}
+          {"verify-mechanical", removed_job_bullet(contributing, "`verify-mechanical`")},
+          {"verify-capture", removed_job_bullet(contributing, "`verify-capture`")}
         ] do
       assert is_binary(bullet), "the #{label} bullet must exist to mutate"
       contributing_without_bullet = String.replace(contributing, bullet <> "\n", "")
       refute contributing_without_bullet == contributing
 
-      refute removed_proof_errors(yaml, contributing_without_bullet, checker_test) == [],
+      refute removed_proof_errors(yaml, contributing_without_bullet) == [],
              "dropping the #{label} bullet must make the removed-proof contract fail"
     end
 
@@ -1431,27 +1365,28 @@ defmodule Threadline.CiTopologyContractTest do
 
     refute readded == yaml
 
-    refute removed_proof_errors(readded, contributing, checker_test) == [],
+    refute removed_proof_errors(readded, contributing) == [],
            "re-adding a removed job to ci-required needs: must make the contract fail"
 
-    uncommented = String.replace(yaml, "# Removed: verify-hex-package", "# verify-hex-package")
-    refute uncommented == yaml
-
-    refute removed_proof_errors(uncommented, contributing, checker_test) == [],
-           "dropping a `# Removed:` comment must make the contract fail"
-
-    excluded_checker =
+    capture_readded =
       String.replace(
-        checker_test,
-        "use ExUnit.Case, async: true\n",
-        "use ExUnit.Case, async: true\n  @moduletag :pgbouncer_topology\n",
-        global: false
+        yaml,
+        "      - verify-example-browser\n",
+        "      - verify-example-browser\n      - verify-capture\n"
       )
 
-    refute excluded_checker == checker_test
+    refute capture_readded == yaml
 
-    refute removed_proof_errors(yaml, contributing, excluded_checker) == [],
-           "tagging the mechanical checker test out of the default suite must fail the contract"
+    refute removed_proof_errors(capture_readded, contributing) == [],
+           "re-adding verify-capture to ci-required needs: must make the contract fail"
+
+    for id <- ["verify-hex-package", "verify-capture"] do
+      uncommented = String.replace(yaml, "# Removed: #{id}", "# #{id}")
+      refute uncommented == yaml, "the `# Removed: #{id}` comment must exist to mutate"
+
+      refute removed_proof_errors(uncommented, contributing) == [],
+             "dropping the `# Removed: #{id}` comment must make the contract fail"
+    end
   end
 
   # --- Plan 218-04: the proofs that dominate the removed jobs stay in force ---

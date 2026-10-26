@@ -180,9 +180,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert story.origin_cohort in [
                  "baseline",
                  "page-state",
-                 "data-display",
-                 "refute-twin",
-                 "graded-ladder"
+                 "data-display"
                ],
                "#{story.id} origin_cohort must use the named cohort vocabulary"
 

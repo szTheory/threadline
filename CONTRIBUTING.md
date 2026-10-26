@@ -282,315 +282,46 @@ assertion in it is cut.
 The convention: every new `*_contract_test.exs` moduledoc names, in one
 sentence, which keep criterion above it satisfies.
 
-## Local-only critic (verify.ui_critique)
-
-`mix verify.ui_critique` runs the adversarial critic runner against the
-operator-surface scorecard cells. It calls an external AI API and is therefore
-**local-only** — it requires an API key set in the environment (`ANTHROPIC_API_KEY`)
-and is **excluded from `ci.all`** (same precedent as `verify.flake`).
-
-```bash
-ANTHROPIC_API_KEY="sk-ant-..." mix verify.ui_critique
-```
-
-When `ANTHROPIC_API_KEY` is absent or empty, `mix verify.ui_critique` exits 0
-with a skip message. Contributors and CI without a key are completely unaffected.
-
-The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
-AI), runs in `mix verify.test` (and so in `ci.all`), and asserts that every validated
-critic lens meets its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
-correlation of oracle severity vs critic score, the validated ranking signal);
-with n ≥ 20. Krippendorff α, AUC, and raw agreement are recorded as reported-only
-companions and never gate (the lenses rank well even where their absolute scale is
-compressed). All lenses seed as `validated: false` until the trust run promotes
-them; the gate passes vacuously on the empty skeleton.
-
-> **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
-> the environment only; `mix verify.ui_critique` never writes it to files.
-
-## Maintainer: building and validating the golden oracle
-
-This section is **maintainer-only** — it requires `ANTHROPIC_API_KEY` and human judgment.
-Contributors do not need to run any of these steps; the `verify.critic_trust` gate runs in
-`mix verify.test` (and so in `ci.all`) without an API key and passes vacuously until the
-maintainer has populated the golden set.
-
-### Prerequisites
-
-- `ANTHROPIC_API_KEY` available in the shell (never committed). Nothing auto-loads
-  `.env`, so source it into the shell first — this makes the key reach both `npm` and `mix`:
-  ```bash
-  set -a; source .env; set +a    # .env holds: export ANTHROPIC_API_KEY='sk-ant-...'
-  ```
-- Postgres running for `mix ci.all` verification at the end
-- All `npm` dependencies installed: `cd examples/threadline_phoenix/e2e && npm install`
-
-### Step 1 — Build the oracle
-
-The critic must be validated against an oracle before its scores may drive the ratchet.
-There are two oracles; the **synthetic** one is the default (no human labeling).
-
-#### Step 1a (recommended) — Synthetic twin oracle (labeling-free)
-
-The synthetic oracle is a graded severity ladder of twins (lens × scenario × 4 rungs)
-whose verdicts are known *by construction*, so the trust gate reaches n≥20/lens with **zero
-labeling**. It proves the critic tracks known-severity flaws monotonically on held-out rungs
-(a *calibration* claim), which is sufficient to drive the **forward-only** ratchet. It does
-NOT claim taste-agreement on ambiguous UI — that's what Step 1b's human oracle is for.
-
-```bash
-mix critic.synth                                   # generate synthetic-set.json from the ladder
-cd examples/threadline_phoenix/e2e
-npm run capture:graded                             # shoot the graded rung cells (needs dev server)
-npm run critic:score -- --synthetic                # score exactly the graded (cell, lens) pairs
-cd ../../.. && mix critic.measure --source synthetic  # α + n + raw per lens; writes honest provenance
-mix verify.critic_trust                            # gate re-asserts what was recorded
-```
-
-#### Step 1b (optional, stronger claim) — Human golden set (blind test-retest)
-
-The `critic label` CLI guides you through the golden-set authoring lane. IDs are masked
-behind ephemeral tokens so each round is genuinely blind. Use this when you want a
-taste-agreement claim on real UI beyond the synthetic calibration claim.
-
-The images come from two capture lanes (run once, before labeling): `npm run capture:storybook`
-emits the real-UI Storybook `story.*` cells, and `npm run capture:refute` re-emits the refute-twin
-pole cells clipped to the twin content (both need the dev server — see `e2e/run-e2e.sh`).
-
-```bash
-cd examples/threadline_phoenix/e2e
-
-# Seed the labeling queue (clean Storybook story.* cells first, then the refute poles)
-npm run critic:label -- --bootstrap
-
-# Label round 1 — RECOMMENDED: the local web page (one always-current clean image at a time;
-# opens http://127.0.0.1:4399; g/o/a/x + a few words of evidence; Ctrl+C stops, progress saved)
-npm run critic:label -- --round r1 --web
-
-# ...or the keystroke CLI in the terminal (g=good, o=borderline, a=bad, x=broken; evidence required)
-npm run critic:label -- --round r1
-
-# Commit r1 BEFORE running r2 (enforces a time gap for honest blind test-retest)
-git add test/fixtures/operator_surface/golden/rounds/r1.json
-git commit -m "chore: golden set round 1 labels"
-
-# Label round 2 (reshuffled, re-tokenized — never sees r1 content; add --web for the page)
-npm run critic:label -- --round r2
-
-# Reconcile: keep r1==r2 agreements; you tiebreak disagreements
-npm run critic:label -- --reconcile
-
-# Check progress — target ≥20 per lens for validated status
-npm run critic:label -- --status
-```
-
-Lenses under the 20-judgment bar stay `provisional` and cannot ratchet. That is acceptable
-for this phase; add more cells with `--add <cell-id>` or run `--bootstrap --lens <lens>`.
-
-**Key invariant:** `--reconcile` is the ONLY writer of `golden-set.json`. Never hand-edit it.
-Held-out IDs (in `held_out_ids`) are refused at queue time — they are the independent
-true-north set and must never be rubric-tuned.
-
-### Step 2 — Prove the critic (refute battery)
-
-The refute battery verifies that the critic can correctly identify sign/attribution on synthetic
-extremes. This is separate from the golden-set agreement metric.
-
-```bash
-cd examples/threadline_phoenix/e2e
-npm run critic:validate -- --dry-run    # preview the twins + cost first
-npm run critic:validate                 # runs the battery (~$1–3: 6 gestalt twins; veto-ordering twin is $0)
-```
-
-All gates must pass: binary directional (correct rank), margin gate (delta > noise floor),
-metamorphic invariance (verdict stable under reshuffling), and veto-ordering (off-token accent
-trips the veto, no aesthetic score emitted). Failure bars the critic from any ledger bump.
-
-### Step 3 — Score the golden cells and record critic_trust
-
-```bash
-cd examples/threadline_phoenix/e2e
-# Score EXACTLY the labeled golden (cell, lens) pairs — cheap and correct for measurement.
-npm run critic:score -- --golden --dry-run    # check cost before running
-npm run critic:score -- --golden              # bills the API for the golden cells only
-
-# Measure per-lens trust and write the critic_trust block (separate, reviewed step):
-cd ../../.. && mix critic.measure
-```
-
-`npm run critic:score -- --golden` writes nondeterministic per-dimension scores under
-`test/generated/operator_surface/critic-scores/`. All local capture and critic output
-lives below the ignored `test/generated/operator_surface/` boundary; immutable inputs
-remain under `test/fixtures/operator_surface/`.
-The measurement alias then computes per-lens Krippendorff's α, raw agreement, and n against the
-golden labels and writes the `critic_trust` block in `test/fixtures/operator_surface/design-system-ledger.json`.
-It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
-
-A lens is set `validated: true` only if α ≥ 0.67 AND n ≥ 20 AND raw_agreement ≥ 80% at the
-current rubric version + model ID. (`pairwise_acc` is recorded as `null` until the label CLI
-persists pair margins — it never gates promotion.)
-
-### Step 4 — Regenerate the reviewable CRITIQUE.md
-
-```bash
-# CRITIQUE.md auto-regenerates at the end of `critic:score`. To regenerate standalone:
-cd examples/threadline_phoenix/e2e && node --import tsx critic/run.ts report
-```
-
-Verify `test/generated/operator_surface/reports/CRITIQUE.md` is fresh — it should show scored cells with Betterer flags
-(▲ new for first scores, ▲/▽ gain/regression on subsequent runs).
-
-### Step 5 — Confirm CI stays honest
-
-```bash
-mix ci.all
-```
-
-`mix verify.critic_trust` (its test file runs in `mix verify.test`, and so in `ci.all`) enforces whatever was recorded in
-`critic_trust`. All other gates (`verify.mechanical`, `verify.test`, etc.) must stay green.
-`mix verify.ui_critique` itself is excluded from `ci.all` — it is local-only.
-
-### Step 6 — Commit as one reviewed commit
-
-```bash
-git add test/fixtures/operator_surface/golden/golden-set.json
-git add test/fixtures/operator_surface/golden/rounds/r2.json
-git add test/fixtures/operator_surface/design-system-ledger.json  # critic_trust block updated
-git commit -m "chore: golden oracle scored and critic trust measured"
-```
-
-This commit should never be auto-generated — it represents the maintainer's reviewed judgment.
-
-### Rubric maintenance
-
-To check rubric integrity (hash, dimension count, pole references):
-
-```bash
-npm run critic:rubric -- lint
-```
-
-To bump a rubric version after editing it (recomputes sha8, prints invalidation blast radius):
-
-```bash
-npm run critic:rubric -- bump hierarchy --patch   # wording tweak
-npm run critic:rubric -- bump density --minor     # new dimension added
-npm run critic:rubric -- bump typography --major  # lens semantics redefined
-```
-
-After a bump, `critic_trust` for that lens is auto-invalidated (the rubric version no longer
-matches the stored `golden_rubric_version`). Re-run the golden-set scoring to restore trust.
-
-## Forward-only gate — run one iteration
-
-**Maintainer-only.** This is the repeatable loop that turns the validated critic (above)
-into a **forward-only net-positive gate**: a proposed change to a real `/audit` page is
-accepted only if it moves the targeted **blocking** lens in the right direction with **no
-regression** anywhere on the blocking panel, and only after the deterministic mechanical /
-a11y floor still passes. Like the oracle steps above it is **local-only** (needs
-`ANTHROPIC_API_KEY`) and **never runs in CI** — CI runs only the deterministic guards
-(`verify.critic_trust`, `verify.mechanical`), whose test files run in `mix verify.test` (and
-so in `ci.all`).
-
-The loop operates on the real seeded `route.*` cells, never the `page.*`
-stress-lab chrome and never the isolated `story.*` fixtures. Each `route.*` cell has a
-committed `page.<x>.happy` twin in `mechanical_floors`; that twin is the deterministic floor
-the gate gates on.
-
-### Route ↔ page twin mapping
-
-| route cell (live, gitignored) | route path | committed `page.*` twin (mechanical floor) |
-|---|---|---|
-| `route.timeline` | `/audit/timeline` | `page.timeline.happy` |
-| `route.coverage` | `/audit/coverage` | `page.coverage.happy` |
-| `route.retention` | `/audit/policy/retention` | `page.retention.happy` |
-| `route.actor` | `/audit/actors/service_account/zendesk-sync` | `page.actor.happy` |
-| `route.evidence` | `/audit/evidence` | `page.evidence.happy` |
-
-### Steps (capture → score → gate → floor → ratify → commit)
-
-```bash
-cd examples/threadline_phoenix/e2e
-
-# 1. Capture the live route lane (needs the seeded dev server — see e2e/run-e2e.sh).
-#    Writes route.* PNG + scorecard JSON; these stay LOCAL (gitignored) by design.
-npm run capture:pages
-
-# 2. Score the four BLOCKING lenses on the candidate routes to pick the weakest
-#    (page, lens) — this is the propose target. Records the "before" snapshot.
-npm run critic:score -- --page route.coverage
-
-# 3. Make the proposed change, re-capture (step 1), then run the accept/reject gate
-#    on the targeted blocking lens. The gate is RELATIVE (ranking Δ vs IQR noise
-#    floor), blast-radius-aware, and never uses an absolute score threshold.
-npm run critic:gate -- --page route.coverage --lens brand_fidelity
-```
-
-```bash
-# 4. The deterministic hard floor: the mechanical / a11y checker over the COMMITTED
-#    page.<x>.happy twin (WCAG contrast + off-grid px hard-fail; ratchet floors).
-cd ../../.. && mix verify.mechanical
-```
-
-```bash
-# 5. Ratify + commit the evidence trail: append the human sign-off to
-#    ratchet.signoffs in the append-only ledger, then commit the reviewed diff.
-git add test/fixtures/operator_surface/design-system-ledger.json   # ratchet.signoffs + any twin bump
-git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regressions"
-```
-
-### Invariants (do not violate)
-
-- **LLM stays local-only and out of CI** (196-D9). The gate's scoring/re-eval calls the
-  external AI API; only the deterministic `verify.critic_trust` + `verify.mechanical` guards
-  run, in `mix verify.test` (and so in `ci.all`).
-- **Only the four validated lenses block**: `brand_fidelity`, `density`, `typography`,
-  `rhythm`. `hierarchy` and `color_contrast` are **advisory only** — reported under an
-  advisory badge, **never** auto-block, and their findings must be **verified against ground
-  truth** before anyone acts on them (they confidently hallucinate specifics).
-- **The gate is relative, not absolute** — accept iff the targeted lens improves AND no
-  blocking lens regresses below its floor AND the mechanical floor still passes; compare
-  rank/Δ direction, never absolute thresholds.
-- **`route.*` cells and critic reports stay uncommitted** under
-  `test/generated/operator_surface/` (gitignored and regenerated per run). Only the
-  reviewed ledger sign-off + any twin bump is committed.
+## Retired: UI critic loop
+
+The LLM UI critic, its golden oracle and the forward-only critic gate were retired in
+v1.47 and removed from the tree. Restore them from the annotated tag
+`archive/ui-critic-loop`; `git cat-file -p archive/ui-critic-loop` prints the restore recipe.
 
 ## CI Coverage
 
 Browser coverage is **split** across two workflows, and the split is a
 **partition**: every default-config Playwright project runs in exactly one lane.
-Pull requests (and every push to `main`) run four projects through `ci.yml` so
-per-PR feedback stays inside a usable loop. Browser-full runs the other four.
-**This is a real trade, not a free speedup**: the four Browser-full projects do
-not run on pull requests. They are named below.
+Pull requests (and every push to `main`) run two projects through `ci.yml` so
+per-PR feedback stays inside a usable loop. Browser-full runs the third.
+**This is a real trade, not a free speedup**: the Browser-full project does
+not run on pull requests. It is named below.
 
 | Playwright project | Pull request | `main` | Nightly | Runs via |
 |---|---|---|---|---|
 | `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
 | `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
-| `tier-a-capture` | **yes** | yes | only as `refute-capture`'s dependency | `verify-capture` (ci.yml, `mix verify.capture`) |
-| `tier-a-capture-light` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
-| `storybook-capture` | no | yes | yes | `verify-example-browser-full` |
-| `graded-capture` | no | yes | yes | `verify-example-browser-full` |
-| `refute-capture` | no | yes | yes | `verify-example-browser-full` |
 | `route-capture` | no | yes | yes | `verify-example-browser-full` |
 | `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
 
 **Both lanes run on `main`; only Browser-full runs nightly.** `ci.yml` runs its
-four projects on every pull request and every push to `main`. Job
+two projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
 [`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
-the other four on push to `main`, on a nightly `schedule`, and on manual
-dispatch. It never selects a project `ci.yml` already runs; the one exception to
-never *executing* one is a declared Playwright `dependencies` edge, so
-`tier-a-capture` also runs there first because `refute-capture` overwrites the
-cell directories it creates (`bin/browser-full-projects --list deps`). The nightly is
+`route-capture` (a render smoke over the 5 curated operator routes plus a
+degraded Timeline twin at 1280; the inventory-wide 1280/768/375 route tests run
+only in evidence mode,
+`THREADLINE_E2E_EVIDENCE=1`, which Browser-full never sets) on push to `main`,
+on a nightly `schedule`, and on manual dispatch.
+It never selects a project `ci.yml` already runs; the one exception to never
+*executing* one would be a declared Playwright `dependencies` edge, and none is
+declared today (`bin/browser-full-projects --list deps`). The nightly is
 skipped when Browser-full already passed on the same commit (`bin/ci-sha-gate`),
 because a re-run of a proven commit proves nothing new.
 
 **What does not run on pull requests:**
 
-- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture`:
-  they run on `main`, nightly and on dispatch only.
+- `route-capture`: it runs on `main`, nightly and on dispatch only.
 - The bare `chromium` project was **deleted outright**, not moved. It was
   `Desktop Chrome` at 1280×720 with no scoped `testMatch`, and both
   snapshot-bearing specs already excluded it by name, so it carried zero
@@ -605,7 +336,8 @@ green Browser-full run closes that issue.
 This table is not documentation-on-trust. Browser-full's project list is never
 hand-written: `bin/browser-full-projects` derives it as the default
 `playwright.config.ts` projects minus the ones `ci.yml` runs (its `--project`
-flags plus those behind `mix verify.capture`). Only flags passed to a `mix` or
+flags plus those inside the `mix.exs` function behind any `mix` alias a `run:`
+body calls). Only flags passed to a `mix` or
 `npx` command count, and the script refuses a flag in a step or job that carries
 an `if:`, because such a flag may never run on a pull request or push.
 `test/threadline/browser_full_projects_contract_test.exs` proves the two lanes
@@ -636,7 +368,6 @@ topology mutation controls.
 - `verify-test`
 - `verify-hex-evaluator`
 - `verify-example-browser`
-- `verify-capture`
 - `verify-pgbouncer-topology`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
@@ -848,7 +579,6 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
-| `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.6.0 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
@@ -858,12 +588,13 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 
 A CI proof is removed only when another job catches the same failure class on
 the same triggers (push to `main`, pull_request to `main`, workflow_dispatch)
-with no job-level `if:`. Each removal keeps its justification here, and
-`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing or
-if the proof that still catches it stops running.
+with no job-level `if:`, or as a deliberate coverage cut that is recorded here
+in full: what still catches part of the failure class, and what is retired
+without a replacement. Each removal keeps its justification here, and
+`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing.
 
-- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (every lane), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
-- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
+- `verify-mechanical` (the job, and since 246 the MODE-A/MODE-B floor itself): retired with the UI scoring loop (the "Retired" section above names the restore tag), a deliberate, recorded coverage cut. Failure class "a component regresses contrast, tokens or accessibility" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/style_contract_test.exs` (contrast and token checks) in the default suite, and by `verify-example-browser`, which runs `operator-accessibility.spec.ts` (accessibility), on pull_request, push to `main` and workflow_dispatch. Scorecard-level MODE-A/MODE-B checks are retired, not replaced.
+- `verify-capture`: failure class "a component regresses contrast, tokens or accessibility" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/style_contract_test.exs` (contrast and token checks), and by `verify-example-browser`, which runs `operator-accessibility.spec.ts` (accessibility), on pull_request, push to `main` and workflow_dispatch. Byte-stable stress-lab regeneration is retired, not replaced: a recorded coverage cut (UI work is parked until 1.0.0; restorable from the tag the "Retired" section above names).
 - `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Next-minor release rehearsal (docs + contracts)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
 - `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
@@ -887,7 +618,7 @@ synthetic PLT-build values.
 After the analysis step, the job runs `mix verify.dialyzer_slice` under
 `MIX_ENV=test` against a `postgres:16` service (the test helper starts the
 repo). That alias runs the one `live_dialyzer` test, which shells out to
-`bin/verify-dialyzer-slice` over the committed critic-tooling fixture. The
+`bin/verify-dialyzer-slice` over the committed query-storage fixture. The
 verifier fails closed: `--ignore-exit-status` turns a Dialyzer error (a missing
 or unreadable PLT, a crash) into exit 0 with zero warn lines, so the verifier
 requires exactly one dialyxir completion marker (`done (passed successfully)`
@@ -959,9 +690,8 @@ so a failed or partial dependency build is never stored.
 | `verify-test` | root on every lane; example on the current lane only | yes |
 | `verify-pgbouncer-topology` | root, restoring the current lane's key | no, restore only |
 | `verify-example-browser` | example | yes |
-| `verify-capture` | example | yes |
 
-That is four build keys across six job-lanes: a root key per verify-test lane plus the shared example key.
+That is four build keys across five job-lanes: a root key per verify-test lane plus the shared example key.
 
 Every key is exact. In order it carries: the runner label (`${{ matrix.runner }}`
 in `verify-test`, the literal `ubuntu-24.04` elsewhere), the OTP and Elixir that
@@ -1018,8 +748,8 @@ The stable log fields, printed by each cached job's removal step, are:
   ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
   so `Build and test (min)` and `Build and test (latest)` never print it.
 
-`verify-test (current)`, `verify-example-browser` and `verify-capture` share one
-example key. On a cold run two of them can try to save it at once; the loser
+`verify-test (current)` and `verify-example-browser` share one example key. On a
+cold run both can try to save it at once; the loser
 logs `Unable to reserve cache` as a warning, not a failure. There is no cleanup
 workflow: GitHub evicts entries unused for 7 days and trims the repository's
 10 GB budget oldest first.
@@ -1106,7 +836,6 @@ pass. The posted check names, in `ci.yml` order:
 - Build and test (min) (`verify-test` min lane)
 - Build and test (current) (`verify-test` current lane)
 - Build and test (latest) (`verify-test` latest lane)
-- Capture evidence byte-stable (`verify-capture`)
 - Example app browser E2E (2 projects) (`verify-example-browser`)
 
 `test/threadline/ci_workflow_parity_contract_test.exs` keeps this list equal to

@@ -4,13 +4,6 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   @runtime_keys ~w(coverage_poll_ms ecto_repos export_queue_adapter export_status_poll_ms exports health operator_surface_embed_fonts operator_surface_embed_scripts retention retention_poll_ms storage_adapter storage_schema trigger_capture verify_coverage)a
   @hidden_modules [
-    Threadline.CriticTrust.Measure,
-    Threadline.CriticTrust.RankMetrics,
-    Threadline.CriticTrust.LedgerSplice,
-    Threadline.CriticTrust.KrippendorffAlpha,
-    Threadline.CriticTrust.RepositoryBoundary,
-    Mix.Tasks.Critic.Measure,
-    Mix.Tasks.Critic.Synth,
     Plug.Exception.Threadline.NotFoundError,
     Threadline.Query,
     Threadline.Investigation
@@ -233,7 +226,7 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   @tag :module_visibility_tracer
   @tag :phase200_red
-  test "the public façade is grouped and mandatory critic modules are hidden" do
+  test "the public façade is grouped and mandatory internal modules are hidden" do
     groups = Threadline.MixProject.project()[:docs][:groups_for_modules]
 
     assert Keyword.keys(groups) == [
@@ -646,7 +639,7 @@ defmodule Threadline.PublicSurfaceContractTest do
       |> Enum.map(&task_module/1)
 
     repository = [Mix.Tasks.Threadline.VerifyTopology]
-    maintainer = Enum.filter(tasks, &String.starts_with?(inspect(&1), "Mix.Tasks.Critic."))
+    maintainer = []
 
     internal =
       tasks
@@ -666,8 +659,6 @@ defmodule Threadline.PublicSurfaceContractTest do
       Enum.filter(
         aliases,
         &(&1 in [
-            "verify.ui_critique",
-            "verify.capture",
             "verify.operator_component_contracts"
           ])
       )

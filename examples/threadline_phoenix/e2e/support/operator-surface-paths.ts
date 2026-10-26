@@ -21,21 +21,10 @@ const repositoryRoot = resolve(moduleDirectory, "../../../..");
 export interface OperatorSurfacePaths {
   readonly repositoryRoot: string;
   readonly e2eRoot: string;
-  readonly criticRubricsDir: string;
-  readonly tierAArtifactsDir: string;
   readonly fixtureRoot: string;
   readonly ledgerPath: string;
-  readonly scorecardsDir: string;
-  readonly goldenDir: string;
-  readonly refuteDir: string;
   readonly generatedRoot: string;
   readonly routeScorecardsDir: string;
-  readonly criticScoresDir: string;
-  readonly verdictCacheDir: string;
-  readonly refuteTranscriptsDir: string;
-  readonly critiqueReportPath: string;
-  readonly criticReportHtmlPath: string;
-  readonly criticFloorsPath: string;
 }
 
 export interface OperatorSurfaceRootOverrides {
@@ -87,35 +76,17 @@ export function resolveOperatorSurfacePaths(
   );
 
   const ledgerPath = resolve(fixtureRoot, "design-system-ledger.json");
-  const scorecardsDir = resolve(fixtureRoot, "scorecards");
-  const goldenDir = resolve(fixtureRoot, "golden");
-  const refuteDir = resolve(fixtureRoot, "refute");
   const routeScorecardsDir = resolve(generatedRoot, "route-scorecards");
-  const criticScoresDir = resolve(generatedRoot, "critic-scores");
-  const verdictCacheDir = resolve(generatedRoot, "critic-verdict-cache");
-  const refuteTranscriptsDir = resolve(generatedRoot, "refute-transcripts");
-  const reportsDir = resolve(generatedRoot, "reports");
-  const immutableRoots = [ledgerPath, scorecardsDir, goldenDir, refuteDir];
+  const immutableRoots = [ledgerPath];
   assertSeparatedOutputRoot(generatedRoot, immutableRoots);
 
   return Object.freeze({
     repositoryRoot,
     e2eRoot: resolve(repositoryRoot, "examples/threadline_phoenix/e2e"),
-    criticRubricsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/critic/rubrics"),
-    tierAArtifactsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/artifacts/tier-a"),
     fixtureRoot,
     ledgerPath,
-    scorecardsDir,
-    goldenDir,
-    refuteDir,
     generatedRoot,
     routeScorecardsDir,
-    criticScoresDir,
-    verdictCacheDir,
-    refuteTranscriptsDir,
-    critiqueReportPath: resolve(reportsDir, "CRITIQUE.md"),
-    criticReportHtmlPath: resolve(reportsDir, "critic-report.html"),
-    criticFloorsPath: resolve(reportsDir, "critic-floors.json"),
   });
 }
 
@@ -331,8 +302,5 @@ export function reviewDiffCommand(targetPath: string): string {
 }
 export const IMMUTABLE_EVIDENCE_ROOTS = Object.freeze([
   DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath,
-  DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir,
-  DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir,
-  DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir,
 ]);
 export const GENERATED_EVIDENCE_ROOT = DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot;

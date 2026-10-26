@@ -23,7 +23,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
       "lib/threadline/query.ex",
       "lib/threadline/retention/policy.ex"
     ],
-    # The stress/mechanical harness and the critic tooling are no longer
+    # The stress/mechanical harness and the maintainer tooling are not
     # packaged (see `exclude_patterns` in mix.exs), so they cannot be archive
     # source owners — their vocabulary never reaches an adopter. The archive
     # refutations below assert their absence instead.
@@ -164,34 +164,16 @@ defmodule Threadline.ReleaseArtifactContractTest do
   # this guard would pass because the file was renamed, not because it was
   # excluded) and must be absent from the built archive.
   @maintainer_only_paths [
-    "lib/mix/tasks/critic.measure.ex",
-    "lib/mix/tasks/critic.synth.ex",
     "lib/mix/tasks/release.pins.ex",
-    "lib/threadline/critic_trust/krippendorff_alpha.ex",
-    "lib/threadline/critic_trust/ledger_splice.ex",
-    "lib/threadline/critic_trust/measure.ex",
-    "lib/threadline/critic_trust/rank_metrics.ex",
-    "lib/threadline/critic_trust/repository_boundary.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
     "lib/threadline/operator_surface/live/stress_live/paths.ex",
-    "lib/threadline/operator_surface/live/stress_live/refute.ex",
     "lib/threadline/operator_surface/live/stress_live/sections.ex",
-    "lib/threadline/operator_surface/mechanical_checker.ex",
-    "lib/threadline/operator_surface/mechanical_checker/accent_hue.ex",
-    "lib/threadline/operator_surface/mechanical_checker/contrast.ex",
-    "lib/threadline/operator_surface/mechanical_checker/parsing.ex",
-    "lib/threadline/operator_surface/mechanical_checker/ratchet_metrics.ex",
-    "lib/threadline/operator_surface/mechanical_checker/scorecards.ex",
-    "lib/threadline/operator_surface/mechanical_checker/token_conformance.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
     "lib/threadline/operator_surface/stress_router.ex"
   ]
 
   @maintainer_only_prefixes [
-    "lib/mix/tasks/critic.",
-    "lib/threadline/critic_trust/",
-    "lib/threadline/operator_surface/live/stress_live/",
-    "lib/threadline/operator_surface/mechanical_checker/"
+    "lib/threadline/operator_surface/live/stress_live/"
   ]
 
   test "built Hex archive excludes maintainer-only tooling" do
@@ -211,10 +193,9 @@ defmodule Threadline.ReleaseArtifactContractTest do
                "the absence of a file that could not have been present anyway."
 
       refute path in entries,
-             "#{path} is maintainer-only tooling and was published in the Hex archive. Two of " <>
-               "the critic tasks carry a `@shortdoc`, so shipping them puts maintainer " <>
-               "instruments in every adopter's `mix help` under a namespace that is not this " <>
-               "library's — and nothing in a published version can be withdrawn from it. Add " <>
+             "#{path} is maintainer-only tooling and was published in the Hex archive. Shipping " <>
+               "a maintainer instrument puts repository-only code in every adopter's " <>
+               "dependency tree — and nothing in a published version can be withdrawn from it. Add " <>
                "the path to `exclude_patterns` in mix.exs `package/0`."
     end
 

@@ -1342,7 +1342,7 @@
     {
       "id": "state.probe.148e460d0b28",
       "kind": "state",
-      "label": "emits the real operator-page evidence bundle"
+      "label": "renders every curated operator route at 1280"
     },
     {
       "id": "state.probe.1811058fcc0b",
@@ -1510,11 +1510,6 @@
       "label": "reduced-motion: overlay transition collapses to ~instant"
     },
     {
-      "id": "state.probe.53b00c227a00",
-      "kind": "state",
-      "label": "re-emits the 10 refute pole PNGs clipped to the twin content"
-    },
-    {
       "id": "state.probe.5494394b6f26",
       "kind": "state",
       "label": "fresh direct-entry Copy on ${name}: completion or binding failure is observed"
@@ -1670,11 +1665,6 @@
       "label": "Home correlation lookup lands on Timeline correlation filter"
     },
     {
-      "id": "state.probe.9cbc0a1dd247",
-      "kind": "state",
-      "label": "emits the Storybook real-UI evidence bundle"
-    },
-    {
       "id": "state.probe.9cd8622fd0ba",
       "kind": "state",
       "label": "shell nav is a native <details> that toggles open and closed"
@@ -1795,11 +1785,6 @@
       "label": "stress overlays, popovers, details, and toasts compute tokenized compositor motion"
     },
     {
-      "id": "state.probe.c8b7c2c2b74c",
-      "kind": "state",
-      "label": "emits the Tier A evidence bundle for this theme project"
-    },
-    {
       "id": "state.probe.ce8fcd7a8343",
       "kind": "state",
       "label": "keeps rows and row actions visible below filters on short desktop viewports"
@@ -1848,11 +1833,6 @@
       "id": "state.probe.e53d29107682",
       "kind": "state",
       "label": "home exposes orientation cards, health, resume, and workflow launchers"
-    },
-    {
-      "id": "state.probe.e7fa1781c317",
-      "kind": "state",
-      "label": "emits the graded twin evidence bundle (synthetic oracle)"
     },
     {
       "id": "state.probe.eb3133cb6f25",

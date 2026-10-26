@@ -50,10 +50,7 @@ defmodule Threadline.SourceSizeContractTest do
 
   @file_exceptions %{
     "lib/threadline.ex" =>
-      {1374, "single adopter-facing facade; length is @doc/@type prose, not logic"},
-    "lib/threadline/operator_surface/stress_fixtures.ex" =>
-      {980,
-       "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
+      {1374, "single adopter-facing facade; length is @doc/@type prose, not logic"}
   }
 
   @function_exceptions %{}
@@ -61,12 +58,9 @@ defmodule Threadline.SourceSizeContractTest do
   @banner_exceptions %{}
 
   describe "exceptions at rest" do
-    test "exactly two named exceptions remain: facade prose and declarative stress fixture tables" do
-      assert Map.keys(@file_exceptions) == [
-               "lib/threadline.ex",
-               "lib/threadline/operator_surface/stress_fixtures.ex"
-             ],
-             "the only file exceptions are the facade prose and stress fixture tables; " <>
+    test "exactly one named exception remains: facade prose" do
+      assert Map.keys(@file_exceptions) == ["lib/threadline.ex"],
+             "the only file exception is the facade prose; " <>
                "a new exception needs a named reason in review, not a quiet pin"
 
       assert @function_exceptions == %{},

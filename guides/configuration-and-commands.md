@@ -137,8 +137,6 @@ Threadline repository.
 | `mix verify.example_browser` | Run the reference application's voting browser projects. |
 | `mix verify.example_browser_light` | Run the focused light/system-theme browser lane. |
 | `mix verify.operator_stress` | Run the operator-surface stress browser specification. |
-| `mix verify.mechanical` | Check deterministic operator-surface mechanical constraints. |
-| `mix verify.critic_trust` | Check the committed, deterministic critic-trust evidence without calling an LLM. |
 | `mix verify.hex_evaluator` | Compile, migrate, and test the isolated Hex evaluator. |
 | `mix verify.bench` | Run the repository benchmark scripts. |
 | `mix verify.compile_no_optional` | Compile without optional dependencies and treat warnings as errors. |
@@ -155,13 +153,9 @@ contract.
 ## Maintainer-only commands
 
 The following tools are shipped from source today but are not supported adopter
-or contributor interfaces. They operate on maintainer evidence, local
-credentials, or a repository-specific capture corpus:
+or contributor interfaces. They operate on maintainer evidence or a
+repository-specific capture corpus:
 
-- **mix critic.measure**
-- **mix critic.synth**
-- `mix verify.ui_critique`
-- `mix verify.capture`
 - `mix verify.operator_component_contracts`
 
 There are no additional internal Mix tasks or aliases in the current source

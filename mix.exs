@@ -21,9 +21,6 @@ defmodule Threadline.MixProject do
         # fails with `Could not load Threadline.Test.Repo, error: :nofile`.
         "test.reset": :test,
         "test.setup": :test,
-        "verify.mechanical": :test,
-        "verify.critic_trust": :test,
-        "verify.capture": :test,
         "verify.topology": :test,
         "threadline.verify_topology": :test,
         "verify.example": :test,
@@ -163,24 +160,6 @@ defmodule Threadline.MixProject do
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.operator_stress": &verify_operator_stress/1,
-      # Deterministic mechanical gate. Pure-Elixir arithmetic over
-      # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
-      # violation or MODE-B ratchet regression blocks the change. A focused maintainer
-      # command: its test file already runs in `verify.test` (and so in ci.all and in
-      # the verify-test CI job), which keeps ci.all from running it twice.
-      "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
-      # Critic trust gate. Pure-Elixir guard over the committed
-      # design-system-ledger.json critic_trust block and golden-set.json — NO browser,
-      # NO network, NO LLM. Asserts validated lenses meet the bar; seeds validated:false
-      # until the committed oracle cohort satisfies the rank-based trust bar. A focused
-      # maintainer command: its test file already runs in `verify.test` (and so in ci.all).
-      "verify.critic_trust": ["test test/threadline/operator_surface/critic_trust_test.exs"],
-      # Local-only adversarial critic runner. Requires ANTHROPIC_API_KEY
-      # (maintainer-local only — never committed, never in CI). Excluded from ci.all (same
-      # precedent as verify.flake). When ANTHROPIC_API_KEY is absent, exits 0 with a skip
-      # message so contributors without a key are unaffected. See CONTRIBUTING.md.
-      "verify.ui_critique": &verify_ui_critique/1,
-      "verify.capture": &verify_capture/1,
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
@@ -256,9 +235,6 @@ defmodule Threadline.MixProject do
         # The `cmd` form is required: `verify.test` already ran the `test` task, and a
         # second bare `test` entry in the same alias chain is a Mix no-op.
         "cmd env MIX_ENV=test mix verify.dialyzer_slice",
-        # The critic trust and mechanical gates are not listed here: their test files
-        # already ran in `verify.test` above, which still precedes the browser lane, so
-        # a ratchet or token violation fails fast without running the same tests twice.
         # Browser e2e last (slowest; needs Node + Playwright). Reproduce the
         # committed CI lane exactly: only its two voting projects run and CI's
         # explicitly platform-local screenshot guards remain outside the gate.
@@ -424,60 +400,12 @@ defmodule Threadline.MixProject do
   defp verify_operator_stress(args),
     do: verify_example_browser(["operator-stress.spec.ts" | args])
 
-  # Tier A deterministic capture-lane regeneration. Runs BOTH
-  # theme projects so a single `mix verify.capture` reproduces all 120 committed
-  # scorecards (66 Band-1 + 54 Band-2). Local-only regeneration — deliberately NOT
-  # in ci.all (CI gates the committed scorecard JSON through verify-test, because
-  # mechanical_checker_test.exs is in the default suite).
-  defp verify_capture(args),
-    do:
-      verify_example_browser([
-        "--project=tier-a-capture",
-        "--project=tier-a-capture-light",
-        "operator-tier-a-capture.spec.ts" | args
-      ])
-
   # Targeted runner for the operator component browser contract (viewport reflow + motion +
   # reconnect CSS contract). Convenience for local runs; CI runs it as part of the
   # full verify.example_browser suite (and verify.example_browser_light for the
   # light/system theme lane). Mirrors verify.operator_stress.
   defp verify_operator_component_contracts(args),
     do: verify_example_browser(["operator-component-contracts.spec.ts" | args])
-
-  # Local-only adversarial critic runner.
-  # Requires ANTHROPIC_API_KEY (maintainer-local; never CI).
-  # When the key is absent (empty or unset), prints a skip notice and returns :ok
-  # so `mix verify.ui_critique` exits 0 on any contributor machine. See CONTRIBUTING.md.
-  # NOT in ci.all — the same local-only precedent as verify.flake.
-  defp verify_ui_critique(args) do
-    case System.get_env("ANTHROPIC_API_KEY") do
-      key when is_nil(key) or key == "" ->
-        IO.puts(
-          "mix verify.ui_critique: ANTHROPIC_API_KEY not set — skipping (local-only, requires maintainer key)"
-        )
-
-        :ok
-
-      _key ->
-        e2e_dir = Path.expand("examples/threadline_phoenix/e2e")
-
-        env =
-          System.get_env()
-          |> Enum.map(fn {k, v} -> {k, v} end)
-
-        # `--` separates npm's own args from the ones forwarded to run.ts. Without it
-        # npm v7+ swallows leading `--flags` (e.g. --dry-run, --page, --golden) as its
-        # own config instead of forwarding them to the score subcommand.
-        case System.cmd("npm", ["run", "critic:score", "--" | args],
-               cd: e2e_dir,
-               env: env,
-               into: IO.stream(:stdio, :line)
-             ) do
-          {_output, 0} -> :ok
-          {_output, status} -> Mix.raise("verify.ui_critique failed (#{status})")
-        end
-    end
-  end
 
   defp verify_hex_evaluator(_args) do
     # The fixture resolves `:threadline` in one of two modes.
@@ -564,22 +492,17 @@ defmodule Threadline.MixProject do
       files:
         ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
       # Maintainer-only tooling must never cross into the published package.
-      # Two of the critic tasks carry a `@shortdoc`, so once shipped they would
-      # appear in every adopter's `mix help` under a namespace that is not this
-      # library's; the stress and mechanical harness and the release pin
-      # rewriter are repository instruments with no meaning inside a host
-      # application. Expressed as patterns rather than by converting `files:`
+      # The stress harness and the release pin rewriter are
+      # repository instruments with no meaning inside a host application, and a
+      # shipped maintainer task would appear in every adopter's `mix help`. Expressed as patterns rather than by converting `files:`
       # into a file-granular enumeration of `lib/`, because an allowlist of
       # individual modules would silently omit any legitimate new one. The
       # exclusion is proven against the UNPACKED tarball in
       # test/threadline/release_artifact_contract_test.exs, not against this
       # configuration — a gate that asserts its own inputs proves nothing.
       exclude_patterns: [
-        ~r{^lib/mix/tasks/critic\.},
         ~r{^lib/mix/tasks/release\.pins\.ex$},
-        ~r{^lib/threadline/critic_trust/},
         ~r{^lib/threadline/operator_surface/live/stress_live(\.ex$|/)},
-        ~r{^lib/threadline/operator_surface/mechanical_checker(\.ex$|/)},
         ~r{^lib/threadline/operator_surface/stress_fixtures\.ex$},
         ~r{^lib/threadline/operator_surface/stress_router\.ex$}
       ]
