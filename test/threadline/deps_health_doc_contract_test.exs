@@ -7,8 +7,10 @@ defmodule Threadline.DepsHealthDocContractTest do
   (least-privilege permissions, non-required status, label distinctness).
 
   Every fact is DERIVED from source with a regex — never restated as a
-  literal expectation — except the two policy sentences REQUIREMENTS.md makes
-  mandatory verbatim (the Dependabot sentence and "release train"). This
+  literal expectation — except the mandatory policy terms (245 D-06: the
+  Dependabot role, "one grouped monthly pull request", "does not support Hex
+  security updates", `mix verify.deps_audit`, "never auto-merge", and
+  "release train"). This
   keeps the test unable to drift silently: if the workflow's cron, label, or
   lockfile list ever changes, this test fails until CONTRIBUTING.md is
   updated to match, rather than the two files quietly diverging.
@@ -61,6 +63,15 @@ defmodule Threadline.DepsHealthDocContractTest do
     case Regex.run(~r/^CANONICAL_DIRS=\((.+)\)$/m, content) do
       [_, dirs] -> dirs
       nil -> flunk("no CANONICAL_DIRS=(...) literal found in #{path}")
+    end
+  end
+
+  defp rank_names!(path) do
+    content = File.read!(path)
+
+    case Regex.run(~r/^RANK_NAMES=\((.+)\)$/m, content) do
+      [_, names] -> String.split(names)
+      nil -> flunk("no RANK_NAMES=(...) literal found in #{path}")
     end
   end
 
@@ -157,16 +168,101 @@ defmodule Threadline.DepsHealthDocContractTest do
   test "the policy section states the mandatory sentences and terms" do
     section = policy_section()
 
-    assert section =~ "This repository does not use Dependabot version-update pull requests."
+    assert section =~ "one grouped monthly pull request"
+    assert section =~ "does not support Hex security updates"
+    assert section =~ "mix verify.deps_audit"
+    assert section =~ "never auto-merge"
     assert section =~ "hex.audit"
-    assert section =~ "hex.outdated"
     assert section =~ "release train"
     assert section =~ "verify-deps-audit"
     assert section =~ "hex_audit_ignores"
   end
 
-  test "no Dependabot version-update config file exists" do
-    refute File.exists?(Path.join([@repo_root, ".github", "dependabot.yml"]))
+  test "the policy section names the action pin provenance check and the pending setting (D-14, D-15)" do
+    section = policy_section()
+
+    assert section =~ "bin/verify-action-pins"
+    assert section =~ "sha_pinning_required"
+    assert section =~ "never runs on pull requests"
+  end
+
+  test "the deps-health report step passes GH_TOKEN to the pin provenance check" do
+    report_step =
+      case String.split(deps_health_yaml(), "- name: Classify hex.audit over all three lockfiles",
+             parts: 2
+           ) do
+        [_, tail] -> tail |> String.split(~r/\n      - /, parts: 2) |> List.first()
+        _ -> flunk("deps-health.yml has no `Classify hex.audit over all three lockfiles` step")
+      end
+
+    assert report_step =~ ~r/^\s*id: report\s*$/m
+
+    assert report_step =~
+             ~r/^        env:\n          GH_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}$/m,
+           "the report step runs bin/verify-action-pins, which needs GH_TOKEN for its read-only API calls"
+  end
+
+  test "bin/verify-action-pins is never run by ci.yml" do
+    refute File.read!(@ci_yml) =~ "verify-action-pins",
+           "the pin provenance check runs only in the scheduled deps-health lane, never in PR CI"
+  end
+
+  @tier_sections ["Blocking — shipped runtime", "Non-blocking — dev/test/bench/example"]
+
+  test "the policy section states the SUP-03 tier rule and the D-16 policy change" do
+    section = policy_section()
+
+    assert section =~ "--only prod"
+
+    assert section =~
+             "Advisories in root dev/test-only dependencies no longer block a pull request or a release"
+
+    assert section =~ "no longer block"
+
+    for title <- @tier_sections do
+      assert section =~ title, "CONTRIBUTING.md's #{@policy_heading} section must name #{title}"
+    end
+  end
+
+  test "bin/deps-health-report writes both tier section titles CONTRIBUTING names" do
+    report = File.read!(@deps_health_report)
+
+    for title <- @tier_sections do
+      assert report =~ title, "bin/deps-health-report must write the section #{title}"
+    end
+  end
+
+  test "the class set CONTRIBUTING names equals bin/deps-health-report's RANK_NAMES (D-29)" do
+    names = rank_names!(@deps_health_report)
+
+    assert names == ["clean", "unknown", "retirement", "advisory"],
+           "RANK_NAMES must be the D-25 precedence order, got #{inspect(names)}"
+
+    section = policy_section()
+
+    # The precedence sentence lists every class, highest first; compare it in
+    # both directions so a class the classifier no longer emits cannot return.
+    [_, chain] =
+      Regex.run(~r/highest wins.*?:\s*(`[a-z]+`.*?`clean`)/s, section) ||
+        flunk(
+          "CONTRIBUTING.md's #{@policy_heading} section lost its `highest wins` precedence sentence"
+        )
+
+    documented = ~r/`([a-z]+)`/ |> Regex.scan(chain, capture: :all_but_first) |> List.flatten()
+
+    assert documented == Enum.reverse(names),
+           "CONTRIBUTING.md's precedence classes #{inspect(documented)} must equal RANK_NAMES highest first"
+
+    refute section =~ "`outdated`",
+           "`outdated` is not a class bin/deps-health-report emits (D-24)"
+  end
+
+  test "the policy section no longer says a finding alone stays green (D-24)" do
+    refute policy_section() =~ "alone stays green"
+  end
+
+  test ".github/dependabot.yml exists and is the only Dependabot config" do
+    assert File.exists?(Path.join([@repo_root, ".github", "dependabot.yml"]))
     refute File.exists?(Path.join([@repo_root, ".github", "dependabot.yaml"]))
   end
 
@@ -217,8 +313,8 @@ defmodule Threadline.DepsHealthDocContractTest do
       end
 
     assert close_step =~ ~r/^\s*if: steps\.report\.outputs\.classification == 'clean'\s*$/m,
-           "the close step must run only when classification == 'clean' (never on outdated, " <>
-             "advisory, unknown, or an empty/crashed report)"
+           "the close step must run only when classification == 'clean' (never on advisory, " <>
+             "retirement, unknown, or an empty/crashed report)"
 
     assert close_step =~ "upsert-ci-issue --close",
            "the `clean` gate must sit on the step that runs upsert-ci-issue --close"

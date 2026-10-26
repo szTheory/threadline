@@ -1,36 +1,50 @@
 #!/usr/bin/env bash
-# SUP-04: weekly dependency-health lane classifier. Extracted out of
+# SUP-04: dependency-health lane classifier. Extracted out of
 # .github/workflows/deps-health.yml so the classification logic is a
 # committed, directly executable, and unit-tested artifact rather than
-# inline workflow shell reachable only by a weekly cron nobody watches — the
-# same idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit
-# (SUP-02).
+# inline workflow shell reachable only by a cron nobody watches — the same
+# idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit (SUP-02).
 #
 # Runs, for each of the three lockfile directories this repo maintains, in
 # the fixed order `.  bench  examples/threadline_phoenix` (matching
 # bin/verify-deps-audit's own canonical order): `mix deps.get --check-locked`,
-# then (only on a successful fetch) `mix hex.audit` and `mix hex.outdated`.
-# `--check-locked` means the lock actually reported on is the one committed
-# to the repo: a `mix.lock` that no longer matches `mix.exs` fails that
-# directory's fetch instead of being silently re-resolved and audited under
-# a fresh lock (WR-02). It classifies the overall result and writes a report
-# body other tooling can post as a GitHub issue.
+# then (only on a successful fetch) `mix hex.audit --format sarif` through
+# the shared bin/deps-audit-tier library. `--check-locked` means the lock
+# actually reported on is the one committed to the repo: a `mix.lock` that no
+# longer matches `mix.exs` fails that directory's fetch instead of being
+# silently re-resolved and audited under a fresh lock (WR-02). It classifies
+# the overall result and writes a report body other tooling can post as a
+# GitHub issue.
 #
-# Classification precedence (highest wins, checked across ALL three dirs):
-#   an active Hex advisory suppression (see below)                  -> unknown
-#   any dir's hex.audit exits non-zero after a successful deps.get -> advisory
-#   any dir's deps.get exits non-zero                              -> unknown
-#   any dir's hex.outdated exits non-zero                          -> outdated
-#   everything succeeds                                            -> clean
+# Classification precedence (D-25, highest wins, max rank across ALL dirs):
+#   any SARIF advisory finding                                     -> advisory
+#   any SARIF retirement finding                                   -> retirement
+#   anything this script cannot vouch for                          -> unknown
+#   every directory audited with zero SARIF results                -> clean
 #
-# A real advisory always outranks an unrelated fetch failure elsewhere: a
-# confirmed finding must never be silently masked because some other
-# directory could not be fetched. `unknown` is the default arm otherwise — a
-# fetch failure is never quietly reported as `clean` or `outdated`. When a
-# directory's `deps.get --check-locked` fails (a missing or drifted
-# mix.lock), its `hex.audit`/`hex.outdated` are skipped entirely (a vacuous
-# audit over unfetched or re-resolved deps is not trusted), matching
-# bin/verify-deps-audit's own "skip on fetch failure" behavior.
+# `unknown` covers: an active Hex advisory suppression (see below), a
+# missing directory or mix.exs, a failed `deps.get --check-locked` (that
+# directory's audit is skipped), and an unclassifiable audit (no SARIF file,
+# unparseable SARIF, non-zero exit with zero results, exit 0 with results, an
+# unparseable fingerprint, or a denied/other finding kind). A confirmed
+# finding outranks an unrelated unknown elsewhere, and the body still lists
+# every directory's state; `unknown` is never quietly reported as `clean`.
+#
+# Tier sections (SUP-03, D-27): every finding is also tagged blocking or
+# non-blocking through the same bin/deps-audit-tier functions the required
+# gate uses (root closure from `mix deps.tree --only prod`, read only after a
+# successful fetch; bench and example findings always non-blocking), and the
+# body lists them under `Blocking — shipped runtime` and
+# `Non-blocking — dev/test/bench/example`. Tier never changes the class. A
+# failing deps.tree or an empty closure makes that directory unknown and its
+# findings stay untiered.
+#
+# Findings come only from the SARIF `hexAudit/v1` fingerprint (D-18). Human
+# hex.audit output and deps.get output are never parsed for classification
+# (deps.get prints advisories and still exits 0); deps.get output appears in
+# the report only for a directory whose fetch failed. hex.outdated is
+# deliberately not run (D-24): it exits 1 whenever anything is outdated, a
+# permanent state, and also on crashes, so it cannot classify a run.
 #
 # Hex advisory suppression (CR-01): before touching any directory, this
 # script checks HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS in the
@@ -46,16 +60,27 @@
 #
 # Writes <out-dir>/report.md (capped at 60000 bytes — GitHub's own issue body
 # limit is 65536) and, when $GITHUB_OUTPUT is set, appends
-#   classification=<clean|outdated|advisory|unknown>
+#   classification=<clean|unknown|retirement|advisory>
 #   report=<out-dir>/report.md
 # to it (append, never overwrite — existing content is preserved). Always
 # echoes `classification=<value>` to stdout and exits 0: reporting is not the
 # verdict, the calling workflow's own fail step decides whether the run goes
 # red based on the classification value.
 #
-# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# Action pin provenance (SUP-02 / D-14b): once per run, before any directory,
+# this script calls bin/verify-action-pins, which re-proves over the GitHub API
+# (read-only, needs GH_TOKEN) that every SHA-pinned action ref is the commit
+# its `# vX.Y.Z` tag names. A non-zero exit (MISMATCH, UNVERIFIED, NOT-PINNED,
+# zero refs, or the script missing) bumps the run to `unknown` and its output
+# is written at the top of report.md under `## Action pin provenance`. It is an
+# independent unknown source: an active suppression does not skip it, and a
+# confirmed advisory or retirement still outranks it. PR CI never runs it.
+#
+# Seams: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
 # exercise this script's behavior fully offline — the same idiom as
-# bin/verify-deps-audit. Never used by real callers.
+# bin/verify-deps-audit. VERIFY_ACTION_PINS_BIN (default
+# bin/verify-action-pins) lets tests substitute a fake pin check so the
+# offline suite never calls gh. Never used by real callers.
 
 set -uo pipefail
 
@@ -68,6 +93,9 @@ OUT_DIR="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
+VERIFY_ACTION_PINS_BIN="${VERIFY_ACTION_PINS_BIN:-$SCRIPT_DIR/verify-action-pins}"
+# shellcheck source=bin/deps-audit-tier
+source "$SCRIPT_DIR/deps-audit-tier"
 
 # Canonical audit order (never argument-overridable — this script takes no
 # directory arguments — matches bin/verify-deps-audit's CANONICAL_DIRS).
@@ -77,10 +105,14 @@ mkdir -p "$OUT_DIR"
 REPORT_FILE="$OUT_DIR/report.md"
 SECTIONS_FILE="$OUT_DIR/.deps-health-sections.tmp"
 : >"$SECTIONS_FILE"
+PROVENANCE_FILE="$OUT_DIR/.deps-health-provenance.tmp"
+: >"$PROVENANCE_FILE"
 NEUTRAL_HEX_CONFIG_DIR=""
 cleanup_sections() {
-  rm -f "$SECTIONS_FILE"
+  rm -f "$SECTIONS_FILE" "$PROVENANCE_FILE"
+  [ -n "${TIER_ROWS_DIR:-}" ] || rm -f "$OUT_DIR/.deps-health-blocking.tmp" "$OUT_DIR/.deps-health-non-blocking.tmp"
   [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+  dat_cleanup
 }
 trap cleanup_sections EXIT
 
@@ -88,20 +120,21 @@ strip_ansi() {
   sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g'
 }
 
-# Rank-based classification: clean=0, outdated=1, unknown=2, advisory=3. The
+# Rank-based classification: clean=0, unknown=1, retirement=2, advisory=3. The
 # overall result is the MAX rank seen across every directory and subcommand —
 # this is what makes "a real advisory outranks an unknown elsewhere" hold
 # without a hand-written precedence table.
-RANK_NAMES=(clean outdated unknown advisory)
+RANK_NAMES=(clean unknown retirement advisory)
 overall_rank=0
 
 rank_of() {
   case "$1" in
     clean) echo 0 ;;
-    outdated) echo 1 ;;
-    unknown) echo 2 ;;
+    unknown) echo 1 ;;
+    retirement) echo 2 ;;
     advisory) echo 3 ;;
-    *) echo 0 ;;
+    # Fail closed: an unrecognised class name is unknown, never clean.
+    *) echo 1 ;;
   esac
 }
 
@@ -201,6 +234,36 @@ check_hex_suppression() {
 
 check_hex_suppression
 
+# --- Action pin provenance (SUP-02 / D-14b) ------------------------------------
+#
+# The `&& ... || ...` capture keeps the exit status without depending on the
+# current errexit mode (check_hex_suppression leaves `set -e` on).
+pins_output="$("$VERIFY_ACTION_PINS_BIN" --root "$ROOT" 2>&1 </dev/null)" && pins_status=0 || pins_status=$?
+if [ "$pins_status" -ne 0 ]; then
+  bump unknown
+  {
+    printf '## Action pin provenance\n\n'
+    printf 'bin/verify-action-pins exited %s: a pinned action could not be proven to be the commit its tag names, so this run is `unknown`.\n\n' "$pins_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$pins_output" | strip_ansi)"
+  } >>"$PROVENANCE_FILE"
+fi
+
+# SUP-03 tier rows (D-27): one bullet per finding, collected per tier in a
+# registered temp dir and written as two body sections after the per-dir
+# sections. Tier never changes the class.
+TIER_ROWS_DIR=""
+if dat_new_sarif_path; then
+  TIER_ROWS_DIR="$(dirname "$DAT_SARIF_PATH")"
+fi
+BLOCKING_ROWS="${TIER_ROWS_DIR:-$OUT_DIR}/.deps-health-blocking.tmp"
+NON_BLOCKING_ROWS="${TIER_ROWS_DIR:-$OUT_DIR}/.deps-health-non-blocking.tmp"
+: >"$BLOCKING_ROWS"
+: >"$NON_BLOCKING_ROWS"
+if [ -z "$TIER_ROWS_DIR" ]; then
+  bump unknown
+  printf '**Tier sections unavailable:** could not create a temp directory under %s/tmp.\n\n' "$ROOT" >>"$SECTIONS_FILE"
+fi
+
 if [ -n "$SUPPRESSION_REASON" ]; then
   bump unknown
   {
@@ -219,7 +282,6 @@ for d in "${CANONICAL_DIRS[@]}"; do
     {
       printf -- '- fetch exit: skipped (Hex advisory suppression active)\n\n'
       printf -- '- audit exit: skipped (Hex advisory suppression active)\n\n'
-      printf -- '- outdated exit: skipped (Hex advisory suppression active)\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
@@ -229,62 +291,111 @@ for d in "${CANONICAL_DIRS[@]}"; do
     {
       printf -- '- fetch exit: unknown (missing directory or mix.exs at %s)\n\n' "$resolved"
       printf -- '- audit exit: skipped (fetch failed)\n\n'
-      printf -- '- outdated exit: skipped (fetch failed)\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
 
-  # The `n` answers any interactive Mix prompt. It is fed as a here-string,
-  # not `printf 'n\n' | mix ...`: under `set -o pipefail` that pipeline's
-  # status also counts printf, which fails (EPIPE, or SIGPIPE 141) whenever
-  # mix exits without reading stdin before printf writes. That race turned a
-  # successful fetch into a spurious non-zero status.
+  # REL-03: bin/retry-network retries a transient fetch failure with backoff
+  # and stops at once on a lock mismatch (`mix.lock is out of date`), so lock
+  # drift still fails on the first attempt. It feeds each attempt the `n`
+  # that answers any interactive Mix prompt as a here-string, never
+  # `printf 'n\n' | mix ...`: under `set -o pipefail` that pipeline's status
+  # also counts printf, which fails (EPIPE, or SIGPIPE 141) whenever mix exits
+  # without reading stdin before printf writes. That race turned a successful
+  # fetch into a spurious non-zero status.
   set +e
-  deps_get_output="$(cd "$resolved" && "$MIX_BIN" deps.get --check-locked <<<'n' 2>&1)"
+  deps_get_output="$(cd "$resolved" && "$SCRIPT_DIR/retry-network" "$MIX_BIN" deps.get --check-locked 2>&1)"
   deps_get_status=$?
   set -e
 
-  {
-    printf -- '- fetch exit: %s\n\n' "$deps_get_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
+  printf -- '- fetch exit: %s\n\n' "$deps_get_status" >>"$SECTIONS_FILE"
 
   if [ "$deps_get_status" -ne 0 ]; then
     bump unknown
     {
+      # D-26 noise trim: deps.get output only for a failed fetch.
+      printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
       printf -- '- audit exit: skipped (fetch failed)\n\n'
-      printf -- '- outdated exit: skipped (fetch failed)\n\n'
       printf -- '- note: deps.get --check-locked failed — the committed mix.lock is missing or does not match mix.exs, so this directory was not audited\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
 
-  set +e
-  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
-  audit_status=$?
-  set -e
-
-  {
-    printf -- '- audit exit: %s\n\n' "$audit_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$audit_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
-
-  if [ "$audit_status" -ne 0 ]; then
-    bump advisory
+  # Findings come only from the SARIF fingerprint (D-18), parsed by the shared
+  # bin/deps-audit-tier library; human hex.audit output is never classified.
+  dat_new_sarif_path && sarif_status=0 || sarif_status=$?
+  sarif_path="$DAT_SARIF_PATH"
+  if [ "$sarif_status" -ne 0 ] || [ -z "$sarif_path" ]; then
+    bump unknown
+    printf -- '- audit: unknown (could not create a SARIF temp directory)\n\n' >>"$SECTIONS_FILE"
+    continue
   fi
 
-  set +e
-  outdated_output="$(cd "$resolved" && "$MIX_BIN" hex.outdated 2>&1)"
-  outdated_status=$?
-  set -e
+  # The closure is read only after the successful --check-locked fetch above
+  # (RESEARCH correction 2), and only for closure-rule directories. Without a
+  # closure the directory is unknown and its findings are listed untiered.
+  role="$(dat_role "$resolved")"
+  closure_file=""
+  tier_ok=1
+  if [ "$role" = "closure" ]; then
+    closure_file="$(dirname "$sarif_path")/closure.txt"
+    dat_closure "$resolved" "$closure_file" && tree_status=0 || tree_status=$?
+    if [ "$tree_status" -ne 0 ]; then
+      tier_ok=0
+      bump unknown
+      if [ "$tree_status" -eq 1 ]; then
+        tree_reason="deps.tree --only prod failed (exit $DAT_TREE_STATUS)"
+      else
+        tree_reason="deps.tree --only prod failed: empty runtime closure"
+      fi
+      {
+        printf -- '- tier: unknown (%s; findings below are untiered)\n\n' "$tree_reason"
+        printf '```\n%s\n```\n\n' "$(printf '%s' "$DAT_TREE_OUTPUT" | strip_ansi)"
+      } >>"$SECTIONS_FILE"
+    fi
+  fi
 
-  {
-    printf -- '- outdated exit: %s\n\n' "$outdated_status"
-    printf '```\n%s\n```\n\n' "$(printf '%s' "$outdated_output" | strip_ansi)"
-  } >>"$SECTIONS_FILE"
+  dat_audit "$resolved" "$sarif_path" && audit_status=0 || audit_status=$?
+  shape_error="$(dat_audit_shape_error "$audit_status" "$sarif_path")" && shape_ok=1 || shape_ok=0
 
-  if [ "$outdated_status" -ne 0 ]; then
-    bump outdated
+  if [ "$shape_ok" -ne 1 ]; then
+    bump unknown
+    {
+      printf -- '- audit: unknown (%s)\n\n' "$shape_error"
+      printf '```\n%s\n```\n\n' "$(printf '%s' "$DAT_AUDIT_OUTPUT" | strip_ansi)"
+    } >>"$SECTIONS_FILE"
+  else
+    findings="$(dat_findings "$sarif_path")" && findings_status=0 || findings_status=$?
+    if [ "$findings_status" -ne 0 ]; then
+      bump unknown
+      printf -- '- audit: unknown (SARIF results could not be parsed)\n\n' >>"$SECTIONS_FILE"
+    elif [ -z "$findings" ]; then
+      printf -- '- audit: clean (hex.audit exit %s, no SARIF results)\n\n' "$audit_status" >>"$SECTIONS_FILE"
+    else
+      printf -- '- audit exit: %s\n\n' "$audit_status" >>"$SECTIONS_FILE"
+      while IFS="$(printf '\t')" read -r f_kind f_pkg f_id f_msg; do
+        [ -n "$f_kind" ] || continue
+        case "$f_kind" in
+          advisory) bump advisory ;;
+          retirement) bump retirement ;;
+          *) bump unknown ;;
+        esac
+        printf -- '- %s %s %s: %s\n' "$f_kind" "$f_pkg" "$f_id" "$(printf '%s' "$f_msg" | strip_ansi)" >>"$SECTIONS_FILE"
+        if [ "$tier_ok" -eq 1 ]; then
+          f_tier="$(dat_tier "$role" "$f_pkg" "$closure_file")"
+          f_reason="$(dat_reason "$f_tier" "$role" "$f_pkg" "$d")"
+          if [ "$f_tier" = "blocking" ]; then
+            tier_rows="$BLOCKING_ROWS"
+          else
+            tier_rows="$NON_BLOCKING_ROWS"
+          fi
+          printf -- '- %s: %s %s %s — %s\n' "$d" "$f_kind" "$f_pkg" "$f_id" "$f_reason" >>"$tier_rows"
+        fi
+      done <<EOF
+$findings
+EOF
+      printf '\n' >>"$SECTIONS_FILE"
+    fi
   fi
 done
 
@@ -303,9 +414,22 @@ FOOTER='---
 This issue is reused across runs: a re-run comments on the same issue instead
 of opening a new one. Policy: see CONTRIBUTING.md, "Dependency freshness policy".'
 
+tier_section() {
+  printf '## %s\n\n' "$1"
+  if [ -s "$2" ]; then
+    cat "$2"
+  else
+    printf -- '- none\n'
+  fi
+  printf '\n'
+}
+
 FULL_BODY="$(
   printf '# Dependency health: %s\n\n' "$overall"
+  cat "$PROVENANCE_FILE"
   cat "$SECTIONS_FILE"
+  tier_section "Blocking — shipped runtime" "$BLOCKING_ROWS"
+  tier_section "Non-blocking — dev/test/bench/example" "$NON_BLOCKING_ROWS"
   printf '%s\n' "$FOOTER"
 )"
 

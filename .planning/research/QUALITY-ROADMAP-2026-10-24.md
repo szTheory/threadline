@@ -34,6 +34,12 @@
 - Honest guides: what capture does not see (TRUNCATE, `session_replication_role`, DISABLE TRIGGER); least-privilege role layout; testing under the Ecto SQL sandbox (I: one txid per test means the first actor wins; Carbonite #150/#120).
 - Raise the floor to Elixir 1.17 / OTP 27 (decision D-3).
 - Small items: `NotFoundError.message/1` bare-map match; the grouped-alias gap in the boundary-test scanner; raw SQL and session-level `set_config` in `incident_replay.exs`; `mix threadline.verify_topology` is shipped in the package but is repo-only.
+- Routed by Phase 246 (DEBT-01; rows in 246-DEBT-REGISTER.md):
+  - CR-05 (`W7`, `198-CR-05`): `bin/verify-branch-protection` never diffs `bypass_actors` against `.github/rulesets/main.json:5`.
+  - T-215-36: `bin/verify-deps-audit` and `bin/deps-health-report` should refuse `MIX_EXS` / `MIX_HOME` at runtime, the way they refuse `HEX_IGNORE_*`.
+  - 216 IN-03: the CONTRIBUTING runbook passes the GitHub token on argv (`:1205`) and uses a GNU-only sed escape (`:1207`).
+  - ECON-03: confirm one CI run per release PR on the first natural release (the same trigger as the 244 REL-02 observation).
+  - The three small items above map to rows `233-IN-01`, `234-WR-02`, and `231-IN-01` plus `INCIDENT-REPLAY-SESSION`.
 
 ### v1.49 Honest specs (test quality)
 - Mutation testing with no new dependency: a replayable script mutates the critical modules (trigger SQL generation, redaction, retention cutoff, cursors, row keys). A survivor marks a weak spec; a test that is never the first to fail is a tautology candidate.
@@ -42,6 +48,11 @@
 - Dependency-floor lane: the declared floors are never compiled (ecto_sql 3.10, LV 1.0, oban 2.15, plug 1.15). Either test them or raise them.
 - Twin probes: PG18 virtual and stored generated columns, bytea, the SQL sandbox.
 - Move slow tooling smokes out of the three-lane suite (stress_router 47 s, fail_fast 32 s, prod_compile 26 s and others), but keep the prod-leak check.
+- Routed by Phase 246 (DEBT-01; rows in 246-DEBT-REGISTER.md):
+  - 216 WR-01: a contract tying the CONTRIBUTING pin literals to `.tool-versions`.
+  - 216 WR-02: make the Release Please runbook contract exact (no `@v5` matching `@v50`, check the rehearsal line, check every action ref).
+  - clean_checkout tmp-dir collision: move `clean_checkout_contract_test.exs:339` to `@tag :tmp_dir`.
+  - 215 IN-04: `bin/deps-health-report:443` truncation can leave a code fence unclosed and drop the policy footer.
 
 ### v1.50 Measured performance
 - **F:** benches are stale (2026-05, M2). The redaction bench updates one row (noise: baseline is slower than redacted). `performance.md` advertises a trigger `WHEN` knob that does not exist (`primary_key_sql.ex:522`). No bench compares against an untriggered table.
@@ -56,6 +67,9 @@
 - Collapse the export row encoder copied between `export.ex:463-533` and `query/export_reads.ex:204-274`; share the repo-start helper used by 8 Mix tasks.
 - Runtime cycles are 8, not the guide's 5: untangle the `Query` helper cycles, then gate with `--fail-above`. Widen the layer-boundary test.
 - Move maintainer tooling (about 5.1k lines) out of `lib/`; drop `CONTRIBUTING.md` from the Hex `files:`.
+- Routed by Phase 246 (DEBT-01; rows in 246-DEBT-REGISTER.md):
+  - 215 WR-10: dedupe `read_global_hex_ignore` (`bin/deps-health-report:170`, `bin/verify-deps-audit:335`).
+  - 215 WR-09: the dedupe lets `bin/verify-deps-audit --self-test` prove the deps-health-report suppression path too. It has a security angle, so it is routed rather than waived.
 
 ## Rejected / not this (adversarial pass)
 - Mutation-testing or coverage dependencies, and a coverage-% gate.
@@ -82,3 +96,5 @@
 | `verify.temp_leaks` not continuous; v1.42 guide IN-01/02 | By design / obsolete | Waive |
 | WINDOWS ledger (60 open, phases 198–202) | Mostly obsolete | Bulk-waive; re-check CR-05 |
 | v1.46 UI items (DR-243-01, typography, Redaction copy) | Still real | Parked with UI |
+
+**Disposition (246):** Phase 246 re-verified every row above and expanded it to one row per finding in `.planning/phases/246-debt-closeout-and-critic-retirement/246-DEBT-REGISTER.md`. That file is the canonical record (131 rows: 64 closed, 44 waived, 23 routed). Routed items appear in the v1.48, v1.49 and v1.51 lists above. The UI items, including the 8 screenshot baselines, are carried by `.planning/seeds/SEED-008-operator-ui-carry.md`. The table above keeps its original 07610840 text. Where it disagrees with the register (for example "223 5 WR + 1 IN", which D-00a corrected), the register wins.

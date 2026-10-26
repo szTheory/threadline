@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "automationDetails": {
+        "description": {
+          "text": "Hex dependency audit (mix hex.audit)"
+        },
+        "id": "hex-audit/"
+      },
+      "tool": {
+        "driver": {
+          "name": "mix hex.audit",
+          "version": "2.6.0",
+          "rules": [
+            {
+              "id": "EEF-CVE-2026-54892",
+              "name": "EefCve202654892"
+            },
+            {
+              "id": "EEF-CVE-2026-8468",
+              "name": "EefCve20268468"
+            },
+            {
+              "id": "EEF-CVE-2026-56813",
+              "name": "EefCve202656813"
+            },
+            {
+              "id": "EEF-CVE-2026-56814",
+              "name": "EefCve202656814"
+            },
+            {
+              "id": "EEF-CVE-2026-105963",
+              "name": "EefCve2026105963"
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "EEF-CVE-2026-54892",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Dependency 'plug' '1.19.1' is affected by security advisory 'EEF-CVE-2026-54892 (aka CVE-2026-54892)': 'security advisory'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-54892'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "mix.lock"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "hexAudit/v1": "advisory:hexpm/plug:EEF-CVE-2026-54892"
+          }
+        },
+        {
+          "ruleId": "EEF-CVE-2026-8468",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Dependency 'plug' '1.19.1' is affected by security advisory 'EEF-CVE-2026-8468 (aka CVE-2026-8468)': 'security advisory'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-8468'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "mix.lock"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "hexAudit/v1": "advisory:hexpm/plug:EEF-CVE-2026-8468"
+          }
+        },
+        {
+          "ruleId": "EEF-CVE-2026-56813",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Dependency 'plug' '1.19.1' is affected by security advisory 'EEF-CVE-2026-56813 (aka CVE-2026-56813)': 'security advisory'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-56813'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "mix.lock"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "hexAudit/v1": "advisory:hexpm/plug:EEF-CVE-2026-56813"
+          }
+        },
+        {
+          "ruleId": "EEF-CVE-2026-56814",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Dependency 'plug' '1.19.1' is affected by security advisory 'EEF-CVE-2026-56814 (aka CVE-2026-56814)': 'security advisory'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-56814'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "mix.lock"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "hexAudit/v1": "advisory:hexpm/plug:EEF-CVE-2026-56814"
+          }
+        },
+        {
+          "ruleId": "EEF-CVE-2026-105963",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Dependency 'plug_crypto' '2.1.1' is affected by security advisory 'EEF-CVE-2026-105963 (aka CVE-2026-105963)': 'security advisory'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-105963'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "mix.lock"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "hexAudit/v1": "advisory:hexpm/plug_crypto:EEF-CVE-2026-105963"
+          }
+        }
+      ]
+    }
+  ]
+}

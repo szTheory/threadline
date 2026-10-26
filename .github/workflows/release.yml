@@ -62,7 +62,7 @@ jobs:
     steps:
       # 216 CR-01: this job needs no git auth. release-please-action authenticates
       # with its own `token:` input, so the checkout itself must not persist one.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -102,7 +102,7 @@ jobs:
       - name: Run Release Please
         id: release
         if: steps.release-preflight.outputs.should_run == 'true'
-        uses: googleapis/release-please-action@v5
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
@@ -117,6 +117,11 @@ jobs:
   # update force-pushes the branch (dropping any earlier pin commit), so the pins are
   # re-synced every time the release commit is regenerated. A patch release is a
   # no-op: the derived `major.minor.0` floor does not change, so nothing is pushed.
+  # The job also dates the human-owned CHANGELOG.md: bin/date-release-changelog
+  # renames the `## Unreleased — highlights` block to `## [X.Y.Z] - YYYY-MM-DD`.
+  # It must re-run on every regeneration for the same reason as the pins: the
+  # force-push drops the earlier dating commit, so the release PR's final head is
+  # only dated if this job dates it again.
   sync-release-pr-pins:
     name: Sync install pins on Release PR
     runs-on: ubuntu-24.04
@@ -144,36 +149,60 @@ jobs:
       # only .tool-versions on disk (main Release run 36319430805). The root has no
       # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .toolchain-pin/.tool-versions
           version-type: strict
+          install-hex: false
+
+      # REL-04 pin, inline on purpose: bin/ arrives with the ref checkout below (a
+      # recovery run may check out a tag without it), and the pin precedes every Hex use.
+      - name: Pin Hex (CI and local must agree)
+        run: |
+          for attempt in 1 2 3; do
+            if mix local.hex 2.6.0 --force <<<'n'; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "Pin Hex: giving up after 3 attempts" >&2
+          exit 1
 
       # persist-credentials: false keeps the token out of .git/config. The steps
       # below fetch and COMPILE every dependency (`mix release.pins` is a Mix task),
       # and any dependency's compile-time code could otherwise read a persisted
       # credential. The token is supplied to the push step alone.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: release-please--branches--main
           persist-credentials: false
 
       - name: Fetch dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Rewrite install pins from the bumped @version
         run: mix release.pins
 
       - name: Confirm the pin writer is now idempotent
         run: mix release.pins --check
+
+      # REL-01: rename the landing PR's `## Unreleased — highlights` prose to
+      # `## [X.Y.Z] - DATE` (the date release-please wrote into
+      # CHANGELOG-GENERATED.md) and re-seed the standing block, so the release PR
+      # passes bin/verify-release-shape with no separate dating PR. It needs no
+      # token; an empty Unreleased block fails the job loudly.
+      - name: Date the CHANGELOG from the Unreleased block
+        run: bin/date-release-changelog
 
       # The PAT (when configured) is what makes the pushed commit trigger CI on the
       # release PR; a GITHUB_TOKEN push does not fan out, which the bootstrap job
@@ -183,16 +212,16 @@ jobs:
           PUSH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Stage only the files the pin writer owns, so a stray lockfile or build
-          # artefact can never ride along into the release commit.
-          git add -- README.md guides/
+          # Stage only the files the pin writer and the date step own, so a stray
+          # lockfile or build artefact can never ride along into the release commit.
+          git add -- README.md guides/ CHANGELOG.md
           if git diff --cached --quiet; then
-            echo "Install pins already match @version — nothing to push."
+            echo "Install pins and CHANGELOG already match @version — nothing to push."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(release): sync documented install pins to @version"
+          git commit -m "chore(release): sync install pins and date the changelog"
           git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             HEAD:release-please--branches--main
 
@@ -247,7 +276,7 @@ jobs:
       dry_run: ${{ steps.bootstrap.outputs.dry_run }}
       skip_distribution_sync: ${{ steps.bootstrap.outputs.skip_distribution_sync }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
@@ -360,10 +389,12 @@ jobs:
       contents: read
     steps:
       - name: Wait for ci.yml success on release SHA
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          RELEASE_SHA: ${{ needs.release-ref.outputs.release_sha }}
         with:
           script: |
-            const sha = '${{ needs.release-ref.outputs.release_sha }}';
+            const sha = process.env.RELEASE_SHA;
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
             const maxAttempts = 60;
             const waitMs = 30000;
@@ -468,28 +499,58 @@ jobs:
       # only .tool-versions on disk (main Release run 36319430805). The root has no
       # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .toolchain-pin/.tool-versions
           version-type: strict
+          install-hex: false
+
+      # REL-04 pin, inline on purpose: bin/ arrives with the ref checkout below (a
+      # recovery run may check out a tag without it), and the pin precedes every Hex use.
+      - name: Pin Hex (CI and local must agree)
+        run: |
+          for attempt in 1 2 3; do
+            if mix local.hex 2.6.0 --force <<<'n'; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "Pin Hex: giving up after 3 attempts" >&2
+          exit 1
 
       # 216 CR-01: the steps below compile third-party dependency code (`mix
       # deps.get`), which could read a persisted token.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
           persist-credentials: false
 
       - name: Install dependencies
-        run: mix deps.get
+        run: |
+          # REL-03: a bounded retry through a transient hex.pm or network blip.
+          # Inline, not the repo's retry wrapper: this job checks out a computed
+          # ref, and a workflow_dispatch recovery can point it at a tag cut
+          # before that wrapper existed. It references no repo file.
+          for attempt in 1 2 3; do
+            if mix deps.get <<<'n'; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "Install dependencies: giving up after 3 attempts" >&2
+          exit 1
 
       - name: Confirm tag matches mix.exs @version
         run: |
@@ -636,22 +697,38 @@ jobs:
       # only .tool-versions on disk (main Release run 36319430805). The root has no
       # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .toolchain-pin/.tool-versions
           version-type: strict
+          install-hex: false
+
+      # REL-04 pin, inline on purpose: bin/ arrives with the ref checkout below (a
+      # recovery run may check out a tag without it), and the pin precedes every Hex use.
+      - name: Pin Hex (CI and local must agree)
+        run: |
+          for attempt in 1 2 3; do
+            if mix local.hex 2.6.0 --force <<<'n'; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          echo "Pin Hex: giving up after 3 attempts" >&2
+          exit 1
 
       # 216 CR-01: the steps below compile third-party dependency code (`mix
       # deps.get`), which could read a persisted token.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
           persist-credentials: false
@@ -687,7 +764,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: main
           fetch-depth: 0

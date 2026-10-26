@@ -41,10 +41,15 @@
 #
 # `bin/verify-release-shape` requires a dated `## [<version>]` heading in
 # CHANGELOG.md. For an UNRELEASED next minor that section does not exist yet —
-# in this repo a human writes it during the release plan (CHANGELOG.md is
-# human-owned; release-please owns CHANGELOG-GENERATED.md). So the rehearsal
-# synthesises a dated stand-in section for the next minor IF AND ONLY IF one is
-# absent, and says so on stdout. The stand-in carries the minimum shape
+# in this repo a human writes the release prose under `## Unreleased —
+# highlights` in the landing PR (CHANGELOG.md is human-owned; release-please
+# owns CHANGELOG-GENERATED.md), and the release workflow's
+# `sync-release-pr-pins` job dates it with bin/date-release-changelog. So the
+# rehearsal seeds stand-in PROSE under that heading IF AND ONLY IF the block is
+# placeholder-only (and no `## [<next>]` heading exists), says so on stdout, and
+# then dates it by running that same production script after the
+# CHANGELOG-GENERATED.md simulation — the order the real release runs them in.
+# The stand-in carries the minimum shape
 # test/threadline/changelog_contract_test.exs demands of the real entry (a
 # highlights line, then `### Breaking changes`, then a feature-tour section), so
 # the contract measures the tree rather than the stand-in's own omissions.
@@ -63,7 +68,8 @@
 # exists, nothing is synthesised. Every other rewrite simulates automation that
 # the real release runs: the extra-files updater and CHANGELOG-GENERATED.md entry
 # (Release Please), and `mix release.pins` (the `sync-release-pr-pins` job in
-# .github/workflows/release.yml). If that job is ever removed, this rehearsal
+# .github/workflows/release.yml); the CHANGELOG dating that job also does is not
+# simulated at all — the rehearsal runs bin/date-release-changelog itself. If that job is ever removed, this rehearsal
 # goes back to passing a release PR that is born red.
 #
 # TRACE-FREE BY CONSTRUCTION, NOT BY DISCIPLINE
@@ -380,21 +386,38 @@ else
   apply_extra_files_rewrite
 fi
 
-# CHANGELOG stand-in for the unreleased next minor. See the header.
+# CHANGELOG stand-in prose for the unreleased next minor. See the header. Only
+# the PROSE is stood in; the dating is the production script, run below after
+# the CHANGELOG-GENERATED.md simulation, in the order the real release runs it.
 if grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\]" "$CLONE/CHANGELOG.md"; then
-  step "CHANGELOG.md already carries a heading for $NEXT — nothing synthesised"
+  step "CHANGELOG.md already carries a heading for $NEXT — nothing seeded"
 else
-  step "synthesising a dated CHANGELOG stand-in heading for the unreleased $NEXT"
-  printf '    (rehearsal-only: the real release commit carries a human-written section here)\n'
-  TODAY="$(date -u +%Y-%m-%d)"
-  NXT="$NEXT" TODAY="$TODAY" perl -0pi -e \
-    's/^(## \[)/"## [$ENV{NXT}] - $ENV{TODAY}\n\n_Rehearsal stand-in section._\n\n### Breaking changes\n\nNone (rehearsal stand-in).\n\n### Added\n\n- Rehearsal stand-in.\n\n" . $1/me' \
-    "$CLONE/CHANGELOG.md" ||
-    fail "changelog" "Could not insert the rehearsal stand-in heading into CHANGELOG.md."
-  grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\] - " "$CLONE/CHANGELOG.md" ||
-    fail "changelog" \
-      "CHANGELOG.md carries no '## [$NEXT] - YYYY-MM-DD' heading after the stand-in insert." \
-      "bin/verify-release-shape would fail for a reason the rehearsal invented."
+  # Same placeholder-only test bin/date-release-changelog applies: the block is
+  # empty once blank lines and the standing placeholder are stripped.
+  UNRELEASED_PROSE="$(perl -CSD -0ne '
+    my $prose = 0;
+    if (/^## Unreleased(?: \x{2014} highlights)?\n(.*?)(?=^## |\z)/ms) {
+      my $body = $1;
+      $body =~ s/^_Nothing yet for the next release\._[ \t]*$//mg;
+      $prose = ($body =~ /\S/) ? 1 : 0;
+    }
+    print $prose;
+  ' "$CLONE/CHANGELOG.md")" ||
+    fail "changelog" "Could not read the Unreleased block of CHANGELOG.md."
+  if [[ "$UNRELEASED_PROSE" == "1" ]]; then
+    step "CHANGELOG.md already carries release prose under Unreleased — nothing seeded"
+  else
+    step "seeding stand-in release prose under the placeholder-only Unreleased block"
+    printf '    (rehearsal-only: the real landing PR carries human-written prose here)\n'
+    perl -CSD -0pi -e \
+      's/^(## Unreleased(?: \x{2014} highlights)?\n)(?:\s*_Nothing yet for the next release\._[ \t]*\n)?\s*/$1\n_Rehearsal stand-in section._\n\n### Breaking changes\n\nNone (rehearsal stand-in).\n\n### Added\n\n- Rehearsal stand-in.\n\n/m' \
+      "$CLONE/CHANGELOG.md" ||
+      fail "changelog" "Could not seed the rehearsal stand-in prose into CHANGELOG.md."
+    grep -qxF '_Rehearsal stand-in section._' "$CLONE/CHANGELOG.md" ||
+      fail "changelog" \
+        "CHANGELOG.md carries no stand-in prose under Unreleased after the seed." \
+        "bin/date-release-changelog would refuse for a reason the rehearsal invented."
+  fi
 fi
 
 # Upgrade-path stand-in for the unreleased next minor. See the header.
@@ -439,6 +462,20 @@ fi
 grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\]" "$GENERATED" ||
   fail "generated changelog assertion" "$GENERATED has no generated entry for $NEXT."
 
+# The sync-release-pr-pins job's CHANGELOG dating, run for real: the production
+# script, after the generated entry exists, so it picks the same date source
+# (release-please's CHANGELOG-GENERATED.md heading) the release branch does.
+step "dating CHANGELOG.md with bin/date-release-changelog (the sync job's script)"
+"$ROOT/bin/date-release-changelog" --root "$CLONE" ||
+  fail "changelog" \
+    "bin/date-release-changelog refused to date CHANGELOG.md in the throwaway tree." \
+    "The release branch's sync-release-pr-pins job runs the same script, so the" \
+    "real release PR would go red here too."
+grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\] - " "$CLONE/CHANGELOG.md" ||
+  fail "changelog" \
+    "CHANGELOG.md carries no '## [$NEXT] - YYYY-MM-DD' heading after bin/date-release-changelog." \
+    "bin/verify-release-shape would fail on the release PR's final head."
+
 if [[ "$INJECT" == "hardcoded-pin" ]]; then
   step "NEGATIVE CONTROL: re-hardcoding the install pin literal (reverting Plan 202-09)"
   CONTRACT="$CLONE/test/threadline/release_artifact_contract_test.exs"
@@ -456,9 +493,11 @@ fi
 
 # --- Fetch deps, then run the pin writer -------------------------------------
 step "fetching dependencies in the throwaway tree"
-# Here-string, not `printf | mix`: under pipefail a pipe also counts printf,
-# which fails when mix exits without reading stdin (see bin/deps-health-report).
-(cd "$CLONE" && mix deps.get <<<'n') ||
+# REL-03: bin/retry-network retries a transient fetch failure and feeds each
+# attempt `n` as a here-string, never `printf | mix`: under pipefail a pipe also
+# counts printf, which fails when mix exits without reading stdin (see
+# bin/deps-health-report).
+(cd "$CLONE" && "$ROOT/bin/retry-network" mix deps.get) ||
   fail "deps" "\`mix deps.get\` failed inside the throwaway tree."
 
 step "running mix release.pins against the bumped @version"

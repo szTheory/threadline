@@ -181,6 +181,140 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     assert bootstrap_guard_errors(bootstrap) == []
   end
 
+  # --- Phase 244 / REL-01: the release branch dates its own CHANGELOG --------
+  #
+  # The 1.1.0 release PR was born red on bin/verify-release-shape (run
+  # 40033918741) because nothing renamed `## Unreleased — highlights` to a dated
+  # heading until a separate dating PR. The sync job now runs
+  # bin/date-release-changelog after the pin writer and stages CHANGELOG.md.
+
+  test "the sync job dates the CHANGELOG before it commits (REL-01)" do
+    sync = job_block!(release_workflow(), "sync-release-pr-pins")
+
+    assert changelog_dating_errors(sync) == [],
+           "sync-release-pr-pins must run bin/date-release-changelog after " <>
+             "`mix release.pins --check`, with no token, and stage CHANGELOG.md, or the " <>
+             "release PR is born red on bin/verify-release-shape (REL-01): " <>
+             inspect(changelog_dating_errors(sync))
+  end
+
+  describe "mutation controls (REL-01 changelog dating)" do
+    setup do
+      %{live: release_workflow()}
+    end
+
+    @date_step "      - name: Date the CHANGELOG from the Unreleased block\n" <>
+                 "        run: bin/date-release-changelog\n\n"
+
+    test "not vacuous: the live sync job carries exactly one date step", %{live: live} do
+      sync = job_block!(live, "sync-release-pr-pins")
+
+      assert length(String.split(sync, @date_step)) == 2,
+             "date step anchor not found or not unique"
+
+      assert changelog_dating_errors(sync) == []
+    end
+
+    for {label, from, to, rule} <- [
+          {"drop the date step", @date_step, "", "date-step"},
+          {"move the date step ahead of the pin writer",
+           @date_step <> "      # The PAT (when configured)", "      # The PAT (when configured)",
+           "date-order"},
+          {"stop staging CHANGELOG.md", "git add -- README.md guides/ CHANGELOG.md\n",
+           "git add -- README.md guides/\n", "date-staged"},
+          {"hand the date step a token", "        run: bin/date-release-changelog\n",
+           "        env:\n          PUSH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}\n" <>
+             "        run: bin/date-release-changelog\n", "date-no-token"}
+        ] do
+      test "#{label} fires rule=#{rule}", %{live: live} do
+        from = unquote(from)
+        to = unquote(to)
+
+        assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+
+        mutated = String.replace(live, from, to, global: false)
+
+        mutated =
+          if unquote(rule) == "date-order" do
+            String.replace(
+              mutated,
+              "      - name: Rewrite install pins from the bumped @version\n",
+              @date_step <> "      - name: Rewrite install pins from the bumped @version\n",
+              global: false
+            )
+          else
+            mutated
+          end
+
+        refute mutated == live, "the control did not change the input"
+
+        errors = mutated |> job_block!("sync-release-pr-pins") |> changelog_dating_errors()
+        assert rule_fired?(errors, unquote(rule)), inspect(errors)
+      end
+    end
+  end
+
+  # --- Phase 244 / REL-02: release-please keeps the release PR current -------
+  #
+  # After the 1.1.0 dating PR (#87) merged, release-please logged that the
+  # release PR "remained the same" (run 40038808445) and left it on an old base,
+  # so it had to be rebased by hand. `always-update` makes release-please
+  # regenerate the open release PR on every push to main. It pushes with the
+  # RELEASE_PLEASE_TOKEN PAT, so the refreshed head fires pull_request CI, and
+  # the refresh reports prs_created true, which re-runs the sync job above.
+
+  test "release-please regenerates the open release PR with the PAT (REL-02)" do
+    errors = regenerate_errors(release_please_config(), release_workflow())
+
+    assert errors == [],
+           "release-please must run with top-level `\"always-update\": true`, the " <>
+             "`secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN` token, and the sync " <>
+             "job keyed on prs_created. Without always-update release-please logs " <>
+             "\"remained the same\" and leaves the release PR on an old base " <>
+             "(run 40038808445, REL-02): #{inspect(errors)}"
+  end
+
+  describe "mutation controls (REL-02 release PR regeneration)" do
+    setup do
+      %{config: release_please_config(), workflow: release_workflow()}
+    end
+
+    for {label, from, to, rule, target} <- [
+          {"set always-update to false", ~s("always-update": true,\n),
+           ~s("always-update": false,\n), "always-update", :config},
+          {"remove always-update", ~s(  "always-update": true,\n), "", "always-update", :config},
+          {"quote always-update as a string", ~s("always-update": true,\n),
+           ~s("always-update": "true",\n), "always-update", :config},
+          {"run release-please with GITHUB_TOKEN alone",
+           "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n" <>
+             "          config-file: release-please-config.json\n",
+           "          token: ${{ secrets.GITHUB_TOKEN }}\n" <>
+             "          config-file: release-please-config.json\n", "pat-token", :workflow},
+          {"stop keying the sync job on prs_created",
+           "    if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'\n",
+           "    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'\n",
+           "sync-on-prs-created", :workflow}
+        ] do
+      test "#{label} fires rule=#{rule}", %{config: config, workflow: workflow} do
+        from = unquote(from)
+        to = unquote(to)
+        live = if unquote(target) == :config, do: config, else: workflow
+
+        assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+
+        mutated = String.replace(live, from, to, global: false)
+        refute mutated == live, "the control did not change the input"
+
+        errors =
+          if unquote(target) == :config,
+            do: regenerate_errors(mutated, workflow),
+            else: regenerate_errors(config, mutated)
+
+        assert rule_fired?(errors, unquote(rule)), inspect(errors)
+      end
+    end
+  end
+
   # --- Phase 218 / ECON-03: one CI run per release PR head --------------------
   #
   # With RELEASE_PLEASE_TOKEN configured, release-please's own push already fires
@@ -397,6 +531,98 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
          "the bootstrap decision depend on timing, which ECON-03 forbids."}
     ]
     |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # REL-01 rules over the sync-release-pr-pins job block, as `{ok?, message}`
+  # pairs with the ok ones rejected, in the style of bootstrap_guard_errors/1.
+  defp changelog_dating_errors(sync) do
+    date_steps =
+      sync |> job_steps() |> Enum.filter(&(run_scripts(&1) == "bin/date-release-changelog"))
+
+    staged =
+      case Regex.run(~r/^\s*git add -- (.*?)\s*$/m, sync) do
+        [_, paths] -> String.split(paths)
+        nil -> []
+      end
+
+    ([
+       {length(date_steps) == 1,
+        "rule=date-step: sync-release-pr-pins must carry exactly one step whose run is " <>
+          "`bin/date-release-changelog` (found #{length(date_steps)})"},
+       {in_order?(sync, [
+          "run: mix release.pins --check\n",
+          "run: bin/date-release-changelog\n",
+          "git add --"
+        ]),
+        "rule=date-order: the date step must run after `mix release.pins --check` and " <>
+          "before the push step's `git add --` line"},
+       {Enum.all?(["README.md", "guides/", "CHANGELOG.md"], &(&1 in staged)),
+        "rule=date-staged: the push step's `git add --` line must name README.md, guides/ " <>
+          "and CHANGELOG.md (found #{inspect(staged)})"}
+     ] ++
+       for step <- date_steps do
+         {not Regex.match?(~r/^\s+env:|PUSH_TOKEN|secrets\./m, step),
+          "rule=date-no-token: the date step must carry no env: and no token; PUSH_TOKEN is " <>
+            "bound to the push step alone (T-244-02)"}
+       end)
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # REL-02 rules over release-please-config.json and release.yml, as
+  # `{ok?, message}` pairs with the ok ones rejected.
+  defp regenerate_errors(config_text, workflow_text) do
+    always_update =
+      case Jason.decode(config_text) do
+        {:ok, %{} = config} -> Map.get(config, "always-update")
+        _ -> nil
+      end
+
+    release_step =
+      workflow_text
+      |> job_block!("release-please")
+      |> job_steps()
+      |> Enum.find(&(&1 =~ ~r/^\s*(?:- )?name: Run Release Please$/m))
+
+    sync_if =
+      workflow_text
+      |> job_block!("sync-release-pr-pins")
+      |> then(&Regex.run(~r/^    if:[ \t]*(.*?)[ \t]*$/m, &1))
+      |> case do
+        [_, condition] -> condition
+        nil -> ""
+      end
+
+    [
+      {always_update === true,
+       "rule=always-update: release-please-config.json must set top-level " <>
+         "`\"always-update\": true` (a JSON boolean), found #{inspect(always_update)}"},
+      {release_step != nil and
+         yaml_value(release_step, "token") ==
+           "${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}",
+       "rule=pat-token: the `Run Release Please` step must use " <>
+         "`token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}`, or the " <>
+         "regenerated release PR fires no pull_request CI"},
+      {String.contains?(sync_if, "needs.release-please.outputs.prs_created == 'true'"),
+       "rule=sync-on-prs-created: sync-release-pr-pins' `if:` must key on " <>
+         "`needs.release-please.outputs.prs_created == 'true'`, or a regenerated release " <>
+         "PR loses its pins and its dated CHANGELOG"}
+    ]
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp release_please_config, do: File.read!(Path.join(@root, "release-please-config.json"))
+
+  # True when every needle occurs in `text`, first occurrences in the given order.
+  defp in_order?(text, needles) do
+    positions =
+      Enum.map(needles, fn needle ->
+        case :binary.match(text, needle) do
+          {at, _len} -> at
+          :nomatch -> nil
+        end
+      end)
+
+    nil not in positions and positions == Enum.sort(positions)
   end
 
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))

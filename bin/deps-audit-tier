@@ -1,0 +1,255 @@
+# shellcheck shell=bash
+# Sourced library (no shebang, not executable on its own): the one SARIF
+# parser for `mix hex.audit` (D-18, D-19). Consumers: bin/deps-health-report
+# (SUP-04) and bin/verify-deps-audit (SUP-03), which also share the tier
+# functions below.
+#
+# Contract (Hex 2.6.0, lib/hex/sarif.ex): every result carries
+# partialFingerprints["hexAudit/v1"] shaped
+#   advisory:<repo>/<package>:<advisory id>
+#   retired:<repo>/<package>          (no id; the SARIF ruleId HEX0001-HEX0005 is used)
+#   denied:<repo>/<package>           (policy modes only; never expected here)
+# Human hex.audit output is display only and is never classified.
+#
+# Fail-closed rules (D-19): a registry failure writes no SARIF file and leaves
+# any pre-existing file untouched, so every audit gets a fresh `mktemp -d`
+# directory and a never-pre-created path. A missing file, a jq failure, a
+# non-zero exit with zero results, exit 0 with results, an unparseable
+# fingerprint, or any kind other than advisory/retired is an audit shape error.
+#
+# Caller contract:
+#   - sets ROOT (repo root) and MIX_BIN before sourcing;
+#   - calls dat_cleanup from its single EXIT trap function.
+# This library sets no `set -e`/`set +e` and installs no trap of its own; status
+# capture uses the `cmd && st=0 || st=$?` form so the caller's errexit mode is
+# neither tripped nor changed. bash 3.2-safe (no declare -A, no mapfile).
+# hex.audit is deliberately not wrapped in bin/retry-network: real findings
+# also exit 1 (D-19).
+
+DAT_TMP_DIRS=()
+DAT_AUDIT_OUTPUT=""
+DAT_SARIF_PATH=""
+
+dat_cleanup() {
+  local d
+  for d in ${DAT_TMP_DIRS[@]+"${DAT_TMP_DIRS[@]}"}; do
+    [ -z "$d" ] || rm -rf "$d"
+  done
+  DAT_TMP_DIRS=()
+}
+
+# Sets DAT_SARIF_PATH to a fresh, never-created SARIF path inside a new
+# registered temp dir. Call it directly, never as `$(dat_new_sarif_path)`: a
+# command substitution is a subshell, so the registration in DAT_TMP_DIRS
+# would be lost and dat_cleanup would leak the directory.
+dat_new_sarif_path() {
+  local dir st
+  DAT_SARIF_PATH=""
+  mkdir -p "$ROOT/tmp" && st=0 || st=$?
+  [ "$st" -eq 0 ] || return "$st"
+  dir="$(mktemp -d "$ROOT/tmp/deps-audit-sarif.XXXXXX")" && st=0 || st=$?
+  [ "$st" -eq 0 ] || return "$st"
+  DAT_TMP_DIRS+=("$dir")
+  DAT_SARIF_PATH="$dir/audit.sarif"
+}
+
+# dat_audit DIR SARIF_PATH: runs hex.audit in DIR, stores combined output in
+# DAT_AUDIT_OUTPUT and returns the mix exit status.
+dat_audit() {
+  local dir="$1" sarif="$2" st
+  DAT_AUDIT_OUTPUT="$(cd "$dir" && "$MIX_BIN" hex.audit --format sarif --output "$sarif" 2>&1)" && st=0 || st=$?
+  return "$st"
+}
+
+# dat_findings SARIF_PATH: one TSV line per result,
+#   <kind>\t<package>\t<id>\t<message>
+# kind is advisory, retirement or denied; an unmatched fingerprint yields
+#   UNPARSEABLE\t\t\t<fingerprint>
+# A non-matching capture() yields no output at all (not null), so it is
+# collected into an array whose first element is null on a non-match; without
+# that, an unparseable result would silently vanish. Returns non-zero when the
+# file is absent or jq fails.
+dat_findings() {
+  local sarif="$1"
+  [ -f "$sarif" ] || return 1
+  jq -r '.runs[0].results[]
+    | (.partialFingerprints["hexAudit/v1"] // "") as $fp
+    | ([$fp | capture("^(?<kind>advisory|retired|denied):(?<repo>[^/]+)/(?<pkg>[a-z0-9_]+)(:(?<id>.+))?$")?] | .[0]) as $m
+    | if $m == null then "UNPARSEABLE\t\t\t\($fp)"
+      else [(if $m.kind == "retired" then "retirement" else $m.kind end),
+            $m.pkg, ($m.id // .ruleId // ""), (.message.text // "")] | @tsv end' "$sarif"
+}
+
+# dat_audit_shape_error STATUS SARIF_PATH: prints a one-line reason and returns
+# 1 for every ambiguous audit shape; prints nothing and returns 0 otherwise.
+dat_audit_shape_error() {
+  local status="$1" sarif="$2" count rows st
+
+  case "$DAT_AUDIT_OUTPUT" in
+    *":json module is not available"*)
+      printf 'SARIF needs OTP 27+ (hex.audit: :json module is not available)\n'
+      return 1
+      ;;
+  esac
+
+  if [ ! -f "$sarif" ]; then
+    printf 'hex.audit exited %s and wrote no SARIF file\n' "$status"
+    return 1
+  fi
+
+  count="$(jq -e '.runs[0].results | if type == "array" then length else error("no results array") end' "$sarif" 2>/dev/null)" && st=0 || st=$?
+  if [ "$st" -ne 0 ] || [ -z "$count" ]; then
+    printf 'SARIF file could not be parsed (jq exited %s)\n' "$st"
+    return 1
+  fi
+
+  if [ "$status" -ne 0 ] && [ "$count" -eq 0 ]; then
+    printf 'hex.audit exited %s with zero SARIF results\n' "$status"
+    return 1
+  fi
+
+  if [ "$status" -eq 0 ] && [ "$count" -ne 0 ]; then
+    printf 'hex.audit exited 0 with %s SARIF results\n' "$count"
+    return 1
+  fi
+
+  rows="$(dat_findings "$sarif")" && st=0 || st=$?
+  if [ "$st" -ne 0 ]; then
+    printf 'SARIF results could not be parsed (jq exited %s)\n' "$st"
+    return 1
+  fi
+
+  # Every SARIF result must yield exactly one row; a dropped row is a shape
+  # error, never a silent clean.
+  local line kind rest row_count=0
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    row_count=$((row_count + 1))
+    kind="${line%%	*}"
+    rest="${line#*	}"
+    case "$kind" in
+      advisory | retirement) ;;
+      UNPARSEABLE)
+        printf 'unparseable hexAudit/v1 fingerprint: %s\n' "${rest##*	}"
+        return 1
+        ;;
+      *)
+        printf 'unexpected hex.audit finding kind: %s\n' "$kind"
+        return 1
+        ;;
+    esac
+  done <<EOF
+$rows
+EOF
+
+  if [ "$row_count" -ne "$count" ]; then
+    printf 'parsed %s findings from %s SARIF results\n' "$row_count" "$count"
+    return 1
+  fi
+
+  return 0
+}
+
+# --- Tiering (SUP-03, D-16) ---------------------------------------------------
+#
+# A finding is blocking if and only if its directory uses the closure rule and
+# its package is in that directory's `mix deps.tree --only prod --format plain`
+# closure. The closure includes optional and transitive deps and never
+# consults `runtime: false` (a `runtime: false` dep without `only:` still ships
+# as a requirement). Role comes only from the resolved path (RESEARCH
+# correction 4): `$ROOT/bench` and `$ROOT/examples/threadline_phoenix` are
+# never shipped, so every finding there is non-blocking; the root and every
+# other directory (self-test projects, test temp dirs) use the closure rule.
+# There is deliberately no environment or flag seam that changes a role: any
+# such seam would be a downgrade switch for the required gate.
+
+DAT_TREE_OUTPUT=""
+DAT_TREE_STATUS=0
+
+# dat_role RESOLVED_DIR: prints `always-non-blocking` or `closure`.
+dat_role() {
+  local dir="$1" real bench example st
+  real="$(cd "$dir" 2>/dev/null && pwd -P)" && st=0 || st=$?
+  if [ "$st" -ne 0 ] || [ -z "$real" ]; then
+    printf 'closure\n'
+    return 0
+  fi
+  bench="$(cd "$ROOT/bench" 2>/dev/null && pwd -P)" || bench="$ROOT/bench"
+  example="$(cd "$ROOT/examples/threadline_phoenix" 2>/dev/null && pwd -P)" || example="$ROOT/examples/threadline_phoenix"
+  if [ "$real" = "$bench" ] || [ "$real" = "$example" ]; then
+    printf 'always-non-blocking\n'
+  else
+    printf 'closure\n'
+  fi
+}
+
+# dat_closure DIR OUTFILE: writes the sorted `--only prod` closure of DIR, one
+# app name per line plus the Hex package name of every renamed app, to OUTFILE. Must run only after that directory's
+# `deps.get --check-locked` succeeded: before a fetch, deps.tree exits 0 and
+# prints only the top-level deps (RESEARCH correction 2). Stores combined
+# output in DAT_TREE_OUTPUT and the mix status in DAT_TREE_STATUS. Returns 1
+# when the command fails and 3 when the closure is empty.
+dat_closure() {
+  local dir="$1" out="$2" st tree err
+  tree="$(cd "$dir" && "$MIX_BIN" deps.tree --only prod --format plain 2>"$out.stderr")" && st=0 || st=$?
+  err="$(cat "$out.stderr" 2>/dev/null)"
+  rm -f "$out.stderr"
+  DAT_TREE_STATUS="$st"
+  DAT_TREE_OUTPUT="$tree${err:+
+$err}"
+  if [ "$st" -ne 0 ]; then
+    return 1
+  fi
+  # Drop the project line, strip the tree glyphs, keep the app name.
+  printf '%s\n' "$tree" | tail -n +2 | sed -E 's/^[|` -]*//; s/ .*//' | sed '/^$/d' | sort -u >"$out"
+  if [ ! -s "$out" ]; then
+    return 3
+  fi
+  # deps.tree prints app names, but SARIF names the Hex package (WR-01): for an
+  # app declared with `hex: :pkg`, add the package its mix.lock entry names, so
+  # a renamed runtime dep stays blocking.
+  if [ -f "$dir/mix.lock" ]; then
+    sed -nE 's/^[[:space:]]*"([a-z0-9_]+)": \{:hex, :([a-z0-9_]+),.*/\1 \2/p' "$dir/mix.lock" |
+      while read -r app pkg; do
+        if [ "$app" != "$pkg" ] && grep -Fxq -- "$app" "$out"; then
+          printf '%s\n' "$pkg"
+        fi
+      done >"$out.pkgs"
+    sort -u "$out" "$out.pkgs" -o "$out"
+    rm -f "$out.pkgs"
+  fi
+  return 0
+}
+
+# dat_tier ROLE PACKAGE CLOSURE_FILE: prints `blocking` or `non-blocking`.
+dat_tier() {
+  local role="$1" pkg="$2" closure="$3"
+  if [ "$role" = "closure" ] && [ -n "$closure" ] && grep -Fxq -- "$pkg" "$closure"; then
+    printf 'blocking\n'
+  else
+    printf 'non-blocking\n'
+  fi
+}
+
+# dat_reason TIER ROLE PACKAGE DIR: the human why-string for one finding.
+dat_reason() {
+  local tier="$1" role="$2" pkg="$3" dir="$4" lock
+  if [ "$dir" = "." ]; then
+    lock="root mix.lock"
+  else
+    lock="$dir/mix.lock"
+  fi
+  if [ "$tier" = "blocking" ]; then
+    printf '%s is in the shipped runtime closure (%s)\n' "$pkg" "$lock"
+  elif [ "$role" = "closure" ]; then
+    printf '%s is not in the --only prod closure of %s; dev/test only\n' "$pkg" "$dir"
+  else
+    printf '%s is only in %s/mix.lock; not shipped in the Hex package\n' "$pkg" "$dir"
+  fi
+}
+
+# dat_machine_line TIER DIR KIND PACKAGE ID: the one machine line per finding
+# (D-18). ID is the advisory id, or the SARIF ruleId for a retirement.
+dat_machine_line() {
+  printf 'deps-audit-finding tier=%s dir=%s kind=%s package=%s id=%s\n' "$1" "$2" "$3" "$4" "$5"
+}

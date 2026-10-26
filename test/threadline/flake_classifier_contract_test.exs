@@ -535,7 +535,7 @@ defmodule Threadline.FlakeClassifierContractTest do
     end
 
     @heavy_steps [
-      "- uses: erlef/setup-beam@v1",
+      "- uses: erlef/setup-beam@",
       "- name: Cache deps",
       "- name: Install dependencies",
       "- name: Compile (warnings as errors)",

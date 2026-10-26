@@ -346,6 +346,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
            "          version-type: strict\n",
            "          version-type: strict\n          rebar3-version: ${{ matrix.rebar3 }}\n"
          )},
+        {"install-hex left on (only `install-hex: false` is admitted)",
+         String.replace(job, "          install-hex: false\n", "          install-hex: true\n")},
+        {"extra unknown input beside install-hex",
+         String.replace(
+           job,
+           "          install-hex: false\n",
+           "          install-hex: false\n          install-rebar: false\n"
+         )},
         {"literal OTP input instead of the matrix value",
          String.replace(job, "otp-version: ${{ matrix.otp }}", ~s(otp-version: "26"))},
         {"legacy matrix-value deps key",
@@ -702,7 +710,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"uses replaced by run",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40} # v\d+\.\d+\.\d+\n/m,
              &1,
              "        run: echo ok\n"
            )
@@ -711,7 +719,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"alls-green pinned to a mutable tag",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40} # v\d+\.\d+\.\d+\n/m,
              &1,
              "        uses: re-actors/alls-green@release/v1\n"
            )
@@ -719,9 +727,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"a different owner's alls-green at a full SHA",
          on_ci.(
            &Regex.replace(
-             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40})\n/m,
+             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)\n/m,
              &1,
-             "        uses: evil/alls-green@\\1\n"
+             "        uses: evil/alls-green@\\1 # \\2\n"
            )
          ), "rule=gate-pin"},
         {"strategy added to ci-required",
@@ -2325,8 +2333,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml caches deps and the e2e npm lockfile" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert String.contains?(yaml, "actions/cache@v5"),
-             "ci.yml must use actions/cache@v5 for the deps cache"
+      assert Regex.match?(~r/uses: actions\/cache@[0-9a-f]{40} # v5\.\d+\.\d+$/m, yaml),
+             "ci.yml must use a SHA-pinned actions/cache v5 for the deps cache"
 
       assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
              "ci.yml must cache the `deps` directory"
@@ -2550,6 +2558,41 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "a CONTRIBUTING without the section must fail the doc rules"
     end
 
+    test "a deps.get wrapped in bin/retry-network still holds its D-07 order slot (REL-03)" do
+      fixture = build_cache_fixture()
+
+      wrapped =
+        Map.new(fixture, fn {path, yaml} ->
+          {path,
+           yaml
+           |> String.replace(
+             ~r/(working-directory: examples\/threadline_phoenix\n\s+run: )mix deps\.get\n/,
+             "\\1../../bin/retry-network mix deps.get\n"
+           )
+           |> String.replace("run: mix deps.get\n", "run: bin/retry-network mix deps.get\n")}
+        end)
+
+      refute wrapped == fixture, "the wrapped-form fixture did not change the input"
+      assert Enum.any?(Map.values(wrapped), &(&1 =~ "run: ../../bin/retry-network mix deps.get"))
+      assert Enum.any?(Map.values(wrapped), &(&1 =~ "run: bin/retry-network mix deps.get"))
+
+      errors = build_cache_errors(wrapped, build_cache_fixture_contributing())
+
+      assert errors == [],
+             "the wrapped deps.get must classify as :deps_get, got:\n" <> Enum.join(errors, "\n")
+
+      for form <- ["bin/retry-network mix deps.get", "../../bin/retry-network mix deps.get"] do
+        assert build_cache_step_class("      - name: Fetch\n        run: #{form}\n") == :deps_get
+      end
+    end
+
+    test "a wrapped compile classifies as neither :compile nor :deps_get" do
+      step =
+        "      - name: Compile\n        run: bin/retry-network mix compile --warnings-as-errors\n"
+
+      refute build_cache_step_class(step) in [:compile, :deps_get]
+    end
+
     test "the synthetic fixture satisfies every build cache rule" do
       errors = build_cache_errors(build_cache_fixture(), build_cache_fixture_contributing())
 
@@ -2756,7 +2799,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
           nil -> flunk("verify-format must carry a `Cache deps` step")
         end
 
-      setup_line = "      - uses: erlef/setup-beam@v1"
+      setup_line = "      - uses: erlef/setup-beam@"
 
       controls = [
         {"id beam removed", String.replace(job, "        id: beam\n", "")},
@@ -2919,8 +2962,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
       smoke = workflow_job(release, "smoke-published")
       sync = workflow_job(release, "sync-release-pr-pins")
 
-      [toolchain_checkout, beam_step | _] =
+      # The Hex pin step (REL-04) sits between setup-beam and the target-ref
+      # checkout; the control below moves setup-beam alone and leaves it there.
+      [toolchain_checkout, beam_step, hex_pin_step | _] =
         smoke |> job_steps() |> Enum.drop_while(&(not String.contains?(&1, "sparse-checkout:")))
+
+      assert String.contains?(hex_pin_step, "mix local.hex"),
+             "smoke-published must pin Hex right after setup-beam, or the control below is stale"
 
       target_checkout =
         smoke
@@ -2936,8 +2984,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"smoke-published", smoke, "setup-beam moved below the target-ref checkout",
          String.replace(
            smoke,
-           toolchain_checkout <> beam_step <> target_checkout,
-           toolchain_checkout <> target_checkout <> beam_step
+           toolchain_checkout <> beam_step <> hex_pin_step <> target_checkout,
+           toolchain_checkout <> hex_pin_step <> target_checkout <> beam_step
          )},
         {"sync-release-pr-pins", sync, "toolchain checkout without persist-credentials: false",
          String.replace(
@@ -3268,11 +3316,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # values, and only through exactly these inputs. Each matrix row sets either
   # `version-file` or the `otp`/`elixir` pins (see verify_test_matrix_errors/2);
   # an absent matrix key renders as an empty input, which setup-beam ignores.
+  # `install-hex: false` hands Hex to the pin step that follows (REL-04,
+  # hex_pin_contract_test.exs); no other input is admitted.
   @matrix_beam_inputs [
     "version-file: ${{ matrix.version-file }}",
     "otp-version: ${{ matrix.otp }}",
     "elixir-version: ${{ matrix.elixir }}",
-    "version-type: strict"
+    "version-type: strict",
+    "install-hex: false"
   ]
 
   defp matrix_setup_beam_errors(path, job_id, step) do
@@ -4052,7 +4103,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "rule=combined-action",
         "caches `_build` with the combined actions/cache action",
         "the combined action saves at job end, after the own build exists (CACHE-01, D-14)",
-        "use actions/cache/restore@v5 and actions/cache/save@v5"
+        "use actions/cache/restore and actions/cache/save"
       )
     end
   end
@@ -4150,7 +4201,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     key = yaml_value(stripped, "key") || ""
     where = where(job, restore)
 
-    split_action_errors(where, stripped, "uses: actions/cache/restore@v5") ++
+    split_action_errors(where, stripped, "uses: actions/cache/restore@") ++
       restore_keys_errors(where, stripped) ++
       key_segment_errors(where, project, key) ++ key_forbidden_errors(where, project, key)
   end
@@ -4242,8 +4293,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     guards = cache_miss_guards(job.id, project, id)
 
     [
-      {String.contains?(stripped, "uses: actions/cache/save@v5"),
-       {"rule=combined-action", "a `_build` save must carry `uses: actions/cache/save@v5`",
+      {String.contains?(stripped, "uses: actions/cache/save@"),
+       {"rule=combined-action", "a `_build` save must carry `uses: actions/cache/save@`",
         "only the split save runs before the own build exists (D-14)",
         "use actions/cache/save@v5"}},
       {yaml_value(stripped, "key") == primary,
@@ -4486,7 +4537,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp run_step_class(stripped) do
     cond do
-      Regex.match?(~r/^\s*run:\s*mix deps\.get\s*$/m, stripped) ->
+      # A fetch wrapped in bin/retry-network (REL-03) is still the D-07 deps.get.
+      Regex.match?(
+        ~r/^\s*run:\s*(?:(?:\.\.\/)*bin\/retry-network\s+)?mix deps\.get\s*$/m,
+        stripped
+      ) ->
         :deps_get
 
       Regex.match?(~r/^\s*run:\s*mix deps\.compile\b/m, stripped) ->
@@ -5207,8 +5262,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
           &1,
           "verify-test",
           @root_restore,
-          "actions/cache/restore@v5",
-          "actions/cache@v5"
+          "actions/cache/restore@",
+          "actions/cache@"
         )
       ),
       ci_control(
@@ -5764,27 +5819,27 @@ defmodule Threadline.CIWorkflowParityContractTest do
     header <>
       ~S"""
           steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       """ <>
       @fixture_beam_step <>
       ~S"""
 
-            - uses: actions/setup-node@v5
+            - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
               with:
-                node-version: "22"
+                node-version-file: .tool-versions
                 cache: npm
                 cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
             - name: Cache deps
-              uses: actions/cache@v5
+              uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
               with:
                 path: deps
                 key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
                 restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
             - name: Cache Playwright browsers
-              uses: actions/cache@v5
+              uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
               with:
                 path: ~/.cache/ms-playwright
                 key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
@@ -5824,7 +5879,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
            - name: Upload Playwright traces and e2e boot log on failure
              if: failure()
-             uses: actions/upload-artifact@v7
+             uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
              with:
                name: example-browser-e2e-diagnostics
                path: |

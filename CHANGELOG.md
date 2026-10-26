@@ -5,7 +5,9 @@
   `changelog-path` points at CHANGELOG-GENERATED.md, and no `extra-files` entry
   or version marker may ever name this file. Bot-generated, commit-subject-
   derived release notes live in CHANGELOG-GENERATED.md, which is deliberately
-  absent from the published package and from HexDocs.
+  absent from the published package and from HexDocs. The release workflow,
+  not release-please, renames the Unreleased block to the dated release
+  heading on the release branch (bin/date-release-changelog).
 
   This is the changelog adopters read: it ships in the Hex tarball and renders
   on HexDocs. Write for an upgrader. Within a release entry, breaking changes

@@ -657,14 +657,29 @@ single-package bumps. Before a release the maintainer reviews `mix
 hex.outdated` and runs `mix deps.update` across `mix.lock`, `bench/mix.lock`
 and `examples/threadline_phoenix/mix.lock` together.
 
-This repository does not use Dependabot version-update pull requests.
-Dependabot *alerts* are a separate repository setting the maintainer controls
-independently of this policy.
+Dependabot keeps GitHub Actions pins current with
+one grouped monthly pull request (`.github/dependabot.yml`, 7-day cooldown,
+`ci(deps):` titles that never trigger a release). It opens no Hex pull
+requests, because GitHub does not support Hex security updates; Hex
+advisories come from `mix verify.deps_audit` and the deps-health issue.
+`test/threadline/dependabot_config_contract_test.exs` pins that config.
+
+Claude or the maintainer may merge a Dependabot grouped actions pull request
+only when required CI is green, the 7-day cooldown has elapsed, and, if it
+touches `release.yml`, `bin/verify-release-shape` and
+`bin/verify-bump-rehearsal` were run first, because `release.yml`'s bumped
+actions are not exercised on the pull request and only run after merge.
+Dependabot pull requests are reviewed and merged by hand: never auto-merge.
+A major-version bump fails the `{action, major}` runtime allowlist in
+`test/threadline/ci_action_runtime_contract_test.exs` on purpose; handle it
+by checking the new major's `runs.using` and adding the allowlist entry,
+never by ignoring the update.
 
 Every pull request runs the required `verify-deps-audit` job (`mix
-verify.deps_audit`): it asserts Hex 2.5.1 or newer, fetches with `mix
+verify.deps_audit`): it asserts Hex 2.6.0 or newer, fetches with `mix
 deps.get --check-locked`, runs `mix deps.unlock --check-unused`, and runs
-`mix hex.audit` over all three lockfiles above. `--check-locked` means the
+`mix hex.audit --format sarif` over all three lockfiles above, classifying
+each finding from its SARIF fingerprint. `--check-locked` means the
 lock actually audited is the one committed to the repo: a `mix.lock` that no
 longer matches `mix.exs` fails that directory's audit instead of being
 silently re-resolved and audited under a fresh lock. It refuses to run at
@@ -674,24 +689,62 @@ environment, or a non-empty global Hex `ignore_advisories` /
 unaccountable bypass would defeat the point of a required gate. Run it
 locally (`mix verify.deps_audit`) before touching a lockfile.
 
-The weekly, non-required `.github/workflows/deps-health.yml` lane runs
-Mondays 08:00 UTC (`0 8 * * 1`), plus manual dispatch, and also runs `mix
-hex.audit` and `mix hex.outdated` over the same three lockfiles. It is *not*
-a required check. When the result is anything other than clean it opens or
-comments on a single issue labelled `ci-deps` — a label kept distinct from
-`ci-flake` and `ci-browser-full` so the three dedup streams never merge into
-one issue and mask each other. The lane goes red on an `advisory` (a
-`hex.audit` finding) or an `unknown` result (a fetch failure that prevented
-an audit from running at all); an `outdated` result alone stays green — it is
-informational only, reported on the issue but not a merge-style gate.
-Like the required gate above, this lane fetches with `mix deps.get
---check-locked`: a `mix.lock` that no longer matches `mix.exs` is reported
-`unknown` for that directory rather than silently re-resolved and audited
-under a fresh lock. And like the required gate, an active Hex advisory
-suppression — `HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the
-environment, or a non-empty global `mix hex.config ignore_advisories` /
-`ignore_retirements` (any Hex home) — is reported `unknown` for the whole
-run without running any audit; the report names the reason.
+Findings are tiered per directory, not per package. A finding (advisory or
+retirement) blocks the gate only when its package is in the root's runtime
+closure, as `mix deps.tree --only prod --format plain` lists it after a
+successful `--check-locked` fetch: that closure includes optional and
+transitive dependencies, and `runtime: false` is never consulted, because a
+dependency without `only:` still ships as a requirement of the Hex package.
+Every `bench` and `examples/threadline_phoenix` finding is non-blocking, even
+for a package that shares a runtime package's name, because neither ships.
+Advisories in root dev/test-only dependencies no longer block a pull request or a release; they are annotated on the run and reported on the `ci-deps` issue.
+A non-blocking finding leaves the job green, because the release train's
+publish gate needs a fully successful `ci.yml` run; it prints a `::warning::`
+annotation, one `deps-audit-finding tier=... dir=... kind=... package=...
+id=...` line, and a job-summary row saying why. Everything other than a
+finding stays blocking in all three directories: the Hex version floor, the
+ignore refusal, lock hygiene, `--check-locked`, `--check-unused`, a missing
+lock, a failing `deps.tree` or an empty closure, and any audit result the
+gate cannot classify. `mix.exs` requirement ranges are not required to
+exclude vulnerable versions: Hex ships ranges, not this lock, so an adopter's
+own lock and `hex.audit` govern their exposure. Raising a floor stays a
+maintainer call when Threadline's own code reaches the vulnerable path.
+
+The non-required `.github/workflows/deps-health.yml` lane runs daily at
+08:00 UTC (`0 8 * * *`), on every push to `main` that touches one of the
+three `mix.exs`/`mix.lock` pairs above (so the issue closes as soon as a fix
+lands), and on manual dispatch. It is *not* a required check. It runs `mix
+hex.audit --format sarif` over the same three lockfiles and classifies the
+run from the SARIF findings alone as one of four classes, highest wins
+across all three directories: `advisory` (a security advisory) >
+`retirement` (a retired package) > `unknown` > `clean`. `unknown` means the
+lane could not vouch for a directory: a missing directory or `mix.exs`, a
+failed `mix deps.get --check-locked`, an audit whose result cannot be
+classified (no SARIF file, unparseable SARIF or fingerprint, or an exit
+status that disagrees with the findings), or an active advisory suppression
+(below). A confirmed finding outranks an unrelated `unknown` elsewhere, and
+the report still lists every directory's state. `hex.outdated` is not part
+of this lane: it fails whenever anything is outdated, so it cannot tell a
+real problem from routine drift; outdated dependencies are reviewed per
+release train as described above.
+
+Any non-clean class opens or updates a single issue labelled `ci-deps`,
+retitled to the current class, and turns the job red. A label kept distinct
+from `ci-flake` and `ci-browser-full` stops the three dedup streams from
+merging into one issue and masking each other. Only a `clean` run comments
+on and then closes that issue; `unknown` never closes it. Like the required
+gate above, this lane fetches with `mix deps.get --check-locked`: a
+`mix.lock` that no longer matches `mix.exs` is reported `unknown` for that
+directory rather than silently re-resolved and audited under a fresh lock.
+And like the required gate, an active Hex advisory suppression —
+`HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the environment, or a
+non-empty global `mix hex.config ignore_advisories` / `ignore_retirements`
+(any Hex home) — is reported `unknown` for the whole run without running any
+audit; the report names the reason. The issue body tiers every finding
+with the same rule and library as the required gate, under the sections
+`Blocking — shipped runtime` and `Non-blocking — dev/test/bench/example`;
+the tier never changes the class, so a dev-only advisory still opens the
+issue as `advisory`.
 
 Ignoring an advisory is only ever done through a documented convention, never
 the environment-variable bypass above: define `hex_audit_ignores/0` on the
@@ -707,10 +760,79 @@ Hex's `cooldown` setting (delaying resolution of freshly-published releases)
 was considered and is not adopted; the batched release-train review above is
 the adopted control instead.
 
+The same lane also runs `bin/verify-action-pins`, which re-proves every
+SHA-pinned GitHub Action ref against its `# vX.Y.Z` tag through read-only
+GitHub API calls (an annotated tag is followed to its commit). A pinned SHA
+that no longer matches its tag, a pin that cannot be verified (an API error
+or an unexpected answer), or a ref not in the pinned form makes the run
+`unknown`: the `ci-deps` issue stays open and the reason is written at the
+top of its body under `Action pin provenance`. A confirmed advisory or
+retirement still outranks it. The check never runs on pull requests, so PR
+CI stays hermetic. The repository setting `sha_pinning_required` is enabled
+by the maintainer only after the pinned refs are on `main`; until then it
+stays off. `zizmor` and `pinact` are useful optional local tools for
+auditing or re-pinning workflows, but they are not dependencies of this
+repository and no gate runs them.
+
 This section is not documentation-on-trust:
 `test/threadline/deps_health_doc_contract_test.exs` derives the schedule, the
 label and the three lockfile paths from `.github/workflows/deps-health.yml`
 and `bin/deps-health-report`, and fails if this section drops one.
+
+### Why Hex is pinned in CI
+
+CI pins Hex to exactly one version, chosen on purpose. A local run enforces
+only a minimum: it refuses a Hex older than the CI pin, and allows a newer
+one, which is then not what CI runs. The CI pin is toolchain determinism: a
+future change in how Hex treats a lock lands as a reviewed bump, not as a
+surprise in CI. The pin did not fix the 1.1.0 red run. The lock hygiene
+check below does.
+
+What happened: the 1.1.0 landing PR's `Dependency audit (Mix lockfiles)` job
+failed in run 40028641095 with `Your mix.lock is out of date and must be
+updated without the --check-locked flag` in all three lock directories.
+Commit a3301bed had written plug_crypto 2.2.1's build-manager list as `[]`.
+Commit f7fdcaca restored `[:mix]` (what hex.pm lists for that release). An
+isolated reproduction (separate Mix and Hex homes, a minimal project holding
+that one entry) showed Hex 2.5.1 and Hex 2.6.0 behave the same. From a cold
+`deps/`, both reject the `[]` lock, because the fetch rewrites the list to the
+manager the package declares. With plug_crypto 2.2.1 already in `deps/`, both
+accept it, because nothing is fetched. So `deps/` state, not Hex version,
+explains why the defect passed locally and failed in CI's fresh checkout.
+What wrote `[]` was not reproduced: neither version writes it through
+`deps.get` or `deps.update`, so it is presumed a hand or tool edit of the
+lock.
+
+The prevention: `bin/verify-lock-hygiene` reads each audited `mix.lock` as
+data and rejects any `:hex` entry with an empty build-manager list. It never
+fetches, so a warm `deps/` cannot hide the defect. `mix verify.deps_audit`
+runs it on every audited lock before the fetch, so it runs in `mix ci.all`
+and in the CI `verify-deps-audit` job. To check the locks by hand:
+
+```bash
+bin/verify-lock-hygiene mix.lock bench/mix.lock examples/threadline_phoenix/mix.lock
+```
+
+The rule:
+
+- Every workflow's `erlef/setup-beam` step sets `install-hex: false`, and
+  the next step installs exactly `mix local.hex 2.6.0 --force`, retried
+  (through `bin/retry-network`, or an inline bounded retry where `bin/` is
+  not checked out yet).
+- `MIN_HEX` in `bin/verify-deps-audit` equals that pin. A local run refuses
+  a Hex older than `MIN_HEX`. It does not refuse a newer one, so a local Hex
+  ahead of the pin passes the gate while CI still runs exactly the pin.
+- `test/threadline/hex_pin_contract_test.exs` enforces both. A Hex bump
+  changes `MIN_HEX` and every workflow pin in one commit.
+
+If `mix verify.deps_audit` tells you `requires Hex >= 2.6.0`, upgrade with:
+
+```bash
+mix local.hex 2.6.0 --force
+```
+
+This replaces the Hex archive in your Mix home, so it applies to every
+project on the machine (`mix local.hex 2.5.1 --force` reverses it).
 
 ## CI parity and `act`
 
@@ -729,7 +851,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
-| `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
+| `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.6.0 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
 | `verify-repo-hygiene` | `bin/verify-repo-hygiene` (also `mix verify.repo_hygiene` in `ci.all`): scans tracked text files only for machine-local paths (user homes, home-relative paths, macOS temp roots) against the scoped, reason-carrying `.github/repo-hygiene-allowlist.tsv`, and fails on any unused allowlist entry; then `bin/verify-repo-hygiene --self-test` proves it goes red on runtime-built fixtures |
 
 ### Removed CI proofs and what still catches them
@@ -1061,6 +1183,9 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 ### Ongoing releases (0.6.1+)
 
 1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG-GENERATED.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep. `CHANGELOG.md` is human-owned — Release Please never writes to it.
+   - The landing PR carries the release prose under `## Unreleased — highlights` in `CHANGELOG.md`, plus the upgrade-path row in `guides/upgrade-path.md`. Nobody dates it by hand: the release workflow's `sync-release-pr-pins` job runs `bin/date-release-changelog` on the release branch, which renames the block to `## [X.Y.Z] - YYYY-MM-DD` and re-seeds a fresh standing `## Unreleased — highlights` block above it. The date is the UTC day Release Please last regenerated the Release PR, which can precede the day you merge it.
+   - If the Unreleased block is placeholder-only when the Release PR is regenerated, the `sync-release-pr-pins` job fails loudly and the Release PR stays red. That is the signal to land the release prose on `main`.
+   - A non-releasable merge (`docs:`, `ci:`, `chore:` …) while a Release PR is open regenerates that PR on current `main` (`always-update` in `release-please-config.json`, pushed with the `RELEASE_PLEASE_TOKEN` PAT so its CI runs). No hand rebase and no branch delete are needed.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
 A landing PR that carries an adopter-facing `Security` or `Fixed` entry in `CHANGELOG.md` must merge under a releasable squash subject (`fix:`, `feat:`, `perf:` or `deps:`), or carry a `BEGIN_COMMIT_OVERRIDE` block in its PR body before merge — Release Please only parses the squash subject, and a `ci:` or `docs:` subject strands the fix unreleased.
@@ -1085,8 +1210,8 @@ A new major of `googleapis/release-please-action` bundles a newer `release-pleas
    ```
 
    Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
-4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml` and this section disagree).
-5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@vN'`, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
+5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
 
 Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
 

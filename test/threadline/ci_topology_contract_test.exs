@@ -243,7 +243,7 @@ defmodule Threadline.CiTopologyContractTest do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
     assert Regex.match?(
-             ~r|uses: re-actors/alls-green@[0-9a-f]{40}$|m,
+             ~r|uses: re-actors/alls-green@[0-9a-f]{40} # v\d+\.\d+\.\d+$|m,
              yaml
            ),
            "ci-required must execute alls-green from a reviewed full commit SHA"
@@ -652,7 +652,7 @@ defmodule Threadline.CiTopologyContractTest do
            "verify-test job is missing"
 
     assert Regex.match?(
-             ~r/^      - uses: actions\/checkout@v5\n        with:\n          fetch-depth: 0\s*$/m,
+             ~r/^      - uses: actions\/checkout@[0-9a-f]{40} # v\d+\.\d+\.\d+\n        with:\n          fetch-depth: 0\s*$/m,
              block
            ),
            "verify-test must fetch full history so archive tag objects are present"
@@ -811,7 +811,7 @@ defmodule Threadline.CiTopologyContractTest do
          String.contains?(job, "ceil((252 + 80) * 2 / 60) = 12") and
          String.contains?(job, "36258719902"),
        "Dialyzer timeout must retain the documented cold-run plus live-slice derivation"},
-      {String.contains?(job, "uses: actions/cache/restore@v5"),
+      {String.contains?(job, "uses: actions/cache/restore@"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
        "PLT restore must expose a stable cache-hit id"},
@@ -821,7 +821,7 @@ defmodule Threadline.CiTopologyContractTest do
       {String.contains?(job, "${{ hashFiles('mix.lock') }}") and
          String.contains?(job, "${{ hashFiles('mix.exs') }}"),
        "PLT key must include both mix.lock and mix.exs hashes"},
-      {String.contains?(job, "uses: actions/cache/save@v5"),
+      {String.contains?(job, "uses: actions/cache/save@"),
        "Dialyzer PLT save must be a separate cache action"},
       {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-primary-key"),
        "PLT save must reuse the restore action's exact primary key"},

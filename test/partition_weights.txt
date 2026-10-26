@@ -48,6 +48,7 @@
 376 test/threadline/change_diff_property_test.exs
 542 test/threadline/change_diff_test.exs
 3 test/threadline/changelog_contract_test.exs
+101 test/threadline/ci_action_pin_contract_test.exs
 8 test/threadline/ci_action_runtime_contract_test.exs
 7 test/threadline/ci_all_dedup_contract_test.exs
 77 test/threadline/ci_attestation_contract_test.exs
@@ -70,8 +71,10 @@
 20 test/threadline/critic_trust/krippendorff_alpha_test.exs
 3 test/threadline/critic_trust/ledger_splice_test.exs
 57 test/threadline/critic_trust/measure_test.exs
+800 test/threadline/date_release_changelog_test.exs
 237 test/threadline/db_property_harness_test.exs
 15 test/threadline/dep_floor_guard_test.exs
+439 test/threadline/dependabot_config_contract_test.exs
 6893 test/threadline/deprecation_parity_test.exs
 7 test/threadline/deps_audit_contract_test.exs
 2960 test/threadline/deps_audit_gate_test.exs
@@ -116,6 +119,7 @@
 2002 test/threadline/health/trigger_findings_test.exs
 6 test/threadline/health_findings_doc_contract_test.exs
 724 test/threadline/health_test.exs
+50 test/threadline/hex_pin_contract_test.exs
 1 test/threadline/how_threadline_works_doc_contract_test.exs
 94 test/threadline/idle_transaction_reaper_contract_test.exs
 2 test/threadline/ignore_advisories_contract_test.exs
@@ -235,6 +239,7 @@
 2 test/threadline/retention/policy_test.exs
 227 test/threadline/retention/pruner_test.exs
 916 test/threadline/retention_test.exs
+1300 test/threadline/retry_network_contract_test.exs
 52 test/threadline/row_history_focus_evidence_contract_test.exs
 4419 test/threadline/row_history_test.exs
 2 test/threadline/schema_fields_contract_test.exs
@@ -268,6 +273,7 @@
 290 test/threadline/upgrade_rollback_test.exs
 2 test/threadline/upgrading_to_0_11_doc_contract_test.exs
 4 test/threadline/upgrading_to_1_0_doc_contract_test.exs
+1777 test/threadline/verify_action_pins_test.exs
 1 test/threadline/verify_coverage_policy_test.exs
 3363 test/threadline/verify_coverage_task_test.exs
 13 test/threadline/version_truth_doc_contract_test.exs

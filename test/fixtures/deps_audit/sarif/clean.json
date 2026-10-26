@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "automationDetails": {
+        "description": {
+          "text": "Hex dependency audit (mix hex.audit)"
+        },
+        "id": "hex-audit/"
+      },
+      "tool": {
+        "driver": {
+          "name": "mix hex.audit",
+          "version": "2.6.0",
+          "rules": []
+        }
+      },
+      "results": []
+    }
+  ]
+}

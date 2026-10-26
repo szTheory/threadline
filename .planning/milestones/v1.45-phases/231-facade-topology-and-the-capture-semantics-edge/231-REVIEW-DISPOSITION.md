@@ -9,7 +9,7 @@ findings:
     title: "Disposable database guard accepts production-like names"
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Invalid actor references crash instead of returning a validation error"
   - id: WR-02
     severity: warning
@@ -19,7 +19,7 @@ findings:
     severity: info
     disposition: open
     title: "incident_replay.exs duplicates audit_transactions table access via raw SQL instead of a facade helper"
-open: 2
+open: 1
 total: 4
 recorded: 2026-10-07T12:15:00Z
 ---
@@ -29,7 +29,7 @@ recorded: 2026-10-07T12:15:00Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | CR-01 | critical | fixed | b8e77ebb; confirmed in 2026-10-07 re-review |
-| WR-01 | warning | open | 231-REVIEW.md |
+| WR-01 | warning | fixed | d56e807c (#81) |
 | WR-02 | warning | fixed | b8e77ebb; confirmed in 2026-10-07 re-review |
 | IN-01 | info | open | 231-REVIEW.md from 2026-10-03; not reported in current review |
 

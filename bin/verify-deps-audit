@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Per-PR supply-chain gate (SUP-02): asserts a minimum Hex client version, then
-# runs `mix deps.get --check-locked` + `mix deps.unlock --check-unused` +
-# `mix hex.audit` over every lockfile this repository maintains (root, bench,
-# examples/threadline_phoenix), in that fixed order. `--check-locked` means
+# runs `bin/verify-lock-hygiene` (REL-04, a static check that rejects an empty
+# build-manager list without fetching) + `mix deps.get --check-locked` +
+# `mix deps.unlock --check-unused` + `mix deps.tree --only prod` (closure-rule
+# directories) + `mix hex.audit --format sarif` over every lockfile this
+# repository maintains (root, bench, examples/threadline_phoenix), in that
+# fixed order. `--check-locked` means
 # the lock actually audited is the one committed to the repo: if mix.lock no
 # longer matches mix.exs, `deps.get` fails that directory instead of silently
 # re-resolving and auditing a lock other than the one on disk. Aggregates
@@ -22,23 +25,54 @@
 # MixProject module (see test/threadline/ignore_advisories_contract_test.exs),
 # which records a reason, a reachability claim and a review-by date.
 #
+# Tiered findings (SUP-03, D-16..D-21). `hex.audit` runs as
+# `--format sarif --output <fresh path>` and findings come only from the SARIF
+# `hexAudit/v1` fingerprint, parsed by the shared bin/deps-audit-tier library
+# (the same parser bin/deps-health-report uses). A finding is BLOCKING if and
+# only if its directory uses the closure rule and its package is in that
+# directory's `mix deps.tree --only prod --format plain` closure (optional and
+# transitive deps included; `runtime: false` is never consulted). Directory
+# roles come only from the resolved path, with no env or flag seam:
+#   $ROOT/bench, $ROOT/examples/threadline_phoenix  every finding non-blocking
+#   the root and every other DIR argument            the closure rule
+# The closure is read only after that directory's `deps.get --check-locked`
+# succeeded; a failing deps.tree or an empty closure is a FAIL. Every finding
+# prints one machine line
+#   deps-audit-finding tier=<blocking|non-blocking> dir=<d> kind=<advisory|retirement> package=<p> id=<id>
+# (id is the advisory id, or the SARIF ruleId for a retirement), plus an
+# `::error::` (blocking, appended to the FAIL list) or `::warning::`
+# (non-blocking, exit status unchanged) annotation, and one row in a
+# $GITHUB_STEP_SUMMARY table when that is set. Non-blocking findings leave the
+# exit status 0: the release lane needs a fully successful run (D-21). Every
+# ambiguous audit shape (no SARIF file, unparseable SARIF, non-zero exit with
+# no results, exit 0 with results, an unparseable fingerprint, an unknown kind,
+# OTP below 27) is its own FAIL line (D-19). Everything other than findings
+# (the Hex floor, ignore refusal, lock hygiene, --check-locked,
+# --check-unused, a missing lock) stays blocking in all three directories
+# (D-20).
+#
 # Modes:
 #   bin/verify-deps-audit                  # canonical: . bench examples/threadline_phoenix
 #   bin/verify-deps-audit DIR [DIR ...]    # explicit directories, in the given order
 #   bin/verify-deps-audit --self-test      # proves the gate goes red (see below)
 #
-# `--self-test` proves the gate actually has teeth against real Hex, in four
+# `--self-test` proves the gate actually has teeth against real Hex, in five
 # cases: (a) it copies a committed, deliberately vulnerable lock
 # (test/fixtures/deps_audit/vulnerable_lock/) into a throwaway project under
 # the repo's gitignored tmp/ and runs this gate on it (must go red, and go
-# red FOR AN ADVISORY, not vacuously); (b) repeats with a faked Hex 2.4.0
+# red FOR A BLOCKING ADVISORY: `tier=blocking ... package=plug
+# id=EEF-CVE-2026-54892`, not vacuously); (b) repeats with a faked Hex 2.4.0
 # (must go red on the version floor, without ever reaching an audit call);
 # (c) sets a real global `hex.config ignore_advisories` for the fixture's
 # advisory id under a throwaway HEX_HOME (must go red on the global-config
 # refusal, before any audit call); (d) copies the fixture into a second
 # throwaway project and edits its mix.exs so the lock no longer matches
 # (must go red via `--check-locked`, with the committed lock left
-# byte-identical). This is the negative network proof required by SUP-02; it
+# byte-identical); (e) copies the fixture into a third throwaway project
+# with deps `{:plug, "== 1.19.1", only: :test}, {:telemetry, "~> 1.4"}` over
+# the unchanged lock (must stay green, reporting `tier=non-blocking` for
+# `package=plug id=EEF-CVE-2026-54892`: the real-Hex proof of the SUP-03
+# downgrade). This is the negative network proof required by SUP-02; it
 # runs as a step in the `verify-deps-audit` CI job, not as a tagged ExUnit
 # test, so no network-dependent test is excluded from the default `mix test`
 # lane.
@@ -56,9 +90,26 @@ die() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
+# shellcheck source=bin/deps-audit-tier
+source "$SCRIPT_DIR/deps-audit-tier"
+
+# The one EXIT trap (PATTERNS hazard 2): every temp path this script creates
+# is registered here, never through a second trap that would replace it.
+SELF_TEST_DIR=""
+NEUTRAL_HEX_CONFIG_DIR=""
+cleanup_all() {
+  [ -z "$SELF_TEST_DIR" ] || rm -rf "$SELF_TEST_DIR"
+  [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+  dat_cleanup
+}
+trap cleanup_all EXIT
+
 # The floor is a literal, never environment-overridable. Bumping it is a
-# deliberate, reviewed edit to this file.
-MIN_HEX="2.5.1"
+# deliberate, reviewed edit to this file. It must equal the CI Hex pin
+# (`mix local.hex X.Y.Z --force`), enforced by hex_pin_contract_test.exs. CI
+# runs exactly that pin; this local check is only a floor: it refuses an older
+# Hex and allows a newer one, which is then not what CI runs.
+MIN_HEX="2.6.0"
 
 # --- Refuse the env-var bypass before any mix call ---------------------------
 
@@ -97,11 +148,8 @@ if [ "${1:-}" = "--self-test" ]; then
     die "self-test fixture missing at $fixture_dir"
 
   mkdir -p "$ROOT/tmp"
-  self_test_dir="$(mktemp -d "$ROOT/tmp/deps-audit-self-test.XXXXXX")"
-  cleanup_self_test() {
-    rm -rf "$self_test_dir"
-  }
-  trap cleanup_self_test EXIT
+  SELF_TEST_DIR="$(mktemp -d "$ROOT/tmp/deps-audit-self-test.XXXXXX")"
+  self_test_dir="$SELF_TEST_DIR"
 
   project_dir="$self_test_dir/project"
   mkdir -p "$project_dir"
@@ -116,9 +164,8 @@ if [ "${1:-}" = "--self-test" ]; then
 
   [ "$vuln_status" -ne 0 ] ||
     die "gate stayed green on a known-vulnerable lock"
-  grep -q 'Advisories:' <<<"$vuln_output" &&
-    grep -q 'plug 1.19.1' <<<"$vuln_output" ||
-    die "gate went red for a reason other than an advisory (vacuous red): $vuln_output"
+  grep -q 'deps-audit-finding tier=blocking .*package=plug id=EEF-CVE-2026-54892' <<<"$vuln_output" ||
+    die "gate went red for a reason other than a blocking plug advisory (vacuous red): $vuln_output"
 
   # (b) A faked old Hex must be refused before any mix call runs beyond hex.info.
   fake_mix_dir="$self_test_dir/fake-mix-bin"
@@ -145,7 +192,7 @@ EOF
 
   [ "$old_hex_status" -ne 0 ] ||
     die "gate stayed green with a faked Hex 2.4.0"
-  grep -q 'requires Hex >= 2.5.1' <<<"$old_hex_output" &&
+  grep -q "requires Hex >= $MIN_HEX" <<<"$old_hex_output" &&
     grep -q '2.4.0' <<<"$old_hex_output" ||
     die "old-Hex case failed for a reason other than the version floor: $old_hex_output"
   [ ! -s "$fake_log" ] ||
@@ -195,7 +242,38 @@ EOF
     cmp -s "$drift_dir/mix.lock" "$drift_dir/mix.lock.before" ||
     die "lock drift was not refused (WR-02 regression): $drift_output"
 
-  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red)\n'
+  # (e) The same vulnerable lock with plug declared `only: :test` must stay
+  # green and report the advisory as non-blocking: real-Hex proof of the
+  # SUP-03 downgrade, and a tripwire for SARIF format drift. mix.lock does not
+  # record `only:`, so --check-locked still passes on the unchanged lock. The
+  # second dep (telemetry, already in the lock) keeps the `--only prod`
+  # closure non-empty, which an all-test-only project would fail closed on.
+  nonblocking_dir="$SELF_TEST_DIR/nonblocking"
+  mkdir -p "$nonblocking_dir"
+  cp "$fixture_dir/mix.exs" "$nonblocking_dir/mix.exs"
+  cp "$fixture_dir/mix.lock" "$nonblocking_dir/mix.lock"
+  cp "$fixture_dir/mix.lock" "$nonblocking_dir/mix.lock.before"
+
+  orig_mix_exs="$(cat "$nonblocking_dir/mix.exs")"
+  plug_dep='{:plug, "== 1.19.1"}'
+  test_only_deps='{:plug, "== 1.19.1", only: :test}, {:telemetry, "~> 1.4"}'
+  test_only_mix_exs="${orig_mix_exs//"$plug_dep"/$test_only_deps}"
+  [ "$test_only_mix_exs" != "$orig_mix_exs" ] ||
+    die "self-test setup: case (e) could not rewrite $plug_dep in the fixture mix.exs"
+  printf '%s\n' "$test_only_mix_exs" >"$nonblocking_dir/mix.exs"
+
+  set +e
+  nonblocking_output="$(HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$nonblocking_dir" 2>&1)"
+  nonblocking_status=$?
+  set -e
+
+  [ "$nonblocking_status" -eq 0 ] &&
+    grep -q 'deps-audit-finding tier=non-blocking .*package=plug id=EEF-CVE-2026-54892' <<<"$nonblocking_output" &&
+    ! grep -q 'deps-audit-finding tier=blocking' <<<"$nonblocking_output" &&
+    cmp -s "$nonblocking_dir/mix.lock" "$nonblocking_dir/mix.lock.before" ||
+    die "test-only plug advisory was not downgraded to non-blocking (SUP-03 case (e)): $nonblocking_output"
+
+  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red, test-only advisory non-blocking)\n'
   exit 0
 fi
 
@@ -285,8 +363,8 @@ read_global_hex_ignore() {
 refuse_global_hex_ignores() {
   mkdir -p "$ROOT/tmp"
   local neutral_dir
-  neutral_dir="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
-  trap 'rm -rf "$neutral_dir"' EXIT
+  NEUTRAL_HEX_CONFIG_DIR="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
+  neutral_dir="$NEUTRAL_HEX_CONFIG_DIR"
 
   local key
   for key in ignore_advisories ignore_retirements; do
@@ -305,7 +383,7 @@ refuse_global_hex_ignores() {
   done
 
   rm -rf "$neutral_dir"
-  trap - EXIT
+  NEUTRAL_HEX_CONFIG_DIR=""
 }
 
 refuse_global_hex_ignores
@@ -313,6 +391,48 @@ refuse_global_hex_ignores
 # --- Per-directory audit, aggregated (never fail-fast) ------------------------
 
 FAILURES=()
+NON_BLOCKING_COUNT=0
+SUMMARY_HEADER_WRITTEN=0
+
+# shape_fail_label REASON: the distinct D-19 FAIL text for one audit shape
+# error reported by dat_audit_shape_error.
+shape_fail_label() {
+  case "$1" in
+    "SARIF needs OTP 27+"*) printf 'SARIF needs OTP 27+' ;;
+    "hex.audit exited "*" and wrote no SARIF file") printf 'SARIF output missing' ;;
+    "SARIF file could not be parsed"* | "SARIF results could not be parsed"* | "parsed "*" findings from "*)
+      printf 'SARIF output unparseable'
+      ;;
+    "hex.audit exited 0 with "*) printf 'hex.audit exited 0 with findings (unclassifiable)' ;;
+    "hex.audit exited "*" with zero SARIF results")
+      local n="${1#hex.audit exited }"
+      printf 'hex.audit exited %s with no SARIF results' "${n%% *}"
+      ;;
+    "unparseable hexAudit/v1 fingerprint"*) printf 'unparseable fingerprint' ;;
+    "unexpected hex.audit finding kind: "*) printf 'unknown finding kind %s' "${1#unexpected hex.audit finding kind: }" ;;
+    *) printf 'unclassifiable hex.audit result' ;;
+  esac
+}
+
+# summary_row DIR PACKAGE KIND ID TIER REASON: one $GITHUB_STEP_SUMMARY table
+# row per finding (D-18), header written once. SARIF-derived text only ever
+# reaches printf as a %s argument; `|` is escaped so a cell cannot split.
+summary_row() {
+  [ -n "${GITHUB_STEP_SUMMARY:-}" ] || return 0
+  if [ "$SUMMARY_HEADER_WRITTEN" -eq 0 ]; then
+    {
+      printf '### verify-deps-audit findings\n\n'
+      printf '| dir | package | kind | id | tier | why |\n'
+      printf '|---|---|---|---|---|---|\n'
+    } >>"$GITHUB_STEP_SUMMARY"
+    SUMMARY_HEADER_WRITTEN=1
+  fi
+  local cells=() cell
+  for cell in "$@"; do
+    cells+=("${cell//|/\\|}")
+  done
+  printf '| %s | %s | %s | %s | %s | %s |\n' "${cells[@]}" >>"$GITHUB_STEP_SUMMARY"
+}
 
 for d in "${DIRS[@]}"; do
   resolved="$(resolve_dir "$d")"
@@ -322,13 +442,34 @@ for d in "${DIRS[@]}"; do
     continue
   fi
 
-  # The `n` answers any interactive Mix prompt. It is fed as a here-string,
-  # not `printf 'n\n' | mix ...`: under `set -o pipefail` that pipeline's
-  # status also counts printf, which fails (EPIPE, or SIGPIPE 141) whenever
-  # mix exits without reading stdin before printf writes. That race turned a
-  # successful fetch into a spurious non-zero status.
+  # REL-04: a static lock check that never fetches, so a warm deps/ cannot
+  # hide an empty build-manager list that CI's cold fetch would reject. A
+  # failure here is recorded and the directory still runs its fetch and
+  # audit, so one run reports everything.
   set +e
-  deps_get_output="$(cd "$resolved" && "$MIX_BIN" deps.get --check-locked <<<'n' 2>&1)"
+  hygiene_output="$("$SCRIPT_DIR/verify-lock-hygiene" "$resolved/mix.lock" 2>&1)"
+  hygiene_status=$?
+  set -e
+
+  if [ "$hygiene_status" -ne 0 ]; then
+    printf '%s\n' "$hygiene_output"
+    if [ "$hygiene_status" -eq 1 ]; then
+      FAILURES+=("FAIL $d: lock hygiene exited 1 (an empty build-manager list in mix.lock passes against a warm deps/ and fails CI's cold fetch; see the lines above)")
+    else
+      FAILURES+=("FAIL $d: lock hygiene could not check mix.lock (usage, missing file, parse error or malformed entry; see the lines above)")
+    fi
+  fi
+
+  # REL-03: bin/retry-network retries a transient fetch failure with backoff
+  # and stops at once on a lock mismatch (`mix.lock is out of date`), so lock
+  # drift still fails on the first attempt. It feeds each attempt the `n`
+  # that answers any interactive Mix prompt as a here-string, never
+  # `printf 'n\n' | mix ...`: under `set -o pipefail` that pipeline's status
+  # also counts printf, which fails (EPIPE, or SIGPIPE 141) whenever mix exits
+  # without reading stdin before printf writes. That race turned a successful
+  # fetch into a spurious non-zero status.
+  set +e
+  deps_get_output="$(cd "$resolved" && "$SCRIPT_DIR/retry-network" "$MIX_BIN" deps.get --check-locked 2>&1)"
   deps_get_status=$?
   set -e
 
@@ -350,15 +491,69 @@ for d in "${DIRS[@]}"; do
     FAILURES+=("FAIL $d: deps.unlock --check-unused exited $unlock_status")
   fi
 
-  set +e
-  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
-  audit_status=$?
-  set -e
-
-  if [ "$audit_status" -ne 0 ]; then
-    printf '%s\n' "$audit_output"
-    FAILURES+=("FAIL $d: hex.audit exited $audit_status")
+  # SUP-03 tiering. A fresh, registered temp dir per directory holds both the
+  # never-pre-created SARIF path and the closure file, so parallel or
+  # interrupted runs never read a stale or foreign SARIF (D-19).
+  dat_new_sarif_path && sarif_status=0 || sarif_status=$?
+  sarif_path="$DAT_SARIF_PATH"
+  if [ "$sarif_status" -ne 0 ] || [ -z "$sarif_path" ]; then
+    FAILURES+=("FAIL $d: could not create a SARIF temp directory under $ROOT/tmp")
+    continue
   fi
+
+  role="$(dat_role "$resolved")"
+  closure_file=""
+  if [ "$role" = "closure" ]; then
+    # Only after a successful --check-locked fetch (RESEARCH correction 2).
+    closure_file="$(dirname "$sarif_path")/closure.txt"
+    dat_closure "$resolved" "$closure_file" && tree_status=0 || tree_status=$?
+    if [ "$tree_status" -eq 1 ]; then
+      printf '%s\n' "$DAT_TREE_OUTPUT"
+      FAILURES+=("FAIL $d: deps.tree --only prod exited $DAT_TREE_STATUS (the runtime closure decides which findings block; no audit was trusted)")
+      continue
+    fi
+    if [ "$tree_status" -ne 0 ]; then
+      printf '%s\n' "$DAT_TREE_OUTPUT"
+      FAILURES+=("FAIL $d: empty runtime closure (mix deps.tree --only prod --format plain listed no packages; no audit was trusted)")
+      continue
+    fi
+  fi
+
+  # Findings come only from the SARIF hexAudit/v1 fingerprint (D-18). Not
+  # wrapped in bin/retry-network: real findings also exit 1 (D-19).
+  dat_audit "$resolved" "$sarif_path" && audit_status=0 || audit_status=$?
+  shape_error="$(dat_audit_shape_error "$audit_status" "$sarif_path")" && shape_ok=1 || shape_ok=0
+
+  if [ "$shape_ok" -ne 1 ]; then
+    printf '%s\n' "$DAT_AUDIT_OUTPUT"
+    FAILURES+=("FAIL $d: $(shape_fail_label "$shape_error") ($shape_error)")
+    continue
+  fi
+
+  findings="$(dat_findings "$sarif_path")" && findings_status=0 || findings_status=$?
+  if [ "$findings_status" -ne 0 ]; then
+    FAILURES+=("FAIL $d: SARIF output unparseable (jq exited $findings_status)")
+    continue
+  fi
+
+  [ -z "$findings" ] || printf '%s\n' "$DAT_AUDIT_OUTPUT"
+
+  while IFS="$(printf '\t')" read -r f_kind f_pkg f_id _f_msg; do
+    [ -n "$f_kind" ] || continue
+    tier="$(dat_tier "$role" "$f_pkg" "$closure_file")"
+    reason="$(dat_reason "$tier" "$role" "$f_pkg" "$d")"
+    dat_machine_line "$tier" "$d" "$f_kind" "$f_pkg" "$f_id"
+    if [ "$tier" = "blocking" ]; then
+      printf '::error::%s: %s %s %s\n' "$reason" "$f_kind" "$f_pkg" "$f_id"
+      FAILURES+=("FAIL $d: blocking $f_kind $f_pkg $f_id ($reason)")
+    else
+      printf '::warning::%s: %s %s %s\n' "$reason" "$f_kind" "$f_pkg" "$f_id"
+      NON_BLOCKING_COUNT=$((NON_BLOCKING_COUNT + 1))
+    fi
+    summary_row "$d" "$f_pkg" "$f_kind" "$f_id" "$tier" "$reason"
+  done <<EOF
+$findings
+EOF
 done
 
 if [ ${#FAILURES[@]} -gt 0 ]; then
@@ -366,5 +561,5 @@ if [ ${#FAILURES[@]} -gt 0 ]; then
   exit 1
 fi
 
-printf 'verify-deps-audit: %d lockfile(s) audit clean (Hex %s)\n' "${#DIRS[@]}" "$hex_version"
+printf 'verify-deps-audit: %d lockfile(s) audit clean (Hex %s; %d non-blocking finding(s))\n' "${#DIRS[@]}" "$hex_version" "$NON_BLOCKING_COUNT"
 exit 0

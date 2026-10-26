@@ -1,38 +1,39 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.46
-milestone_name: Operator UI Refinement
-status: Awaiting next milestone
-stopped_at: Phase 243 complete — all phases complete
-last_updated: "2026-10-11T20:13:15.000Z"
-last_activity: 2026-10-11
-last_activity_desc: Milestone v1.46 completed and archived
-state_head: 2f7560e97778d914a7639cbae308bb66fb7c528f
+milestone: v1.47
+current_phase: 247
+current_phase_name: CI critical path and suite lanes
+status: executing
+stopped_at: Completed 247-03-PLAN.md
+last_updated: "2026-10-26T14:44:27.379Z"
+last_activity: 2026-10-26
+last_activity_desc: Phase 247 execution started
+state_head: 2d74d00a61eaa47bd3c85b2cb75eaee1f7190151
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 27
-  completed_plans: 27
-  percent: 100
-current_phase: 243
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 38
+  completed_plans: 26
+  percent: 75
+milestone_name: Release on autopilot
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-11 after v1.46 closeout)
+See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Rolling quality roadmap adopted 2026-10-24 (see MILESTONE-ARC.md). Next: `/gsd-new-milestone` for v1.47 Release on autopilot.
+**Current focus:** Phase 247 — CI critical path and suite lanes
 
 ## Current Position
 
-Phase: Milestone v1.46 complete
-Plan: —
-Status: Awaiting next milestone
-Milestone audit: `tech_debt` (26/26 requirements, 5/5 flows; two visual-evidence limits and non-blocking polish findings disclosed).
-Last activity: 2026-10-11 — Milestone v1.46 completed and archived
+Phase: 247 (CI critical path and suite lanes) — EXECUTING
+Plan: 1 of 13 executed (247-03 complete)
+Status: Executing Phase 247
+Last activity: 2026-10-26 — Phase 247 execution started
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 1/13 executed: 247-03)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -303,6 +304,24 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 243 P02 | 30min | 3 tasks | 10 files |
 | Phase 243 P03 | 17min | 2 tasks | 4 files |
 | Phase 243 P4 | 4h 26m | 3 tasks | 7 files |
+| Phase 244 P01 | 25min | 2 tasks | 6 files |
+| Phase 244 P02 | 15min | 2 tasks | 4 files |
+| Phase 244 P03 | ~40 min | 2 tasks | 8 files |
+| Phase 244 P04 | ~50 min | 2 tasks | 7 files |
+| Phase 244 P05 | ~40 min | 2 tasks | 6 files |
+| Phase 244 P06 | 35min | 2 tasks | 7 files |
+| Phase 244 P07 | 16 min | 2 tasks | 2 files |
+| Phase 244 P08 | 25 min | 3 tasks | 6 files |
+| Phase 244 P09 | 25min | 3 tasks | 3 files |
+| Phase 244 P10 | 25min | 2 tasks | 3 files |
+| Phase 245 P01 | 16min | 3 tasks | 19 files |
+| Phase 245 P02 | 18min | 3 tasks | 8 files |
+| Phase 245 P03 | 45min | 3 tasks | 16 files |
+| Phase 245 P04 | 50min | 2 tasks | 8 files |
+| Phase 245 P05 | 75min | 3 tasks | 6 files |
+| Phase 246 P09 | 5 min | 2 tasks | 5 files |
+| Phase 246 P10 | 18min | 3 tasks | 6 files |
+| Phase 247 P03 | 10min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -464,6 +483,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ### Roadmap Evolution
 
+- **v1.47 roadmap (2026-10-24):** Phases 244-247 from `.planning/research/QUALITY-ROADMAP-2026-10-24.md`, 14/14 requirements mapped. 244 Release flow (REL-01..04), 245 Supply chain (SUP-01..04), 246 Debt closeout and critic retirement (DEBT-01..02), 247 CI critical path and suite lanes (CI-01..04). Debt runs before CI (numbers swapped from the approved draft) so the critic capture projects are deleted before the per-project browser split and the ≤ 9 min / ≤ 1.15 gates are measured once on the final suite. CI-01 precedes CI-02 inside 247.
 - **v1.45 roadmap (2026-10-03):** Phases 231-237 from the research SUMMARY "Implications for Roadmap" split, 25/25 requirements mapped. 231 facade topology + association edge (API-04, API-07), 232 consolidation/deprecation/bounded default (API-01/02/03/05/08), 233 return shapes (API-06), 234 specs + gate (SPEC-01..03), 235 stability contract + guides (CONTRACT-01..05, DOCS-01/02), 236 PG 15 floor + partition weights (FLOOR-01/02, CI-01), 237 upgrade guide + 1.0.0 (DOCS-03, REL-01..03). Kept seven phases despite coarse granularity: each boundary is an ordering constraint (topology before delegates, return shapes before specs, specs before the contract pins, test churn before the weight refresh, floor before release). 233 is single-requirement and could fold into 232; kept separate so specs follow final lookup signatures. Cross-cutting rule: each breaking change gets its CHANGELOG entry and `BREAKING CHANGE:` footer in the phase that makes it, so REL-02 cross-checks rather than reconstructs. No research flags; 231 and 232 carry the one-way calls and need careful discuss passes.
 - **Phase 223 added (2026-09-29):** Close v1.43 Audit Debt, from `.planning/v1.43-MILESTONE-AUDIT.md` (status tech_debt, 24/24 requirements, integration 15/15, flows 8/8). Scope: release the mint 1.11.0 advisory fix (on main, but in the `ci:` squash #60, so release-please has nothing to release), `persist-credentials: false` on the release.yml target-ref checkouts plus a contract (216 CR-01 remainder), and a disposition for each of the six open 217 round-2 findings (R2-WR-04 is the one to fix).
 - **v1.43 roadmap (2026-09-26):** Phases 214-222 from the research SUMMARY split, 24/24 requirements mapped. 214 Baseline, then 215 Supply chain / 216 Platform currency / 217 Repo hygiene (mutually independent), 218 Remove CI waste (ECON-07 re-measure), 219 deps-only `_build` cache, 220 newest lane (spike-gated), 221 names/order (rename once), 222 SEED-006 (conditional). Kept nine phases despite coarse granularity: each boundary is an ordering constraint (fix before gate, delete before cache, rename after roster changes, classifier after measured wins). Research flags: 220, 222, 219, parts of 216; 215 narrow (Hex cooldown only if adopted).
@@ -1097,6 +1117,34 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 243]: Persist only the bounded candidate, fixture, route, process, database and asset identities; never persist credentials, cookies, storage state, response bodies or arbitrary environment.
 - [Phase 243]: Kept drawer-title clipping as medium DR-243-01 carry-forward because the overlay owner is outside Plan 04 and the geometry is present in the accepted baseline.
 - [Phase 243]: Preserved :could_not_introspect while using plain-language rendered copy, and used existing spacing tokens for bounded fixes.
+- [Phase 244]: date-release-changelog runs in sync-release-pr-pins after mix release.pins --check and stages CHANGELOG.md; em dash as \x{2014} under perl -CSD
+- [Phase 244]: release-please-config.json always-update: true regenerates the stale release PR with the PAT (A1 observed run deferred to 244-07)
+- [Phase 244]: 244-02: rehearsal seeds stand-in prose only when Unreleased is placeholder-only, then dates via the real bin/date-release-changelog after the generated-changelog simulation
+- [Phase 244]: 244-03: bin/retry-network backoff sleeps in the background and waits, so SIGINT/SIGTERM exit 130/143 immediately
+- [Phase 244]: 244-03: publish-hex fetch uses an inline bounded retry (no repo file) because its computed ref can be a pre-phase recovery tag; rule retry-ref-independent pins it
+- [Phase 244]: 244-03: inline_retry_shape/1 is the single inline-retry recogniser for 244-05/244-06
+- [Phase 244]: 244-04: mix.exs nested fetches sit behind an interpolated absolute retry_network() path; a relative bin/retry-network in mix.exs counts as unwrapped
+- [Phase 244]: 244-04: bin/verify-clean-checkout and bin/verify-planning-independent stay unwrapped (reasoned allowlist): they run inside clean-clone proofs invoked from ExUnit, not CI fetch steps
+- [Phase 244]: 244-05: Hex pinned 2.6.0 in verify-deps-audit (install-hex: false + retried local.hex); MIN_HEX=2.6.0 equals the pin; 244-06 widens hex_pin_contract_test @live_scope to every job
+- [Phase 244]: 244-06: Hex pin contract live scope is every job in every workflow, 17 pinned setup-beam steps; release.yml sparse jobs pin with the inline bounded retry before the ref checkout
+- [Phase 244]: 244-07: REL-04 reproduction shows deps/ cache state, not Hex version, decides whether --check-locked rejects the [] manager lock; Hex pin kept, re-scope routed to verifier
+- [Phase 244]: 244-08: REL-04 prevention is a static lock check (bin/verify-lock-hygiene) run by bin/verify-deps-audit; the Hex 2.6.0 pin stays as toolchain determinism
+- [Phase 244]: 244-09: CR-01 fix — bin/retry-network path travels in RETRY_NETWORK, resolved only in fetching task functions; project/0 and aliases/0 compute nothing a checkout path can break
+- [Phase 244]: 244-09: WR-04 fixed by correcting the header, not signal forwarding (process-group signals already reach mix; 130/143 never retried)
+- [Phase 244]: 244-09: real Hex marker is 'Hex dependency resolution failed' (hex 2.6.0 RemoteConverger), matched case-insensitively; backoff capped 60s, BASE max 30
+- [Phase 244]: 244-REVIEW final: CR-01/WR-01/WR-03/WR-04 fixed by 244-09; WR-02, WR-05, IN-01..04 deferred with rationale (0 open)
+- [Phase 245]: 245-01: SARIF half of bin/deps-audit-tier lands in 245-01 (D-30 ordering refinement); jq capture()? non-match must be wrapped as [..]|.[0] or rows vanish
+- [Phase 245]: 245-01: no hex.outdated summary step (D-24 discretion); issue #61 left to self-close (D-28)
+- [Phase 245]: 245-02: tier role from resolved path only; tests copy bin/ into a temp root (no role seam)
+- [Phase 245]: 245-02: root dev/test-only advisories no longer block (D-16), stated in CONTRIBUTING
+- [Phase 245]: 245-03: action pins keyed {action, major} from the # vX.Y.Z comment; pin contract parity-checks parsed YAML vs raw lines
+- [Phase 245]: verify-action-pins fails closed and counts distinct (repo, tag, sha) triples; 8 today
+- [Phase 245]: Pin provenance is an independent unknown source in deps-health; a suppression does not skip it and a finding still outranks it
+- [Phase 245]: D-06 supersedes v1.43 T-215-19: .github/dependabot.yml now exists (github-actions only, grouped monthly, 7-day cooldown, ci(deps) prefix)
+- [Phase 246]: 246-09: :101 Home screenshot drift routed to SEED-008 as UI-HOME-SHOT-101; healthy standalone browser lane is exactly 10 failures
+- [Phase 246]: 246-10: residual WR-01 fixed as removal slice C8 (e9a97139), not a C7 amendment; derived coverage phrase counts the degraded twin as a twin, not a sixth route
+- [Phase 247]: 247-03: bin/measure-main-ci reports median_wall_s null unless state is measured, so a partial median is never read as the D-08 number
+- [Phase 247]: 247-03: slow-specs.ts is fail-soft by construction (::warning::, exit 0, no continue-on-error); contract pins 7 rules each with a mutation control
 
 ### Blockers
 
@@ -1117,8 +1165,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-11T18:28:59Z
-**Stopped at:** Phase 243 complete — all phases complete
+**Last session:** 2026-10-26T14:44:27.070Z
+**Stopped at:** Completed 247-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1147,7 +1195,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Operator Next Steps
 
-- Start the next milestone with $gsd-new-milestone
+- Next: `/gsd-discuss-phase 244` (Release flow), then `/gsd-plan-phase 244`
 
 ## Restart Recovery (2026-10-10)
 

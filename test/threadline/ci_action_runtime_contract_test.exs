@@ -4,12 +4,17 @@ defmodule Threadline.CiActionRuntimeContractTest do
 
   @repo_root File.cwd!()
 
-  # Fail-closed allowlist of every `{action, ref}` pair a workflow may use.
+  # Fail-closed allowlist of every `{action, major}` pair a workflow may use.
   #
-  # Each entry was verified by fetching that ref's action.yml and reading
-  # `runs.using`. To add or re-pin an action, fetch its action.yml at the exact
-  # ref, confirm `node24`, `composite` or `docker`, then add the entry here.
-  # Anything not listed (including a Node 20 major) fails the live scan.
+  # Every ref is pinned as `owner/repo@<40-hex SHA> # vX.Y.Z`
+  # (test/threadline/ci_action_pin_contract_test.exs); the major is read from
+  # that `# vX.Y.Z` comment. Keying by major, not SHA, keeps a patch or minor
+  # re-pin green while a major bump fails closed. Each entry was verified by
+  # fetching the action.yml at a release of that major and reading
+  # `runs.using`. To add an action or move to a new major, fetch its action.yml
+  # at the pinned commit, confirm `node24`, `composite` or `docker`, then add
+  # the entry here. Anything not listed (including a Node 20 major) and any ref
+  # without a parseable `# vX.Y.Z` comment fails the live scan.
   @node24_or_non_js %{
     {"actions/checkout", "v5"} => :node24,
     {"erlef/setup-beam", "v1"} => :node24,
@@ -20,11 +25,11 @@ defmodule Threadline.CiActionRuntimeContractTest do
     {"actions/upload-artifact", "v7"} => :node24,
     {"actions/github-script", "v8"} => :node24,
     {"googleapis/release-please-action", "v5"} => :node24,
-    {"re-actors/alls-green", "b5b5b37504aa4183270bd3d855c52a67f212be35"} => :composite
+    {"re-actors/alls-green", "v1"} => :composite
   }
 
-  @remedy "fetch the action's action.yml at that exact ref, confirm `runs.using` is " <>
-            "node24, composite or docker, then add the {action, ref} pair to " <>
+  @remedy "fetch the action's action.yml at the pinned commit, confirm `runs.using` is " <>
+            "node24, composite or docker, then add the {action, major} pair to " <>
             "@node24_or_non_js in this test"
 
   defp read_rel!(segments) when is_list(segments) do
@@ -58,24 +63,26 @@ defmodule Threadline.CiActionRuntimeContractTest do
     |> Enum.join("\n")
   end
 
-  # Returns every `uses:` value on comment-stripped lines, in both the mapping
+  @pinned_major ~r/uses:\s*([^\s@"']+)@[0-9a-f]{40}\s+#\s*(v\d+)\.\d+\.\d+/
+
+  # Returns every `uses:` ref on comment-stripped lines, in both the mapping
   # form (`uses: x@y`) and the list-item form (`- uses: x@y`), quoted or not.
-  # Local (`./`) and `docker://` refs come back tagged so they are reported,
-  # not silently skipped.
+  # A SHA-pinned ref with a `# vX.Y.Z` comment becomes `{:pair, {action,
+  # major}}`. Local (`./`), `docker://` and refs with no parseable comment
+  # major come back tagged so they are reported, never silently skipped.
   defp uses_refs(yaml) do
-    ~r/^\s*(?:-\s+)?uses:\s*["']?([^\s"'#]+)/m
-    |> Regex.scan(strip_comment_lines(yaml), capture: :all_but_first)
-    |> List.flatten()
-    |> Enum.map(&classify_ref/1)
+    ~r/^\s*(?:-\s+)?uses:\s*["']?([^\s"'#]+).*$/m
+    |> Regex.scan(strip_comment_lines(yaml))
+    |> Enum.map(fn [line, value] -> classify_ref(line, value) end)
   end
 
-  defp classify_ref("./" <> _ = value), do: {:needs_decision, value}
-  defp classify_ref("docker://" <> _ = value), do: {:needs_decision, value}
+  defp classify_ref(_line, "./" <> _ = value), do: {:needs_decision, value}
+  defp classify_ref(_line, "docker://" <> _ = value), do: {:needs_decision, value}
 
-  defp classify_ref(value) do
-    case String.split(value, "@", parts: 2) do
-      [action, ref] when action != "" and ref != "" -> {:pair, {action, ref}}
-      _ -> {:needs_decision, value}
+  defp classify_ref(line, value) do
+    case Regex.run(@pinned_major, line, capture: :all_but_first) do
+      [action, major] -> {:pair, {action, major}}
+      nil -> {:no_major, value}
     end
   end
 
@@ -87,15 +94,22 @@ defmodule Threadline.CiActionRuntimeContractTest do
     end)
   end
 
-  defp ref_error(path, {:pair, {action, ref} = pair}) do
+  defp ref_error(path, {:pair, {action, major} = pair}) do
     if Map.has_key?(@node24_or_non_js, pair) do
       []
     else
       [
-        "#{path}: #{action}@#{ref} is not verified as a Node 24 (or non-JavaScript) " <>
+        "#{path}: #{action} #{major} is not verified as a Node 24 (or non-JavaScript) " <>
           "action — #{@remedy}"
       ]
     end
+  end
+
+  defp ref_error(path, {:no_major, value}) do
+    [
+      "#{path}: `uses: #{value}` has no `@<40-hex SHA> # vX.Y.Z` pin, so its major " <>
+        "cannot be read — pin it to a commit SHA with its exact release tag as a comment"
+    ]
   end
 
   defp ref_error(path, {:needs_decision, value}) do
@@ -123,12 +137,18 @@ defmodule Threadline.CiActionRuntimeContractTest do
 
   defp release_please_runbook_errors(release_yml, contributing) do
     case Regex.run(
-           ~r/googleapis\/release-please-action@v(\d+)\b/,
+           ~r/googleapis\/release-please-action@[0-9a-f]{40}\s+#\s*v(\d+)\.\d+\.\d+/,
            strip_comment_lines(release_yml),
            capture: :all_but_first
          ) do
-      [major] -> runbook_section_errors(runbook_section(contributing), major)
-      nil -> ["release.yml has no googleapis/release-please-action@vN ref — #{@runbook_remedy}"]
+      [major] ->
+        runbook_section_errors(runbook_section(contributing), major)
+
+      nil ->
+        [
+          "release.yml has no googleapis/release-please-action@<sha> # vN.N.N ref — " <>
+            @runbook_remedy
+        ]
     end
   end
 
@@ -173,9 +193,11 @@ defmodule Threadline.CiActionRuntimeContractTest do
       bumped =
         String.replace(
           ctx.release_yml,
-          ~r/googleapis\/release-please-action@v\d+/,
-          "googleapis/release-please-action@" <> "v6"
+          ~r/(googleapis\/release-please-action@[0-9a-f]{40}\s+#\s*)v\d+\.\d+\.\d+/,
+          "\\1" <> "v6.0.0"
         )
+
+      refute bumped == ctx.release_yml, "the control did not change the input"
 
       assert [message] = release_please_runbook_errors(bumped, ctx.contributing)
       assert message =~ "@v6"
@@ -220,40 +242,67 @@ defmodule Threadline.CiActionRuntimeContractTest do
     end
   end
 
+  @sha "0123456789abcdef0123456789abcdef01234567"
+
+  defp pinned(action, tag), do: action <> "@" <> @sha <> " # " <> tag
+
   describe "node20_errors/1 mutation controls" do
     test "flags a known Node 20 cache major" do
-      yaml = "      - name: Cache\n        uses: " <> "actions/cache@" <> "v4" <> "\n"
+      yaml = "      - name: Cache\n        uses: " <> pinned("actions/cache", "v4.2.0") <> "\n"
       assert [message] = node20_errors(%{"synthetic.yml" => yaml})
-      assert message =~ "actions/cache@v4"
+      assert message =~ "actions/cache v4"
       assert message =~ "synthetic.yml"
     end
 
     test "flags the previous Release Please action major" do
-      yaml = "        uses: " <> "googleapis/release-please-action@" <> "v4" <> "\n"
+      yaml = "        uses: " <> pinned("googleapis/release-please-action", "v4.1.0") <> "\n"
       assert [_] = node20_errors(%{"synthetic.yml" => yaml})
     end
 
     test "fails closed on an unknown action" do
-      yaml = "        uses: some-org/new-action@v1\n"
+      yaml = "        uses: " <> pinned("some-org/new-action", "v1.0.0") <> "\n"
       assert [message] = node20_errors(%{"synthetic.yml" => yaml})
-      assert message =~ "some-org/new-action@v1"
+      assert message =~ "some-org/new-action v1"
       assert message =~ "action.yml"
     end
 
-    test "flags the list-item form" do
-      yaml = "      - uses: " <> "actions/upload-artifact@" <> "v4" <> "\n"
+    test "fails closed on a major bump of an allowlisted action" do
+      yaml = "        uses: " <> pinned("actions/checkout", "v7.0.1") <> "\n"
       assert [message] = node20_errors(%{"synthetic.yml" => yaml})
-      assert message =~ "actions/upload-artifact@v4"
+      assert message =~ "actions/checkout v7"
+    end
+
+    test "a patch or minor re-pin of an allowlisted major stays green" do
+      yaml = "        uses: " <> pinned("actions/checkout", "v5.9.3") <> "\n"
+      assert node20_errors(%{"synthetic.yml" => yaml}) == []
+    end
+
+    test "flags a tag-only ref as having no readable major" do
+      yaml = "      - uses: " <> "actions/checkout@" <> "v" <> "5" <> "\n"
+      assert [message] = node20_errors(%{"synthetic.yml" => yaml})
+      assert message =~ "has no `@<40-hex SHA> # vX.Y.Z` pin"
+    end
+
+    test "flags a SHA pin with no version comment" do
+      yaml = "      - uses: actions/checkout@" <> @sha <> "\n"
+      assert [message] = node20_errors(%{"synthetic.yml" => yaml})
+      assert message =~ "has no `@<40-hex SHA> # vX.Y.Z` pin"
+    end
+
+    test "flags the list-item form" do
+      yaml = "      - uses: " <> pinned("actions/upload-artifact", "v4.6.0") <> "\n"
+      assert [message] = node20_errors(%{"synthetic.yml" => yaml})
+      assert message =~ "actions/upload-artifact v4"
     end
 
     test "flags a quoted ref" do
-      yaml = "        uses: \"" <> "actions/cache@" <> "v4" <> "\"\n"
+      yaml = "        uses: \"" <> "actions/cache@" <> @sha <> "\" # v4.2.0\n"
       assert [message] = node20_errors(%{"synthetic.yml" => yaml})
-      assert message =~ "actions/cache@v4"
+      assert message =~ "actions/cache@"
     end
 
     test "ignores a commented-out ref" do
-      yaml = "        # uses: " <> "actions/cache@" <> "v4" <> "\n"
+      yaml = "        # uses: " <> pinned("actions/cache", "v4.2.0") <> "\n"
       assert node20_errors(%{"synthetic.yml" => yaml}) == []
     end
 
@@ -273,10 +322,10 @@ defmodule Threadline.CiActionRuntimeContractTest do
       jobs:
         build:
           steps:
-            - uses: actions/checkout@v5
+            - uses: #{pinned("actions/checkout", "v5.1.0")}
             - name: Cache
-              uses: actions/cache@v5 # trailing comment
-            - uses: "erlef/setup-beam@v1"
+              uses: #{pinned("actions/cache", "v5.1.0")}
+            - uses: #{pinned("erlef/setup-beam", "v1.24.1")}
       """
 
       assert node20_errors(%{"synthetic.yml" => yaml}) == []

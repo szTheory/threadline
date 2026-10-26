@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       - name: Verify CHANGELOG and @version alignment
         run: bin/verify-release-shape
@@ -81,7 +81,7 @@ jobs:
     # without hiding a hang.
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
       # Deliberately no erlef/setup-beam and no cache: the guard is pure git +
       # bash + perl (see bin/verify-repo-hygiene), and `mix verify.repo_hygiene`
@@ -98,13 +98,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # CACHE KEY CONTRACT (Phase 198 D-19, Phase 219 CACHE-01) — read before adding any cache.
       #
@@ -146,14 +150,14 @@ jobs:
       # Unlike `_build`, PLT `restore-keys` ARE correct: PLTs update
       # incrementally, so a near-miss restore is a genuine speedup.
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Check formatting
         run: mix verify.format
@@ -167,13 +171,21 @@ jobs:
     # without hiding a hang.
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      # REL-04: setup-beam's own Hex install floats to the newest release. Pin
+      # one version for toolchain determinism, equal to MIN_HEX in
+      # bin/verify-deps-audit; hex_pin_contract_test.exs enforces both. The
+      # 1.1.0 `[]` lock defect is caught by bin/verify-lock-hygiene, not this pin.
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # Deliberately NO `deps` cache here. The gate fetches three separate
       # projects' dependencies itself (root, bench, examples/threadline_phoenix)
@@ -191,16 +203,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile without optional deps (warnings-as-errors)
         run: mix verify.compile_no_optional
@@ -230,13 +246,17 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Ensure hex_evaluator_test database exists
         env:
@@ -279,30 +299,34 @@ jobs:
         ports:
           - 6432:5432
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Restore deps-only build cache
         id: build-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: _build/${{ env.MIX_ENV }}
           key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
 
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile dependencies on build cache miss
         if: steps.build-restore.outputs.cache-hit != 'true'
@@ -350,23 +374,27 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Run Credo
         run: mix verify.credo
@@ -403,15 +431,19 @@ jobs:
       # fetch-depth: 0 because bin/verify-bump-rehearsal clones this checkout
       # into a throwaway tree. A depth-1 checkout would make that clone shallow
       # and couple the gate to git's shallow-source behaviour for no benefit.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       # Deliberately NO `deps` cache here. The rehearsal fetches dependencies
       # inside its own throwaway clone, so this job's `deps/` directory is never
@@ -451,16 +483,20 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
@@ -468,7 +504,7 @@ jobs:
 
       - name: Restore Dialyzer PLT
         id: dialyzer-plt-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: .dialyzer
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-${{ hashFiles('mix.lock') }}-${{ hashFiles('mix.exs') }}
@@ -476,7 +512,7 @@ jobs:
 
       # Dependency work is deliberately outside both GNU time measurements.
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile full optional build
         run: mix compile --warnings-as-errors
@@ -521,7 +557,7 @@ jobs:
       # warning cannot discard the expensive, valid cache artifact.
       - name: Save Dialyzer PLT
         if: steps.dialyzer-plt-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: .dialyzer
           key: ${{ steps.dialyzer-plt-restore.outputs.cache-primary-key }}
@@ -635,7 +671,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
 
@@ -643,9 +679,9 @@ jobs:
       # against Playwright's real --list output. Install the locked CLI for all
       # toolchain lanes; browser binaries are installed only by the browser job.
       - name: Set up Node for browser journey contract
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: "22"
+          node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
@@ -653,17 +689,21 @@ jobs:
         working-directory: examples/threadline_phoenix/e2e
         run: npm ci
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: ${{ matrix.version-file }}
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
           version-type: strict
+          install-hex: false
+
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
 
       - name: Restore deps-only build cache
         id: build-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: _build/${{ env.MIX_ENV }}
           key: ${{ matrix.runner }}-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
@@ -679,14 +719,14 @@ jobs:
       # lanes cannot collide even on the same image: each lane restores and
       # saves its own root key (four build keys across six job-lanes).
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Compile dependencies on build cache miss
         if: steps.build-restore.outputs.cache-hit != 'true'
@@ -703,7 +743,7 @@ jobs:
 
       - name: Save deps-only build cache
         if: steps.build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: _build/${{ env.MIX_ENV }}
           key: ${{ steps.build-restore.outputs.cache-primary-key }}
@@ -757,7 +797,7 @@ jobs:
       - name: Restore example deps and deps-only build cache
         id: example-build-restore
         if: matrix.lane == 'current'
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -767,7 +807,7 @@ jobs:
       - name: Install example dependencies
         if: matrix.lane == 'current'
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: matrix.lane == 'current' && steps.example-build-restore.outputs.cache-hit != 'true'
@@ -788,7 +828,7 @@ jobs:
 
       - name: Save example deps and deps-only build cache
         if: matrix.lane == 'current' && steps.example-build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -832,36 +872,40 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
 
-      - uses: actions/setup-node@v5
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: "22"
+          node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
           restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists (threadline on search_path)
         env:
@@ -876,7 +920,7 @@ jobs:
 
       - name: Restore example deps and deps-only build cache
         id: example-build-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -885,7 +929,7 @@ jobs:
 
       - name: Install example dependencies
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: steps.example-build-restore.outputs.cache-hit != 'true'
@@ -906,7 +950,7 @@ jobs:
 
       - name: Save example deps and deps-only build cache
         if: steps.example-build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -991,36 +1035,40 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
+          install-hex: false
 
-      - uses: actions/setup-node@v5
+      - name: Pin Hex (CI and local must agree)
+        run: bin/retry-network mix local.hex 2.6.0 --force
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: "22"
+          node-version-file: .tool-versions
           cache: npm
           cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
       - name: Cache deps
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
           restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
-        run: mix deps.get
+        run: bin/retry-network mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists
         env:
@@ -1035,7 +1083,7 @@ jobs:
 
       - name: Restore example deps and deps-only build cache
         id: example-build-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -1044,7 +1092,7 @@ jobs:
 
       - name: Install example dependencies
         working-directory: examples/threadline_phoenix
-        run: mix deps.get
+        run: ../../bin/retry-network mix deps.get
 
       - name: Compile example dependencies on cache miss
         if: steps.example-build-restore.outputs.cache-hit != 'true'
@@ -1065,7 +1113,7 @@ jobs:
 
       - name: Save example deps and deps-only build cache
         if: steps.example-build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             examples/threadline_phoenix/deps
@@ -1110,7 +1158,7 @@ jobs:
           "$OPERATOR_CI_RECEIPT"
 
       - name: Upload validated operator journey receipt
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: operator-ci-evidence-${{ github.run_id }}
           path: ${{ runner.temp }}/operator-ci-receipt-${{ github.run_id }}.json
@@ -1125,7 +1173,7 @@ jobs:
       # failure() so it runs precisely when the run died early.
       - name: Upload Playwright traces and e2e boot log on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: example-browser-e2e-diagnostics
           path: |
@@ -1168,9 +1216,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Decide whether all needed jobs succeeded
-        # v1.2.2 / release/v1, pinned so the sole required-check decision cannot
-        # change without a reviewed repository commit.
-        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35
+        # Pinned so the sole required-check decision cannot change without a
+        # reviewed repository commit.
+        uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
           jobs: ${{ toJSON(needs) }}
           # Extension point: the first `needs:` job that becomes conditionally
