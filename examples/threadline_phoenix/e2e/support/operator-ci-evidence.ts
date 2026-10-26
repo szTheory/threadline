@@ -1,4 +1,5 @@
 import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { parseArgs } from "node:util";
 
 export interface OperatorJourneyIdentity {
   readonly file: string;
@@ -190,17 +191,61 @@ export function validateEvidence(
   };
 }
 
-function main(args: string[]) {
-  if (args.length !== 5 || args[0] !== "--verify") {
-    throw new Error("usage: operator-ci-evidence.ts --verify inventory discovered-json executed-json output-receipt");
+const USAGE = [
+  "usage: operator-ci-evidence.ts --verify inventory --discovered discovered-list... --executed executed-json... output-receipt",
+  "usage: operator-ci-evidence.ts --verify inventory discovered-json executed-json output-receipt",
+].join("\n");
+
+interface EvidenceInputs {
+  readonly inventoryPath: string;
+  readonly discoveredPaths: readonly string[];
+  readonly executedPaths: readonly string[];
+  readonly receiptPath: string;
+}
+
+// D-07a: the fan-in job passes one --discovered and one --executed file per matrix
+// leg. The legacy four-positional form stays valid for the single-job ci.yml.
+function evidenceInputs(args: string[]): EvidenceInputs {
+  if (args[0] !== "--verify") throw new Error(USAGE);
+  const rest = args.slice(1);
+
+  if (!rest.some((arg) => arg.startsWith("--"))) {
+    if (rest.length !== 4) throw new Error(USAGE);
+    const [inventoryPath, discoveredPath, executedPath, receiptPath] = rest;
+    return { inventoryPath, discoveredPaths: [discoveredPath], executedPaths: [executedPath], receiptPath };
   }
-  const [, inventoryPath, discoveredPath, executedPath, receiptPath] = args;
-  for (const path of [inventoryPath, discoveredPath, executedPath]) {
+
+  let parsed;
+  try {
+    parsed = parseArgs({
+      args: rest,
+      allowPositionals: true,
+      strict: true,
+      options: {
+        discovered: { type: "string", multiple: true },
+        executed: { type: "string", multiple: true },
+      },
+    });
+  } catch (error) {
+    throw new Error(`${error instanceof Error ? error.message : "invalid arguments"}\n${USAGE}`);
+  }
+  const discoveredPaths = parsed.values.discovered ?? [];
+  const executedPaths = parsed.values.executed ?? [];
+  if (parsed.positionals.length !== 2 || discoveredPaths.length === 0 || executedPaths.length === 0) {
+    throw new Error(USAGE);
+  }
+  const [inventoryPath, receiptPath] = parsed.positionals;
+  return { inventoryPath, discoveredPaths, executedPaths, receiptPath };
+}
+
+function main(args: string[]) {
+  const { inventoryPath, discoveredPaths, executedPaths, receiptPath } = evidenceInputs(args);
+  for (const path of [inventoryPath, ...discoveredPaths, ...executedPaths]) {
     if (statSync(path).size > MAX_REPORT_BYTES) throw new Error(`${path} exceeds the report size limit`);
   }
   const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
-  const discovered = parseDiscovered(readFileSync(discoveredPath, "utf8"));
-  const executed = parseExecutedJson(readFileSync(executedPath, "utf8"));
+  const discovered = discoveredPaths.flatMap((path) => parseDiscovered(readFileSync(path, "utf8")));
+  const executed = executedPaths.flatMap((path) => parseExecutedJson(readFileSync(path, "utf8")));
   const receipt = validateEvidence(inventory, discovered, executed, {
     githubSha: process.env.GITHUB_SHA ?? "",
     githubRunId: process.env.GITHUB_RUN_ID ?? "",
