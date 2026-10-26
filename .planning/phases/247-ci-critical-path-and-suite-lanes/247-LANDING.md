@@ -261,6 +261,64 @@ read PLT file ... no_such_file`, the known PLT cache miss. After `npm ci` in
 `examples/threadline_phoenix/e2e` and `mix dialyzer --plt`, the unchanged tree passed with the
 lines above.
 
+### Deviation: partition monitor test fix (PR #94, CI run 40387745942)
+
+PR #94's CI run `40387745942` failed `Build and test (current)` and `Build and test (latest)`
+in `test/threadline/partition_monitor_test.exs` (247-04, D-16(b)). The `min` lane passed.
+
+| Lane | Case | Cause |
+|------|------|-------|
+| current (1.17.3) | `:72` hung `setup_all` | The sandbox deadline was 2000 ms of VM wall time, so it counts boot and code loading. It fired at 2326 ms on a loaded runner while the sandbox was still loading code. `setup_all` had not started, so the report said `nothing in flight` |
+| latest (1.20.x) | `:86` passing suite | The assertion matched only `1 tests?, 0 failures`. ExUnit 1.19+ prints `Result: 1 passed` |
+
+Fix (Rule 1, test-only; `partition_monitor.ex` is unchanged): each hang fixture writes a marker
+holding the VM wall time at which it entered the hang. A run counts as conclusive only when that
+marker predates the deadline by at least 1000 ms. Otherwise the run is retried on a longer
+deadline (2000, then 8000, then 30000 ms). If no run is conclusive, the test flunks and prints
+every attempt's output. A conclusive run is still asserted strictly: `<file>:<line>` or
+`(setup_all)`, a `Process.sleep/1` stack frame and a non-zero exit. The passing case accepts
+both summary formats. No other parse of ExUnit's summary line was added in 247. The
+`parse_counts` function in `bin/ci-test-partitions` (from #71) already handles both formats, and
+`flake_classifier_contract_test.exs` (from #60) only uses a fixture string.
+
+| Field | Value |
+|-------|-------|
+| Fix commit on milestone/v1.47 | `f839f1161cc154815927f79e7116915c68fa2036` `test(247-08): make partition monitor sandbox test load- and version-robust` |
+| Picked onto `land/v1.47-b1` | `525ea1d508506f8c3ba260116d7d74c76a577491` (`cherry-pick -x`, no conflicts) |
+| Land branch head (new) | `525ea1d508506f8c3ba260116d7d74c76a577491` (was `a99dd653`) |
+| Land branch commits over origin/main | 22 |
+
+Proof on the fixed file, with Elixir 1.17.3 unless noted, against an ephemeral `postgres:16`
+container labelled `dev.threadline.plan=247-08-fix`:
+
+- 10 seeds: all `3 tests, 0 failures`, about 5.5 s each.
+- 54 `yes` CPU burners on 18 cores: 1 run, `3 tests, 0 failures` (58.7 s).
+- Elixir 1.20.4 / OTP 29 via asdf: 1 run, `Result: 3 passed`.
+
+The same matrix also passed on the version before a credo-only refactor (a helper was extracted
+for nesting depth): 10 seeds, 3 loaded runs, and 4 runs on 1.20.4.
+- Full default suite: `32 properties, 3371 tests, 0 failures, 3 excluded`.
+
+To check that the retry is honest, the first deadline was temporarily set to 300 ms. The
+fixtures entered their hangs at about 250 ms, so those runs were inconclusive and retried on
+the 8000 ms rung, which passed. With 300 ms as the only rung, both hang cases flunked with
+`no run reached the hang`. Elixir 1.15.8 is not installed locally; the `min` lane passed on CI.
+The weights row (5200 ms) still matches the about 5.5 s file time, so it is unchanged.
+
+Tree proof, revised: `git diff --quiet $B1_END HEAD -- . ':!.planning'` now holds modulo
+exactly this fix commit. In the land worktree:
+
+```
+git diff --name-only be29f3c7 HEAD -- . ':!.planning'                                   # only test/threadline/partition_monitor_test.exs
+git diff be29f3c7 HEAD -- . ':!.planning' | git patch-id --stable                      # e5c2c8a25babdc494b4923a5ed423d648bda0138
+git show 525ea1d5 | git patch-id --stable                                              # e5c2c8a2... (same)
+git show f839f116 | git patch-id --stable                                              # e5c2c8a2... (same, milestone side)
+git diff --quiet be29f3c7 HEAD -- . ':!.planning' ':!test/threadline/partition_monitor_test.exs'   # exit 0
+```
+
+The `ci.all` gate above ran on `a99dd653`, before this fix. The `throwaway/247-hang-repro`
+branch below was also cut from `a99dd653` and does not carry the fix.
+
 ### D-16(c) repro branch (local only)
 
 | Field | Value |
