@@ -54,6 +54,16 @@
 # over the sorted list, which measured badly unbalanced on CI run
 # 36792875477 (partition seconds 67/217/119).
 #
+# Lane scope (D-10). THREADLINE_TEST_SCOPE picks which enumerated files a
+# lane runs. Empty or unset (local runs, the current CI lane) runs every
+# file. `toolchain` (the min and latest CI lanes) drops every file holding a
+# line that is exactly `@moduletag :repo_contract` (a repo-file contract whose
+# outcome does not depend on the Elixir/OTP/PostgreSQL toolchain), prints
+# `ci-test-partitions: <n> repo-contract files run on the current lane only`
+# to stdout and the step summary, and the exactly-once check below runs
+# against that filtered set. Any other value exits 2. `:repo_contract` is not
+# an ExUnit exclude: plain `mix test` runs those files.
+#
 # Files listed together on one line of test/partition_colocate.txt always
 # share a partition (tests that write into the shared checkout or snapshot
 # its `git status`, which must not overlap); a group is placed as one unit.
@@ -118,6 +128,9 @@
 #                                     per-file timings --ingest-weights reads.
 #   CI_TEST_PARTITIONS_BUDGET_S       per-partition wall budget in seconds,
 #                                     default 480, a positive integer.
+#   THREADLINE_TEST_SCOPE             empty/unset (every file) or `toolchain`
+#                                     (drop `@moduletag :repo_contract`
+#                                     files); see Lane scope above.
 #
 # Seams (all test-only, never used by real callers):
 #   MIX_BIN                       (default `mix`) lets --self-test substitute
@@ -168,7 +181,12 @@
 # backstop and has its unfinished tests named in the summary; (v) the
 # max/min row is 1.30 with a stdout-only warning for 10/11/12/13 s, 1.10 with
 # none for 10/10/11/11 s, ignores zero-file partitions and is n/a with no
-# known times, and the report still exits 0. The
+# known times, and the report still exits 0; (w) with
+# THREADLINE_TEST_SCOPE=toolchain an added 8th sandbox file tagged
+# `@moduletag :repo_contract` is in no partition,
+# the exactly-once check passes and the output and summary name 1
+# repo-contract file; unset or empty it runs exactly once; `bogus` exits 2
+# with a usage line. The
 # partitions also receive the monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
@@ -193,6 +211,10 @@ N is a positive integer from 1 to 8. Omit it to use the default (4, per
 from one full local run. --ingest-weights refreshes it from the
 partition-timings-*.tsv files under <dir> (per-file median), optionally only
 those whose header says lane=<name>.
+
+THREADLINE_TEST_SCOPE is empty or unset (run every test file) or `toolchain`
+(skip files tagged `@moduletag :repo_contract`, as the min and latest CI
+lanes do).
 EOF
 }
 
@@ -203,6 +225,10 @@ MIX_BIN="${MIX_BIN:-mix}"
 WEIGHTS_REL="test/partition_weights.txt"
 COLOCATE_REL="test/partition_colocate.txt"
 PARTITION_TEST_TIMEOUT_MS=180000
+# D-10: a line that is exactly this module tag marks a repo-file contract
+# test, which THREADLINE_TEST_SCOPE=toolchain drops. Pinned by
+# test/threadline/repo_contract_scope_contract_test.exs (rule filter-literal).
+REPO_CONTRACT_TAG_RE='^[[:space:]]*@moduletag :repo_contract[[:space:]]*$'
 
 # --- Test file enumeration and weighted assignment -----------------------------
 
@@ -641,8 +667,17 @@ run_partitions() {
   local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
   local budget_s="${CI_TEST_PARTITIONS_BUDGET_S:-480}"
 
+  local test_scope="${THREADLINE_TEST_SCOPE:-}"
+
   case "$budget_s" in
     '' | *[!0-9]* | 0*) die "CI_TEST_PARTITIONS_BUDGET_S must be a positive integer of seconds, got '$budget_s'" ;;
+  esac
+  case "$test_scope" in
+    '' | toolchain) ;;
+    *)
+      usage >&2
+      die "THREADLINE_TEST_SCOPE must be empty or 'toolchain', got '$test_scope'"
+      ;;
   esac
   # Fail fast on a bad watchdog seam, before anything runs.
   seconds_env CI_TEST_PARTITIONS_DIAG_WAIT_S 30 >/dev/null
@@ -668,6 +703,27 @@ run_partitions() {
   local assignment="$log_dir/assignment.tsv"
   enumerate_test_files >"$enumerated"
   [ -s "$enumerated" ] || die "found no *_test.exs files under test/"
+  cp "$enumerated" "$log_dir/enumerated.full.txt"
+
+  # D-10 lane scope: on `toolchain` lanes, drop the repo-contract files from
+  # the set; every later step (assignment, exactly-once check) uses it.
+  if [ "$test_scope" = toolchain ]; then
+    local scoped_out="$log_dir/repo-contract.txt" kept="$log_dir/enumerated.kept.txt" f
+    : >"$scoped_out"
+    : >"$kept"
+    while IFS= read -r f; do
+      if grep -qE "$REPO_CONTRACT_TAG_RE" "$f"; then
+        printf '%s\n' "$f" >>"$scoped_out"
+      else
+        printf '%s\n' "$f" >>"$kept"
+      fi
+    done <"$log_dir/enumerated.full.txt"
+    mv "$kept" "$enumerated"
+    [ -s "$enumerated" ] || die "THREADLINE_TEST_SCOPE=toolchain left no test files to run"
+    printf 'ci-test-partitions: %s repo-contract files run on the current lane only\n' \
+      "$(wc -l <"$scoped_out" | tr -d ' ')" | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+    [ -z "${GITHUB_STEP_SUMMARY:-}" ] || printf '\n' >>"$GITHUB_STEP_SUMMARY"
+  fi
 
   if [ ! -f "$WEIGHTS_REL" ]; then
     printf 'ci-test-partitions: %s is missing; every file gets the same weight (run bin/ci-test-partitions --write-weights)\n' "$WEIGHTS_REL" >&2
@@ -1174,6 +1230,8 @@ WEIGHTS
 # --- --self-test ---------------------------------------------------------------
 
 run_self_test() {
+  # Hermetic: an outer lane scope must not leak into the full-scope cases.
+  unset THREADLINE_TEST_SCOPE
   mkdir -p "$ROOT/tmp"
   self_test_dir="$(mktemp -d "$ROOT/tmp/ci-test-partitions-self-test.XXXXXX")"
   cleanup_self_test() {
@@ -1611,7 +1669,44 @@ WEIGHTS
   grep -qx '| max/min | - | n/a | - |' "$case_summary" || die "self-test: all-unknown times must give n/a: $(cat "$case_summary")"
   grep -q '::warning' <<<"$output" && die "self-test: n/a must not warn: $output"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio)\n'
+  # (w) lane scope: an 8th sandbox file tagged `@moduletag :repo_contract`
+  # (added here so the 7-file cases above stay as they are). Unset/empty
+  # scope runs it once; toolchain drops and counts it, and the exactly-once
+  # check passes on the filtered set; an unknown scope exits 2
+  local scoped_file="test/b/repo_contract_test.exs"
+  printf 'defmodule Sandbox.RepoContractTest do\n  use ExUnit.Case\n  @moduletag :repo_contract\nend\n' \
+    >"$proj/$scoped_file"
+  printf '500 %s\n' "$scoped_file" >>"$proj/test/partition_weights.txt"
+  run_case "scope unset" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] || die "self-test: an unset THREADLINE_TEST_SCOPE must exit 0, got $case_status: $output"
+  [ "$(cat "$case_logs"/partition-*.files | grep -cx "$scoped_file")" -eq 1 ] ||
+    die "self-test: with THREADLINE_TEST_SCOPE unset the repo-contract file must run exactly once"
+  THREADLINE_TEST_SCOPE=toolchain run_case "scope toolchain" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: THREADLINE_TEST_SCOPE=toolchain must pass the exactly-once check and exit 0, got $case_status: $output"
+  cat "$case_logs"/partition-*.files | grep -qx "$scoped_file" &&
+    die "self-test: THREADLINE_TEST_SCOPE=toolchain must drop the repo-contract file from every partition"
+  [ "$(cat "$case_logs"/partition-*.files | wc -l | tr -d ' ')" -eq 7 ] ||
+    die "self-test: THREADLINE_TEST_SCOPE=toolchain must keep the 7 other files"
+  grep -qx 'ci-test-partitions: 1 repo-contract files run on the current lane only' <<<"$output" ||
+    die "self-test: THREADLINE_TEST_SCOPE=toolchain must print the repo-contract count: $output"
+  grep -qx 'ci-test-partitions: 1 repo-contract files run on the current lane only' "$case_summary" ||
+    die "self-test: THREADLINE_TEST_SCOPE=toolchain must write the repo-contract count to the step summary"
+  THREADLINE_TEST_SCOPE= run_case "scope empty" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] || die "self-test: an empty THREADLINE_TEST_SCOPE must exit 0, got $case_status: $output"
+  [ "$(cat "$case_logs"/partition-*.files | grep -cx "$scoped_file")" -eq 1 ] ||
+    die "self-test: an empty THREADLINE_TEST_SCOPE must run the repo-contract file exactly once"
+  grep -q 'repo-contract files' <<<"$output" &&
+    die "self-test: full scope must not print a repo-contract count: $output"
+  THREADLINE_TEST_SCOPE=bogus run_case "scope bogus" "pass,pass,pass"
+  [ "$case_status" -eq 2 ] || die "self-test: THREADLINE_TEST_SCOPE=bogus must exit 2, got $case_status"
+  grep -q '^Usage: bin/ci-test-partitions' <<<"$output" ||
+    die "self-test: THREADLINE_TEST_SCOPE=bogus must print the usage: $output"
+  grep -q "THREADLINE_TEST_SCOPE must be empty or 'toolchain', got 'bogus'" <<<"$output" ||
+    die "self-test: THREADLINE_TEST_SCOPE=bogus must name the bad value: $output"
+  rm -f "$proj/$scoped_file"
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------

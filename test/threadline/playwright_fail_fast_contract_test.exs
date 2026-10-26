@@ -1,5 +1,6 @@
 defmodule Threadline.PlaywrightFailFastContractTest do
   use ExUnit.Case, async: false
+  @moduletag :repo_contract
   @script Path.expand("../../bin/verify-playwright-fail-fast", __DIR__)
   @e2e Path.expand("../../examples/threadline_phoenix/e2e", __DIR__)
 
