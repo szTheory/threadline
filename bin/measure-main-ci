@@ -70,6 +70,24 @@ digits() {
   printf '%s' "$1" | grep -Eq '^[0-9]+$' || die "$2 must be decimal digits"
 }
 
+# gh 2.101+ refuses to print a response that holds terminal escape sequences
+# unless `gh api` gets --allow-escape-sequences, and CI job logs always hold
+# ANSI. Older gh rejects that flag as unknown, so detect it once from
+# `gh api --help` (a local, read-only call) instead of pinning a gh version.
+# Set once by detect_log_escape_flag before any job-log read (a cache inside
+# gh_read would be lost: job-log runs in a command-substitution subshell).
+escape_flag_state=no
+detect_log_escape_flag() {
+  local help
+  # Capture and match in bash: `gh ... | grep -q` under pipefail can SIGPIPE gh.
+  help=$("$GH_BIN" api --help 2>/dev/null || true)
+  if [[ "$help" == *--allow-escape-sequences* ]]; then
+    escape_flag_state=yes
+  else
+    escape_flag_state=no
+  fi
+}
+
 # The GitHub boundary is intentionally closed over symbolic read operations.
 # Callers cannot provide flags, verbs, resource paths, or arbitrary arguments.
 gh_read() {
@@ -102,7 +120,11 @@ gh_read() {
     job-log)
       [ "$#" -eq 2 ] || die "job-log requires one job id"
       digits "$2" "job id"
-      "$GH_BIN" api "repos/{owner}/{repo}/actions/jobs/$2/logs"
+      if [ "$escape_flag_state" = yes ]; then
+        "$GH_BIN" api "repos/{owner}/{repo}/actions/jobs/$2/logs" --allow-escape-sequences
+      else
+        "$GH_BIN" api "repos/{owner}/{repo}/actions/jobs/$2/logs"
+      fi
       ;;
     *)
       die "rejected unknown read operation: $operation"
@@ -185,6 +207,7 @@ done 3<<< "$candidates"
 
 ratios_json="{}"
 if [ "$ratios" = true ]; then
+  detect_log_escape_flag
   while IFS=$'\t' read -r job_id lane <&3; do
     [ -n "${job_id:-}" ] || continue
     digits "$job_id" "job id"
