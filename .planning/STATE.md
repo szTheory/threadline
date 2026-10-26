@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.47
 current_phase: 246
 current_phase_name: Debt Close-out and Critic Retirement
-status: ready_to_execute
-stopped_at: Phase 246 gap-closure plan 246-10 created and checker-verified (C8 removal slice for the inverted scorecard clause); next /gsd-execute-phase 246 --gaps-only
-last_updated: "2026-10-26T02:50:27.911Z"
+status: executing
+stopped_at: Completed 246-10-PLAN.md
+last_updated: "2026-10-26T03:12:08.588Z"
 last_activity: 2026-10-25
-last_activity_desc: Phase 246 gap closure executed; re-verification gaps_found 10/11
-state_head: 8377fa711dc03de80b6e5e2cd9ff264a22391149
+last_activity_desc: Phase 246 execution started
+state_head: 2a2d9e9e6de8cd3e58e8bf28e5891030a079120c
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 25
-  completed_plans: 24
+  completed_plans: 25
   percent: 50
 milestone_name: Release on autopilot
 ---
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 246 (Debt Close-out and Critic Retirement) — READY TO EXECUTE (gap closure)
-Plan: 10 of 10 planned (9 executed)
-Status: 246-10 planned (gap_closure) — closes the last re-verification gap (10/11)
-Last activity: 2026-10-25 — 246-09 complete: SEED-008 Scope now owns 10 screenshot baselines (:101 x2 added, 10-failure threshold, origin/main 23178fb0 height evidence); register row UI-HOME-SHOT-101 routed to SEED-008 (routed 24 / total 132), pinned in verify-phase.sh REQUIRED_IDS; deferred-items.md and 246-LANDING.md cite it (cea43407). 246-08 before it: removal slice C7 f57237d6. Next: re-verify Phase 246 (gaps 1 and 2 closed)
+Phase: 246 (Debt Close-out and Critic Retirement) — EXECUTING
+Plan: 10 of 10
+Status: 246-10 complete (10/10 plans); awaiting re-verification
+Last activity: 2026-10-26 — 246-10 gap closure complete (removal slice C8 e9a97139)
 Progress: [█████░░░░░] 2 of 4 v1.47 phases complete (50%); 10/10 Phase 244 plans and 5/5 Phase 245 plans complete (later phases TBD)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
@@ -320,6 +320,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 245 P04 | 50min | 2 tasks | 8 files |
 | Phase 245 P05 | 75min | 3 tasks | 6 files |
 | Phase 246 P09 | 5 min | 2 tasks | 5 files |
+| Phase 246 P10 | 18min | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -1140,6 +1141,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 245]: Pin provenance is an independent unknown source in deps-health; a suppression does not skip it and a finding still outranks it
 - [Phase 245]: D-06 supersedes v1.43 T-215-19: .github/dependabot.yml now exists (github-actions only, grouped monthly, 7-day cooldown, ci(deps) prefix)
 - [Phase 246]: 246-09: :101 Home screenshot drift routed to SEED-008 as UI-HOME-SHOT-101; healthy standalone browser lane is exactly 10 failures
+- [Phase 246]: 246-10: residual WR-01 fixed as removal slice C8 (e9a97139), not a C7 amendment; derived coverage phrase counts the degraded twin as a twin, not a sixth route
 
 ### Blockers
 
@@ -1160,8 +1162,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T02:11:53.490Z
-**Stopped at:** Completed 246-09-PLAN.md
+**Last session:** 2026-10-26T03:12:08.293Z
+**Stopped at:** Completed 246-10-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

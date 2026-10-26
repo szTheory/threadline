@@ -114,7 +114,7 @@ Plans:
   3. The critic loop's code, tests, fixtures, Playwright capture projects and doc references are absent from main (a repo search finds no live references), and a tag marks the last commit that carries them for restoration (decision D-4).
   4. After the removal, `mix ci.all` and required CI are green, the partition contract lists no deleted test files, the browser lane runs no orphaned capture project, and the honest-default test docs remain true.
 
-**Plans**: 9/10 plans executed (3 gap-closure plans added; 246-10 planned)
+**Plans**: 10/10 plans executed (3 gap-closure plans added; 246-10 planned)
 
 Plans:
 **Wave 1**
@@ -145,7 +145,7 @@ Plans:
 - [x] 246-09-PLAN.md — Gap 2 (D-24): route the :101 Home screenshot drift to SEED-008 (10-failure threshold) with a pinned register row
 
 **Wave 10 — gap closure** *(from 246-VERIFICATION.md re-verification, 10/11)*
-- [ ] 246-10-PLAN.md — Residual WR-01: un-invert the playwright.config.ts scorecard clause, harden CiCoverageDocContractTest (R2-WR-01 twin-aware phrase, R2-WR-02 scoped blocks + widened denylist), carried as removal slice C8
+- [x] 246-10-PLAN.md — Residual WR-01: un-invert the playwright.config.ts scorecard clause, harden CiCoverageDocContractTest (R2-WR-01 twin-aware phrase, R2-WR-02 scoped blocks + widened denylist), carried as removal slice C8
 
 ### Phase 247: CI critical path and suite lanes
 
@@ -168,7 +168,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
-| 246. Debt closeout and critic retirement | 9/9 | In Progress | - |
+| 246. Debt closeout and critic retirement | 10/10 | In Progress | - |
 | 247. CI critical path and suite lanes | 0/TBD | Not started | - |
 
 ## Current Position
