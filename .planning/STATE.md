@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Completed 247-04-PLAN.md
-last_updated: "2026-10-26T16:47:49.644Z"
+stopped_at: Completed 247-05-PLAN.md
+last_updated: "2026-10-26T17:22:39.822Z"
 last_activity: 2026-10-26
-last_activity_desc: "247-04 PartitionMonitor, --ingest-weights and D-16(b) sandbox test complete (b7f214d5, 4a888caf)"
-state_head: 817bb02e5e667f41d72037983b8cadbcaa7949ef
+last_activity_desc: "247-05 partition budget watchdog, timeout layering, artifacts and max/min ratio complete (8595702a, 4df9752f, 57f396c3)"
+state_head: 57f396c3a961fc9f1c633b03eac611c7da67dc0b
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 38
-  completed_plans: 28
+  completed_plans: 29
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 3 of 13 executed (247-01, 247-03 and 247-04 complete; 247-02 paused at a maintainer checkpoint)
+Plan: 4 of 13 executed (247-01, 247-03, 247-04 and 247-05 complete; 247-02 paused at a maintainer checkpoint)
 Status: Executing Phase 247
-Last activity: 2026-10-26 — 247-04 PartitionMonitor, --ingest-weights and D-16(b) sandbox test complete (b7f214d5, 4a888caf)
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 3/13 executed: 247-01, 247-03, 247-04)
+Last activity: 2026-10-26 — 247-05 partition budget watchdog, timeout layering, artifacts and max/min ratio complete (8595702a, 4df9752f, 57f396c3)
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 10/10 Phase 244, 5/5 Phase 245 and 10/10 Phase 246 plans complete (Phase 247 4/13 executed: 247-01, 247-03, 247-04, 247-05)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -324,6 +324,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P03 | 10min | 3 tasks | 8 files |
 | Phase 247 P01 | 2h | 3 tasks | 1 files |
 | Phase 247 P04 | 15min | 3 tasks | 4 files |
+| Phase 247 P05 | 50min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -1152,6 +1153,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-01: A1 landed as non-releasable ci: squash fea5250b (PR #91); CHANGELOG diff only touched the maintainer header comment
 - [Phase 247]: 247-04: hang report selects in-flight processes by stack frames from in-flight test modules or ExUnit.Runner (ExUnit 1.15 carries no pids); process dictionaries never read
 - [Phase 247]: 247-04: CI_TEST_PARTITIONS_BUDGET_S <= 30 disarms the in-VM watcher (non-positive deadline); --ingest-weights uses the lower-middle median and dies on a TSV without the partition-timings/1 header
+- [Phase 247]: 247-05: the budget watchdog writes the .budget marker before any signal; the partition's own status writer then exits 124 and WATCHDOG_KILLED forces fail=1 after the byte-pinned wait loop
+- [Phase 247]: 247-05: the Hung partitions table prefers the monitor's HANG: in-flight names over ExUnit's abort list (a real QUIT yields both)
+- [Phase 247]: 247-05: a fake that must answer QUIT is perl, not bash (background commands start with QUIT ignored; bash cannot trap a signal ignored on entry; the BEAM installs its own handler)
 
 ### Blockers
 
@@ -1172,8 +1176,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T16:47:49.333Z
-**Stopped at:** Completed 247-04-PLAN.md
+**Last session:** 2026-10-26T17:22:39.481Z
+**Stopped at:** Completed 247-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
