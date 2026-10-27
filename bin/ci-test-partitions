@@ -96,7 +96,7 @@
 #                                    # from its per-module timings (summed per
 #                                    # file). Needs Elixir >= 1.17 and the
 #                                    # local test database.
-#   bin/ci-test-partitions --ingest-weights <dir> [--lane <name>]
+#   bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>]
 #                                    # rewrite test/partition_weights.txt from
 #                                    # the partition-timings-*.tsv files the
 #                                    # partition monitor wrote on CI (found
@@ -203,7 +203,7 @@ usage() {
   cat <<'EOF'
 Usage: bin/ci-test-partitions [N]
        bin/ci-test-partitions --write-weights
-       bin/ci-test-partitions --ingest-weights <dir> [--lane <name>]
+       bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>]
        bin/ci-test-partitions --self-test
        bin/ci-test-partitions -h
 
@@ -246,6 +246,65 @@ REPO_CONTRACT_TAG_RE='^[[:space:]]*@moduletag :repo_contract[[:space:]]*$'
 # hidden files and directories, and so does this. Run from $ROOT.
 enumerate_test_files() {
   find test -type f -name '*_test.exs' ! -path '*/.*' | LC_ALL=C sort
+}
+
+# Only these lane selectors are accepted, before compilation or test execution.
+lane_weights() {
+  case "$1" in
+    ''|current) printf '%s\n' "$WEIGHTS_REL" ;;
+    min) printf '%s\n' 'test/partition_weights_min.txt' ;;
+    latest) printf '%s\n' 'test/partition_weights_latest.txt' ;;
+    *) die "unknown THREADLINE_CI_LANE: $1" ;;
+  esac
+}
+
+# Strict refreshes validate three complete four-partition runs against the
+# actual lane inventory. Legacy ingestion without --output stays compatible.
+validate_lane_timings() {
+  local tsvs="$1" lane="$2" rows="$3" metadata="$4" inventory="$5"
+  local f header run partition parent
+  enumerate_test_files | while IFS= read -r f; do
+    if [ "$lane" = current ] || ! grep -qE "$REPO_CONTRACT_TAG_RE" "$f"; then
+      printf '%s\n' "$f"
+    fi
+  done >"$inventory"
+  [ -s "$inventory" ] || die "empty lane inventory"
+  while IFS= read -r f; do
+    header="$(head -n 1 "$f")"
+    # Headers carry exactly the formatter schema, not inferred artifact names.
+    printf '%s\n' "$header" | grep -Eq "^# threadline.partition-timings/1 partition=[1-4] lane=$lane boot_ms=[0-9]+ wall_ms=[0-9]+$" ||
+      die "invalid or wrong-lane timing header: $f"
+    partition="$(printf '%s\n' "$header" | sed -E 's/.* partition=([1-4]) .*/\1/')"
+    parent="$(dirname "$f")"
+    [ "$(basename "$parent")" = "$lane" ] || die "expected <run>/$lane/ timing directory: $f"
+    run="$(basename "$(dirname "$parent")")"
+    case "$run" in ''|*[!0-9]*) die "invalid timing run directory: $run" ;; esac
+    printf '%s\t%s\n' "$run" "$partition" >>"$metadata"
+    awk -F'\t' -v run="$run" '
+      NR == 1 {next}
+      NF != 3 || $1 !~ /^test\/[^[:space:]]+_test\.exs$/ || $2 !~ /^[0-9]+$/ || $3 !~ /^[0-9]+$/ {
+        print "malformed timing row: " FILENAME ":" FNR > "/dev/stderr"; bad=1; next
+      }
+      { print run "\t" $1 "\t" $2 }
+      END {exit bad}
+    ' "$f" >>"$rows" || die "invalid timing rows"
+  done <"$tsvs"
+  awk -F'\t' '
+    {runs[$1]=1; key=$1 SUBSEP $2; if (seen[key]++) bad=1; counts[$1]++}
+    END {
+      for (r in runs) {n++; if(counts[r]!=4) bad=1; for(p=1;p<=4;p++) if(!seen[r SUBSEP p]) bad=1}
+      if(n!=3 || bad) {print "expected exactly three distinct runs with partitions 1..4" > "/dev/stderr"; exit 1}
+    }
+  ' "$metadata" || die "incomplete or duplicate timing partitions"
+  awk -F'\t' -v inv="$inventory" -v meta="$metadata" '
+    FILENAME==inv {expected[$1]=1; next}
+    FILENAME==meta {runs[$1]=1; next}
+    {key=$1 SUBSEP $2; if(!($2 in expected) || seen[key]++) bad=1}
+    END {
+      for(r in runs) for(f in expected) if(!seen[r SUBSEP f]) bad=1
+      if(bad) {print "lane timing inventory missing, duplicate or stale" > "/dev/stderr"; exit 1}
+    }
+  ' "$inventory" "$metadata" "$rows" || die "invalid lane timing inventory"
 }
 
 # Prints `<partition>\t<file>\t<effective weight>` for every enumerated file.
@@ -677,6 +736,8 @@ run_partitions() {
   local budget_s="${CI_TEST_PARTITIONS_BUDGET_S:-480}"
 
   local test_scope="${THREADLINE_TEST_SCOPE:-}"
+  local selected_weights
+  selected_weights="$(lane_weights "${THREADLINE_CI_LANE:-}")"
 
   case "$budget_s" in
     '' | *[!0-9]* | 0*) die "CI_TEST_PARTITIONS_BUDGET_S must be a positive integer of seconds, got '$budget_s'" ;;
@@ -734,11 +795,14 @@ run_partitions() {
     [ -z "${GITHUB_STEP_SUMMARY:-}" ] || printf '\n' >>"$GITHUB_STEP_SUMMARY"
   fi
 
-  if [ ! -f "$WEIGHTS_REL" ]; then
-    printf 'ci-test-partitions: %s is missing; every file gets the same weight (run bin/ci-test-partitions --write-weights)\n' "$WEIGHTS_REL" >&2
+  case "${THREADLINE_CI_LANE:-}" in
+    min|latest) [ -f "$selected_weights" ] || die "lane weights missing: $selected_weights" ;;
+  esac
+  if [ ! -f "$selected_weights" ]; then
+    printf 'ci-test-partitions: %s is missing; every file gets the same weight (run bin/ci-test-partitions --write-weights)\n' "$selected_weights" >&2
   fi
 
-  assign_files "$n" "$WEIGHTS_REL" "$enumerated" >"$assignment"
+  assign_files "$n" "$selected_weights" "$enumerated" >"$assignment"
   verify_assignment "$n" "$enumerated" "$assignment" || {
     printf 'ci-test-partitions: refusing to run an assignment that would skip or repeat tests\n' >&2
     exit 1
@@ -746,7 +810,7 @@ run_partitions() {
 
   local i
   printf 'ci-test-partitions: %s test files assigned to %s partitions by measured weight (%s)\n' \
-    "$(wc -l <"$enumerated" | tr -d ' ')" "$n" "$WEIGHTS_REL"
+    "$(wc -l <"$enumerated" | tr -d ' ')" "$n" "$selected_weights"
   for i in $(seq 1 "$n"); do
     awk -F'\t' -v i="$i" '$1 == i { print $2 }' "$assignment" >"$log_dir/partition-$i.files"
     printf 'ci-test-partitions: partition %s: %s files, weight %s ms\n' "$i" \
@@ -964,9 +1028,9 @@ write_weights() {
 # is a `test/...*_test.exs` path and whose wall_ms is a whole number are
 # read; anything else in a TSV is ignored. TSVs are selected by their header
 # `lane=` field, never by path or artifact name.
-# Args: <dir> [--lane <name>].
+# Args: <dir> [--lane <name>] [--output <committed-weight-path>].
 ingest_weights() {
-  local dir="${1:-}" lane="" lane_set=0
+  local dir="${1:-}" lane="" lane_set=0 output="$WEIGHTS_REL" strict=0
   [ -n "$dir" ] || die "--ingest-weights needs a directory of partition-timings-*.tsv files"
   shift
   while [ $# -gt 0 ]; do
@@ -976,6 +1040,10 @@ ingest_weights() {
         lane="$2"
         lane_set=1
         shift 2
+        ;;
+      --output)
+        [ $# -ge 2 ] || die "--output needs a committed weight path"
+        output="$2"; strict=1; shift 2
         ;;
       *) die "--ingest-weights: unexpected argument '$1'" ;;
     esac
@@ -987,20 +1055,34 @@ ingest_weights() {
     esac
     [ "$lane_set" = 1 ] || die "--lane must match ^[a-z][a-z0-9-]*\$, got '$lane'"
   fi
+  if [ "$strict" -eq 1 ]; then
+    [ "$lane_set" = 1 ] || die "--output requires --lane current|min|latest"
+    [ "$output" = "$(lane_weights "$lane")" ] || die "disallowed --output for lane $lane: $output"
+  fi
   [ -d "$dir" ] || die "--ingest-weights: no such directory: $dir"
   dir="$(cd "$dir" && pwd -P)"
 
   cd "$ROOT"
 
-  local tsvs rows moved tmp f header tsv_lane total=0 used=0 skipped=0
+  local tsvs rows moved tmp f header tsv_lane total=0 used=0 skipped=0 metadata inventory strict_rows
   tsvs="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-tsvs.XXXXXX")"
   rows="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-rows.XXXXXX")"
   moved="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-moved.XXXXXX")"
+  metadata="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-meta.XXXXXX")"
+  inventory="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-inventory.XXXXXX")"
+  strict_rows="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-strict.XXXXXX")"
   tmp=""
   # shellcheck disable=SC2064 # expand now: the paths are fixed for this run
-  trap "rm -f '$tsvs' '$rows' '$moved' \"\${tmp:-}\"" EXIT
+  trap "rm -f '$tsvs' '$rows' '$moved' '$metadata' '$inventory' '$strict_rows' \"\${tmp:-}\"" EXIT
+
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
 
   find "$dir" -type f -name 'partition-timings-*.tsv' | LC_ALL=C sort >"$tsvs"
+
+  if [ "$strict" -eq 1 ]; then
+    validate_lane_timings "$tsvs" "$lane" "$strict_rows" "$metadata" "$inventory"
+  fi
 
   while IFS= read -r f; do
     total=$((total + 1))
@@ -1023,7 +1105,7 @@ ingest_weights() {
     die "--ingest-weights: none of the $total TSVs under $dir has lane=$lane"
   fi
 
-  tmp="$(mktemp "$(dirname "$WEIGHTS_REL")/.partition_weights.XXXXXX")"
+  tmp="$(mktemp "$(dirname "$output")/.partition_weights.XXXXXX")"
   {
     weights_header
     # Median per file: rows sorted by file, then by wall_ms; the middle value
@@ -1031,12 +1113,12 @@ ingest_weights() {
     # weights (files absent from the TSVs keep theirs) and sorted by path.
     LC_ALL=C sort -t "$(printf '\t')" -k1,1 -k2,2n "$rows" |
       awk -F'\t' '
-        function flush() { if (c > 0) printf "%d %s\n", v[int((c + 1) / 2)], key }
+        function flush() { if (c > 0) printf "%d %s\n", (v[int((c + 1) / 2)] < 1 ? 1 : v[int((c + 1) / 2)]), key }
         $1 != key { flush(); key = $1; c = 0 }
         { v[++c] = $2 + 0 }
         END { flush() }
       ' |
-      awk -v wf="$WEIGHTS_REL" -v mf="$moved" '
+      awk -v wf="$output" -v mf="$moved" -v strict="$strict" '
         BEGIN {
           while ((getline line < wf) > 0) {
             if (line ~ /^[ \t]*#/ || line ~ /^[ \t]*$/) continue
@@ -1046,7 +1128,7 @@ ingest_weights() {
         }
         { new[$2] = $1 + 0 }
         END {
-          for (f in old) if (!(f in new)) printf "%d %s\n", old[f], f
+          for (f in old) if (!strict && !(f in new)) printf "%d %s\n", old[f], f
           for (f in new) {
             printf "%d %s\n", new[f], f
             if ((f in old) && (new[f] > 2 * old[f] || old[f] > 2 * new[f]))
@@ -1057,7 +1139,7 @@ ingest_weights() {
       LC_ALL=C sort -k2,2
   } >"$tmp"
 
-  mv "$tmp" "$WEIGHTS_REL"
+  mv "$tmp" "$output"
   tmp=""
   printf 'ingest-weights: %s files from %s TSVs (%s skipped by --lane)\n' \
     "$(cut -f1 "$rows" | LC_ALL=C sort -u | wc -l | tr -d ' ')" "$used" "$skipped"
@@ -1240,7 +1322,7 @@ WEIGHTS
 
 run_self_test() {
   # Hermetic: an outer lane scope must not leak into the full-scope cases.
-  unset THREADLINE_TEST_SCOPE
+  unset THREADLINE_TEST_SCOPE THREADLINE_CI_LANE
   mkdir -p "$ROOT/tmp"
   self_test_dir="$(mktemp -d "$ROOT/tmp/ci-test-partitions-self-test.XXXXXX")"
   cleanup_self_test() {
@@ -1706,7 +1788,7 @@ WEIGHTS
     >"$proj/$scoped_file"
   printf '500 %s\n' "$scoped_file" >>"$proj/test/partition_weights.txt"
   run_case "scope unset" "pass,pass,pass"
-  [ "$case_status" -eq 0 ] || die "self-test: an unset THREADLINE_TEST_SCOPE must exit 0, got $case_status: $output"
+  [ "$case_status" -eq 0 ] || die "self-test: an unset THREADLINE_TEST_SCOPE THREADLINE_CI_LANE must exit 0, got $case_status: $output"
   [ "$(cat "$case_logs"/partition-*.files | grep -cx "$scoped_file")" -eq 1 ] ||
     die "self-test: with THREADLINE_TEST_SCOPE unset the repo-contract file must run exactly once"
   THREADLINE_TEST_SCOPE=toolchain run_case "scope toolchain" "pass,pass,pass"
@@ -1733,6 +1815,122 @@ WEIGHTS
   grep -q "THREADLINE_TEST_SCOPE must be empty or 'toolchain', got 'bogus'" <<<"$output" ||
     die "self-test: THREADLINE_TEST_SCOPE=bogus must name the bad value: $output"
   rm -f "$proj/$scoped_file"
+
+  # (y) The min lane must select its own scoped measured weights.
+  (cd "$proj" && enumerate_test_files) | while IFS= read -r f; do
+    printf '1000 %s\n' "$f"
+  done >"$proj/test/partition_weights_min.txt"
+  THREADLINE_CI_LANE=min THREADLINE_TEST_SCOPE=toolchain run_case "min weights" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 0 ] || die "self-test: min routing failed: $output"
+  grep -q 'measured weight (test/partition_weights_min.txt)' <<<"$output" ||
+    die "self-test: min lane must select its own weights: $output"
+  [ "$(cat "$case_logs"/partition-*.files | LC_ALL=C sort)" = "$(cat "$expected_files")" ] ||
+    die "self-test: min lane inventory mismatch"
+  printf 'lane-min-routing: ok\n'
+
+  awk '{printf "%d %s\n", (NR==1 ? 50000 : NR), $0}' "$expected_files" >"$proj/test/partition_weights_latest.txt"
+  awk '{printf "%d %s\n", 100+NR, $0}' "$expected_files" >"$proj/test/partition_weights.txt"
+  local lane expected_weight_file
+  for lane in '' current min latest; do
+    expected_weight_file=test/partition_weights.txt
+    case "$lane" in min|latest) expected_weight_file="test/partition_weights_${lane}.txt" ;; esac
+    THREADLINE_CI_LANE="$lane" run_case "lane $lane" "pass,pass,pass,pass" 4
+    [ "$case_status" -eq 0 ] || die "self-test: lane $lane failed: $output"
+    grep -q "measured weight ($expected_weight_file)" <<<"$output" || die "self-test: wrong weights for $lane"
+    (cd "$proj" && assign_files 4 "$expected_weight_file" "$expected_files") >"$self_test_dir/expected-assignment.tsv"
+    cmp -s "$self_test_dir/expected-assignment.tsv" "$case_logs/assignment.tsv" ||
+      die "self-test: assignment did not consume $expected_weight_file"
+    [ "$(cat "$case_logs"/partition-*.files | LC_ALL=C sort)" = "$(cat "$expected_files")" ] ||
+      die "self-test: lane $lane inventory mismatch"
+  done
+  THREADLINE_CI_LANE=bogus run_case "unknown lane" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 2 ] || die "self-test: unknown lane must fail closed"
+  grep -q 'FAKE_MIX' <<<"$output" && die "self-test: unknown lane started mix"
+  mv "$proj/test/partition_weights_min.txt" "$proj/test/partition_weights_min.saved"
+  THREADLINE_CI_LANE=min run_case "missing min weights" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 2 ] || die "self-test: missing min weights must fail closed"
+  mv "$proj/test/partition_weights_min.saved" "$proj/test/partition_weights_min.txt"
+  printf 'lane-all-routing: ok\n'
+  # The same assignment assertion must detect current weights behind a correct label.
+  cp "$sandbox_script" "$self_test_dir/unmutated-script"
+  sed 's/assign_files "$n" "$selected_weights"/assign_files "$n" "$WEIGHTS_REL"/' "$sandbox_script" >"$self_test_dir/mutated-script"
+  cp "$self_test_dir/mutated-script" "$sandbox_script"
+  THREADLINE_CI_LANE=latest run_case "current weights regression" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 0 ] || die "self-test: assignment mutation fixture failed to run"
+  (cd "$proj" && assign_files 4 test/partition_weights_latest.txt "$expected_files") >"$self_test_dir/expected-assignment.tsv"
+  cmp -s "$self_test_dir/expected-assignment.tsv" "$case_logs/assignment.tsv" &&
+    die "self-test: current weights bypassed the lane assignment assertion"
+  cp "$self_test_dir/unmutated-script" "$sandbox_script"
+  printf 'lane-assignment-mutation: ok\n'
+
+
+  # (z) Strict artifact ingestion is complete, lane-specific and atomic.
+  local strict_ing="$self_test_dir/strict-ingest" run part idx f
+  for run in 101 102 103; do
+    mkdir -p "$strict_ing/$run/min"
+    for part in 1 2 3 4; do
+      printf '# threadline.partition-timings/1 partition=%s lane=min boot_ms=1 wall_ms=1000\n' "$part" >"$strict_ing/$run/min/partition-timings-$part.tsv"
+    done
+    idx=0
+    while IFS= read -r f; do
+      part=$((idx % 4 + 1)); idx=$((idx + 1))
+      printf '%s\t100\t90\n' "$f" >>"$strict_ing/$run/min/partition-timings-$part.tsv"
+    done <"$expected_files"
+  done
+  local strict_target="$proj/test/partition_weights_min.txt"
+  local strict_before="$self_test_dir/strict-before" current_before="$self_test_dir/current-before"
+  cp "$proj/test/partition_weights.txt" "$current_before"
+  "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null
+  cp "$strict_target" "$strict_before"
+  [ "$(grep -vc '^#' "$strict_target")" -eq 7 ] || die "self-test: strict ingest lost files"
+  cmp -s "$current_before" "$proj/test/partition_weights.txt" || die "self-test: min ingest changed current"
+  reject_ingest() {
+    local result=0
+    "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null 2>&1 || result=$?
+    [ "$result" -ne 0 ] || die "self-test: strict ingest accepted $1"
+    cmp -s "$strict_before" "$strict_target" || die "self-test: rejected $1 changed target"
+  }
+  local sample="$strict_ing/101/min/partition-timings-1.tsv" saved="$self_test_dir/saved.tsv"
+  cp "$sample" "$saved"
+  sed 's/lane=min/lane=latest/' "$saved" >"$sample"
+  reject_ingest wrong-lane
+  sed 's/partition=1/partition=2/' "$saved" >"$sample"
+  reject_ingest duplicate-partition
+  sed '2d' "$saved" >"$sample"
+  reject_ingest missing-file
+  cat "$saved" >"$sample"; sed -n '2p' "$saved" >>"$sample"
+  reject_ingest duplicate-row
+  sed '2s#test/[^[:space:]]*#test/stale_test.exs#' "$saved" >"$sample"
+  reject_ingest stale-path
+  sed '2s/100/invalid/' "$saved" >"$sample"
+  reject_ingest invalid-timing
+  cp "$saved" "$sample"
+  cp "$sample" "$strict_ing/101/min/partition-timings-duplicate.tsv"
+  reject_ingest extra-partition
+  rm "$strict_ing/101/min/partition-timings-duplicate.tsv"
+  mv "$strict_ing/103" "$self_test_dir/absent-run"
+  reject_ingest missing-run
+  mv "$self_test_dir/absent-run" "$strict_ing/103"
+  cp -R "$strict_ing/103" "$strict_ing/104"
+  reject_ingest extra-run
+  rm -rf "$strict_ing/104"
+  for f in '../outside.txt' '/tmp/forbidden-weights.txt' 'test/partition_weights_latest.txt'; do
+    local rejected=0
+    "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output "$f" >/dev/null 2>&1 || rejected=$?
+    [ "$rejected" -ne 0 ] || die "self-test: allowed disallowed output $f"
+    cmp -s "$strict_before" "$strict_target" || die "self-test: disallowed output changed min"
+  done
+  # Simulate termination exactly at the rename boundary, after temp output exists.
+  # The fake mv signals its parent and never replaces the previous complete file.
+  local interrupted_bin="$self_test_dir/interrupted-bin" interrupted=0
+  mkdir -p "$interrupted_bin"
+  printf '#!/bin/sh\nkill -TERM "$PPID"\nexit 143\n' >"$interrupted_bin/mv"
+  chmod +x "$interrupted_bin/mv"
+  PATH="$interrupted_bin:$PATH" "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null 2>&1 || interrupted=$?
+  [ "$interrupted" -ne 0 ] || die "self-test: interrupted ingest reported success"
+  cmp -s "$strict_before" "$strict_target" || die "self-test: interrupted ingest changed target"
+  [ -z "$(find "$proj/test" -name '.partition_weights.*' -print)" ] || die "self-test: interrupted ingest left temporary output"
+  printf 'lane-ingest-integrity: ok\n'
 
   printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor)\n'
 }

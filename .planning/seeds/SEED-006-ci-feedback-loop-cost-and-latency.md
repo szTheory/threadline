@@ -15,7 +15,8 @@ reopen_when: >-
   snapshot run through `python3
   .planning/phases/222-seed-006-change-aware-lanes-conditional/tools/inert-share.py
   --last 20`, or a new required lane moves the ci.yml critical path past the
-  Browser E2E bound (about 550 s, run 36455432448)
+  247 measured median 468 s (runs 40413601357, 40414924903, 40416330436,
+  40417290637, 40418204130; critical path Build and test (current))
 audit_acknowledged:
   milestone: v1.41
   at: 2026-09-25

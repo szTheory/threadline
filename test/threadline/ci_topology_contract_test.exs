@@ -42,7 +42,7 @@ defmodule Threadline.CiTopologyContractTest do
         String.trim(line) == "" or String.starts_with?(trimmed, "#")
       end)
       |> Enum.map(fn {line, line_number} ->
-        case Regex.run(~r/^\s*([0-9]+)[ \t]+(test\/[^ \t]+)\s*$/, line) do
+        case Regex.run(~r/^\s*([1-9][0-9]*)[ \t]+(test\/[^ \t]+)\s*$/, line) do
           [_, _milliseconds, path] -> {:ok, path}
           _ -> {:error, "malformed weight row at line #{line_number}: #{inspect(line)}"}
         end
@@ -126,6 +126,89 @@ defmodule Threadline.CiTopologyContractTest do
              ["test/a_test.exs", "test/b_test.exs"],
              "2 test/b_test.exs\n1 test/a_test.exs\n"
            )
+  end
+
+  defp scoped_test_files! do
+    Enum.reject(enumerated_test_files!(), fn path ->
+      Regex.match?(~r/^\s*@moduletag :repo_contract\s*$/m, File.read!(path))
+    end)
+  end
+
+  defp lane_route_errors(script, lane, expected) do
+    # Read only the production selector; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_weights\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    needle = "#{lane}) printf '%s\\n' '#{expected}' ;;"
+    if String.contains?(body, needle), do: [], else: ["wrong weights for lane #{lane}"]
+  end
+
+  test "min weights cover the exact scoped inventory and the runner selects them" do
+    inventory = scoped_test_files!()
+    weights = read_rel!(["test", "partition_weights_min.txt"])
+    assert partition_weight_inventory_errors(inventory, weights) == []
+    script = read_rel!(["bin", "ci-test-partitions"])
+    path = "test/partition_weights_min.txt"
+    assert lane_route_errors(script, "min", path) == []
+
+    mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '#{path}' ;;",
+        "min) printf '%s\\n' 'test/partition_weights.txt' ;;"
+      )
+
+    assert lane_route_errors(mutant, "min", path) == ["wrong weights for lane min"]
+  end
+
+  test "latest weights cover the scoped inventory and all lane routes stay explicit" do
+    weights = read_rel!(["test", "partition_weights_latest.txt"])
+    assert partition_weight_inventory_errors(scoped_test_files!(), weights) == []
+    script = read_rel!(["bin", "ci-test-partitions"])
+    path = "test/partition_weights_latest.txt"
+    assert lane_route_errors(script, "latest", path) == []
+
+    mutant =
+      String.replace(
+        script,
+        "latest) printf '%s\\n' '#{path}' ;;",
+        "latest) printf '%s\\n' 'test/partition_weights_min.txt' ;;"
+      )
+
+    assert lane_route_errors(mutant, "latest", path) == ["wrong weights for lane latest"]
+    assert script =~ "''|current) printf '%s\\n' \"$WEIGHTS_REL\" ;;"
+    assert script =~ "*) die \"unknown THREADLINE_CI_LANE: $1\" ;;"
+  end
+
+  test "every lane inventory rejects omitted duplicate stale and nonpositive weights" do
+    for lane <- ["min", "latest"] do
+      inventory = scoped_test_files!()
+      weights = read_rel!(["test", "partition_weights_#{lane}.txt"])
+      path = hd(inventory)
+      assert partition_weight_inventory_errors(inventory, weights) == []
+      rows = String.split(weights, "\n")
+      without = Enum.reject(rows, &String.ends_with?(&1, " " <> path)) |> Enum.join("\n")
+      assert "missing weight for #{path}" in partition_weight_inventory_errors(inventory, without)
+
+      assert "duplicate weight path #{path}" in partition_weight_inventory_errors(
+               inventory,
+               weights <> "1 #{path}\n"
+             )
+
+      stale = "test/stale_test.exs"
+
+      assert "weight path is not a discovered test file: #{stale}" in partition_weight_inventory_errors(
+               inventory,
+               weights <> "1 #{stale}\n"
+             )
+
+      for invalid <- ["0", "-1"] do
+        assert partition_weight_inventory_errors([path], "#{invalid} #{path}\n") != []
+      end
+    end
   end
 
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do

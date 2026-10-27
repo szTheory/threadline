@@ -1450,6 +1450,10 @@ test.describe("operator accessibility baseline", () => {
       contentType: "text/plain",
     });
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
+    // The modal restores focus in queued animation frames. Finish its dismissal
+    // before focusing another control, or Enter can reopen the modal instead.
+    await expect(page.getByRole("dialog", { name: "Stress modal" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Show Modal", exact: true })).toBeFocused();
 
     // The fixture includes a persistent toast that overlaps this trigger on
     // narrow screens. Dismiss it through its keyboard-accessible control first.
