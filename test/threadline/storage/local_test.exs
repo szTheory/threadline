@@ -1,5 +1,6 @@
 defmodule Threadline.Storage.LocalTest do
-  use ExUnit.Case, async: true
+  # Local storage uses one checkout directory; serialize with its other users.
+  use ExUnit.Case, async: false
   alias Threadline.Storage.Local
 
   @test_priv "priv/threadline_exports"

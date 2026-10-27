@@ -190,6 +190,89 @@ defmodule Threadline.CiTopologyContractTest do
     refute long_async_assignment(mutant) == expected
   end
 
+  @export_storage_fixtures [
+    "test/threadline/storage/local_test.exs",
+    "test/threadline/export/orchestrator_test.exs",
+    "test/threadline/export/cleanup_test.exs",
+    "test/threadline/operator_surface/controllers/export_controller_test.exs"
+  ]
+
+  defp run_export_storage_partitions!(dir, colocate) do
+    File.mkdir_p!(Path.join(dir, "bin"))
+
+    File.cp!(
+      Path.join(@repo_root, "bin/ci-test-partitions"),
+      Path.join(dir, "bin/ci-test-partitions")
+    )
+
+    for path <- @export_storage_fixtures do
+      File.mkdir_p!(Path.dirname(Path.join(dir, path)))
+      File.cp!(Path.join(@repo_root, path), Path.join(dir, path))
+    end
+
+    File.cp!(
+      Path.join(@repo_root, "test/partition_weights.txt"),
+      Path.join(dir, "test/partition_weights.txt")
+    )
+
+    File.write!(Path.join(dir, "test/partition_colocate.txt"), colocate)
+    fake_mix = Path.join(dir, "mix")
+
+    # The runner launches real OS processes. A shared-root fixture must never
+    # overlap another partition's use of that root. Hold an atomic mkdir claim
+    # until every nonempty partition has attempted it: no timing race or sleep
+    # duration determines whether the negative control catches a split group.
+    File.write!(fake_mix, """
+    #!/usr/bin/env bash
+    set -eu
+    [ "$1" = compile ] && exit 0
+    expected=0
+    for files in logs/partition-*.files; do
+      if [ -s "$files" ]; then expected=$((expected + 1)); fi
+    done
+    status=0
+    mkdir shared-export-root 2>/dev/null || status=41
+    touch "attempt-$MIX_TEST_PARTITION"
+    polls=0
+    while :; do
+      set -- attempt-*
+      [ "$#" -eq "$expected" ] && break
+      polls=$((polls + 1))
+      [ "$polls" -lt 100 ] || exit 42
+      sleep 0.05
+    done
+    if [ "$status" -ne 0 ]; then echo 'export fixture overlap'; exit "$status"; fi
+    rmdir shared-export-root
+    """)
+
+    File.chmod!(fake_mix, 0o755)
+
+    System.cmd("/bin/bash", ["bin/ci-test-partitions", "4"],
+      cd: dir,
+      env: [
+        {"MIX_BIN", fake_mix},
+        {"THREADLINE_TEST_SCOPE", ""},
+        {"THREADLINE_CI_LANE", ""},
+        {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")},
+        {"CI_TEST_PARTITIONS_BUDGET_S", "20"}
+      ],
+      stderr_to_stdout: true
+    )
+  end
+
+  @tag :tmp_dir
+  test "shared local export fixtures never overlap across partition processes", %{tmp_dir: dir} do
+    colocate = read_rel!(["test", "partition_colocate.txt"])
+    {output, status} = run_export_storage_partitions!(Path.join(dir, "grouped"), colocate)
+    assert status == 0, output
+
+    # Negative control: without the ownership group, the same production runner
+    # splits these four real files and the shared-root claim detects overlap.
+    {output, status} = run_export_storage_partitions!(Path.join(dir, "split"), "")
+    assert status != 0
+    assert output =~ "export fixture overlap"
+  end
+
   defp scoped_test_files! do
     Enum.reject(enumerated_test_files!(), fn path ->
       Regex.match?(~r/^\s*@moduletag :repo_contract\s*$/m, File.read!(path))
