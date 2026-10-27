@@ -1845,6 +1845,74 @@ WEIGHTS
   mv "$proj/test/partition_weights_min.saved" "$proj/test/partition_weights_min.txt"
   printf 'lane-all-routing: ok\n'
 
+  # (z) Strict artifact ingestion is complete, lane-specific and atomic.
+  local strict_ing="$self_test_dir/strict-ingest" run part idx f
+  for run in 101 102 103; do
+    mkdir -p "$strict_ing/$run/min"
+    for part in 1 2 3 4; do
+      printf '# threadline.partition-timings/1 partition=%s lane=min boot_ms=1 wall_ms=1000\n' "$part" >"$strict_ing/$run/min/partition-timings-$part.tsv"
+    done
+    idx=0
+    while IFS= read -r f; do
+      part=$((idx % 4 + 1)); idx=$((idx + 1))
+      printf '%s\t100\t90\n' "$f" >>"$strict_ing/$run/min/partition-timings-$part.tsv"
+    done <"$expected_files"
+  done
+  local strict_target="$proj/test/partition_weights_min.txt"
+  local strict_before="$self_test_dir/strict-before" current_before="$self_test_dir/current-before"
+  cp "$proj/test/partition_weights.txt" "$current_before"
+  "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null
+  cp "$strict_target" "$strict_before"
+  [ "$(grep -vc '^#' "$strict_target")" -eq 7 ] || die "self-test: strict ingest lost files"
+  cmp -s "$current_before" "$proj/test/partition_weights.txt" || die "self-test: min ingest changed current"
+  reject_ingest() {
+    local result=0
+    "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null 2>&1 || result=$?
+    [ "$result" -ne 0 ] || die "self-test: strict ingest accepted $1"
+    cmp -s "$strict_before" "$strict_target" || die "self-test: rejected $1 changed target"
+  }
+  local sample="$strict_ing/101/min/partition-timings-1.tsv" saved="$self_test_dir/saved.tsv"
+  cp "$sample" "$saved"
+  sed 's/lane=min/lane=latest/' "$saved" >"$sample"
+  reject_ingest wrong-lane
+  sed 's/partition=1/partition=2/' "$saved" >"$sample"
+  reject_ingest duplicate-partition
+  sed '2d' "$saved" >"$sample"
+  reject_ingest missing-file
+  cat "$saved" >"$sample"; sed -n '2p' "$saved" >>"$sample"
+  reject_ingest duplicate-row
+  sed '2s#test/[^[:space:]]*#test/stale_test.exs#' "$saved" >"$sample"
+  reject_ingest stale-path
+  sed '2s/100/invalid/' "$saved" >"$sample"
+  reject_ingest invalid-timing
+  cp "$saved" "$sample"
+  cp "$sample" "$strict_ing/101/min/partition-timings-duplicate.tsv"
+  reject_ingest extra-partition
+  rm "$strict_ing/101/min/partition-timings-duplicate.tsv"
+  mv "$strict_ing/103" "$self_test_dir/absent-run"
+  reject_ingest missing-run
+  mv "$self_test_dir/absent-run" "$strict_ing/103"
+  cp -R "$strict_ing/103" "$strict_ing/104"
+  reject_ingest extra-run
+  rm -rf "$strict_ing/104"
+  for f in '../outside.txt' '/tmp/forbidden-weights.txt' 'test/partition_weights_latest.txt'; do
+    local rejected=0
+    "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output "$f" >/dev/null 2>&1 || rejected=$?
+    [ "$rejected" -ne 0 ] || die "self-test: allowed disallowed output $f"
+    cmp -s "$strict_before" "$strict_target" || die "self-test: disallowed output changed min"
+  done
+  # Simulate termination exactly at the rename boundary, after temp output exists.
+  # The fake mv signals its parent and never replaces the previous complete file.
+  local interrupted_bin="$self_test_dir/interrupted-bin" interrupted=0
+  mkdir -p "$interrupted_bin"
+  printf '#!/bin/sh\nkill -TERM "$PPID"\nexit 143\n' >"$interrupted_bin/mv"
+  chmod +x "$interrupted_bin/mv"
+  PATH="$interrupted_bin:$PATH" "$sandbox_script" --ingest-weights "$strict_ing" --lane min --output test/partition_weights_min.txt >/dev/null 2>&1 || interrupted=$?
+  [ "$interrupted" -ne 0 ] || die "self-test: interrupted ingest reported success"
+  cmp -s "$strict_before" "$strict_target" || die "self-test: interrupted ingest changed target"
+  [ -z "$(find "$proj/test" -name '.partition_weights.*' -print)" ] || die "self-test: interrupted ingest left temporary output"
+  printf 'lane-ingest-integrity: ok\n'
+
   printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor)\n'
 }
 

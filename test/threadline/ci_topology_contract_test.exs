@@ -183,6 +183,34 @@ defmodule Threadline.CiTopologyContractTest do
     assert script =~ "*) die \"unknown THREADLINE_CI_LANE: $1\" ;;"
   end
 
+  test "every lane inventory rejects omitted duplicate stale and nonpositive weights" do
+    for lane <- ["min", "latest"] do
+      inventory = scoped_test_files!()
+      weights = read_rel!(["test", "partition_weights_#{lane}.txt"])
+      path = hd(inventory)
+      assert partition_weight_inventory_errors(inventory, weights) == []
+      rows = String.split(weights, "\n")
+      without = Enum.reject(rows, &String.ends_with?(&1, " " <> path)) |> Enum.join("\n")
+      assert "missing weight for #{path}" in partition_weight_inventory_errors(inventory, without)
+
+      assert "duplicate weight path #{path}" in partition_weight_inventory_errors(
+               inventory,
+               weights <> "1 #{path}\n"
+             )
+
+      stale = "test/stale_test.exs"
+
+      assert "weight path is not a discovered test file: #{stale}" in partition_weight_inventory_errors(
+               inventory,
+               weights <> "1 #{stale}\n"
+             )
+
+      for invalid <- ["0", "-1"] do
+        assert partition_weight_inventory_errors([path], "#{invalid} #{path}\n") != []
+      end
+    end
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
