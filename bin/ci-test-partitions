@@ -1825,6 +1825,26 @@ WEIGHTS
     die "self-test: min lane inventory mismatch"
   printf 'lane-min-routing: ok\n'
 
+  cp "$proj/test/partition_weights_min.txt" "$proj/test/partition_weights_latest.txt"
+  local lane expected_weight_file
+  for lane in '' current min latest; do
+    expected_weight_file=test/partition_weights.txt
+    case "$lane" in min|latest) expected_weight_file="test/partition_weights_${lane}.txt" ;; esac
+    THREADLINE_CI_LANE="$lane" run_case "lane $lane" "pass,pass,pass,pass" 4
+    [ "$case_status" -eq 0 ] || die "self-test: lane $lane failed: $output"
+    grep -q "measured weight ($expected_weight_file)" <<<"$output" || die "self-test: wrong weights for $lane"
+    [ "$(cat "$case_logs"/partition-*.files | LC_ALL=C sort)" = "$(cat "$expected_files")" ] ||
+      die "self-test: lane $lane inventory mismatch"
+  done
+  THREADLINE_CI_LANE=bogus run_case "unknown lane" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 2 ] || die "self-test: unknown lane must fail closed"
+  grep -q 'FAKE_MIX' <<<"$output" && die "self-test: unknown lane started mix"
+  mv "$proj/test/partition_weights_min.txt" "$proj/test/partition_weights_min.saved"
+  THREADLINE_CI_LANE=min run_case "missing min weights" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 2 ] || die "self-test: missing min weights must fail closed"
+  mv "$proj/test/partition_weights_min.saved" "$proj/test/partition_weights_min.txt"
+  printf 'lane-all-routing: ok\n'
+
   printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor)\n'
 }
 
