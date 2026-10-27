@@ -345,3 +345,134 @@ branch below was also cut from `a99dd653` and does not carry the fix.
 | Archive tag | `archive/ui-critic-loop` pushed by the orchestrator: `git ls-remote origin refs/tags/archive/ui-critic-loop` = `9afd6c92…` (closes the Land A2 hand-off) |
 | Temp worktrees | land and repro worktrees removed with `git worktree remove`; neither is in `git worktree list` |
 | Postgres containers | none left: `docker ps -a --filter label=dev.threadline.plan=247-08` and `…=247-08-fix` are empty |
+
+## Land B2
+
+The CI-02 browser split and receipt fan-in (247-09, 247-10, 247-11), the CI-derived partition
+weights and fitted async factor (247-12), and the `bin/measure-main-ci` gh 2.101 fix (247-13),
+as one non-releasable `ci:` squash (D-02 step 3, D-03).
+
+**Status: LANDED** (PR #95, squash `29abf565`, see `### Landed` below). The push, the PR,
+the merge and the main sample dispatches were orchestrator checkpoint commands (247-13 Task 2),
+run under the maintainer's own-words grant.
+
+| Field | Value |
+|-------|-------|
+| Land branch | `land/v1.47-b2` (local; temporary worktree `${TMPDIR}/threadline-land-247-b2`) |
+| origin/main at cut | `3463fa7416696578faa8a9933de0900e61dc9d48` (the B1 squash) |
+| B1 end SHA (pick base) | `be29f3c70b449050dae9fd1c723fd6c18e008a13`, read with the `^B1 end SHA:` sed from `## Land B1` |
+| Candidate list | `git log --reverse --format=%H "$B1_END"..milestone/v1.47 -- . ':!.planning'`: 8 commits |
+| Excluded | `f839f116` (247-08 partition monitor fix): already on main through the B1 squash, see below |
+| Picked commits | 7 (`cherry-pick -x`, exit 0, no conflicts, none touch `.planning/`) |
+| Planning sync commit | 1 (`docs(planning): sync v1.47 planning through 247-12`, `git checkout milestone/v1.47 -- .planning`); 0 stale planning files to remove |
+| Land branch commits over origin/main | 8 |
+| Land branch head | `e85195dac39e347534bcf66e9afb5b34c1ad0284` |
+| `Removal-Slice:` trailers on the branch | 0 |
+| CHANGELOG | `git diff origin/main HEAD -- CHANGELOG.md` is empty: no adopter-facing entry |
+| PR diff outside `.planning` | 14 files, 1542 insertions, 430 deletions |
+
+Picks, in order (milestone → land):
+
+| Plan | Milestone | Land | Subject |
+|------|-----------|------|---------|
+| 247-09 | `b2c16eef` | `3e832c12` | `feat(247-09): N-file journey receipt inputs runnable under plain node` |
+| 247-09 | `a209ccbe` | `4136bc41` | `feat(247-09): resolve ${{ matrix.project }} in bin/browser-full-projects, fail closed` |
+| 247-10 | `e8df648b` | `fbcb4326` | `ci(247-10): split browser E2E per Playwright project with a receipt fan-in` |
+| 247-12 | `5ba88242` | `26af38a9` | `test(247-12): refresh partition weights from CI current-lane timings` |
+| 247-12 | `c87eaecc` | `1406cecb` | `feat(247-12): fit the async partition factor from CI timings` |
+| 247-11 | `3613a9f4` | `99cfd6c8` | `test(247-11): pin the browser split with mutation-controlled fan-in rules` |
+| 247-13 | `d1261dfd` | `7237af8c` | `fix(247-13): feature-detect gh --allow-escape-sequences for job-log reads` |
+
+### Why `f839f116` is not re-picked
+
+It is the B1 deviation fix. It was carried onto `land/v1.47-b1` as `525ea1d5`, and the B1
+squash tree equals that head:
+
+```
+git show f839f116 | git patch-id --stable    # e5c2c8a25babdc494b4923a5ed423d648bda0138
+git show 525ea1d5 | git patch-id --stable    # e5c2c8a25babdc494b4923a5ed423d648bda0138 (same)
+git diff --quiet 3463fa74 525ea1d5           # exit 0
+git diff --quiet origin/main milestone/v1.47 -- test/threadline/partition_monitor_test.exs   # exit 0
+```
+
+`git cherry` cannot show this match, because the squash folds the patch into one commit. The
+patch-id equality and the file equality above are the proof.
+
+### Tree proof
+
+```
+git diff --quiet milestone/v1.47 HEAD -- . ':!.planning'   # exit 0 (land worktree, before the sync commit)
+git diff --cached --quiet milestone/v1.47 -- .planning      # exit 0 (planning mirror)
+git diff --quiet milestone/v1.47 HEAD                       # exit 0 (after the sync commit)
+```
+
+The milestone side is `d1261dfd`, the tree the gate below ran on.
+
+### Hygiene
+
+`bin/verify-repo-hygiene` in the land worktree: exit 0
+(`4548 tracked text file(s) clean; 8 allowlist entries used, 0 inert`).
+
+### Gate
+
+Which tree: **milestone/v1.47 at `d1261dfd`** in the quality-baseline worktree. The land tree
+equals it, so no second gate ran on the land branch. Command: `DB_HOST=127.0.0.1
+DB_PORT=<port> CI=true mix ci.all` on an ephemeral `postgres:16` container labelled
+`dev.threadline.plan=247-13` (removed afterwards), log ANSI-stripped.
+
+**Run 1: exit 2, red.** Two library failures. Every other step was green (example 132/0,
+Dialyzer 0 errors, browser lane `418 passed`, 56 skipped):
+
+| Case | Failure |
+|------|---------|
+| `test/threadline/query/row_key_read_test.exs:204` | `as_of(..., DateTime.utc_now())` returned `{:error, :before_audit_horizon}` immediately after the write |
+| `test/threadline/query/as_of_property_test.exs:94` | the property's own guard: `tie or clock step: captured_at did not strictly increase` |
+
+Both cases compare the database's `captured_at` with wall-clock time. Neither file, nor
+`lib/threadline/query.ex`, is in the B2 diff: the B2 diff has no `lib/` path, and those
+files last changed in `371ce3ac`, which is already on main. A bracketed host-vs-container clock
+read showed no skew. Re-run in isolation with run 1's seed (`414420`) and with seeds 1 to 4,
+both files passed every time (`2 properties, 9 tests, 0 failures`).
+
+**Run 2 (same tree, unchanged): exit 0, green.**
+
+| Step | Decisive line |
+|------|---------------|
+| credo | `5689 mods/funs, found no issues.` |
+| deps audit | `findings: none` |
+| repo hygiene | `verify-repo-hygiene: 4548 tracked text file(s) clean; 8 allowlist entries used, 0 inert` |
+| xref cycles | `No cycles found` |
+| library tests | `32 properties, 3378 tests, 0 failures, 3 excluded` |
+| example tests | `132 tests, 0 failures` |
+| Dialyzer | `Total errors: 0, Skipped: 0, Unnecessary Skips: 0` |
+| Dialyzer slice | `17 tests, 0 failures, 16 excluded` |
+| CI browser lane (desktop + mobile chromium) | `418 passed (5.9m)`, `56 skipped`, 0 failed |
+
+The run 1 flake is logged in `deferred-items.md` as a pre-existing, time-sensitive `as_of`
+pair. It is not fixed here, because it is outside B2's scope.
+
+### Measurement script fix (deferred item from 247-08)
+
+`bin/measure-main-ci --ratios` now reads `gh api --help` once, and only when `--ratios` is
+set. If gh lists `--allow-escape-sequences`, the script passes it to the `job-log` read
+(gh 2.101+ refuses ANSI job logs without it). If gh does not list it, the flag is left off,
+because older gh rejects it as unknown. The fake gh now emulates both generations: the new
+one refuses the bare logs read, and the old one rejects the flag. Two new contract cases pin
+the flag choice and show that the probe never runs without `--ratios`. A mutation check that
+forces the flag off fails the new case. A live read-only smoke on gh 2.101.0 against main run
+`40394247390` returned `{"min":[1.68],"latest":[1.52],"current":[1.49]}` with no `GH_BIN` shim.
+
+### Landed
+
+| Field | Value |
+|-------|-------|
+| PR | #95, head `land/v1.47-b2` at `e85195dac39e347534bcf66e9afb5b34c1ad0284` |
+| PR CI run | `40412545694`: all 17 checks green, incl. both browser legs, `Browser journey receipt` and `CI required`; no 403 on the receipt download |
+| Merge | squash with `--match-head-commit e85195da`, 2026-10-26T22:35:26Z |
+| Squash on main | `29abf5653a0e1c31b70d73d71a3f6c552d9b9712` (parent `3463fa74`) |
+| Main vs milestone | `git diff --quiet origin/main milestone/v1.47 -- . ':!.planning'` exits 0 |
+| Remote branch | `land/v1.47-b2` deleted by the orchestrator; local branch kept |
+| Main samples (sequential, attempt 1, success) | `40413601357` (push), `40414924903`, `40416330436`, `40417290637`, `40418204130` (workflow_dispatch) |
+| Local gate decision | ci.all run 1 was red on two time-sensitive `as_of` cases outside the B2 diff (see `### Gate`). The orchestrator took run 2 (green, same tree) as the local gate, with the PR CI run as the deciding gate. |
+
+Measurements on these samples: `247-MEASUREMENT.md` (CI-02 median 468 s PASS; CI-03 ratios MISS).

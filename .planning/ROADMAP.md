@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 12/13 plans executed
+**Plans**: 15 plans (14 executed; landing and measurement gap plan pending)
 
 Plans:
 **Wave 1**
@@ -190,7 +190,13 @@ Plans:
 - [x] 247-11-PLAN.md — CI-02 hardening: matrix == votingProjects, exact receipt needs, unconditional receipt, leg artifact names; full `ci.all` gate
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 247-13-PLAN.md — Land B2 (range from `B1 end SHA`); measure median ≤ 9 min over 5 runs and ratio ≤ 1.15 over 3 runs per lane; SEED-006 rewrite or recorded miss
+- [x] 247-13-PLAN.md — Land B2 (range from `B1 end SHA`); measure median ≤ 9 min over 5 runs and ratio ≤ 1.15 over 3 runs per lane; SEED-006 rewrite or recorded miss
+
+**Wave 10 — CI-03 gap closure** *(blocked on Wave 9 completion)*
+- [x] 247-14-PLAN.md — D-11 per-lane weights from three main-run artifacts each; strict min/latest/current routing, inventory and adversarial controls
+
+**Wave 11 — CI-03 main measurement** *(blocked on Wave 10 completion)*
+- [ ] 247-15-PLAN.md — Land the green correction under the standing grant; remeasure five main walls and three consecutive ratios per lane without relaxing either gate
 
 ## Progress
 
@@ -201,7 +207,7 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 12/13 | In Progress | - |
+| 247. CI critical path and suite lanes | 14/15 | In Progress | - |
 
 ## Current Position
 

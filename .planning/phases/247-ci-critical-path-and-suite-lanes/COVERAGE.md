@@ -1,0 +1,1 @@
+No external API integration: Phase 247 gap closure changes CI partition-weight ingestion and lane routing. The previously shipped read-only GitHub API measurement and artifact-download path is reused to obtain evidence; no new external API capability is integrated.
