@@ -48,8 +48,9 @@
 # ASYNC_FACTOR_PERMILLE thousandths of their measured time, because a real
 # run overlaps them; the factor is fitted from CI partition timings (below). A file with no weight gets the median
 # weight; a weight entry for a file that no longer exists is ignored.
-# Assignment is greedy longest-first into the least-loaded partition, ties
-# broken by path then by lowest partition number, so it is deterministic.
+# Predicted bin cost is sync sum + max(discounted async sum, longest async
+# raw wall). Groups rank by standalone cost, then path. Placement minimizes
+# resulting cost, then previous cost, then partition number deterministically.
 # Mix's own `--partitions` flag is not used: it assigns files round-robin
 # over the sorted list, which measured badly unbalanced on CI run
 # 36792875477 (partition seconds 67/217/119).
@@ -186,8 +187,8 @@
 # `@moduletag :repo_contract` is in no partition,
 # the exactly-once check passes and the output and summary name 1
 # repo-contract file; unset or empty it runs exactly once; `bogus` exits 2
-# with a usage line; (x) ASYNC_FACTOR_PERMILLE=250 reproduces the old 1/4
-# sandbox assignment exactly and the fitted constant scales the async file.
+# with a usage line; (x) the long async raw-duration floor spreads work while
+# the fitted constant still scales the output per-file weight.
 # The partitions also receive the monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
@@ -348,11 +349,17 @@ assign_files() {
         raw = (path[i] in w) ? w[path[i]] : med
         eff = (async[i] == 1) ? int(raw * async_factor_permille / 1000) : raw
         if (eff < 1) eff = 1
-        printf "%d\t%s\n", eff, path[i]
+        printf "%d\t%s\t%d\t%d\n", eff, path[i], raw, async[i]
       }
     }
   ' "$weights" "$flags" |
-    awk -F'\t' -v n="$n" -v cf="$colocate" '
+    awk -F'\t' -v n="$n" -v cf="$colocate" -v factor="$ASYNC_FACTOR_PERMILLE" '
+      function cost(sync, async_sum, max_async, discounted) {
+        discounted = int(async_sum * factor / 1000)
+        if (async_sum > 0 && discounted < 1) discounted = 1
+        if (max_async > discounted) return sync + max_async
+        return sync + discounted
+      }
       # Colocation groups: every file on one non-comment line of the colocate
       # file shares a partition (tests that touch the shared checkout, which
       # the old single serial run never overlapped). A group is placed as one
@@ -372,7 +379,11 @@ assign_files() {
         eff = $1 + 0; f = $2
         key = (f in group) ? group[f] : f
         if (!(key in gw)) { keys[++kn] = key }
-        gw[key] += eff
+        if ($4 == 1) {
+          ga[key] += $3
+          if ($3 > gm[key]) gm[key] = $3
+        } else gs[key] += $3
+        gw[key] = cost(gs[key], ga[key], gm[key])
         members[key] = members[key] f "\n"
         weight[f] = eff
       }
@@ -387,9 +398,17 @@ assign_files() {
         }
         for (b = 1; b <= n; b++) load[b] = 0
         for (i = 1; i <= kn; i++) {
-          best = 1
-          for (b = 2; b <= n; b++) if (load[b] < load[best]) best = b
-          load[best] += gw[keys[i]]
+          key = keys[i]; best = 0
+          for (b = 1; b <= n; b++) {
+            longest = (bm[b] > gm[key]) ? bm[b] : gm[key]
+            candidate = cost(bs[b] + gs[key], ba[b] + ga[key], longest)
+            if (best == 0 || candidate < best_cost || (candidate == best_cost && load[b] < load[best])) {
+              best = b; best_cost = candidate
+            }
+          }
+          bs[best] += gs[key]; ba[best] += ga[key]
+          if (gm[key] > bm[best]) bm[best] = gm[key]
+          load[best] = best_cost
           m = split(members[keys[i]], mem, "\n")
           for (x = 1; x <= m; x++) if (mem[x] != "") printf "%d\t%s\t%d\n", best, mem[x], weight[mem[x]]
         }
