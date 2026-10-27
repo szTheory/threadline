@@ -1075,6 +1075,9 @@ ingest_weights() {
   # shellcheck disable=SC2064 # expand now: the paths are fixed for this run
   trap "rm -f '$tsvs' '$rows' '$moved' '$metadata' '$inventory' '$strict_rows' \"\${tmp:-}\"" EXIT
 
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
   find "$dir" -type f -name 'partition-timings-*.tsv' | LC_ALL=C sort >"$tsvs"
 
   if [ "$strict" -eq 1 ]; then
@@ -1825,7 +1828,8 @@ WEIGHTS
     die "self-test: min lane inventory mismatch"
   printf 'lane-min-routing: ok\n'
 
-  cp "$proj/test/partition_weights_min.txt" "$proj/test/partition_weights_latest.txt"
+  awk '{printf "%d %s\n", (NR==1 ? 50000 : NR), $0}' "$expected_files" >"$proj/test/partition_weights_latest.txt"
+  awk '{printf "%d %s\n", 100+NR, $0}' "$expected_files" >"$proj/test/partition_weights.txt"
   local lane expected_weight_file
   for lane in '' current min latest; do
     expected_weight_file=test/partition_weights.txt
@@ -1833,6 +1837,9 @@ WEIGHTS
     THREADLINE_CI_LANE="$lane" run_case "lane $lane" "pass,pass,pass,pass" 4
     [ "$case_status" -eq 0 ] || die "self-test: lane $lane failed: $output"
     grep -q "measured weight ($expected_weight_file)" <<<"$output" || die "self-test: wrong weights for $lane"
+    (cd "$proj" && assign_files 4 "$expected_weight_file" "$expected_files") >"$self_test_dir/expected-assignment.tsv"
+    cmp -s "$self_test_dir/expected-assignment.tsv" "$case_logs/assignment.tsv" ||
+      die "self-test: assignment did not consume $expected_weight_file"
     [ "$(cat "$case_logs"/partition-*.files | LC_ALL=C sort)" = "$(cat "$expected_files")" ] ||
       die "self-test: lane $lane inventory mismatch"
   done
@@ -1844,6 +1851,18 @@ WEIGHTS
   [ "$case_status" -eq 2 ] || die "self-test: missing min weights must fail closed"
   mv "$proj/test/partition_weights_min.saved" "$proj/test/partition_weights_min.txt"
   printf 'lane-all-routing: ok\n'
+  # The same assignment assertion must detect current weights behind a correct label.
+  cp "$sandbox_script" "$self_test_dir/unmutated-script"
+  sed 's/assign_files "$n" "$selected_weights"/assign_files "$n" "$WEIGHTS_REL"/' "$sandbox_script" >"$self_test_dir/mutated-script"
+  cp "$self_test_dir/mutated-script" "$sandbox_script"
+  THREADLINE_CI_LANE=latest run_case "current weights regression" "pass,pass,pass,pass" 4
+  [ "$case_status" -eq 0 ] || die "self-test: assignment mutation fixture failed to run"
+  (cd "$proj" && assign_files 4 test/partition_weights_latest.txt "$expected_files") >"$self_test_dir/expected-assignment.tsv"
+  cmp -s "$self_test_dir/expected-assignment.tsv" "$case_logs/assignment.tsv" &&
+    die "self-test: current weights bypassed the lane assignment assertion"
+  cp "$self_test_dir/unmutated-script" "$sandbox_script"
+  printf 'lane-assignment-mutation: ok\n'
+
 
   # (z) Strict artifact ingestion is complete, lane-specific and atomic.
   local strict_ing="$self_test_dir/strict-ingest" run part idx f

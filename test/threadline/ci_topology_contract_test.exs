@@ -42,7 +42,7 @@ defmodule Threadline.CiTopologyContractTest do
         String.trim(line) == "" or String.starts_with?(trimmed, "#")
       end)
       |> Enum.map(fn {line, line_number} ->
-        case Regex.run(~r/^\s*([0-9]+)[ \t]+(test\/[^ \t]+)\s*$/, line) do
+        case Regex.run(~r/^\s*([1-9][0-9]*)[ \t]+(test\/[^ \t]+)\s*$/, line) do
           [_, _milliseconds, path] -> {:ok, path}
           _ -> {:error, "malformed weight row at line #{line_number}: #{inspect(line)}"}
         end
