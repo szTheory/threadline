@@ -14,8 +14,13 @@ tech-stack:
   added: []
   patterns: [strict-explicit-output, atomic-weight-replacement]
 key-files:
-  created: [test/partition_weights_min.txt, test/partition_weights_latest.txt]
-  modified: [bin/ci-test-partitions, test/partition_weights.txt, test/threadline/ci_topology_contract_test.exs]
+  created:
+    - test/partition_weights_min.txt
+    - test/partition_weights_latest.txt
+  modified:
+    - bin/ci-test-partitions
+    - test/partition_weights.txt
+    - test/threadline/ci_topology_contract_test.exs
 key-decisions:
   - "Keep async factor 292; new current-only fit reduces residual RMS by only 2.1 percent"
   - "Preserve valid zero-ms observations and floor generated median weights to 1 ms"
@@ -70,16 +75,15 @@ The D-11 single-file split condition remains false on all actual inputs. Fresh c
 - Ephemeral `postgres:16`, label `dev.threadline.plan=247-14`, published loopback port discovered with `docker port`. No assumption of port 5432.
 - Independent review: `247-14-REVIEW.md`, one coverage warning resolved and no open findings after follow-up. Added sentinel-weight assignment equality and a runtime current-for-latest mutation, beyond checking printed paths.
 
-## Task commits
+## Task Commits
 
-```
-0848c2f1 test(247-14): prove min lane weight selection fails before routing
-c847368d ci(247-14): ingest complete min timing runs and route measured lane weights
-86a29fc6 test(247-14): require latest lane measured weights before generation
-4ebe553b ci(247-14): refresh all lane weights from post-B2 main timings
-b50e9536 test(247-14): reject corrupt lane weights and interrupted refreshes
-5c3d60cc ci(247-14): harden positive weights and prove atomic lane routing
-```
+1. **test(247-14): prove min lane weight selection fails before routing** — `0848c2f1`
+2. **ci(247-14): ingest complete min timing runs and route measured lane weights** — `c847368d`
+3. **test(247-14): require latest lane measured weights before generation** — `86a29fc6`
+4. **ci(247-14): refresh all lane weights from post-B2 main timings** — `4ebe553b`
+5. **test(247-14): reject corrupt lane weights and interrupted refreshes** — `b50e9536`
+6. **ci(247-14): harden positive weights and prove atomic lane routing** — `5c3d60cc`
+
 
 ## Deviations and issues
 

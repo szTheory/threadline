@@ -257,7 +257,8 @@ test.describe("operator motion contracts with default motion", () => {
     });
     expectNoTransitionDelay(toastStyle);
 
-    await page.getByRole("button", { name: "Show Modal" }).click();
+    const modalOpener = page.getByRole("button", { name: "Show Modal", exact: true });
+    await modalOpener.click();
     const modalStyle = await computedStyle(page.locator("#stress-modal-content"));
     expectTransitionIncludes(modalStyle, {
       duration: "0.18s",
@@ -265,6 +266,8 @@ test.describe("operator motion contracts with default motion", () => {
       easing: "cubic-bezier(0.2, 0, 0, 1)",
     });
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
+    await expect(page.locator("#stress-modal")).toBeHidden();
+    await expect(modalOpener).toBeFocused();
 
     // The fixture's persistent toast can overlap the drawer trigger on mobile.
     const toast = page.locator("#stress-toast");
@@ -505,7 +508,8 @@ test.describe("operator motion contracts with reduced motion", () => {
     await closeToast.click();
     await expect(toast).toBeHidden();
 
-    await page.getByRole("button", { name: "Show Modal" }).click();
+    const modalOpener = page.getByRole("button", { name: "Show Modal", exact: true });
+    await modalOpener.click();
     const modalContainer = page.locator("#stress-modal");
     const modal = page.locator("#stress-modal-content");
     await expect(modal).toBeVisible();
@@ -516,6 +520,7 @@ test.describe("operator motion contracts with reduced motion", () => {
 
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
     await expect(modalContainer).toBeHidden();
+    await expect(modalOpener).toBeFocused();
     if (await toast.isVisible()) {
       await closeToast.click();
       await expect(toast).toBeHidden();

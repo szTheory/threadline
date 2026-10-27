@@ -476,3 +476,74 @@ forces the flag off fails the new case. A live read-only smoke on gh 2.101.0 aga
 | Local gate decision | ci.all run 1 was red on two time-sensitive `as_of` cases outside the B2 diff (see `### Gate`). The orchestrator took run 2 (green, same tree) as the local gate, with the PR CI run as the deciding gate. |
 
 Measurements on these samples: `247-MEASUREMENT.md` (CI-02 median 468 s PASS; CI-03 ratios MISS).
+
+
+## Land B3 — lane-specific weights and exact-head candidate gate
+
+B3 tested land HEAD: 9fa28fad40ac0fb1ca3b83e48ce95a3845df698f
+
+Candidate branch `land/v1.47-ci03-weights`, isolated under scratch `threadline-247-b3-land`, starts at `origin/main` 29abf565. Seven reviewed source/test commits were cherry-picked with provenance; the six Plan 14 picks are a85f2555, 97e34de8, 9d71d142, 636a6045, 4300ffd9, 377ca161. Necessary Plan 15 test synchronization source b35750bd maps to land 9fa28fad. Planning snapshot commits: 9cb3ed38 and da718fe3. No unrelated production changes.
+
+Exact non-planning tree proof, run inside the landing worktree after the green gate:
+
+```
+git diff --quiet milestone/v1.47 HEAD -- . ':!.planning'
+```
+
+Exit 0. `CHANGELOG.md` is unchanged from origin/main. Candidate changes six non-planning files: runner, three weights files, topology contract and one existing accessibility test. Required workflow job IDs, all three Build and test lanes, both browser project legs, receipt fan-in, timing uploads and watchdog layering are unchanged.
+
+### Exact-head local gate
+
+Command run **inside the landing worktree**: `CI=true DB_HOST=127.0.0.1 DB_PORT=<discovered ephemeral port> mix ci.all`, followed by `bin/ci-test-partitions --self-test`, `bin/verify-repo-hygiene`, and read-only `bin/verify-branch-protection`. The PostgreSQL 16 container carried label `dev.threadline.plan=247-15` and a dynamically discovered loopback port. The complete command group exited **0** on the tested land head above.
+
+| Gate | Evidence |
+|---|---|
+| format / Credo | clean; 5691 mods/funs, no issues |
+| dependency audit | three lockfiles clean at their configured gates; 11 already non-blocking example-only findings |
+| hygiene | 4563 tracked text files clean; 8 used allowlist entries, 0 inert |
+| compile / xref / no-optional / bench compile | green; no cycles |
+| root suite | 32 properties, 3381 tests, 0 failures, 3 configured exclusions |
+| Phoenix example suite | 132 tests, 0 failures |
+| Dialyzer | 0 errors; passed successfully |
+| live Dialyzer slice | 17 tests, 0 failures, 16 not-in-slice exclusions |
+| desktop + mobile browser gate | 418 passed, 56 configured skips, zero failures (5.5 min) |
+| runner self-test | all original cases plus min/all routing, assignment mutation, ingestion integrity markers green |
+| branch protection | exactly `CI required@15368`, no stacked classic rule |
+
+### Gate corrections before publication
+
+1. The first candidate stopped at hygiene because the authored gap plans embedded a machine-local execution path. Source 9c783673 / land da718fe3 replaced that with portable HOME-based references; hygiene then passed.
+2. The fresh land checkout lacked the existing `.dialyzer` PLT directory. Copied the existing local cache; no dependency or source change. The complete unchanged-head gate was rerun.
+3. That full run passed root/example/Dialyzer but failed one existing desktop accessibility case: 417 browser passes, 56 skips, toast remained visible after keyboard Enter. The browser tree was byte-identical to main. The case passed 20 isolated executions and all 18 desktop accessibility cases, identifying timing sensitivity. A controlled 50 ms animation-frame deferral at modal close plus a 300 ms diagnostic pause before Enter reproduced the same failure with focus on Show Modal. Phoenix's local JS focus/pop-focus implementation reapplies focus in nested animation frames. Source b35750bd adds four lines to the existing test: await modal hidden and its opener focused before moving focus to toast Close. The identical delayed-frame probe passed with the fix, then the normal case passed on both browser projects with retries disabled (2/2). All temporary diagnostics were removed. Independent review approved the sixth-file delta; no new finding. The complete exact-head gate was rerun green on 9fa28fad.
+
+No new retry or relaxed assertion was added. Main numeric thresholds remain 540 seconds and 1.15; this local gate claims neither numeric performance acceptance nor phase completion. Finalized local review/landing receipts remain in the source worktree; the immutable candidate carries its pre-gate planning snapshot.
+
+
+### B3 protected-main landing
+
+B3 squash SHA: 89add23ede29b7840e6cfa29cd70eb3c8ea59ae2
+
+- PR #96: `https://github.com/szTheory/threadline/pull/96`, created and merged under D-01's standing own-green-quality-PR grant. Non-releasable `ci:` squash; no Hex publication.
+- PR CI run 40432374330, **attempt 1** at exact tested head 9fa28fad: all **17 jobs/checks success** (three Build and test lanes, desktop/mobile browser legs, Browser journey receipt and CI required included). Exact-head merge guard used; GitHub rejected no head mismatch.
+- Receipt job 121955196349: `Validated 31 named journeys across desktop-chromium, mobile-chromium.` Both browser-timings artifacts, all three partition-timings families and operator-ci-evidence artifact present and unexpired (14 days).
+- Squash tree proof: after fetch, origin/main equals the B3 squash SHA and `git diff --quiet origin/main 9fa28fad -- . ':!.planning'` exits 0. Landing checkout HEAD remains the tested 9fa28fad.
+- Automatic main push run **40433193088**, created 2026-10-27T01:32:42Z at 89add23e, concluded success on attempt 1 with all 17 jobs green. No additional main run was dispatched before that terminal result.
+
+The GitHub connector performed PR creation and the SHA-guarded squash merge. Canonical CLI reads use explicit attempt-1 endpoints because the connector's jobs wrapper exposes only the latest attempt. This preserves the same exact-head/attempt-1 contract as the documented gh precedent.
+
+Post-merge branch-protection readback: exactly `CI required@15368`, emitted once on main head 89add23e, no stacked classic protection. The planned exact-head, required-context and non-planning squash-tree checks all passed after the main push run. Task 2 complete; proceed to serial five-run measurement.
+
+
+### B3 final main measurement chronology
+
+Five qualifying attempt-1 successes, all at 89add23e: 40433193088 (push, 423 s), 40434036118 (dispatch, 471 s), 40434884357 (dispatch, 451 s), 40436597341 (dispatch, 442 s), 40437416932 (dispatch, 444 s). Chronological run 40435657557 failed the unchanged mobile motion-fixture toast case and is excluded; it was not rerun. All six run records have attempt 1, and each new dispatch was created after the preceding run's terminal updated_at. Dispatch stopped at five qualifying successes.
+
+| Main run | Successful jobs | Receipt job | Named journeys |
+|---|---:|---|---:|
+| 40433193088 | 17/17 | 121957702849 | 31 |
+| 40434036118 | 17/17 | 121960622423 | 31 |
+| 40434884357 | 17/17 | 121963299391 | 31 |
+| 40436597341 | 17/17 | 121968849454 | 31 |
+| 40437416932 | 17/17 | 121971494579 | 31 |
+
+All five runs have the two browser-timings artifacts, three lane-scoped partition-timings artifacts and receipt artifact present and unexpired. Median wall **444 s, CI-02 PASS**; fixed first-three lane ratios yield **CI-03 MISS** (seven of nine above 1.15). Full values, per-partition diagnosis and exclusion details are in 247-MEASUREMENT.md and the captured canonical JSON. No numeric limit was changed; phase 247 remains open.

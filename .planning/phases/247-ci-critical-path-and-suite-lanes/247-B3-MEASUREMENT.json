@@ -1,0 +1,526 @@
+{
+  "schema": "threadline.main-ci-measurement/1",
+  "since": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+  "count": 5,
+  "state": "measured",
+  "found": 5,
+  "runs": [
+    {
+      "id": 40433193088,
+      "event": "push",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "wall_s": 423,
+      "jobs": [
+        {
+          "id": 121955576650,
+          "name": "Dependency audit (Mix lockfiles)",
+          "seconds": 36
+        },
+        {
+          "id": 121955576850,
+          "name": "Hex package install (rehearsal registry)",
+          "seconds": 74
+        },
+        {
+          "id": 121955576871,
+          "name": "Compile without optional deps",
+          "seconds": 59
+        },
+        {
+          "id": 121955576880,
+          "name": "Repo hygiene (no machine-local paths)",
+          "seconds": 9
+        },
+        {
+          "id": 121955576898,
+          "name": "Tests through PgBouncer (transaction mode)",
+          "seconds": 79
+        },
+        {
+          "id": 121955576913,
+          "name": "Dialyzer (full optional build)",
+          "seconds": 166
+        },
+        {
+          "id": 121955576940,
+          "name": "Build and test (latest)",
+          "seconds": 191
+        },
+        {
+          "id": 121955576951,
+          "name": "Example app browser E2E (mobile-chromium)",
+          "seconds": 368
+        },
+        {
+          "id": 121955576961,
+          "name": "CHANGELOG matches version",
+          "seconds": 6
+        },
+        {
+          "id": 121955576962,
+          "name": "Build and test (current)",
+          "seconds": 411
+        },
+        {
+          "id": 121955576982,
+          "name": "Credo (strict)",
+          "seconds": 74
+        },
+        {
+          "id": 121955576993,
+          "name": "Next-minor release rehearsal (docs + contracts)",
+          "seconds": 173
+        },
+        {
+          "id": 121955577027,
+          "name": "Example app browser E2E (desktop-chromium)",
+          "seconds": 395
+        },
+        {
+          "id": 121955577038,
+          "name": "Build and test (min)",
+          "seconds": 251
+        },
+        {
+          "id": 121955577048,
+          "name": "Formatting",
+          "seconds": 21
+        },
+        {
+          "id": 121957702849,
+          "name": "Browser journey receipt",
+          "seconds": 18
+        },
+        {
+          "id": 121957810129,
+          "name": "CI required",
+          "seconds": 3
+        }
+      ],
+      "slowest_job": {
+        "name": "Build and test (current)",
+        "seconds": 411
+      }
+    },
+    {
+      "id": 40434036118,
+      "event": "workflow_dispatch",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "wall_s": 471,
+      "jobs": [
+        {
+          "id": 121958329957,
+          "name": "Repo hygiene (no machine-local paths)",
+          "seconds": 9
+        },
+        {
+          "id": 121958330127,
+          "name": "Credo (strict)",
+          "seconds": 70
+        },
+        {
+          "id": 121958330171,
+          "name": "Formatting",
+          "seconds": 22
+        },
+        {
+          "id": 121958330185,
+          "name": "Compile without optional deps",
+          "seconds": 84
+        },
+        {
+          "id": 121958330220,
+          "name": "Hex package install (rehearsal registry)",
+          "seconds": 67
+        },
+        {
+          "id": 121958330235,
+          "name": "Build and test (min)",
+          "seconds": 264
+        },
+        {
+          "id": 121958330261,
+          "name": "Dependency audit (Mix lockfiles)",
+          "seconds": 40
+        },
+        {
+          "id": 121958330270,
+          "name": "CHANGELOG matches version",
+          "seconds": 7
+        },
+        {
+          "id": 121958330276,
+          "name": "Tests through PgBouncer (transaction mode)",
+          "seconds": 100
+        },
+        {
+          "id": 121958330278,
+          "name": "Dialyzer (full optional build)",
+          "seconds": 143
+        },
+        {
+          "id": 121958330285,
+          "name": "Build and test (latest)",
+          "seconds": 263
+        },
+        {
+          "id": 121958330295,
+          "name": "Example app browser E2E (desktop-chromium)",
+          "seconds": 414
+        },
+        {
+          "id": 121958330375,
+          "name": "Build and test (current)",
+          "seconds": 438
+        },
+        {
+          "id": 121958330384,
+          "name": "Next-minor release rehearsal (docs + contracts)",
+          "seconds": 179
+        },
+        {
+          "id": 121958330388,
+          "name": "Example app browser E2E (mobile-chromium)",
+          "seconds": 426
+        },
+        {
+          "id": 121960622423,
+          "name": "Browser journey receipt",
+          "seconds": 19
+        },
+        {
+          "id": 121960763966,
+          "name": "CI required",
+          "seconds": 4
+        }
+      ],
+      "slowest_job": {
+        "name": "Build and test (current)",
+        "seconds": 438
+      }
+    },
+    {
+      "id": 40434884357,
+      "event": "workflow_dispatch",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "wall_s": 451,
+      "jobs": [
+        {
+          "id": 121961087714,
+          "name": "Compile without optional deps",
+          "seconds": 76
+        },
+        {
+          "id": 121961087970,
+          "name": "Formatting",
+          "seconds": 18
+        },
+        {
+          "id": 121961088010,
+          "name": "Next-minor release rehearsal (docs + contracts)",
+          "seconds": 173
+        },
+        {
+          "id": 121961088029,
+          "name": "Example app browser E2E (mobile-chromium)",
+          "seconds": 404
+        },
+        {
+          "id": 121961088039,
+          "name": "Build and test (current)",
+          "seconds": 350
+        },
+        {
+          "id": 121961088056,
+          "name": "CHANGELOG matches version",
+          "seconds": 7
+        },
+        {
+          "id": 121961088084,
+          "name": "Example app browser E2E (desktop-chromium)",
+          "seconds": 424
+        },
+        {
+          "id": 121961088088,
+          "name": "Repo hygiene (no machine-local paths)",
+          "seconds": 8
+        },
+        {
+          "id": 121961088102,
+          "name": "Hex package install (rehearsal registry)",
+          "seconds": 70
+        },
+        {
+          "id": 121961088104,
+          "name": "Build and test (latest)",
+          "seconds": 256
+        },
+        {
+          "id": 121961088111,
+          "name": "Dependency audit (Mix lockfiles)",
+          "seconds": 43
+        },
+        {
+          "id": 121961088124,
+          "name": "Tests through PgBouncer (transaction mode)",
+          "seconds": 72
+        },
+        {
+          "id": 121961088143,
+          "name": "Credo (strict)",
+          "seconds": 81
+        },
+        {
+          "id": 121961088165,
+          "name": "Build and test (min)",
+          "seconds": 247
+        },
+        {
+          "id": 121961088219,
+          "name": "Dialyzer (full optional build)",
+          "seconds": 111
+        },
+        {
+          "id": 121963299391,
+          "name": "Browser journey receipt",
+          "seconds": 16
+        },
+        {
+          "id": 121963393028,
+          "name": "CI required",
+          "seconds": 2
+        }
+      ],
+      "slowest_job": {
+        "name": "Example app browser E2E (desktop-chromium)",
+        "seconds": 424
+      }
+    },
+    {
+      "id": 40436597341,
+      "event": "workflow_dispatch",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "wall_s": 442,
+      "jobs": [
+        {
+          "id": 121966615611,
+          "name": "Repo hygiene (no machine-local paths)",
+          "seconds": 7
+        },
+        {
+          "id": 121966615789,
+          "name": "Hex package install (rehearsal registry)",
+          "seconds": 69
+        },
+        {
+          "id": 121966615792,
+          "name": "CHANGELOG matches version",
+          "seconds": 8
+        },
+        {
+          "id": 121966615806,
+          "name": "Example app browser E2E (mobile-chromium)",
+          "seconds": 292
+        },
+        {
+          "id": 121966615816,
+          "name": "Build and test (latest)",
+          "seconds": 218
+        },
+        {
+          "id": 121966615829,
+          "name": "Credo (strict)",
+          "seconds": 82
+        },
+        {
+          "id": 121966615856,
+          "name": "Next-minor release rehearsal (docs + contracts)",
+          "seconds": 131
+        },
+        {
+          "id": 121966615863,
+          "name": "Formatting",
+          "seconds": 23
+        },
+        {
+          "id": 121966615869,
+          "name": "Dependency audit (Mix lockfiles)",
+          "seconds": 30
+        },
+        {
+          "id": 121966615870,
+          "name": "Dialyzer (full optional build)",
+          "seconds": 123
+        },
+        {
+          "id": 121966615880,
+          "name": "Example app browser E2E (desktop-chromium)",
+          "seconds": 414
+        },
+        {
+          "id": 121966615889,
+          "name": "Tests through PgBouncer (transaction mode)",
+          "seconds": 79
+        },
+        {
+          "id": 121966615897,
+          "name": "Compile without optional deps",
+          "seconds": 96
+        },
+        {
+          "id": 121966615967,
+          "name": "Build and test (current)",
+          "seconds": 311
+        },
+        {
+          "id": 121966616124,
+          "name": "Build and test (min)",
+          "seconds": 259
+        },
+        {
+          "id": 121968849454,
+          "name": "Browser journey receipt",
+          "seconds": 15
+        },
+        {
+          "id": 121968935833,
+          "name": "CI required",
+          "seconds": 4
+        }
+      ],
+      "slowest_job": {
+        "name": "Example app browser E2E (desktop-chromium)",
+        "seconds": 414
+      }
+    },
+    {
+      "id": 40437416932,
+      "event": "workflow_dispatch",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "wall_s": 444,
+      "jobs": [
+        {
+          "id": 121969312833,
+          "name": "Dependency audit (Mix lockfiles)",
+          "seconds": 39
+        },
+        {
+          "id": 121969313071,
+          "name": "Repo hygiene (no machine-local paths)",
+          "seconds": 7
+        },
+        {
+          "id": 121969313096,
+          "name": "Formatting",
+          "seconds": 18
+        },
+        {
+          "id": 121969313108,
+          "name": "Compile without optional deps",
+          "seconds": 96
+        },
+        {
+          "id": 121969313111,
+          "name": "CHANGELOG matches version",
+          "seconds": 6
+        },
+        {
+          "id": 121969313116,
+          "name": "Credo (strict)",
+          "seconds": 68
+        },
+        {
+          "id": 121969313125,
+          "name": "Dialyzer (full optional build)",
+          "seconds": 166
+        },
+        {
+          "id": 121969313143,
+          "name": "Example app browser E2E (desktop-chromium)",
+          "seconds": 361
+        },
+        {
+          "id": 121969313148,
+          "name": "Build and test (min)",
+          "seconds": 263
+        },
+        {
+          "id": 121969313170,
+          "name": "Next-minor release rehearsal (docs + contracts)",
+          "seconds": 174
+        },
+        {
+          "id": 121969313192,
+          "name": "Hex package install (rehearsal registry)",
+          "seconds": 66
+        },
+        {
+          "id": 121969313211,
+          "name": "Build and test (current)",
+          "seconds": 371
+        },
+        {
+          "id": 121969313217,
+          "name": "Example app browser E2E (mobile-chromium)",
+          "seconds": 412
+        },
+        {
+          "id": 121969313252,
+          "name": "Tests through PgBouncer (transaction mode)",
+          "seconds": 84
+        },
+        {
+          "id": 121969313282,
+          "name": "Build and test (latest)",
+          "seconds": 199
+        },
+        {
+          "id": 121971494579,
+          "name": "Browser journey receipt",
+          "seconds": 19
+        },
+        {
+          "id": 121971597761,
+          "name": "CI required",
+          "seconds": 5
+        }
+      ],
+      "slowest_job": {
+        "name": "Example app browser E2E (mobile-chromium)",
+        "seconds": 412
+      }
+    }
+  ],
+  "median_wall_s": 444,
+  "excluded": [
+    {
+      "id": 40435657557,
+      "event": "workflow_dispatch",
+      "head_sha": "89add23ede29b7840e6cfa29cd70eb3c8ea59ae2",
+      "reason": "failure"
+    }
+  ],
+  "ratios": {
+    "latest": [
+      1.36,
+      1.3,
+      1.3,
+      1.26,
+      1.38
+    ],
+    "current": [
+      1.13,
+      1.24,
+      1.15,
+      1.19,
+      1.19
+    ],
+    "min": [
+      1.36,
+      1.35,
+      1.28,
+      1.37,
+      1.33
+    ]
+  }
+}

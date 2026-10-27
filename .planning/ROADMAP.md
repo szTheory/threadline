@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 15 plans (14 executed; landing and measurement gap plan pending)
+**Plans**: 19 plans (17 executed; 2 gap-closure plans pending; reverified 3/4, CI-03 remains open)
 
 Plans:
 **Wave 1**
@@ -196,7 +196,17 @@ Plans:
 - [x] 247-14-PLAN.md — D-11 per-lane weights from three main-run artifacts each; strict min/latest/current routing, inventory and adversarial controls
 
 **Wave 11 — CI-03 main measurement** *(blocked on Wave 10 completion)*
-- [ ] 247-15-PLAN.md — Land the green correction under the standing grant; remeasure five main walls and three consecutive ratios per lane without relaxing either gate
+- [x] 247-15-PLAN.md — Land the green correction under the standing grant; remeasure five main walls and three consecutive ratios per lane without relaxing either gate
+
+**Wave 12 — measured model correction and browser-fixture synchronization** *(blocked on Wave 11 completion; independent plans)*
+- [x] 247-16-PLAN.md — Correct long-async duration undercount in four-way assignment; refresh each lane from the fixed B3 timing artifacts and prove exact local coverage
+- [x] 247-17-PLAN.md — Synchronize the already-diagnosed motion-fixture modal/toast focus race; retain the failed B3 attempt as an explicit exclusion
+
+**Wave 13 — exact-head landing** *(blocked on Wave 12 completion)*
+- [ ] 247-18-PLAN.md — Land the reviewed combined CI-only candidate; bind recorded PR number, tested head and squash SHA to live GitHub and protected main
+
+**Wave 14 — bounded main measurement** *(blocked on Wave 13 completion)*
+- [ ] 247-19-PLAN.md — Collect first-three ratios per lane and five attempt-1 walls, then machine-reconcile both reports and fixed numeric verdicts with the persisted live JSON
 
 ## Progress
 
@@ -207,12 +217,12 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 14/15 | In Progress | - |
+| 247. CI critical path and suite lanes | 15/19 | Gaps Found | - |
 
 ## Current Position
 
-v1.47 Release on autopilot is active; the roadmap is defined (Phases 244–247, 14/14 requirements mapped) and Phase 244 Release flow is next, not started. The latest published package is Hex 1.1.0. v1.46 is a completed planning milestone and local Git tag.
+v1.47 Release on autopilot is active. Phases 244–246 are complete; Phase 247 remains verified 3/4 with CI-03 unmet. Plans 01–15 are executed; independently checked gap plans 16–19 are ready in waves 12–14. The latest published package is Hex 1.1.0. v1.46 is a completed planning milestone and local Git tag.
 
 ## Next
 
-Run `/gsd-discuss-phase 244` (Release flow), then `/gsd-plan-phase 244`. Before closing v1.47, read .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md; the next rung is v1.48 Safe by default.
+Run `$gsd-execute-phase 247 --gaps-only` from the quality-baseline worktree. Keep the 1.15 and 540-second acceptance gates unchanged. Before closing v1.47, read .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md; the next rung is v1.48 Safe by default.
