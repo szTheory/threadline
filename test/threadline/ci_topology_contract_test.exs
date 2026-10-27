@@ -128,6 +128,68 @@ defmodule Threadline.CiTopologyContractTest do
            )
   end
 
+  defp long_async_assignment(script) do
+    [_, function] = Regex.run(~r/^(assign_files\(\) \{\n.*?^\})/ms, script)
+
+    dir =
+      Path.join(System.tmp_dir!(), "threadline-async-floor-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(Path.join(dir, "test"))
+
+    try do
+      for name <- ["long", "short"] do
+        File.write!(Path.join(dir, "test/#{name}_test.exs"), "  use ExUnit.Case, async: true\n")
+      end
+
+      File.write!(Path.join(dir, "test/sync_test.exs"), "  use ExUnit.Case\n")
+
+      File.write!(
+        Path.join(dir, "weights"),
+        "80000 test/long_test.exs\n40000 test/short_test.exs\n40000 test/sync_test.exs\n"
+      )
+
+      File.write!(
+        Path.join(dir, "files"),
+        "test/long_test.exs\ntest/short_test.exs\ntest/sync_test.exs\n"
+      )
+
+      {output, 0} =
+        System.cmd(
+          "/bin/bash",
+          [
+            "-c",
+            "set -euo pipefail\nASYNC_FACTOR_PERMILLE=292\n" <>
+              function <> "\nassign_files 2 weights files /dev/null"
+          ],
+          cd: dir
+        )
+
+      output
+      |> String.split("\n", trim: true)
+      |> Map.new(fn row ->
+        [bin, path, weight] = String.split(row, "\t")
+        {path, {bin, weight}}
+      end)
+    after
+      File.rm_rf!(dir)
+    end
+  end
+
+  test "long async duration floors affect actual assignment and the discounted output stays stable" do
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    expected = %{
+      "test/long_test.exs" => {"1", "23360"},
+      "test/short_test.exs" => {"2", "11680"},
+      "test/sync_test.exs" => {"2", "40000"}
+    }
+
+    assert long_async_assignment(script) == expected
+    mutant = String.replace(script, "return sync + max_async", "return sync + discounted")
+    refute mutant == script
+    refute long_async_assignment(mutant) == expected
+  end
+
   defp scoped_test_files! do
     Enum.reject(enumerated_test_files!(), fn path ->
       Regex.match?(~r/^\s*@moduletag :repo_contract\s*$/m, File.read!(path))

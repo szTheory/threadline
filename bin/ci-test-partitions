@@ -1512,24 +1512,25 @@ run_self_test() {
   verify_assignment 3 "$coloc_dir/enumerated.txt" "$coloc_assign" ||
     die "self-test: a colocation group must keep every file assigned exactly once"
 
-  # (x) the async factor arithmetic: at 250 permille the sandbox assignment
-  # is exactly the old guessed 1/4 result, and at the fitted constant the
-  # async file weighs ASYNC_FACTOR_PERMILLE thousandths of its measured time
-  local factor_assign="$coloc_dir/factor.tsv" factor_expected
-  factor_expected="$(printf '%s\t%s\t%s\n' \
-    1 test/a/heavy1_test.exs 50000 \
-    2 test/a/heavy2_test.exs 40000 \
-    3 test/b/unweighted_test.exs 35000 \
-    3 test/b/heavy3_test.exs 30000 \
-    2 test/b/async_test.exs 10000 \
-    1 test/b/light2_test.exs 2000 \
-    2 test/a/light1_test.exs 1000)"
-  (cd "$proj" && ASYNC_FACTOR_PERMILLE=250 assign_files 3 test/partition_weights.txt "$coloc_dir/enumerated.txt" /dev/null) >"$factor_assign"
-  [ "$(cat "$factor_assign")" = "$factor_expected" ] ||
-    die "self-test: ASYNC_FACTOR_PERMILLE=250 must reproduce the old 1/4 assignment, got: $(cat "$factor_assign")"
+  # (x) Discounted output weights stay stable, but a long async module
+  # must contribute its raw duration floor to the bin cost.
+  local factor_assign="$coloc_dir/factor.tsv"
   (cd "$proj" && assign_files 3 test/partition_weights.txt "$coloc_dir/enumerated.txt" /dev/null) >"$factor_assign"
   [ "$(awk -F'\t' '$2 == "test/b/async_test.exs" { print $3 }' "$factor_assign")" = "$((40000 * ASYNC_FACTOR_PERMILLE / 1000))" ] ||
-    die "self-test: an async file must weigh ASYNC_FACTOR_PERMILLE/1000 of its measured time, got: $(cat "$factor_assign")"
+    die "self-test: async output weight must retain the fitted discount"
+  local floor_dir="$self_test_dir/async-floor"
+  mkdir -p "$floor_dir/test"
+  printf '  use ExUnit.Case, async: true\n' >"$floor_dir/test/long_test.exs"
+  cp "$floor_dir/test/long_test.exs" "$floor_dir/test/short_test.exs"
+  printf '  use ExUnit.Case\n' >"$floor_dir/test/sync_test.exs"
+  printf '80000 test/long_test.exs\n40000 test/short_test.exs\n40000 test/sync_test.exs\n' >"$floor_dir/weights"
+  printf 'test/long_test.exs\ntest/short_test.exs\ntest/sync_test.exs\n' >"$floor_dir/files"
+  (cd "$floor_dir" && assign_files 2 weights files /dev/null) >"$floor_dir/assignment"
+  verify_assignment 2 "$floor_dir/files" "$floor_dir/assignment" || die "self-test: async floor inventory"
+  [ "$(awk -F'\t' '$2 == "test/long_test.exs" { print $1 ":" $3 }' "$floor_dir/assignment")" = "1:23360" ] &&
+    [ "$(awk -F'\t' '$2 != "test/long_test.exs" { print $1 }' "$floor_dir/assignment" | sort -u)" = 2 ] ||
+    die "self-test: long async raw-duration floor must spread work"
+  printf 'async-duration-floor: ok\n'
 
   # (n) a partition assigned no files (8 partitions, 7 files) never invokes
   # mix, exits 0 on its own, and does not mask a failing sibling
