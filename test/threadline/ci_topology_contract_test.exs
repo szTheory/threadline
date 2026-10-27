@@ -128,6 +128,42 @@ defmodule Threadline.CiTopologyContractTest do
            )
   end
 
+  defp scoped_test_files! do
+    Enum.reject(enumerated_test_files!(), fn path ->
+      Regex.match?(~r/^\s*@moduletag :repo_contract\s*$/m, File.read!(path))
+    end)
+  end
+
+  defp lane_route_errors(script, lane, expected) do
+    # Read only the production selector; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_weights\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    needle = "#{lane}) printf '%s\\n' '#{expected}' ;;"
+    if String.contains?(body, needle), do: [], else: ["wrong weights for lane #{lane}"]
+  end
+
+  test "min weights cover the exact scoped inventory and the runner selects them" do
+    inventory = scoped_test_files!()
+    weights = read_rel!(["test", "partition_weights_min.txt"])
+    assert partition_weight_inventory_errors(inventory, weights) == []
+    script = read_rel!(["bin", "ci-test-partitions"])
+    path = "test/partition_weights_min.txt"
+    assert lane_route_errors(script, "min", path) == []
+
+    mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '#{path}' ;;",
+        "min) printf '%s\\n' 'test/partition_weights.txt' ;;"
+      )
+
+    assert lane_route_errors(mutant, "min", path) == ["wrong weights for lane min"]
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
