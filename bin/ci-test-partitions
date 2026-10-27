@@ -383,7 +383,9 @@ assign_files() {
           ga[key] += $3
           if ($3 > gm[key]) gm[key] = $3
         } else gs[key] += $3
-        gw[key] = cost(gs[key], ga[key], gm[key])
+        # GNU awk 5.2 can retain an unset array element as an array-typed
+        # argument across calls. Pass numeric values, including empty sums.
+        gw[key] = cost(gs[key] + 0, ga[key] + 0, gm[key] + 0)
         members[key] = members[key] f "\n"
         weight[f] = eff
       }
@@ -401,7 +403,7 @@ assign_files() {
           key = keys[i]; best = 0
           for (b = 1; b <= n; b++) {
             longest = (bm[b] > gm[key]) ? bm[b] : gm[key]
-            candidate = cost(bs[b] + gs[key], ba[b] + ga[key], longest)
+            candidate = cost(bs[b] + gs[key], ba[b] + ga[key], longest + 0)
             if (best == 0 || candidate < best_cost || (candidate == best_cost && load[b] < load[best])) {
               best = b; best_cost = candidate
             }
