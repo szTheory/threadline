@@ -164,6 +164,25 @@ defmodule Threadline.CiTopologyContractTest do
     assert lane_route_errors(mutant, "min", path) == ["wrong weights for lane min"]
   end
 
+  test "latest weights cover the scoped inventory and all lane routes stay explicit" do
+    weights = read_rel!(["test", "partition_weights_latest.txt"])
+    assert partition_weight_inventory_errors(scoped_test_files!(), weights) == []
+    script = read_rel!(["bin", "ci-test-partitions"])
+    path = "test/partition_weights_latest.txt"
+    assert lane_route_errors(script, "latest", path) == []
+
+    mutant =
+      String.replace(
+        script,
+        "latest) printf '%s\\n' '#{path}' ;;",
+        "latest) printf '%s\\n' 'test/partition_weights_min.txt' ;;"
+      )
+
+    assert lane_route_errors(mutant, "latest", path) == ["wrong weights for lane latest"]
+    assert script =~ "''|current) printf '%s\\n' \"$WEIGHTS_REL\" ;;"
+    assert script =~ "*) die \"unknown THREADLINE_CI_LANE: $1\" ;;"
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
