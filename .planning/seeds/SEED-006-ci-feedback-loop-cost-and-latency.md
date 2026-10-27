@@ -15,8 +15,8 @@ reopen_when: >-
   snapshot run through `python3
   .planning/phases/222-seed-006-change-aware-lanes-conditional/tools/inert-share.py
   --last 20`, or a new required lane moves the ci.yml critical path past the
-  247 measured median 468 s (runs 40413601357, 40414924903, 40416330436,
-  40417290637, 40418204130; critical path Build and test (current))
+  247 B3 measured median 444 s (runs 40433193088, 40434036118, 40434884357,
+  40436597341, 40437416932; critical path browser legs / Build and test (current))
 audit_acknowledged:
   milestone: v1.41
   at: 2026-09-25
@@ -88,3 +88,5 @@ job described above stay unbuilt.
 The nested `audit_acknowledged` block above is the historical v1.41 audit record
 (status `dormant` at that time) and is left unchanged; it intentionally differs
 from this seed's current top-level `status: closed`.
+
+Latest observed baseline: B3 median 444 s over five qualifying successful attempt-1 main runs; one failed motion-fixture run is explicitly excluded in the phase measurement. The 540-second acceptance threshold and CI-03 MISS are unchanged; see `.planning/phases/247-ci-critical-path-and-suite-lanes/247-MEASUREMENT.md`.

@@ -4,12 +4,15 @@ slug: "ci-critical-path-and-suite-lanes"
 status: verified
 threats_open: 0
 asvs_level: 1
+register_authored_at_plan_time: true
+threats_total: 35
+threats_closed: 35
 created: "2026-10-26"
 ---
 
 # Phase 247 — Security
 
-Verified by the security auditor against the plan-authored register, actual implementation, landing tree proofs, successful PR runs and read-only branch-protection inspection. Blocking threshold: high. All 29 distinct threat IDs are closed. CI-03 remains an unmet performance acceptance gate.
+The initial register was verified by the security auditor; the six gap-plan additions were rechecked inline under the workflow’s ASVS L1 short circuit against actual implementation, tests, landing proofs and live receipts. Blocking threshold: high. All 35 distinct threat IDs are closed after the gap-execution L1 verification. CI-03 remains an unmet performance acceptance gate.
 
 ## Trust Boundaries
 
@@ -54,13 +57,24 @@ Verified by the security auditor against the plan-authored register, actual impl
 | T-247-25 | Tampering | B2 on main / required gate integrity | high | mitigate | Milestone ci.all + tree proof + PR run green on both legs, the receipt and `CI required`; `bin/verify-branch-protection` read-only after merge confirms the single required context Source: 247-13-PLAN.md | closed |
 | T-247-26 | Repudiation | measurement honesty | medium | mitigate | Attempt-1 endpoint only; cancelled/failed runs listed as excluded; thresholds fixed; miss path documented; read-only script with fake-gh contract (247-03) Source: 247-13-PLAN.md | closed |
 
-## Verification Evidence
+| T-247-29 | Tampering | `--ingest-weights` artifact input | medium | mitigate | API provenance for three B2 main attempt-1 successes; validate_lane_timings checks three distinct complete four-partition runs and exact inventories; both Bash corruption/interruption self-tests green; 206/206/269 committed rows. | closed |
+| T-247-30 | Tampering | `--output` and lane selection | medium | mitigate | lane_weights accepts only unset/current/min/latest; strict output matches the three allowed paths; missing/unknown routes fail before compile; fake-mix assignment equality and current-for-latest mutation verified. | closed |
+| T-247-31 | Denial of service | assignment balance and watchdog | medium | mitigate | N=4, colocation, verify_assignment, 480 s watchdog and warning-only ratio remain; original hang/failure self-tests green and first three main runs pass all Build and test jobs. Numeric CI-03 MISS remains separate from DoS mitigation. | closed |
+| T-247-32 | Tampering | candidate and required CI topology | high | mitigate | Exact land9fa28fad ci.all exit0, PR96 run40432374330 17/17 green, expected-head guarded squash89add23e, non-planning tree equality and post-merge sole CI required@15368 readback. | closed |
+| T-247-33 | Repudiation | ratio/median measurement | medium | mitigate | Captured canonical attempt-1 JSON has five first qualifying successes, failed40435657557 exclusion and fixed nine ratios; Plan15 live evidence gate confirms PASS/met for CI-02 and MISS/unmet for CI-03 in both evidence files. | closed |
+| T-247-34 | Denial of service | repeated dispatch | low | mitigate | Six chronological distinct runs were serial, each dispatched after its predecessor completed; five successes plus one explicit failure, every run_attempt1. No workflow/job rerun; dispatch stopped at five qualifying successes. | closed |
+
+## Historical verification evidence before gap execution
 
 - Fresh validation: 212 ExUnit contracts and 39 Node tests passed; partition watchdog self-tests passed on Bash 5 and Bash 3.2 with process inspection available.
 - A1 PR run 40354035917; A2 40375604860; B1 40392212575; B2 40412545694: success, with landing tree equality and corrected A2 slice proof documented in 247-LANDING.md.
 - Throwaway hang-shape run 40387548421 failed as designed within the partition budget; remote scratch branch absent.
 - Read-only branch-protection check: CI required@15368 is the sole required context.
 - T-247-21 provisional receipt-permission concern closed by successful live receipt execution without additional permissions.
+
+## Gap execution L1 verification (2026-10-27)
+
+The six additional plan-authored threats were checked against actual source, mutation/self-test results, exact-head local CI and live PR/main receipts above. The register was authored in the plans, every mitigation is found and ASVS level is 1; the workflow therefore permits the no-open-threat short circuit without a deeper auditor dispatch. Existing accepted risks are unchanged. Five qualifying main runs each have 17 successful jobs, receipt31 and all required timing artifacts; one failed attempt is explicitly excluded. CI-03 remains a performance MISS, not an accepted security exception.
 
 ## Accepted Risks Log
 
@@ -83,3 +97,11 @@ Verified by the security auditor against the plan-authored register, actual impl
 - [x] status: verified set.
 
 Security verification does not complete phase 247: CI-03 is still MISS.
+
+## Security Audit 2026-10-27
+
+| Metric | Count |
+|---|---|
+| Threats found | 35 |
+| Closed | 35 |
+| Open | 0 |

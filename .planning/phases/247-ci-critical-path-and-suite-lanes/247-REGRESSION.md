@@ -31,3 +31,10 @@ Log: `/tmp/threadline-247-regression.log`; SHA-256 `2c55e7711cd8c3d3a899bfd32450
 - `test/threadline/verify_action_pins_test.exs`
 
 This regression result does not satisfy the separate CI-03 numeric acceptance gate.
+
+
+## Gap execution regression gate (2026-10-27)
+
+Fresh discovery from phases 244–246 VERIFICATION and SUMMARY test references found 33 surviving test files (the earlier 19-file gate above remains historical evidence). Ran all 33 with the actual Elixir entrypoint `mix test <files...>` under the GSD `run-with-timeout 600` wrapper, using an ephemeral PostgreSQL 16 container labelled `dev.threadline.plan=247-verify` and its discovered loopback port. Result: **1 property, 785 tests, 0 failures, 1 configured exclusion; exit 0**, 83.2 seconds. No watch process or timeout. The generic language sniff has no Elixir arm, so the real mix.exs project command was supplied explicitly instead of its fallback no-op.
+
+The fresh list is persisted in the GSD regression-files handoff and was built from actual existing paths; the scoped run includes capture, public surface, fixture, packaging and CI-contract checks. The five files implementing lane weights and the browser synchronization change are additionally covered by Plan 14 and the exact-head Plan 15 full CI gate.

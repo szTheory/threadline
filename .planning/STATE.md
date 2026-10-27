@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Plan 247-14 verified and summarized; Plan 247-15 landing and main measurement next
-last_updated: "2026-10-27T00:33:42.033Z"
-last_activity: 2026-10-26
-last_activity_desc: Plan 247-14 verified; Plan 247-15 exact-head landing and main measurement next
-state_head: f5135723b363e4c5d77a7ec8a9e07cccd22ebfc2
+stopped_at: Phase 247 Wave 12 complete; Plan 18 exact-head landing next
+last_updated: "2026-10-27T03:29:38.550985+00:00"
+last_activity: 2026-10-27
+last_activity_desc: Plans 16-17 verified; assignment and motion fixture ready for exact-head landing
+state_head: b1be56d2bdb221107bcf66b98a2e15c4ac8b9417
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 40
-  completed_plans: 39
+  total_plans: 44
+  completed_plans: 42
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,12 +30,14 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 15 next; 14 of 15 plans executed
+Plan: 17/19 executed; 18 exact-head landing next, then 19 bounded main measurement
 Status: Executing Phase 247
-Last activity: 2026-10-26 — Plan 247-14 verified; 44 focused contracts, both Bash self-tests and full/scoped partitioned suites passed; Plan 15 next
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 39/40 milestone plans executed (Phase 247 14/15; main measurement pending)
+Last activity: 2026-10-27 — Wave 12 complete; full/scoped suites, both Bash self-tests, focused/full two-project motion tests and independent reviews passed.
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 42/44 milestone plans executed (Phase 247 17/19; numeric CI-03 gap remains open)
 
-Verification: `247-VERIFICATION.md` records the CI-03 gap; `247-VALIDATION.md` records existing coverage and planned gap checks; `247-REGRESSION.md` records 554/0 prior-phase tests. Security threats_open=0 for executed work; gap-plan threats T-247-29–34 require implementation verification. UI audit N/A. Review WR-01 remains deferred in `247-REVIEW-DISPOSITION.md`. Phase 247 requirement markers stay reset pending re-verification; CI-01/02/04 retain passing evidence. Plan 247-14 implements measured per-lane weights; local ratios remain above 1.15. No numeric CI-03 pass claimed; Plan 15 will measure main.
+Verification: 247-VERIFICATION.md records the remaining assignment-model gap; 247-MEASUREMENT.md and captured canonical JSON retain all run IDs, nine ratios, selected weight files and the excluded failure. Previously executed security is 35/35 closed, threats_open=0; new plan threats await execution verification. Validation maps include all pending gap checks; UI audit remains N/A; fresh prior-phase regression passed 785 tests and one property. Existing review WR-01 remains deferred; Plan 17 resolved the motion-fixture focus race with state assertions and 24/24 browser proof; historical failed run remains excluded. Requirement markers remain reset while the phase is incomplete. No human UAT or publication is pending.
+
+Next: `$gsd-execute-phase 247 --gaps-only`.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
