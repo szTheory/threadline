@@ -8,3 +8,6 @@
 # tmp_<hash> directory in the checkout root).
 test/threadline/clean_checkout_contract_test.exs test/threadline/planning_independence_contract_test.exs test/threadline/release_artifact_contract_test.exs
 test/threadline/upgrade_backfill_test.exs test/threadline/health/legacy_key_findings_test.exs
+# Local export storage is one checkout directory shared by all partition VMs.
+# Keep its root cleanup and every filesystem producer on the same serial lane.
+test/threadline/storage/local_test.exs test/threadline/export/orchestrator_test.exs test/threadline/export/cleanup_test.exs test/threadline/operator_surface/controllers/export_controller_test.exs

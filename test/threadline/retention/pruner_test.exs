@@ -6,6 +6,7 @@ defmodule Threadline.Retention.PrunerTest do
   alias Threadline.Retention.Pruner
 
   @lock_key :erlang.phash2("threadline_retention_pruner")
+  @worker_supervisor Threadline.Retention.PrunerTest.WorkerSupervisor
 
   setup do
     # The pruner is a singleton (named __MODULE__). A pruner left running by a
@@ -14,6 +15,7 @@ defmodule Threadline.Retention.PrunerTest do
     stop_named_process!(Pruner)
 
     prev = Application.get_env(:threadline, :retention)
+    start_supervised!({Task.Supervisor, name: @worker_supervisor})
 
     on_exit(fn ->
       Application.put_env(:threadline, :retention, prev)
@@ -38,7 +40,24 @@ defmodule Threadline.Retention.PrunerTest do
       |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
       |> Keyword.merge(opts)
 
-    start_supervised!({Threadline.Retention.Pruner, opts})
+    interval_ms = Keyword.get(opts, :interval_ms, :timer.hours(24))
+    startup_opts = Keyword.put(opts, :interval_ms, :timer.hours(24))
+    pruner = start_supervised!({Threadline.Retention.Pruner, startup_opts})
+
+    :sys.replace_state(pruner, fn state ->
+      # Match Task.start's unlinked caller contract while giving ExUnit ownership
+      # of workers that may still be purging when this test ends.
+      %{
+        state
+        | interval_ms: interval_ms,
+          task_start: &Task.Supervisor.start_child(@worker_supervisor, &1)
+      }
+    end)
+
+    # Arm short scheduled-prune tests only after worker ownership is installed.
+    if interval_ms != :timer.hours(24), do: Process.send_after(pruner, :run_purge, interval_ms)
+
+    pruner
   end
 
   test "application-owned startup marks running RetentionRuns older than 24h as failed" do
@@ -112,12 +131,19 @@ defmodule Threadline.Retention.PrunerTest do
       message: "the accepted RetentionRun should reach a terminal state"
     )
 
-    assert :ok = Pruner.trigger()
+    with_advisory_lock_held(Repo, @lock_key, fn ->
+      assert :ok = Pruner.trigger()
 
-    assert_eventually(
-      fn -> length(Repo.all(RetentionRun, repo_opts())) == 2 end,
-      message: "a deliberate request after terminal state should create a new run"
-    )
+      assert_eventually(
+        fn -> length(Repo.all(RetentionRun, repo_opts())) == 2 end,
+        message: "a deliberate request after terminal state should create a new run"
+      )
+
+      assert_eventually(
+        fn -> Task.Supervisor.children(@worker_supervisor) != [] end,
+        message: "the accepted worker must belong to the test supervisor"
+      )
+    end)
   end
 
   test "worker startup failure marks the accepted run failed and permits a later request" do

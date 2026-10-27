@@ -1,4 +1,14 @@
+startup_trace = fn phase ->
+  if System.get_env("THREADLINE_STARTUP_TRACE") == "1" do
+    {vm_ms, _} = :erlang.statistics(:wall_clock)
+    partition = System.get_env("MIX_TEST_PARTITION", "none")
+    IO.puts("STARTUP_TRACE partition=#{partition} phase=#{phase} vm_ms=#{vm_ms}")
+  end
+end
+
+startup_trace.("helper_start")
 ExUnit.start()
+startup_trace.("exunit_ready")
 
 # PROP-08 (D-08): read the scale knob once, right after ExUnit.start(), so an
 # invalid THREADLINE_PROPERTY_SCALE raises and aborts the run before any test
@@ -60,7 +70,9 @@ unless topology_pooler? do
   end
 end
 
+startup_trace.("database_ready")
 {:ok, _} = repo.start_link()
+startup_trace.("repo_started")
 
 # Any identifier PostgreSQL truncates (NOTICE 42622) fails the suite. Attached
 # before migrations so their DDL is observed too.
@@ -86,7 +98,9 @@ unless topology_pooler? do
     """
   end
 
+  startup_trace.("database_checks_done")
   Ecto.Migrator.run(repo, :up, all: true)
+  startup_trace.("migrations_done")
 
   # The :threadline application booted before this helper started the repo and
   # migrated. Its export cleanup task reconciles as soon as the repo is up, so on
@@ -96,7 +110,9 @@ unless topology_pooler? do
   # supervisor down with it. Restart the application so every child boots
   # against the migrated schema.
   :ok = Application.stop(:threadline)
+  startup_trace.("application_stopped")
   {:ok, _} = Application.ensure_all_started(:threadline)
+  startup_trace.("application_restarted")
 
   # Stale-database tripwire (Phase 198, D-03). A test database created before
   # priv/repo/migrations/20260607000000_threadline_storage_schema_default.exs still
@@ -137,3 +153,5 @@ unless topology_pooler? do
     """
   end
 end
+
+startup_trace.("helper_done")
