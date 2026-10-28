@@ -14,6 +14,10 @@ defmodule Threadline.Retention.PrunerTest do
     # delete_all, so stop it deterministically before we begin.
     stop_named_process!(Pruner)
 
+    # on_exit runs after ExUnit has stopped the test-owned Pruner and its workers,
+    # so a killed worker's queued or running run cannot outlive the test.
+    on_exit(fn -> Repo.delete_all(RetentionRun, repo_opts()) end)
+
     prev = Application.get_env(:threadline, :retention)
     start_supervised!({Task.Supervisor, name: @worker_supervisor})
 
