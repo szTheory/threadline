@@ -61,13 +61,15 @@
 # overhead_mean_ms=` line, and to a `Tail queue (K=<k>)` table in the report.
 # The exactly-once check covers static plus queued files before anything
 # runs, and after the run every queued file must have been claimed by
-# exactly one partition (otherwise the run fails with the difference). One
-# watchdog budget spans all of a partition's invocations: the watchdog ages
-# partitions from their fork, each invocation gets the remaining in-VM
-# deadline, beam.pid names the current BEAM, a stopped partition claims
-# no more, and no claim starts with less than TAIL_CLAIM_MIN_MS of the
-# deadline left (the unclaimed rest then fails the exactly-once check). Any failing invocation fails its partition, which keeps claiming
-# so every file still runs.
+# exactly one partition and every claim must have finished (a `done` row;
+# otherwise the run fails with the difference). One watchdog budget spans
+# all of a partition's invocations: the watchdog ages partitions from their
+# fork, each invocation gets the remaining in-VM deadline, beam.pid names
+# the current BEAM, a stopped partition (group TERM or budget record)
+# claims no more, checked under the lock before a row is consumed, and no
+# claim starts with less than TAIL_CLAIM_MIN_MS of the deadline left (the
+# unclaimed rest then fails the exactly-once check). Any failing invocation
+# fails its partition, which keeps claiming so every file still runs.
 #
 # The report ends with a `| max/min | - | <ratio> | - |` row: slowest over
 # fastest partition seconds, over partitions with at least one file or
@@ -275,6 +277,9 @@
 # naming the holder and takes nothing, and release is keyed on the
 # partition index; (tq-lock-contention) 4 claimers behind such a lock, once
 # release_tail_lock frees it, claim each of 6 seqs once, five rounds;
+# (tq-stop-claim) a TERM during the lock wait or a budget record stops the
+# claim under the lock with no row consumed, and verify_claims fails a
+# claim with no done row;
 # (tq-contention) 4 partitions racing for 6 claims, twice, claim each seq
 # once; (tq-hang) a QUIT-ignoring and a QUIT-answering claim are both
 # stopped at a 1 s budget with Exit 124, the backstop and the abort list,
@@ -630,10 +635,10 @@ verify_tail_queue() {
   fi
 }
 
-# After the run: every queued file was claimed by exactly one partition.
-# Args: N, log dir.
+# After the run: every queued file was claimed by exactly one partition,
+# and every claim finished (has a `done` row; R4-WR-03). Args: N, log dir.
 verify_claims() {
-  local n="$1" log_dir="$2" i claimed expected dups
+  local n="$1" log_dir="$2" i claimed expected dups unfinished rc=0
   claimed="$log_dir/claimed.txt"
   expected="$log_dir/queued.txt"
   for i in $(seq 1 "$n"); do
@@ -645,8 +650,21 @@ verify_claims() {
   if [ -n "$dups" ] || ! cmp -s "$claimed" "$expected"; then
     printf 'ci-test-partitions: tail queue claims do not cover the queue exactly once (< queued, > claimed):\n' >&2
     diff "$expected" "$claimed" >&2 || true
-    return 1
+    rc=1
   fi
+  unfinished="$(for i in $(seq 1 "$n"); do
+    [ ! -f "$log_dir/partition-$i.claims" ] ||
+      awk -F'\t' -v p="$i" '
+        $1 == "claim" { f[$2] = $3; order[++m] = $2 }
+        $1 == "done" { d[$2] = 1 }
+        END { for (j = 1; j <= m; j++) if (!(order[j] in d)) printf "partition %s seq %s %s\n", p, order[j], f[order[j]] }
+      ' "$log_dir/partition-$i.claims"
+  done)"
+  if [ -n "$unfinished" ]; then
+    printf 'ci-test-partitions: these tail queue claims never finished (no done row):\n%s\n' "$unfinished" >&2
+    rc=1
+  fi
+  return "$rc"
 }
 
 # Epoch milliseconds: GNU date's %3N, else whole seconds x 1000 (BSD/macOS).
@@ -669,6 +687,9 @@ now_ms() {
 # `claim` row to partition-<i>.claims. Returns 1 on a lock timeout, naming
 # the holder. With a claim-by time (epoch ms, 0 for none) that has passed
 # when the lock is taken, it consumes nothing and sets CLAIM_STOP=budget.
+# A partition that is stopping (its subshell's stop_claims set by the group
+# TERM, or the watchdog's partition-<i>.budget record) consumes nothing
+# either: CLAIM_STOP=stopped (R4-WR-03).
 # Args: partition index, log dir, lock wait seconds, claim-by epoch ms.
 claim_next() {
   local i="$1" log_dir="$2" wait_s="$3" claim_by_ms="${4:-0}"
@@ -692,6 +713,11 @@ claim_next() {
     polls=$((polls + 1))
   done
   # Decided under the lock, after any wait, before next advances.
+  if [ "${stop_claims:-0}" -ne 0 ] || [ -f "$log_dir/partition-$i.budget" ]; then
+    CLAIM_STOP=stopped
+    rm -f "$lock"
+    return 0
+  fi
   if [ "$claim_by_ms" -gt 0 ] && [ "$(now_ms)" -ge "$claim_by_ms" ]; then
     CLAIM_STOP=budget
     rm -f "$lock"
@@ -1397,6 +1423,14 @@ run_partitions() {
             break
           fi
           [ -n "$CLAIM_FILE" ] || break
+          # A TERM or budget record that landed after the row was taken:
+          # never fork a BEAM the group TERM did not reach; the `unrun` row
+          # leaves the claim without a `done` row, which verify_claims fails.
+          if [ "$stop_claims" -ne 0 ] || [ -f "$log_dir/partition-$i.budget" ]; then
+            printf 'unrun\t%s\t%s\n' "$CLAIM_SEQ" "$CLAIM_FILE" >>"$log_dir/partition-$i.claims"
+            [ "$p_status" -ne 0 ] || p_status=1
+            break
+          fi
           k=$((k + 1))
           files=("$CLAIM_FILE")
           partition_invoke "$k"
@@ -2905,6 +2939,43 @@ claimed=1:test/a/heavy1_test.exs" ] && [ ! -e "$tq_lk/tail-queue.lock" ] && [ ! 
     grep -q $'^claim\t1\ttest/a/heavy1_test.exs\t' "$tq_lk/partition-1.claims" ||
     die "self-test: tq-lock: a held lock must time out naming its holder, only its owner releases it, then the claim is taken: $output"
 
+  # (tq-stop-claim) R4-WR-03: a TERM that lands while claim_next waits on
+  # the lock is honoured under the lock: no claim row, next not advanced,
+  # the lock released; a budget record does the same; verify_claims fails a
+  # claim with no done row and passes once it has one
+  local tq_sc="$self_test_dir/stop-claim" tq_sc_pid
+  mkdir -p "$tq_sc"
+  printf '1\ttest/a/heavy1_test.exs\t5\n' >"$tq_sc/tail-queue.tsv"
+  ln -s 3 "$tq_sc/tail-queue.lock"
+  "$BASH" -c "set -u; $tq_fns"'
+    stop_claims=0
+    trap "stop_claims=1" TERM
+    claim_next 1 "$1" 5; echo "rc=$? stop=$CLAIM_STOP file=$CLAIM_FILE"' tq-stop "$tq_sc" >"$tq_sc/out" 2>&1 &
+  tq_sc_pid=$!
+  sleep 0.5
+  kill -TERM "$tq_sc_pid" 2>/dev/null || true
+  sleep 0.3
+  release_tail_lock 3 "$tq_sc"
+  wait "$tq_sc_pid" || true
+  [ "$(cat "$tq_sc/out")" = "rc=0 stop=stopped file=" ] && [ ! -e "$tq_sc/partition-1.claims" ] &&
+    [ ! -e "$tq_sc/tail-queue.next" ] && [ ! -L "$tq_sc/tail-queue.lock" ] ||
+    die "self-test: tq-stop-claim: a TERM during the lock wait must consume no row and release the lock: $(cat "$tq_sc/out")"
+  : >"$tq_sc/partition-1.budget"
+  output="$("$BASH" -c "set -u; $tq_fns"'
+    claim_next 1 "$1" 1; echo "rc=$? stop=$CLAIM_STOP file=$CLAIM_FILE"' tq-stop "$tq_sc" 2>&1)"
+  [ "$output" = "rc=0 stop=stopped file=" ] && [ ! -e "$tq_sc/partition-1.claims" ] && [ ! -L "$tq_sc/tail-queue.lock" ] ||
+    die "self-test: tq-stop-claim: a budget record must stop claiming under the lock: $output"
+  rm -f "$tq_sc/partition-1.budget"
+  printf 'claim\t1\ttest/a/heavy1_test.exs\t1000\nunrun\t1\ttest/a/heavy1_test.exs\n' >"$tq_sc/partition-1.claims"
+  output="$(verify_claims 1 "$tq_sc" 2>&1)" &&
+    die "self-test: tq-stop-claim: verify_claims must fail a claim with no done row: $output"
+  grep -q 'never finished' <<<"$output" && grep -q 'partition 1 seq 1 test/a/heavy1_test.exs' <<<"$output" &&
+    ! grep -q 'do not cover' <<<"$output" ||
+    die "self-test: tq-stop-claim: verify_claims must name the unfinished claim: $output"
+  printf 'done\t1\t2000\t0\t900\t100\n' >>"$tq_sc/partition-1.claims"
+  verify_claims 1 "$tq_sc" >/dev/null 2>&1 ||
+    die "self-test: tq-stop-claim: verify_claims must pass a finished claim"
+
   # (tq-lock-contention) 4 claimers racing for 6 rows behind a seeded lock of
   # a finished partition (3, with a status file): nobody breaks it, and once
   # the single breaker (release_tail_lock, as the watchdog) frees it every
@@ -2977,7 +3048,7 @@ test/a/heavy2_test.exs=hang_quit" run_case "tail queue hang" "pass,pass" 2
   pgrep -f 247hangsentinel >/dev/null && die "self-test: tq-hang: a hung claim's process was left running"
   pgrep -f "$fake_mix" >/dev/null && die "self-test: tq-hang: a fake mix process was left running"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-deadline-spent, tq-lock, tq-lock-contention, tq-contention, tq-hang, tq-lane-k)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-deadline-spent, tq-lock, tq-lock-contention, tq-stop-claim, tq-contention, tq-hang, tq-lane-k)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
