@@ -44,10 +44,12 @@
 # largest first, ties by path); partition-<i>.files keeps the static rest
 # (`partition <i>: static <n> files, ...`). Colocation groups and async files
 # are never queued. After its static set (or at once, when it is empty),
-# each partition claims the next queued file under an atomic `mkdir
-# tail-queue.lock` (its `owner` file names the partition index; a lock whose
-# owner already has a status file is stale and is broken by rename; a wait
-# over CI_TEST_PARTITIONS_LOCK_WAIT_S fails the partition) and runs it as
+# each partition claims the next queued file under an atomic `ln -s <i>
+# tail-queue.lock` (the symlink's target names the holding partition index
+# and is created with it, so a lock is never ownerless; no claimer breaks
+# another's lock: only the watchdog and kill_all release a stopped
+# partition's lock; a wait over CI_TEST_PARTITIONS_LOCK_WAIT_S fails the
+# partition and names the holder) and runs it as
 # its own `mix test <file>` on the same partition database, through the same
 # single invocation line. Each invocation writes invocations/p<i>-<k>.log and
 # .tsv (k=0 static); the TSVs merge into one partition-timings-<i>.tsv with
@@ -265,8 +267,11 @@
 # nothing and min's static sets equal its seam-0 sets, current queues 12,
 # and the seam overrides the lane map; (tq-fail) a failing claim fails only its partition and the queue is
 # still claimed once; (tq-deadline) the claim's in-VM deadline is what is
-# left, and 0 when disarmed; (tq-lock-stale) a stale lock is broken, a live
-# one times out with no claim, release is keyed on the partition index;
+# left, and 0 when disarmed; (tq-lock) a held lock is never broken by a
+# claimer, even one whose owner has a status file: the claim times out
+# naming the holder and takes nothing, and release is keyed on the
+# partition index; (tq-lock-contention) 4 claimers behind such a lock, once
+# release_tail_lock frees it, claim each of 6 seqs once, five rounds;
 # (tq-contention) 4 partitions racing for 6 claims, twice, claim each seq
 # once; (tq-hang) a QUIT-ignoring and a QUIT-answering claim are both
 # stopped at a 1 s budget with Exit 124, the backstop and the abort list,
@@ -644,14 +649,18 @@ now_ms() {
   esac
 }
 
-# Claims the next queued file under the atomic `mkdir` lock
-# $2/tail-queue.lock, whose `owner` file names the holding partition index
-# (bash 3.2 has no BASHPID, so never a PID). Sets CLAIM_SEQ and CLAIM_FILE
-# (both empty when the queue is exhausted) and appends a `claim` row to
-# partition-<i>.claims. Args: partition index, log dir, lock wait seconds.
+# Claims the next queued file under the lock $2/tail-queue.lock, a symlink
+# whose target is the holding partition index (bash 3.2 has no BASHPID, so
+# never a PID). `ln -sn` creates the link and its owner in one atomic step,
+# so a lock is never ownerless, and no claimer ever removes a lock it does
+# not hold: a stopped partition's lock is released by the watchdog or
+# kill_all (release_tail_lock), never broken here (R4-WR-01). Sets CLAIM_SEQ
+# and CLAIM_FILE (both empty when the queue is exhausted) and appends a
+# `claim` row to partition-<i>.claims. Returns 1 on a lock timeout, naming
+# the holder. Args: partition index, log dir, lock wait seconds.
 claim_next() {
   local i="$1" log_dir="$2" wait_s="$3"
-  local lock="$log_dir/tail-queue.lock" next row polls=0 tab owner stale=0
+  local lock="$log_dir/tail-queue.lock" next row polls=0 tab owner
   tab="$(printf '\t')"
   CLAIM_SEQ=""
   CLAIM_FILE=""
@@ -660,25 +669,15 @@ claim_next() {
   next="$(cat "$log_dir/tail-queue.next" 2>/dev/null || true)"
   case "$next" in '' | *[!0-9]*) next=1 ;; esac
   awk -F'\t' -v s="$next" '$1 == s { f = 1 } END { exit !f }' "$log_dir/tail-queue.tsv" || return 0
-  while ! mkdir "$lock" 2>/dev/null; do
-    # A lock whose owner partition has already finished (it has a status
-    # file) is stale: break it by an atomic rename, then remove the copy.
-    owner="$(cat "$lock/owner" 2>/dev/null || true)"
-    if [ -n "$owner" ] && [ -f "$log_dir/partition-$owner.status" ]; then
-      stale=$((stale + 1))
-      if mv "$lock" "$log_dir/tail-queue.lock.stale.$i.$stale" 2>/dev/null; then
-        rm -rf "$log_dir/tail-queue.lock.stale.$i.$stale"
-        continue
-      fi
-    fi
+  while ! ln -sn "$i" "$lock" 2>/dev/null; do
     if [ "$polls" -ge $((wait_s * 10)) ]; then
-      printf 'ci-test-partitions: partition %s: tail-queue lock timeout\n' "$i"
+      owner="$(readlink "$lock" 2>/dev/null || true)"
+      printf 'ci-test-partitions: partition %s: tail-queue lock timeout (held by partition %s)\n' "$i" "${owner:-none}"
       return 1
     fi
     sleep 0.1
     polls=$((polls + 1))
   done
-  printf '%s\n' "$i" >"$lock/owner"
   next="$(cat "$log_dir/tail-queue.next" 2>/dev/null || true)"
   case "$next" in '' | *[!0-9]*) next=1 ;; esac
   row="$(awk -F'\t' -v s="$next" '$1 == s' "$log_dir/tail-queue.tsv")"
@@ -688,18 +687,18 @@ claim_next() {
     CLAIM_START_MS="$(now_ms)"
     printf 'claim\t%s\t%s\t%s\n' "$CLAIM_SEQ" "$CLAIM_FILE" "$CLAIM_START_MS" >>"$log_dir/partition-$i.claims"
   fi
-  rm -f "$lock/owner"
-  rmdir "$lock" 2>/dev/null || true
+  rm -f "$lock"
   return 0
 }
 
-# Releases the tail-queue lock when partition $1 holds it (stop_over_budget
-# and kill_all, after stopping that partition). Args: partition index, log dir.
+# Releases the tail-queue lock when partition $1 holds it: the only way a
+# lock not held by the caller is removed. Called by stop_over_budget and
+# kill_all after stopping that partition, from one process (the runner), so
+# there is never more than one breaker. Args: partition index, log dir.
 release_tail_lock() {
   local lock="$2/tail-queue.lock"
-  [ "$(cat "$lock/owner" 2>/dev/null || true)" = "$1" ] || return 0
-  rm -f "$lock/owner"
-  rmdir "$lock" 2>/dev/null || true
+  [ "$(readlink "$lock" 2>/dev/null || true)" = "$1" ] || return 0
+  rm -f "$lock"
 }
 
 # --- ExUnit counts parsing ----------------------------------------------------
@@ -2588,7 +2587,7 @@ test/a/light1_test.exs=sleep:0.1" run_case "tail queue basic" "pass,pass,pass,pa
   cat "$case_logs"/partition-*.claims | awk -F'\t' '$1 == "claim" { print $3 }' | LC_ALL=C sort >"$self_test_dir/tq-claimed.txt"
   [ "$(cat "$self_test_dir/tq-claimed.txt")" = "$(cut -f2 "$tq_queue" | LC_ALL=C sort)" ] ||
     die "self-test: tq-basic must claim each queued file exactly once: $(cat "$self_test_dir/tq-claimed.txt")"
-  [ ! -e "$case_logs/tail-queue.lock" ] || die "self-test: tq-basic left the tail-queue lock behind"
+  [ ! -e "$case_logs/tail-queue.lock" ] && [ ! -L "$case_logs/tail-queue.lock" ] || die "self-test: tq-basic left the tail-queue lock behind"
   # (tq-tsv) one merged partition-timings-<i>.tsv per partition that ran an
   # invocation: the strict header schema, boot_ms from the lowest k, wall_ms
   # summed, each static and claimed file once; no invocation file matches
@@ -2836,35 +2835,56 @@ TQ_WEIGHTS
     [ "$(sed -n 's/^FAKE_MIX_DEADLINE_MS=//p' "$case_logs/invocations/p1-0.log" "$case_logs/invocations/p1-1.log" | tr '\n' ' ')" = "0 0 " ] ||
     die "self-test: tq-deadline: a disarmed deadline must reach every invocation as 0: $output"
 
-  # (tq-lock-stale) the lock functions alone, from the copied script: a lock
-  # whose owner has a status file is broken and reacquired; a live owner
-  # past CI_TEST_PARTITIONS_LOCK_WAIT_S=1 times out with no claim; the
-  # release is keyed on the partition index
+  # (tq-lock) the lock functions alone, from the copied script (R4-WR-01):
+  # a lock held by a partition that already has a status file is never
+  # broken by a claimer: the claim times out past
+  # CI_TEST_PARTITIONS_LOCK_WAIT_S=1, names the holder and takes nothing;
+  # the release is keyed on the partition index; then the claim is taken
+  # and the lock is gone
   local tq_lk="$self_test_dir/lock-unit" tq_fns
   mkdir -p "$tq_lk"
   tq_fns="$(sed -n '/^now_ms() {$/,/^}$/p; /^claim_next() {$/,/^}$/p; /^release_tail_lock() {$/,/^}$/p' "$sandbox_script")"
   printf '1\ttest/a/heavy1_test.exs\t5\n' >"$tq_lk/tail-queue.tsv"
-  mkdir "$tq_lk/tail-queue.lock"
-  printf '3\n' >"$tq_lk/tail-queue.lock/owner"
+  ln -s 3 "$tq_lk/tail-queue.lock"
   printf 'status=0 start=1 end=2\n' >"$tq_lk/partition-3.status"
-  output="$("$BASH" -c "set -u; $tq_fns"'
-    claim_next 1 "$1" 1 && printf "claimed=%s:%s\n" "$CLAIM_SEQ" "$CLAIM_FILE"' tq-lock "$tq_lk" 2>&1)" ||
-    die "self-test: tq-lock-stale: claiming past a stale lock failed: $output"
-  grep -qx 'claimed=1:test/a/heavy1_test.exs' <<<"$output" && [ ! -e "$tq_lk/tail-queue.lock" ] &&
-    [ -z "$(ls "$tq_lk" | grep 'stale' || true)" ] && grep -q $'^claim\t1\ttest/a/heavy1_test.exs\t' "$tq_lk/partition-1.claims" ||
-    die "self-test: tq-lock-stale: a stale lock must be broken and the claim taken: $output"
-  rm -f "$tq_lk/tail-queue.next" "$tq_lk/partition-1.claims"
-  mkdir "$tq_lk/tail-queue.lock"
-  printf '2\n' >"$tq_lk/tail-queue.lock/owner"
   output="$(CI_TEST_PARTITIONS_LOCK_WAIT_S=1 "$BASH" -c "set -u; $tq_fns"'
     claim_next 1 "$1" "$CI_TEST_PARTITIONS_LOCK_WAIT_S"; echo "rc=$?"
-    release_tail_lock 3 "$1"; [ -d "$1/tail-queue.lock" ] && echo "kept"
-    release_tail_lock 2 "$1"; [ -d "$1/tail-queue.lock" ] || echo "released"' tq-lock "$tq_lk" 2>&1)"
-  [ "$output" = "ci-test-partitions: partition 1: tail-queue lock timeout
+    release_tail_lock 2 "$1"; [ "$(readlink "$1/tail-queue.lock")" = 3 ] && echo "kept"
+    release_tail_lock 3 "$1"; [ -L "$1/tail-queue.lock" ] || echo "released"
+    claim_next 1 "$1" 1 && printf "claimed=%s:%s\n" "$CLAIM_SEQ" "$CLAIM_FILE"' tq-lock "$tq_lk" 2>&1)"
+  [ "$output" = "ci-test-partitions: partition 1: tail-queue lock timeout (held by partition 3)
 rc=1
 kept
-released" ] && [ ! -e "$tq_lk/partition-1.claims" ] ||
-    die "self-test: tq-lock-stale: a live lock must time out with no claim, and only its owner releases it: $output"
+released
+claimed=1:test/a/heavy1_test.exs" ] && [ ! -e "$tq_lk/tail-queue.lock" ] && [ ! -L "$tq_lk/tail-queue.lock" ] &&
+    [ "$(grep -c '^claim' "$tq_lk/partition-1.claims")" -eq 1 ] &&
+    grep -q $'^claim\t1\ttest/a/heavy1_test.exs\t' "$tq_lk/partition-1.claims" ||
+    die "self-test: tq-lock: a held lock must time out naming its holder, only its owner releases it, then the claim is taken: $output"
+
+  # (tq-lock-contention) 4 claimers racing for 6 rows behind a seeded lock of
+  # a finished partition (3, with a status file): nobody breaks it, and once
+  # the single breaker (release_tail_lock, as the watchdog) frees it every
+  # seq is claimed exactly once and the lock is gone. Five rounds.
+  local tq_lc="$self_test_dir/lock-contention" tq_lc_round tq_lc_seqs
+  for tq_lc_round in 1 2 3 4 5; do
+    rm -rf "$tq_lc"
+    mkdir -p "$tq_lc"
+    printf '%s\ttest/q/f%s_test.exs\t5\n' 1 1 2 2 3 3 4 4 5 5 6 6 >"$tq_lc/tail-queue.tsv"
+    printf 'status=0 start=1 end=2\n' >"$tq_lc/partition-3.status"
+    ln -s 3 "$tq_lc/tail-queue.lock"
+    output="$("$BASH" -c "set -u; $tq_fns"'
+      for c in 1 2 4 5; do
+        ( while claim_next "$c" "$1" 5 && [ -n "$CLAIM_FILE" ]; do :; done ) &
+      done
+      sleep 0.3
+      [ "$(readlink "$1/tail-queue.lock")" = 3 ] || echo "a claimer broke the held lock"
+      release_tail_lock 3 "$1"
+      wait' tq-lock "$tq_lc" 2>&1)"
+    tq_lc_seqs="$(cat "$tq_lc"/partition-*.claims 2>/dev/null | awk -F'\t' '$1 == "claim" { print $2 }' | LC_ALL=C sort -n | tr '\n' ' ')"
+    [ -z "$output" ] && [ "$tq_lc_seqs" = "1 2 3 4 5 6 " ] &&
+      [ ! -e "$tq_lc/tail-queue.lock" ] && [ ! -L "$tq_lc/tail-queue.lock" ] ||
+      die "self-test: tq-lock-contention round $tq_lc_round: no claimer may break a held lock, and each seq must be claimed exactly once (got '$tq_lc_seqs'): $output"
+  done
 
   # (tq-contention) 4 partitions racing for 6 short claims, twice: every seq
   # claimed once, every file run once, the lock gone
@@ -2877,7 +2897,7 @@ released" ] && [ ! -e "$tq_lk/partition-1.claims" ] ||
       die "self-test: tq-contention round $tq_round: each seq must be claimed exactly once"
     [ "$(cat "$case_logs"/partition-*.log | sed -n 's/^FAKE_MIX_FILE=//p' | LC_ALL=C sort)" = "$(cat "$expected_files")" ] ||
       die "self-test: tq-contention round $tq_round: each file must run exactly once"
-    [ ! -e "$case_logs/tail-queue.lock" ] || die "self-test: tq-contention round $tq_round left the lock behind"
+    [ ! -e "$case_logs/tail-queue.lock" ] && [ ! -L "$case_logs/tail-queue.lock" ] || die "self-test: tq-contention round $tq_round left the lock behind"
   done
 
   # (tq-hang) N=2, every sync file queued: one claim hangs ignoring QUIT, the
@@ -2913,7 +2933,7 @@ test/a/heavy2_test.exs=hang_quit" run_case "tail queue hang" "pass,pass" 2
   pgrep -f 247hangsentinel >/dev/null && die "self-test: tq-hang: a hung claim's process was left running"
   pgrep -f "$fake_mix" >/dev/null && die "self-test: tq-hang: a fake mix process was left running"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-lock-stale, tq-contention, tq-hang, tq-lane-k)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-lock, tq-lock-contention, tq-contention, tq-hang, tq-lane-k)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
