@@ -1,0 +1,147 @@
+{
+  "arms": [
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--pull=never",
+        "--rm",
+        "--name",
+        "<owned-container>",
+        "--network=none",
+        "--read-only",
+        "--cpus=1",
+        "--mount",
+        "<private-owned-mount>",
+        "--entrypoint",
+        "elixir",
+        "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+        "/probe/runner.exs",
+        "/probe/case.exs",
+        "async",
+        "none"
+      ],
+      "control": null,
+      "duration_ms": 15,
+      "error_code": "child_nonzero_exit",
+      "events": [],
+      "exit_code": 125,
+      "formatter": null,
+      "id": "arm-01-warmup-async",
+      "kind": "warmup",
+      "mode": "async",
+      "runtime": null,
+      "timed_out": false
+    }
+  ],
+  "attempted_count": 1,
+  "budgets": {
+    "child_seconds": 15,
+    "max_controls": 2,
+    "max_warmups": 2,
+    "overall_seconds": 150,
+    "pairs": [
+      [
+        "async",
+        "sync"
+      ],
+      [
+        "sync",
+        "async"
+      ],
+      [
+        "async",
+        "sync"
+      ]
+    ]
+  },
+  "ci_02": "INCOMPLETE",
+  "ci_03": "MISS",
+  "cleanup": {
+    "containers": "only unique owned container names removed",
+    "network": "disabled",
+    "temp_directory": "private temporary directory removed by owner"
+  },
+  "clock_labels": {
+    "events": "monotonic milliseconds, per child; never compared across children",
+    "formatter": "VM-relative :erlang.statistics(:wall_clock) milliseconds"
+  },
+  "command_template": [
+    "docker",
+    "run",
+    "--pull=never",
+    "--network=none",
+    "--read-only",
+    "--cpus=1",
+    "<immutable-image-id>",
+    "elixir",
+    "/probe/exunit_boundary_case.exs"
+  ],
+  "early_stop": {
+    "after": "arm-01-warmup-async",
+    "reason": "child_nonzero_exit"
+  },
+  "elapsed_ms": 17,
+  "hashes": {
+    "canary_sha256": {
+      "async": "93e1a05fc7cfa191abbcc3fde8d46901cc7941aa948c67c791a09c234b5d42cf",
+      "setup_all": "fe801f618db362ca6e81852d17174df0b50773272bcbd138e50f552e8f008440",
+      "sync": "63444ce36842d903a74211e3ba4f5b00d50ce720e3e761b00746e7f5ca48e46c"
+    },
+    "formatter_sha256": "3164124276f674842be3d4515eb94a063969a7054f7716b655d206fefbbe2aa4",
+    "runner_sha256": "e42f640c715af972265d55f6c81ead5f0d2512da73210c9b9ca9d32289f50a57"
+  },
+  "historical_ci_cause": "UNPROVEN",
+  "host": {
+    "architecture": "arm64",
+    "container_cpu_limit": 1,
+    "cpu_count": 18
+  },
+  "image": {
+    "architecture": "arm64",
+    "id": "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+    "os": "linux",
+    "repo_digests": [
+      "hexpm/elixir@sha256:bcead3678dec8be86c3d8b93236e4b9c685f2a30472e71aeb972a834ef05b5fb"
+    ],
+    "size_bytes": 223929793,
+    "tag": "hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824"
+  },
+  "image_after": {
+    "architecture": "arm64",
+    "id": "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+    "os": "linux",
+    "repo_digests": [
+      "hexpm/elixir@sha256:bcead3678dec8be86c3d8b93236e4b9c685f2a30472e71aeb972a834ef05b5fb"
+    ],
+    "size_bytes": 223929793,
+    "tag": "hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824"
+  },
+  "output": "247-LOCAL-CANARY.json",
+  "plan": "247-20",
+  "result": {
+    "reason": "fixed_schedule_stopped_early_or_incomplete;arm-01-warmup-async:child_timeout_or_nonzero_exit;arm-01-warmup-async:registration_event_missing_or_duplicated;arm-01-warmup-async:required_event_missing;arm-01-warmup-async:formatter_tsv_invalid;control_missing",
+    "status": "INVALID"
+  },
+  "run_started_monotonic_host_ms": 99,
+  "runtime": {
+    "elixir": "1.15.8",
+    "otp": "26.2.5.21",
+    "verification": "checked inside every child"
+  },
+  "schema": "threadline.exunit-boundary-canary/1",
+  "source": {
+    "head": "120cf53ab61da052b64aef3b7113fdb4581100cc",
+    "status_after": [
+      "M .planning/STATE.md",
+      "?? .planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY.json",
+      "?? .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_case.exs",
+      "?? .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py"
+    ],
+    "status_before": [
+      "M .planning/STATE.md",
+      "?? .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_case.exs",
+      "?? .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py"
+    ]
+  }
+}

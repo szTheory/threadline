@@ -4,16 +4,16 @@ milestone: v1.47
 current_phase: 247
 current_phase_name: CI critical path and suite lanes
 status: executing
-stopped_at: Phase 247 Wave 12 complete; Plan 18 exact-head landing next
-last_updated: "2026-10-27T03:29:38.550985+00:00"
-last_activity: 2026-10-27
-last_activity_desc: Plans 16-17 verified; assignment and motion fixture ready for exact-head landing
-state_head: b1be56d2bdb221107bcf66b98a2e15c4ac8b9417
+stopped_at: Completed 247-27-PLAN.md
+last_updated: "2026-10-28T12:33:24.725Z"
+last_activity: 2026-10-28
+last_activity_desc: 247-27 complete (B5 min weights candidate B selected by pre-registered rule; ci03_expectation EXPECTED_MISS advisory)
+state_head: c407918b3d5c53ca2de9ace549ea93ee7a302a1f
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 44
-  completed_plans: 42
+  total_plans: 53
+  completed_plans: 51
   percent: 75
 milestone_name: Release on autopilot
 ---
@@ -30,14 +30,14 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 ## Current Position
 
 Phase: 247 (CI critical path and suite lanes) — EXECUTING
-Plan: 17/19 executed; 18 exact-head landing next, then 19 bounded main measurement
-Status: Executing Phase 247
-Last activity: 2026-10-27 — Wave 12 complete; full/scoped suites, both Bash self-tests, focused/full two-project motion tests and independent reviews passed.
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 42/44 milestone plans executed (Phase 247 17/19; numeric CI-03 gap remains open)
+Plan: 28 of 28 (gap plans 26–28, waves 21–23; 27/28 executed, Plan 19 halted)
+Status: Executing gap closure (--gaps-only), sequential on milestone/v1.47
+Last activity: 2026-10-28 — 247-27 complete: min weights re-derived from hash-verified B4 main runs; pre-registered R3 (training only) selected candidate B (per-file max, predicted 1.00011; worst training spread 1.161 vs A 1.348) in 8ef4b801; holdouts replayed once after it (1.273 / 1.044), so ci03_expectation = EXPECTED_MISS (advisory; D-11 deps_audit_gate split named as follow-up); five local partitioned runs green incl. exact 1.15.8/26.2.5.21/PG15
+Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 51/53 milestone plans complete (Phase 247 27/28 executed incl. halted Plan 19)
 
-Verification: 247-VERIFICATION.md records the remaining assignment-model gap; 247-MEASUREMENT.md and captured canonical JSON retain all run IDs, nine ratios, selected weight files and the excluded failure. Previously executed security is 35/35 closed, threats_open=0; new plan threats await execution verification. Validation maps include all pending gap checks; UI audit remains N/A; fresh prior-phase regression passed 785 tests and one property. Existing review WR-01 remains deferred; Plan 17 resolved the motion-fixture focus race with state assertions and 24/24 browser proof; historical failed run remains excluded. Requirement markers remain reset while the phase is incomplete. No human UAT or publication is pending.
+Verification: Fresh 37 Python tests, synthetic round-trip, old Plan 22/25 receipt verification and warning-free host compile-only (Elixir 1.17.3 / OTP 27.3.4.15, no ExUnit events) pass. All 14 historical raw JSON/report files retain pre-repair hashes. Both preflight statuses and INVALID series reasons are derived from raw evidence; new /2 receipts carry monotonic timing with shared absolute preflight/child deadlines. Read-only legacy verification binds to historical producer commits while execution still requires committed current bytes. WR-05/T-247-48 is closed; security is 51/53 closed, two inherited medium open, zero high blocking. WR-06 is repaired for future /2 evidence; Plan 25's legacy /1 missing timing remains disclosed. Raw clock consistency does not authenticate coherently rewritten observations. No Docker/pinned semantic/hosted CI run was performed in this repair. Main acceptance remains 2/4: CI-01/04 historical passes, CI-02 four successes/two exclusions and median_wall_s=null, CI-03 min ratios 1.24/1.28/1.27. Nyquist remains partial.
 
-Next: `$gsd-execute-phase 247 --gaps-only`.
+Next: execute 247-28 (weights-record precondition from 247-B5-WEIGHTS.md, land the B5 candidate unconditionally, one capped cohort; ci03_expectation is advisory only). Earlier context, before gap plans 26–28: `$gsd-plan-phase 247 --gaps` scoped the remaining empirical work. The offline blockers are fixed; next validation needs a new bounded native pinned-runtime grant and distinct write-once artifact paths. The old Plan 22/25 grants, reservations and output paths remain consumed and must not be reused. This repair authorization did not grant Docker/CI measurements, landing, a main cohort or model/weight/threshold/fixture changes. Keep CI-02/03 candidate and main-cohort scope decisions separate from local diagnostic results. No automatic phase or milestone completion. See 247-OFFLINE-REPAIR.md, 247-OFFLINE-REPAIR-REVIEW.md and 247-VERIFICATION.md.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -338,6 +338,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 247 P12 | 15 min | 3 tasks | 2 files |
 | Phase 247 P11 | 35 min | 2 tasks | 2 files |
 | Phase 247 P13 | ~10 min (Task 3 continuation) | 3 tasks | 6 files |
+| Phase 247 P26 | 35min | 2 tasks | 4 files |
+| Phase 247 P27 | 17min | 3 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1189,6 +1191,10 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 247]: 247-11: composed_check_names/2 takes an ordered axis list (caller supplies YAML key order); two-axis naming (desktop-chromium, 1) stays RESEARCH A4 assumed
 - [Phase 247]: 247-13: CI-02 PASS, median ci.yml wall 468 s over 5 attempt-1 main runs (baseline 724 s); critical path now Build and test (current)
 - [Phase 247]: 247-13: CI-03 MISS, partition max/min current 1.20-1.42, latest 1.43-1.58, min 1.57-1.61; 1.15 not relaxed; D-11 per-lane weights is the gap fallback (/gsd-plan-phase 247 --gaps)
+- [Phase 247]: 247-26: RetentionHistoryLiveTest Pruner workers were a confirmed sibling of the B4 P3 FK race (outlive probe: 2 live workers after test_finished); fixed test-only via the task_start seam with a test-owned Task.Supervisor (14badb2c/d4688d58), RED_EVIDENCE_OK + red/green control; classes B and C found no new hazard
+- [Phase 247]: 247-26 (D-26): CR-05 closed-by-descoping; review open count 2 -> 1 (WR-04)
+- [Phase 247]: 247-27: R3 selected min-weights candidate B (per-file max over B4 main runs): both eligible (A 1.000071, B 1.00011); worst training spread A 1.348 vs B 1.161
+- [Phase 247]: 247-27: ci03_expectation EXPECTED_MISS (advisory): worst replay spread 1.273 on holdout 40451533079 dominated by deps_audit_gate_test.exs; follow-up is the D-11 split of that file
 
 ### Blockers
 
@@ -1209,8 +1215,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-26T23:26:42.737Z
-**Stopped at:** Completed 247-13-PLAN.md
+**Last session:** 2026-10-28T12:33:24.328Z
+**Stopped at:** Completed 247-27-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

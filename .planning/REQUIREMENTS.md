@@ -27,7 +27,7 @@
 - [ ] **CI-03**: Repo-file contract tests run only on the current lane (local `mix test` stays whole and the honest-default docs stay true), and partition weights are refreshed from CI timings so the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
 - [ ] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-Phase 247 verification: 3/4 criteria passed, with CI-03 as the sole acceptance gap. The execute-phase gap rule resets phase completion markers until re-verification; CI-01, CI-02 and CI-04 retain passing evidence in `247-VERIFICATION.md`.
+Phase 247 verification: 2/4 criteria passed on the authoritative B4 record: CI-02 is INCOMPLETE and CI-03 is MISS; CI-01 and CI-04 retain passing evidence in `247-VERIFICATION.md`. The earlier B3 3/4 result is historical. Gap execution resets phase completion markers until re-verification. Plan 22 is a local diagnostic prerequisite and does not close either main-CI acceptance gap.
 
 ### Debt closeout
 

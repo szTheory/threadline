@@ -1,0 +1,161 @@
+{
+  "arms": [
+    {
+      "argv": [
+        "docker",
+        "run",
+        "--pull=never",
+        "--rm",
+        "--name",
+        "<owned-container>",
+        "--network=none",
+        "--read-only",
+        "--cpus=1",
+        "--mount",
+        "<private-owned-mount>",
+        "--entrypoint",
+        "elixir",
+        "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+        "/probe/runner.exs",
+        "/probe/case.exs",
+        "async",
+        "none"
+      ],
+      "child_duration_ms": 407,
+      "child_ended_monotonic_ns": 531030083,
+      "child_started_monotonic_ns": 124418125,
+      "cleanup_duration_ms": 0,
+      "control": null,
+      "duration_ms": 407,
+      "ended_monotonic_ns": 531082250,
+      "error_code": "child_nonzero_exit",
+      "events": [],
+      "exit_code": 1,
+      "formatter": null,
+      "id": "arm-01-warmup-async",
+      "kind": "warmup",
+      "mode": "async",
+      "parse_error": null,
+      "raw_tsv_excerpt": "",
+      "runtime": null,
+      "started_monotonic_ns": 124060416,
+      "stderr_excerpt": "** (CompileError) probe/runner.exs: internal error in pass beam_ssa_recv:\nexception error: no match of right hand side value false\n  in function  beam_ssa_recv:pu_is_ref_used_is/2 (beam_ssa_recv.erl, line 632)\n  in call from beam_ssa_recv:pu_is_ref_used_in_1/3 (beam_ssa_recv.erl, line 596)\n  in call from beam_ssa_recv:pu_ref_used_in/2 (beam_ssa_recv.erl, line 580)\n  in call from beam_ssa_recv:pu_is_ref_used/4 (beam_ssa_recv.erl, line 556)\n  in call from lists:search_1/2 (lists.erl, line 1776)\n  in call from beam_ssa_recv:plan_uses_1/4 (beam_ssa_recv.erl, line 520)\n  in call from beam_ssa_recv:'-plan_uses/3-anonymous-0-'/5 (beam_ssa_recv.erl, line 511)\n  in call from maps:fold_1/4 (maps.erl, line 416)\n    (stdlib 5.2.3.6) lists.erl:1686: :lists.foreach_1/2\n",
+      "stdout_excerpt": "",
+      "timed_out": false
+    }
+  ],
+  "attempted_count": 1,
+  "budgets": {
+    "child_seconds": 15,
+    "max_controls": 2,
+    "max_warmups": 2,
+    "overall_seconds": 150,
+    "pairs": [
+      [
+        "async",
+        "sync"
+      ],
+      [
+        "sync",
+        "async"
+      ],
+      [
+        "async",
+        "sync"
+      ]
+    ]
+  },
+  "ci_02": "INCOMPLETE",
+  "ci_03": "MISS",
+  "cleanup": {
+    "containers": "only unique owned container names removed",
+    "network": "disabled",
+    "temp_directory": "private temporary directory removed by owner"
+  },
+  "collection": {
+    "clock": "UTC wall clock for collection bounds; signed monotonic event occurrence time remains per child",
+    "ended_at_utc": "2026-10-27T15:31:09.490Z",
+    "ended_monotonic_ns": 546884416,
+    "started_at_utc": "2026-10-27T15:31:09.053Z",
+    "started_monotonic_ns": 109761541
+  },
+  "early_stop": {
+    "after": "arm-01-warmup-async",
+    "reason": "child_nonzero_exit"
+  },
+  "elapsed_ms": 437,
+  "hashes": {
+    "canary_sha256": {
+      "async": "93e1a05fc7cfa191abbcc3fde8d46901cc7941aa948c67c791a09c234b5d42cf",
+      "setup_all": "fe801f618db362ca6e81852d17174df0b50773272bcbd138e50f552e8f008440",
+      "sync": "63444ce36842d903a74211e3ba4f5b00d50ce720e3e761b00746e7f5ca48e46c"
+    },
+    "formatter_sha256": "3164124276f674842be3d4515eb94a063969a7054f7716b655d206fefbbe2aa4",
+    "runner_sha256": "39c18eb1873ffa4522684a1f0ac3800d6f2157b0294db8ba5efbcd71fa3a3634"
+  },
+  "historical_ci_cause": "UNPROVEN",
+  "historical_sha256": {
+    "247-FROZEN-REPLAY.json": "5bbf55a8e9958e6f38d33da9ff21a816fb2b7542b03a33829ed5b881a7b8a6f1",
+    "247-LOCAL-CANARY-PREFLIGHT.json": "728d8c8efa6fd88c6124c0c1745bcd0a26b00c4b61ebbcd25c7135aa607bb553",
+    "247-LOCAL-CANARY.json": "7a946173a6e4c9ca407d94d766343596f77980eaf01eb0ad353985e85b171385"
+  },
+  "image": {
+    "architecture": "arm64",
+    "id": "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+    "os": "linux",
+    "repo_digests": [
+      "hexpm/elixir@sha256:bcead3678dec8be86c3d8b93236e4b9c685f2a30472e71aeb972a834ef05b5fb"
+    ],
+    "size_bytes": 223929793,
+    "tag": "hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824"
+  },
+  "image_after": {
+    "architecture": "arm64",
+    "id": "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+    "os": "linux",
+    "repo_digests": [
+      "hexpm/elixir@sha256:bcead3678dec8be86c3d8b93236e4b9c685f2a30472e71aeb972a834ef05b5fb"
+    ],
+    "size_bytes": 223929793,
+    "tag": "hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824"
+  },
+  "image_before": {
+    "architecture": "arm64",
+    "id": "sha256:34238960354603d7bbe04d55c0c67a5c9b03e1366f3511614ca6357d74a6650b",
+    "os": "linux",
+    "repo_digests": [
+      "hexpm/elixir@sha256:bcead3678dec8be86c3d8b93236e4b9c685f2a30472e71aeb972a834ef05b5fb"
+    ],
+    "size_bytes": 223929793,
+    "tag": "hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824"
+  },
+  "output": "247-LOCAL-CANARY-VALIDATION.json",
+  "overall_deadline_reached": false,
+  "plan": "247-22",
+  "preflight": {
+    "path": "247-LOCAL-CANARY-VALIDATION-PREFLIGHT.json",
+    "sha256": "6915bb07923065354184cb0085bb29653629f3e560b9b043654766eee6ca7e81"
+  },
+  "producer": {
+    "commit": "8e6321f36ed285c057532bade0ba4a007c5e5451",
+    "path": ".planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py",
+    "sha256": "8f810426c637b4152f4cd77e4375b45157f22ee1362b108a53e4aa3807334eba"
+  },
+  "reservation": {
+    "path": "247-LOCAL-CANARY-VALIDATION.reservation.json",
+    "sha256": "290f7325a6797854a38039014cc7db0d96e6241bee33e89eb806e62ec2638a62"
+  },
+  "result": {
+    "reason": "fixed_schedule_incomplete;arm-01-warmup-async:child_timeout_or_nonzero_exit;arm-01-warmup-async:runtime_identity_invalid;arm-01-warmup-async:registration_event_missing_or_duplicated;arm-01-warmup-async:required_event_missing;arm-01-warmup-async:formatter_tsv_invalid",
+    "status": "INVALID"
+  },
+  "runtime": {
+    "elixir": "1.15.8",
+    "otp": "26.2.5.21"
+  },
+  "schema": "threadline.exunit-boundary-validation/1",
+  "series_id": "247-22-authorized-local-series",
+  "source": {
+    "head": "8e6321f36ed285c057532bade0ba4a007c5e5451"
+  }
+}

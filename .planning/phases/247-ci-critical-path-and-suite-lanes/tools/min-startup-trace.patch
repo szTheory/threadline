@@ -1,0 +1,107 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e9331731..21fe1886 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -794,0 +795,34 @@ jobs:
++          THREADLINE_STARTUP_TRACE: ${{ matrix.lane == 'min' && '1' || '' }}
++
++      - name: Profile frozen minimum startup files (temporary diagnostic)
++        if: always() && matrix.lane == 'min'
++        timeout-minutes: 2
++        run: |
++          set -euo pipefail
++          mkdir -p tmp/ci-startup-trace
++          grep -H '^STARTUP_TRACE ' tmp/ci-test-partitions/partition-*.log > tmp/ci-startup-trace/helper.txt
++          cp test/support/startup-profile.files tmp/ci-startup-trace/frozen-files.txt
++          cp tmp/ci-test-partitions/partition-*.files tmp/ci-startup-trace/
++          readarray -t files < test/support/startup-profile.files
++          set +e
++          MIX_TEST_PARTITION=3 THREADLINE_STARTUP_TRACE=1 mix test --no-compile --no-deps-check --profile-require time "${files[@]}" > tmp/ci-startup-trace/require.txt 2>&1
++          status=$?
++          set -e
++          cat tmp/ci-startup-trace/require.txt
++          printf 'profile_exit=%s\n' "$status" > tmp/ci-startup-trace/status.txt
++          # Elixir 1.15 profiles the files, skips tests, then reports no matching tests.
++          test "$status" -le 1
++          grep -E '^\[profile\] Finished compilation cycle of [0-9]+ modules in [0-9]+ms' tmp/ci-startup-trace/require.txt
++          if grep -E '^\*\*|^== Compilation error' tmp/ci-startup-trace/require.txt; then exit 1; fi
++          if [ "$status" -eq 1 ]; then
++            grep -F 'Paths given to "mix test" did not match any directory/file:' tmp/ci-startup-trace/require.txt
++          fi
++
++      - name: Upload minimum startup trace (temporary diagnostic)
++        if: always() && matrix.lane == 'min'
++        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
++        with:
++          name: minimum-startup-trace-${{ github.run_id }}
++          path: tmp/ci-startup-trace/
++          if-no-files-found: error
++          retention-days: 14
+diff --git a/test/test_helper.exs b/test/test_helper.exs
+index bce355a4..1b32b6ef 100644
+--- a/test/test_helper.exs
++++ b/test/test_helper.exs
+@@ -0,0 +1,9 @@
++startup_trace = fn phase ->
++  if System.get_env("THREADLINE_STARTUP_TRACE") == "1" do
++    {vm_ms, _} = :erlang.statistics(:wall_clock)
++    partition = System.get_env("MIX_TEST_PARTITION", "none")
++    IO.puts("STARTUP_TRACE partition=#{partition} phase=#{phase} vm_ms=#{vm_ms}")
++  end
++end
++
++startup_trace.("helper_start")
+@@ -1,0 +11 @@ ExUnit.start()
++startup_trace.("exunit_ready")
+@@ -62,0 +73 @@ end
++startup_trace.("database_ready")
+@@ -63,0 +75 @@ end
++startup_trace.("repo_started")
+@@ -88,0 +101 @@ unless topology_pooler? do
++  startup_trace.("database_checks_done")
+@@ -89,0 +103 @@ unless topology_pooler? do
++  startup_trace.("migrations_done")
+@@ -98,0 +113 @@ unless topology_pooler? do
++  startup_trace.("application_stopped")
+@@ -99,0 +115 @@ unless topology_pooler? do
++  startup_trace.("application_restarted")
+@@ -139,0 +156,2 @@ end
++
++startup_trace.("helper_done")
+diff --git a/test/support/startup-profile.files b/test/support/startup-profile.files
+new file mode 100644
+index 00000000..1e1a96ca
+--- /dev/null
++++ b/test/support/startup-profile.files
+@@ -0,0 +1,31 @@
++test/threadline/operator_surface/stress_router_prod_compile_test.exs
++test/threadline/clean_checkout_contract_test.exs
++test/threadline/release_artifact_contract_test.exs
++test/threadline/dialyzer_slice_contract_test.exs
++test/threadline/operator_surface/live/timeline_live_test.exs
++test/threadline/operator_surface/coverage_mix_test.exs
++test/threadline/deprecation_parity_test.exs
++test/threadline/query/row_key_types_test.exs
++test/threadline/query/as_of_property_test.exs
++test/threadline/operator_surface/live/actor_live_test.exs
++test/threadline/health/trigger_findings_test.exs
++test/threadline/audit_transaction_test.exs
++test/threadline/health_test.exs
++test/threadline/operator_surface/live/evidence_live_test.exs
++test/threadline/retention/pruner_test.exs
++test/threadline/operator_surface/copy_contract_test.exs
++test/threadline/operator_surface/live/row_history_live_test.exs
++test/threadline/retention/cutoff_property_test.exs
++test/threadline/upgrade_rollback_test.exs
++test/threadline/continuity_brownfield_test.exs
++test/threadline/evidence_test.exs
++test/threadline/operator_surface/row_history_component_test.exs
++test/threadline/operator_surface/policy_show_mix_test.exs
++test/threadline/capture/trigger_test.exs
++test/threadline/operator_surface/exports_mix_parity_test.exs
++test/threadline/export_public_contract_test.exs
++test/mix/tasks/threadline/gen_row_history_index_test.exs
++test/threadline/operator_surface/breadcrumb_test.exs
++test/threadline/storage_schema_test.exs
++test/mix/tasks/threadline/export_test.exs
++test/threadline/operator_surface/policy_show_doc_contract_test.exs

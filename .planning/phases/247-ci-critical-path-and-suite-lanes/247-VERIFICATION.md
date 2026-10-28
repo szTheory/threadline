@@ -1,173 +1,174 @@
 ---
 phase: 247-ci-critical-path-and-suite-lanes
-verified: 2026-10-27T02:37:43Z
+verified: 2026-10-27T18:19:39Z
 status: gaps_found
-score: 3/4
+score: 2/4 must-haves verified
 covered_files:
-    - ".github/workflows/ci.yml"
-    - ".planning/ARCHIVE-REGISTER.md"
-    - ".planning/REQUIREMENTS.md"
-    - ".planning/ROADMAP.md"
-    - ".planning/STATE.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-01-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-01-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-02-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-02-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-03-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-03-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-04-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-04-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-05-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-05-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-06-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-06-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-07-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-07-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-08-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-08-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-09-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-09-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-10-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-10-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-11-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-11-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-12-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-12-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-13-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-13-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-14-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-14-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-15-PLAN.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-15-SUMMARY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B3-MEASUREMENT.json"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-CONTEXT.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LANDING.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-MEASUREMENT.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-OBSERVATION.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REGRESSION.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-RESEARCH.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REVIEW-DISPOSITION.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REVIEW.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-SECURITY.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-UI-REVIEW.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-VALIDATION.md"
-    - ".planning/phases/247-ci-critical-path-and-suite-lanes/deferred-items.md"
-    - "CONTRIBUTING.md"
-    - "bin/browser-full-projects"
-    - "bin/ci-test-partitions"
-    - "bin/measure-main-ci"
-    - "examples/threadline_phoenix/e2e/package.json"
-    - "examples/threadline_phoenix/e2e/playwright.config.ts"
-    - "examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts"
-    - "examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts"
-    - "examples/threadline_phoenix/e2e/support/slow-specs.test.ts"
-    - "examples/threadline_phoenix/e2e/support/slow-specs.ts"
-    - "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"
-    - "test/partition_weights.txt"
-    - "test/partition_weights_latest.txt"
-    - "test/partition_weights_min.txt"
-    - "test/support/partition_monitor.ex"
-    - "test/test_helper.exs"
-    - "test/threadline/adoption_evidence_playbook_doc_contract_test.exs"
-    - "test/threadline/audit_doc_contract_test.exs"
-    - "test/threadline/branch_protection_comparison_contract_test.exs"
-    - "test/threadline/browser_full_projects_contract_test.exs"
-    - "test/threadline/browser_journey_evidence_contract_test.exs"
-    - "test/threadline/changelog_contract_test.exs"
-    - "test/threadline/ci_action_pin_contract_test.exs"
-    - "test/threadline/ci_action_runtime_contract_test.exs"
-    - "test/threadline/ci_attestation_contract_test.exs"
-    - "test/threadline/ci_coverage_doc_contract_test.exs"
-    - "test/threadline/ci_issue_upsert_contract_test.exs"
-    - "test/threadline/ci_sha_gate_contract_test.exs"
-    - "test/threadline/ci_token_permissions_contract_test.exs"
-    - "test/threadline/ci_topology_contract_test.exs"
-    - "test/threadline/ci_workflow_parity_contract_test.exs"
-    - "test/threadline/community_health_contract_test.exs"
-    - "test/threadline/community_health_render_contract_test.exs"
-    - "test/threadline/date_release_changelog_test.exs"
-    - "test/threadline/dependabot_config_contract_test.exs"
-    - "test/threadline/deps_audit_contract_test.exs"
-    - "test/threadline/deps_audit_gate_test.exs"
-    - "test/threadline/deps_health_doc_contract_test.exs"
-    - "test/threadline/deps_health_report_test.exs"
-    - "test/threadline/e2e_preflight_contract_test.exs"
-    - "test/threadline/evaluating_threadline_doc_contract_test.exs"
-    - "test/threadline/evidence_cli_doc_contract_test.exs"
-    - "test/threadline/example_phoenix_schemas_mount_contract_test.exs"
-    - "test/threadline/exploration_routing_doc_contract_test.exs"
-    - "test/threadline/flake_classifier_contract_test.exs"
-    - "test/threadline/guide_graph_contract_test.exs"
-    - "test/threadline/guides/redaction_contract_test.exs"
-    - "test/threadline/guides/stability_contract_test.exs"
-    - "test/threadline/guides/table_shapes_contract_test.exs"
-    - "test/threadline/guides/upgrade_path_contract_test.exs"
-    - "test/threadline/hex_pin_contract_test.exs"
-    - "test/threadline/incident_playbook_doc_contract_test.exs"
-    - "test/threadline/local_docker_dx_contract_test.exs"
-    - "test/threadline/main_ci_observer_contract_test.exs"
-    - "test/threadline/measure_main_ci_contract_test.exs"
-    - "test/threadline/operator_surface/operator_evidence_contract_test.exs"
-    - "test/threadline/operator_surface/operator_surface_fixture_contract_test.exs"
-    - "test/threadline/operator_surface/style_contract_test.exs"
-    - "test/threadline/partition_monitor_test.exs"
-    - "test/threadline/performance_doc_contract_test.exs"
-    - "test/threadline/persona_routing_doc_contract_test.exs"
-    - "test/threadline/planning_dependency_contract_test.exs"
-    - "test/threadline/planning_independence_contract_test.exs"
-    - "test/threadline/playwright_fail_fast_contract_test.exs"
-    - "test/threadline/production_checklist_doc_contract_test.exs"
-    - "test/threadline/public_options_contract_test.exs"
-    - "test/threadline/release_ci_gate_contract_test.exs"
-    - "test/threadline/release_control_plane_contract_test.exs"
-    - "test/threadline/release_distribution_doc_contract_test.exs"
-    - "test/threadline/removed_artifact_contract_test.exs"
-    - "test/threadline/repo_contract_scope_contract_test.exs"
-    - "test/threadline/repo_hygiene_contract_test.exs"
-    - "test/threadline/repo_hygiene_guard_test.exs"
-    - "test/threadline/row_history_focus_evidence_contract_test.exs"
-    - "test/threadline/semver_adopter_doc_contract_test.exs"
-    - "test/threadline/support_playbook_doc_contract_test.exs"
-    - "test/threadline/temp_leak_check_test.exs"
-    - "test/threadline/ui_critic_retirement_doc_contract_test.exs"
-    - "test/threadline/upgrading_to_0_11_doc_contract_test.exs"
-    - "test/threadline/upgrading_to_1_0_doc_contract_test.exs"
-    - "test/threadline/verify_action_pins_test.exs"
-    - "test/threadline/version_truth_doc_contract_test.exs"
-covered_digest: "v3:sha256:85015277efd4c1f57371d79c0cbc2f86ed5e0c8f9662852380f91d7c97d98900"
+  - ".github/workflows/ci.yml"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-01-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-01-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-02-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-02-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-03-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-03-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-04-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-04-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-05-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-05-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-06-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-06-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-07-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-07-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-08-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-08-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-09-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-09-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-10-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-10-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-11-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-11-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-12-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-12-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-13-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-13-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-14-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-14-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-15-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-15-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-16-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-16-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-17-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-17-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-18-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-18-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-19-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-19-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-20-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-20-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-21-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-21-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-22-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-22-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-23-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-23-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-24-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-24-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-25-PLAN.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-25-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B3-MEASUREMENT.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B4-INCOMPLETE.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-DIAGNOSTIC-EVIDENCE.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-FROZEN-REPLAY.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-PREFLIGHT.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK-AUTHORIZATION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK-DECISION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK-PREFLIGHT.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK.reservation.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION-DECISION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION-PREFLIGHT.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION.reservation.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY.json"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-TOOLS-FIX-SUMMARY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-OBSERVATION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-OFFLINE-REPAIR-REVIEW.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-OFFLINE-REPAIR.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-RECHECK-DISPOSITION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REGRESSION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REVIEW-DISPOSITION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REVIEW.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-SECURITY.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-UI-REVIEW.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/247-VALIDATION.md"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_case.exs"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py"
+  - ".planning/phases/247-ci-critical-path-and-suite-lanes/tools/test_exunit_boundary_probe.py"
+  - "CONTRIBUTING.md"
+  - "bin/browser-full-projects"
+  - "bin/ci-test-partitions"
+  - "bin/measure-main-ci"
+  - "examples/threadline_phoenix/e2e/package.json"
+  - "examples/threadline_phoenix/e2e/playwright.config.ts"
+  - "examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts"
+  - "examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts"
+  - "examples/threadline_phoenix/e2e/support/slow-specs.test.ts"
+  - "examples/threadline_phoenix/e2e/support/slow-specs.ts"
+  - "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"
+  - "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+  - "test/partition_colocate.txt"
+  - "test/partition_weights.txt"
+  - "test/partition_weights_latest.txt"
+  - "test/partition_weights_min.txt"
+  - "test/support/partition_monitor.ex"
+  - "test/test_helper.exs"
+  - "test/threadline/browser_full_projects_contract_test.exs"
+  - "test/threadline/browser_journey_evidence_contract_test.exs"
+  - "test/threadline/ci_topology_contract_test.exs"
+  - "test/threadline/ci_workflow_parity_contract_test.exs"
+  - "test/threadline/partition_monitor_test.exs"
+  - "test/threadline/playwright_fail_fast_contract_test.exs"
+covered_digest: "v3:sha256:1b178cd09fcc0c235d59e810ab063d265992b7ccb3e8a97190218cb03215efbc"
 behavior_unverified: 0
 overrides_applied: 0
+decision_coverage:
+  honored: 24
+  total: 24
+  not_honored: []
 re_verification:
   previous_status: gaps_found
-  previous_score: 3/4
+  previous_score: 2/4
   gaps_closed:
-    - "CI-03 lane-specific weight generation, strict ingestion, and selected lane routing are implemented and covered by adversarial contracts."
+    - "The INVALID preflight verifier now derives verdicts and compile/runtime projections from raw evidence and rejects forged reasons/results; T-247-48 / WR-05 is closed by the offline repair and clean independent review."
   gaps_remaining:
-    - "CI-03 measured max/min ratio remains above 1.15 in seven of the fixed first-three lane/run observations."
+    - "CI-02: B4 has four qualifying successes and two failed exclusions; median remains null."
+    - "CI-03: B4 minimum-lane first-three ratios remain 1.24, 1.28, and 1.27."
+    - "Plan 25's authorized native ARM64 preflight is terminal INVALID after compile smoke emitted an unused-variable warning; no ExUnit arms ran, and the consumed grant does not authorize a retry."
+    - "Plan 25's historical /1 preflight receipt has no persisted elapsed-time fields; the new /2 receipt path enforces and records timing, but does not retroactively alter the old observation."
   regressions: []
 gaps:
-  - truth: "With partition weights refreshed from CI timings, the slowest/fastest partition ratio is <= 1.15 over 3 runs on each lane."
+  - truth: "Browser E2E runs once per Playwright project, the journey receipt reconciles every journey, and median ci.yml wall time over five main runs is <= 540 seconds."
     status: failed
-    reason: "After the per-lane weights landed at main squash 89add23ede29b7840e6cfa29cd70eb3c8ea59ae2, the canonical attempt-1 reader and its committed receipt show current 1.13/1.24/1.15, min 1.36/1.35/1.28, and latest 1.36/1.30/1.30 for the first three qualifying successes. Seven of nine exceed 1.15; the threshold is unchanged."
+    reason: "Authoritative B4 evidence remains incomplete: six main runs produced four qualifying successes and two failures. The five-success reader therefore records median_wall_s=null. Plans 23–25 performed no hosted CI run or new main cohort."
     artifacts:
-      - path: test/partition_weights.txt
-        issue: "The refreshed current-lane weights are selected, but current still exceeds the measured threshold in one of the first three main runs (1.24)."
-      - path: test/partition_weights_min.txt
-        issue: "Min-lane weights are generated from min-lane artifacts and selected correctly, but all three first-sample ratios exceed 1.15."
-      - path: test/partition_weights_latest.txt
-        issue: "Latest-lane weights are generated from latest-lane artifacts and selected correctly, but all three first-sample ratios exceed 1.15."
-      - path: .planning/phases/247-ci-critical-path-and-suite-lanes/247-MEASUREMENT.md
-        issue: "The fixed main sample records the numeric CI-03 miss and the nine actual ratios."
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B4-INCOMPLETE.json"
+        issue: "Records 4/5 qualifying successes, two excluded failures, and null median at the fixed six-run cap."
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B4-MEASUREMENT.json"
+        issue: "A complete five-success measurement does not exist."
     missing:
-      - "Further improve assignment balance or obtain a maintainer scope decision, then measure a new fixed first-three consecutive successful attempt-1 main sample with every lane at <= 1.15. Keep the threshold unchanged."
+      - "A separately authorized main measurement producing five qualifying successes and an unchanged <= 540-second median."
+  - truth: "With partition weights refreshed from CI timings, the slowest/fastest partition ratio is <= 1.15 over three runs on each lane."
+    status: failed
+    reason: "The fixed B4 min-lane ratios remain 1.24, 1.28, and 1.27. Plans 23–25 produced no new CI timing cohort or weights."
+    artifacts:
+      - path: "test/partition_weights_min.txt"
+        issue: "The fixed B4 minimum-lane assignment fails the 1.15 ratio gate on all three measured runs."
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-B4-INCOMPLETE.json"
+        issue: "Persists the numeric min-lane misses."
+    missing:
+      - "A valid, authorized main timing cohort and assignment meeting <= 1.15 across three runs per lane."
+  - truth: "The local ExUnit boundary validation reaches runtime instrumentation and yields a reviewed semantic result on the pinned native ARM64 runtime."
+    status: partial
+    reason: "Plan 25's pinned ARM64 compile-smoke child exited 0 and emitted THREADLINE_COMPILE_SMOKE|ok, but stderr contained an unused-variable warning for mode; the strict producer classified the result INVALID, so zero ExUnit arms, events, TSV output, A/B pairs, or controls exist. The offline source repair renames the unused argument and host-only Elixir 1.17.3/OTP 27 compile-smoke is warning-free, but no pinned Elixir 1.15.8/OTP 26 semantic observation was run. This is distinct from Plan 22's historical OTP compiler exception. The reservation is consumed; no retry is authorized."
+    artifacts:
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-RECHECK-PREFLIGHT.json"
+        issue: "Terminal INVALID preflight records successful compile smoke plus warning stderr; no series receipt or semantic observation exists."
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-LOCAL-CANARY-VALIDATION.json"
+        issue: "Immutable Plan 22 receipt separately records the earlier OTP compiler exception; it is not the cause of Plan 25's INVALID result."
+      - path: ".planning/phases/247-ci-critical-path-and-suite-lanes/247-REVIEW.md"
+        issue: "CR-05 remains open for missing pinned-runtime semantic readiness; WR-04 remains historical. WR-05/T-247-48 were addressed by the offline repair and clean independent review."
+    missing:
+      - "A separately authorized follow-up on pinned Elixir 1.15.8/OTP 26 with a strict-valid preflight and a reviewed semantic observation; the existing grant is consumed."
+behavior_unverified_items: []
 ---
 
-# Phase 247: CI Critical Path and Suite Lanes — Verification
+# Phase 247: CI critical path and suite lanes — Verification Report
 
 **Phase Goal:** Required CI finishes in <= 9 minutes median on main without dropping coverage, partitions are balanced, and a hung test fails fast and names itself.
-**Verified:** 2026-10-27T02:37:43Z
+**Verified:** 2026-10-27T18:19:39Z
 **Status:** gaps_found
-**Re-verification:** Yes — after gap plans 247-14 and 247-15.
+**Re-verification:** Yes — after Plans 23–25 scoped gap-closure work
 
 ## Goal Achievement
 
@@ -175,99 +176,100 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|---|---|---|
-| 1 | Every main CI run publishes the slowest 20 browser specs with durations, and timing visibility landed before the browser split. | VERIFIED | `slow-specs.ts` consumes the Playwright JSON report, writes a top-20 summary and artifact, and is wired from each browser leg under `if: always()`. Its Node unit tests and the prior main-run timing receipts pass; the exact-head PR #96 run and each of the five B3 main runs include the timing artifact family. |
-| 2 | Browser E2E runs once per Playwright project, the journey receipt reconciles every journey, and the five-run main median is <= 540 s. | VERIFIED | `ci.yml` has desktop/mobile matrix legs, a receipt job in unconditional `ci-required` needs, and tests pin the project inventory and receipt requirements. PR #96 attempt 1 (run 40432374330) passed all 17 jobs and reconciled 31 journeys. The live canonical reader selected five successful attempt-1 runs on main SHA `89add23e`; walls were 423/471/451/442/444 s, median 444 s. Its five selected run records each include 17 successful jobs and a green receipt. |
-| 3 | Repo-file contract tests run only on the current lane while local `mix test` and docs retain full scope, and CI-refreshed weights yield max/min <= 1.15 across three runs on each lane. | FAILED | Scope selection, full local inventory, docs, lane-specific weight ingestion and assignment all exist and are exercised. The independent numeric acceptance still fails: current 1.13/1.24/1.15, min 1.36/1.35/1.28, latest 1.36/1.30/1.30. Seven of the nine fixed first-three values exceed 1.15. Evidence: live `bin/measure-main-ci --since 89add23ede29b7840e6cfa29cd70eb3c8ea59ae2 --count 5 --ratios --format json`, `247-B3-MEASUREMENT.json`, and the measurement table. |
-| 4 | A hung test fails within its partition timeout and names itself, reproduced against the PR #89 hang shape. | VERIFIED | `PartitionMonitor` reports in-flight test or `setup_all` identity and the runner watchdog kills the partition process group after its 480 s budget, before the CI step/job limits. Existing named monitor tests exercise both hang shapes. The throwaway PR #89-shape run 40387548421 terminated in 525 s and named `Threadline.ZzHangReproTest (setup_all)`; the live CI min lane has the formatter attached. |
+| 1 | Every main CI run publishes at least the 20 slowest browser specs with durations in a job summary or artifact, and this lands before the browser split. | ✓ VERIFIED (historical) | Historical main-run evidence remains in `247-OBSERVATION.md`; the prior verification at 2026-10-27T15:49:30Z recorded CI-01 as passing. Plans 23–25 changed only local diagnostic tools and evidence; no fresh main run is claimed. |
+| 2 | Browser E2E runs once per Playwright project, the journey receipt reconciles every journey, and median `ci.yml` wall time over five main runs is <= 540 seconds. | ✗ FAILED | Browser matrix and receipt contracts are implemented, but authoritative B4 measurement has only four successes and two failed exclusions at its six-run cap; `median_wall_s` is null. There is no five-success median. |
+| 3 | Repo-file contract tests run only on the current lane while local `mix test` remains whole and honest-default docs stay true; refreshed CI weights yield slowest/fastest <= 1.15 over three runs per lane. | ✗ FAILED | Lane routing and local default contracts remain present. B4's min-lane ratios are 1.24, 1.28, 1.27; thus the numeric acceptance criterion fails. |
+| 4 | A hung test fails within its partition timeout and names the stuck test instead of reaching the 25-minute timeout, reproduced against the PR #89 evidence. | ✓ VERIFIED (historical) | The historical bounded hang reproduction and named-test evidence remain in `247-08-SUMMARY.md` and `247-OBSERVATION.md`; the prior verification at 2026-10-27T15:49:30Z recorded CI-04 as passing. Plans 23–25 did not change the monitor or runner; no fresh hang run is claimed. |
 
-**Score:** 3/4 roadmap truths verified (0 present, behavior-unverified).
+**Score:** 2/4 roadmap truths verified. Pinned-runtime semantic readiness remains an additional phase gap; the offline repair closes the INVALID-verifier source finding but does not supply an authorized pinned-runtime observation.
 
-### Gap-plan must-haves
+### Deferred Items
 
-The added plan truths are checked separately from the roadmap score. Plan 247-14's three truths pass: min/latest/current weights use their own three distinct successful attempt-1 B2 runs (12 TSVs per lane), exact inventories are 206/206/269 files, the runner routes unset/current/min/latest correctly, and its strict ingestion/routing mutations fail closed. Plan 247-15's three evidence truths pass: the lane weights landed on main, CI-02 passed its fixed five-run gate, and CI-03's measured MISS remains explicit and unaltered alongside the preserved CI-01/02/04 topology.
+None. The current milestone roadmap has no later phase explicitly assigned to these failed truths.
+
+### Advisory (New Scope, Unevidenced)
+
+No new-scope anti-pattern blockers were raised in this scoped re-verification.
 
 ## Required Artifacts
 
-All 39 artifacts declared across the 15 plans pass the GSD artifact checker (present and required patterns found). The main runtime artifacts were also read and traced directly:
-
-| Artifact | Expected | Status | Evidence |
+| Artifact | Expected | Status | Details |
 |---|---|---|---|
-| `.github/workflows/ci.yml` | Browser timings, matrix receipt, lane scope, partition watchdog | VERIFIED | Substantive workflow; live PR and main runs show all 17 jobs including both browser legs, receipt, and `CI required`. |
-| `examples/threadline_phoenix/e2e/support/slow-specs.ts` + unit test | Top-20 per-spec timing summary and artifact | VERIFIED | Playwright JSON input, output summary/artifact wiring, and Node unit coverage. |
-| `bin/measure-main-ci` | Read-only attempt-1 wall and ratio measurement | VERIFIED | Re-executed against main; returned five qualifying runs, median 444 s and the same ratio vectors as the committed JSON. |
-| `bin/ci-test-partitions` + `test/support/partition_monitor.ex` | Lane weights, exact assignment, named hangs and timing TSVs | VERIFIED | Runner selects the lane file, filters only toolchain scope, calls assignment verification, retains N=4/colocation/watchdog; formatter writes per-file timing rows and hang diagnostics. |
-| `test/partition_weights.txt`, `test/partition_weights_min.txt`, `test/partition_weights_latest.txt` | Current full inventory and measured min/latest inventories | VERIFIED | Sorted positive weights; plan 14 ingestion uses three distinct B2 attempt-1 main timing artifacts per lane and validates exact inventory before atomic replacement. |
-| `test/threadline/ci_topology_contract_test.exs` | Lane inventory and routing mutation controls | VERIFIED | Substantive contract; 44 focused topology/scope tests passed in the plan 14 receipt, together with both Bash self-tests. |
-| `examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts`, `bin/browser-full-projects` | N-leg receipt and fail-closed project resolution | VERIFIED | Contract/unit tests plus PR #96 receipt reconciled 31 journeys across desktop and mobile. |
-| `247-LANDING.md`, `247-MEASUREMENT.md`, `247-VALIDATION.md`, `247-B3-MEASUREMENT.json` | Exact landing, numeric gate, and validation receipts | VERIFIED | Same main squash SHA and fixed attempt-1 sample; the machine-readable JSON agrees with the live canonical reader. |
+| `.github/workflows/ci.yml` | Browser project matrix, timing summary/artifact, current-lane routing and required receipts | ✓ VERIFIED | Substantive workflow and contract coverage; existing evidence remains unchanged. |
+| `bin/ci-test-partitions` | Balanced partition assignment and bounded hang diagnostics | ✓ VERIFIED | Attached monitor, watchdog and named-hang evidence are present; CI-04 historical repro passes. |
+| `test/partition_weights_min.txt` | CI-derived minimum-lane partition weights meeting ratio gate | ✗ FAILED | Current fixed B4 measurement shows 1.24 / 1.28 / 1.27; weights do not meet the required threshold. |
+| `247-LOCAL-CANARY-RECHECK-PREFLIGHT.json` | Candidate-bound Plan 25 preflight receipt | Present, terminal INVALID | Pinned native ARM64 Elixir 1.15.8 / OTP 26.2.5.21 compile-smoke child exited 0 and emitted its marker; unused-variable stderr triggered the strict INVALID predicate. CID/name inspection and CID-only cleanup succeeded. No series receipt or ExUnit arm exists. |
+| `tools/exunit_boundary_probe.py` and `tools/test_exunit_boundary_probe.py` | Receipt verifier and mutation controls | ✓ VERIFIED (offline repair) | The verifier now derives VALID and INVALID verdicts plus compile/runtime projections from raw evidence. Fresh 37-test run passed; the independent offline review reports zero findings. T-247-48/WR-05 is closed. Synthetic controls do not establish pinned ExUnit semantics. |
 
 ## Key Link Verification
 
 | From | To | Via | Status | Details |
 |---|---|---|---|---|
-| Playwright JSON report | `slow-specs.ts` | `ci.yml` `always()` summary step | WIRED | The leg passes the report path, emits summary and uploads timing artifact even on failed tests. |
-| Playwright project matrix | journey receipt | run-scoped discovered/executed artifacts | WIRED | Exact-head PR #96 receipt log says 31 named journeys validated across desktop and mobile. |
-| journey receipt | `ci-required` / branch protection | unconditional `needs`, no allowed skips | WIRED | Workflow and contract include the receipt; post-merge readback confirms sole required context `CI required@15368`. |
-| `THREADLINE_CI_LANE` in workflow | lane-specific partition file | `lane_weights` in `bin/ci-test-partitions` | WIRED | `current` and unset use full weights; `min` and `latest` use their exact files; unknown values fail before compilation. |
-| lane timing TSVs | committed lane files | strict three-run `--ingest-weights --lane --output` | WIRED | B2 main attempt-1 provenance, 12 TSVs per lane, exact inventory checks and atomic replacement. |
-| selected weights + filtered inventory | four `mix test` processes | `assign_files` and `verify_assignment` | WIRED | Local full and min/toolchain partitions each assigned every selected file once; main jobs use the same runner. |
-| `PartitionMonitor` | hung ExUnit process | formatter events + deadline watcher | WIRED | Existing monitor tests and the named PR #89-shape run prove both test-body and `setup_all` diagnosis. |
-| main run attempts | measurement JSON/report | `bin/measure-main-ci` | WIRED | Independent live invocation returned the same five run IDs, median and first-three ratios. |
+| `ci.yml` browser matrix | journey receipt gate | per-project results and unconditional receipt fan-in | ✓ WIRED | Existing workflow and receipt contract tests cover the link. |
+| partition runner | partition monitor/watchdog | runner starts monitor, enforces timeout, persists named hang evidence | ✓ WIRED | Existing source, tests, and PR #89 bounded reproduction substantiate the link. |
+| Plan 22 producer and pinned ExUnit runner | synthetic receipt/report verifier | shared parser, serialized receipt, `--verify`, report projection | ✓ WIRED | Synthetic self-test and 13 mocked tests pass. |
+| authorized scope decision | one authorized local recheck | explicit authorization, strict machine decision, preflight and consumed reservation | ✓ WIRED | Authorization and approved source hashes bind the decision; one native ARM64 preflight ran and was terminal INVALID. The grant is consumed; no retry is authorized. |
+| local raw preflight | reviewed disposition | report projection, hashes, raw stdout/stderr and independent source review | ✓ WIRED | Historical Plan 25 INVALID cause is re-derived from its unchanged raw evidence; current verifier mutation controls and independent review support the repair. The old observation remains INVALID and has no semantic result. |
 
-## Data-flow Trace (Level 4)
+## Data-Flow Trace (Level 4)
 
-| Artifact | Data Variable | Source | Produces Real Data | Status |
+| Artifact | Data variable | Source | Produces real data | Status |
 |---|---|---|---|---|
-| `slow-specs.ts` output | browser timings | Playwright JSON reporter written by each browser run | Yes; uploaded per run | FLOWING |
-| `PartitionMonitor` TSV | per-file `wall_ms` / `test_ms` | ExUnit module and test timing events in each partition VM | Yes; uploaded as lane/run artifacts | FLOWING |
-| lane weight files | per-file milliseconds | Median of three distinct lane-specific main-run TSV sets | Yes; exact inventory validated before atomic write | FLOWING |
-| B3 measurement | wall times and `max/min` ratios | attempt-1 GitHub run records, job logs, and runner ratio rows | Yes; source JSON matches independent reader | FLOWING |
-
-No rendered application data is introduced by this phase.
+| `247-LOCAL-CANARY-RECHECK-PREFLIGHT.json` | compile smoke/runtime/ownership | actual authorized native ARM64 child plus inspect/cleanup evidence | Compile marker and identity are real; no semantic events or TSV were produced | ⚠️ TERMINAL INVALID (strict stderr gate) |
+| `247-B4-INCOMPLETE.json` | run durations and lane ratios | persisted main-run JSON and partition timing artifacts | Yes | ✓ FLOWING; median unavailable because only four qualifying runs |
 
 ## Behavioral Spot-Checks
 
-| Behavior | Command / receipt | Result | Status |
+| Behavior | Command | Result | Status |
 |---|---|---|---|
-| Five-run CI wall median and first-three ratios | `bin/measure-main-ci --since 89add23ede29b7840e6cfa29cd70eb3c8ea59ae2 --count 5 --ratios --format json` | Five attempt-1 successes on `89add23e`; median 444 s; same ratios as committed measurement | PASS for CI-02; CI-03 MISS |
-| Exact-head required CI and coverage | `CI=true mix ci.all` at `9fa28fad`; PR #96 attempt 1 | Local gate exit 0; PR run 40432374330 all 17 jobs green; 31 journeys; browser 418 passed / 56 configured skips | PASS |
-| Weight generation and routing | plan 14 Bash 5 and Bash 3.2 self-test receipts; focused contracts | Both self-tests and 44 focused contracts green; full local 3381 tests + 32 properties/0 failures; min/toolchain 2561 tests + 32 properties/0 failures | PASS |
-| Hung test naming and early termination | monitor hang tests; throwaway PR #89-shape run 40387548421 | Test body and `setup_all` names are asserted; remote run named the stuck `setup_all` and terminated in 525 s | PASS |
+| Offline repair receipt/report controls | `python3 .planning/phases/247-ci-critical-path-and-suite-lanes/tools/test_exunit_boundary_probe.py` | 37 tests, 0 failures; `Ran 37 tests in 1.624s` | ✓ PASS |
+| Plan 25 raw preflight report projection | `python3 -B .../tools/exunit_boundary_probe.py --verify .../247-LOCAL-CANARY-RECHECK-PREFLIGHT.json --report .../247-LOCAL-CANARY-RECHECK.md` | Summary reports `PASS (INVALID; 0 attempted arms)`; independent review found the INVALID verifier branch does not rederive the cause | Projection only; INVALID cause is manually supported, not proven by this verifier |
+| Prior receipt remains independently verifiable | `python3 -B .../tools/exunit_boundary_probe.py --verify .../247-LOCAL-CANARY.json --report .../247-LOCAL-CANARY.md` | `PASS (INVALID; 1 attempted arms)` | ✓ PASS (historical integrity only) |
+| INVALID verifier falsification control | Included in the 37-test command above | Forged reason, compile/runtime projection and ownership evidence mutations are rejected | ✓ PASS; WR-05/T-247-48 closed |
+| Actual pinned ExUnit semantic canary | Authorized Plan 25 preflight only; no retry or replacement | Compile-smoke exit 0 and success marker; unused-variable warning on stderr made preflight INVALID; zero ExUnit arms | ✗ NO SEMANTIC RESULT |
 
-The full local test suite was not rerun on unchanged code; the exact-head local `mix ci.all`, committed focused-test receipts, and main runs cover the new changes.
+No Docker, pinned Elixir runtime, Mix/product suite, network/install, hosted CI, or observation was run during this verification. The only fresh check was the scoped 37-test pure-Python suite. Plan 25's sole authorized preflight remains the terminal historical runtime observation; its grant is consumed. Historical production regression results remain historical, not fresh claims.
 
 ## Probe Execution
 
-Not applicable: no plan or success criterion declares a `probe-*.sh` script.
+No `scripts/*/tests/probe-*.sh` phase probes were declared. The authorized local boundary diagnostic ended at the compile-smoke gate with terminal INVALID; no semantic behavior was observed.
 
 ## Requirements Coverage
 
-| Requirement | Source plans | Status | Evidence |
-|---|---|---|---|
-| CI-01 | 247-01, 247-03, 247-08, 247-13, 247-15 | SATISFIED | Timing summary/artifact is wired before browser matrix and appears with the live run evidence. |
-| CI-02 | 247-03, 247-09–11, 247-13, 247-15 | SATISFIED | Matrix, required receipt, branch protection and five-run median 444 s <= 540 s. |
-| CI-03 | 247-01–08, 247-12–15 | BLOCKED | Full/local scope and measured lane weights are implemented, but seven of nine required first-three max/min ratios exceed 1.15. |
-| CI-04 | 247-04–05, 247-08, 247-15 | SATISFIED | Named monitor/watchdog behavior, min-lane wiring, and PR #89-shape reproduced run. |
+| Requirement | Source Plan | Description | Status | Evidence |
+|---|---|---|---|---|
+| CI-01 | 247-03 and follow-up plans | Publish top 20 slow browser specs with durations | ✓ SATISFIED (historical) | Workflow, contract tests, and historical main-run evidence; previously verified at 2026-10-27T15:49:30Z. No fresh main run claimed. |
+| CI-02 | 247-09–13 and gap plans | Per-project browser jobs, complete receipt, five-run median <= 540 s | ✗ BLOCKED | B4 record has four qualifying successes, two failed exclusions, and null median. |
+| CI-03 | 247-06–07, 247-12, 247-14–16 | Honest lane scope and <= 1.15 three-run ratio per lane | ✗ BLOCKED | B4 min lane ratios 1.24 / 1.28 / 1.27. |
+| CI-04 | 247-04–05 and 247-08 | Hung test fails within timeout and names itself | ✓ SATISFIED (historical) | Reproduced bounded PR #89 shape and historical recorded evidence; previously verified at 2026-10-27T15:49:30Z. No fresh hang run claimed. |
 
-All four requirement IDs appear in plan requirements and REQUIREMENTS.md; no Phase 247 requirement is orphaned. Markers for CI-01/02/04 may retain historical `Gaps Found` in REQUIREMENTS.md while the phase is open; the evidence above independently verifies them. CI-03 remains unmet.
+No orphaned requirements: CI-01 through CI-04 are represented in the phase plans and `REQUIREMENTS.md`.
 
 ## Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |---|---:|---|---|---|
-| `examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts` | 51–54 | Pre-existing ambiguity when a Playwright title contains ` › ` | WARNING; deferred | Existing WR-01 is dispositioned in `247-REVIEW-DISPOSITION.md`; it predates this phase delta and does not affect the current journey inventory. |
+| `tools/exunit_boundary_probe.py` | 563 | `return []` in a validation helper | ℹ️ Info | Legitimate empty list for an inapplicable/no-error branch; not a stub and does not flow to user-facing output. |
+| `tools/exunit_boundary_probe.py` | — | Forged INVALID verdicts/projections, timing arithmetic, ownership and absolute-deadline mutations | Closed | Fresh 37-test regression run passes; independent offline review is clean. WR-05/T-247-48 closed. |
+| `tools/exunit_boundary_case.exs` | — | Previously unused `mode` argument is now `_mode` | Closed for warning-free source | Host-only Elixir 1.17.3/OTP 27 compile-smoke passed with empty stderr; pinned Elixir 1.15.8/OTP 26 semantic readiness remains unobserved (CR-05). |
+| Plan 25 preflight receipt | — | Historical `/1` receipt has no start/end/elapsed fields | ⚠️ Historical provenance limitation | WR-06's fields and cap checks are implemented for new `/2` receipts. The old receipt remains unchanged and cannot prove its elapsed time. |
+| Plan 22 receipt evidence | — | Historical owned container identity absent | ⚠️ Warning | WR-04 remains open for the immutable Plan 22 record; Plan 25's own CID/name inspection and CID-only cleanup succeeded. |
+| Earlier browser list parser | `247-REVIEW-DISPOSITION.md` | Separator ambiguity | ⚠️ Warning, deferred | Inherited WR-01; outside Plans 23–25 and unchanged. |
 
-No unreferenced `TBD`, `FIXME`, or `XXX` markers were found in the changed Phase 247 implementation files. The `return null` match in the changed accessibility spec is an existing test helper guard, not a user-visible stub. No console-only or empty implementation was found. Plan 14/15 reviews added no new findings. The separate motion fixture failure from run 40435657557 is retained in `deferred-items.md` and was not retried or folded into the fixed sample.
+Security audit: 51/53 controls closed; two inherited medium threats (T-247-46/47) remain open. T-247-48 is closed by source repair, 37 passing tests, and independent offline review. Canonical review retains CR-05 pinned-runtime semantic readiness, WR-04's historical ownership evidence gap, and deferred WR-01; the source verifier finding is closed. WR-06's timing fields/cap enforcement are implemented for new `/2` receipts, while Plan 25's legacy `/1` receipt remains without elapsed data. Nyquist remains partial (`nyquist_compliant: false`). No overrides applied.
+
+### Decision Coverage
+
+The decision-coverage gate checked all trackable entries in `247-CONTEXT.md`: **24/24 honored**, 0 not honored. The Plan 25 decision stayed within D-20 through D-24: one explicit local grant, strict stop on first INVALID, no retry/source repair, and no CI or new main cohort. This non-blocking gate does not change the phase status.
 
 ## Human Verification Required
 
-None. Repository policy prefers automated UAT; the remaining acceptance gap is a deterministic measured CI-03 miss with an automated remeasurement path.
+None. The project policy defaults to zero human verification; the unresolved outcomes are deterministic recorded failures and require planned technical gap closure, not UAT.
 
 ## Gaps Summary
 
-Gap plan 14 fixed the wiring issue that caused min/latest to inherit current weights: each lane now ingests its own three-run main timing sample, validates exact inventory, routes to its own committed weights, and retains exact-once assignment safeguards. The exact tested code landed on main and passes required CI. The five-run median also meets the 540-second gate at 444 seconds. However, the first-three post-landing ratios still miss the unchanged 1.15 requirement on seven observations. This numeric CI-03 gap blocks phase completion; the recorded evidence does not support a pass or an override.
+Phase 247 remains incomplete at **2/4** roadmap truths. Historical CI-01 and CI-04 evidence remains valid and is not represented as freshly rerun. CI-02 is still INCOMPLETE: B4 has four qualifying successes and two failed exclusions, so the median remains null. CI-03 remains a MISS at min-lane ratios 1.24 / 1.28 / 1.27. The 37-test offline repair and clean independent review close WR-05/T-247-48, and the source warning is fixed; the authorized Plan 25 ARM64 preflight remains terminal INVALID with zero ExUnit arms, so pinned-runtime semantic readiness (CR-05) is still unproven and its consumed grant does not authorize retry. The new `/2` path records and validates preflight/child timing and enforces an absolute deadline; the historical Plan 25 `/1` receipt is unchanged and cannot prove actual elapsed time. Plan 22's historical OTP exception and missing container identity remain historical facts, not the cause or ownership status of Plan 25. WR-04 remains historical and WR-01 remains deferred. Historical B3 results, off-main diagnostic run 40504321590, and frozen replay data cannot replace the missing main acceptance evidence.
 
 ---
-
-_Verified: 2026-10-27T02:37:43Z_
+_Verified: 2026-10-27T18:19:39Z_
 _Verifier: the agent (gsd-verifier)_

@@ -805,6 +805,7 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 - **Tech stack**: Elixir ≥ 1.15 / OTP ≥ 26 / PostgreSQL ≥ 15 / Ecto 3.x — align with active Phoenix LTS baseline
 - **SQL-native**: no Erlang binary or opaque blob storage; all audit data must be introspectable with plain SQL
 - **Correct by default**: capture must not depend on developers remembering to call library functions on every write path
+- **Dependency discipline** — prefer a small, flat dependency tree. Copy a small, understood helper with appropriate provenance when it avoids an unnecessary abstraction; add a dependency only when its maintenance, security and reuse benefits justify the extra surface (maintainer direction, 2026-10-27).
 - **OSS quality bar**: named `mix verify.*` / `mix ci.*` entrypoints; honest `mix test` (no silent exclusions); stable GitHub Actions job IDs
 - **Capture mechanism**: Path B (custom triggers) — see archived gate-01-01.md; PgBouncer transaction-mode safe
 - **No WAL/CDC as primary backend**: logical replication adds operational surface area incompatible with Threadline's "batteries-included" promise at v0.x

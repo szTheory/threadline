@@ -1,52 +1,94 @@
 ---
 phase: 247-ci-critical-path-and-suite-lanes
-reviewed: 2026-10-27T01:11:34Z
-depth: standard
-files_reviewed: 6
+reviewed: 2026-10-27T17:33:15Z
+depth: deep
+files_reviewed: 3
 files_reviewed_list:
-  - examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts
-  - bin/ci-test-partitions
-  - test/partition_weights.txt
-  - test/partition_weights_latest.txt
-  - test/partition_weights_min.txt
-  - test/threadline/ci_topology_contract_test.exs
+  - .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_case.exs
+  - .planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py
+  - .planning/phases/247-ci-critical-path-and-suite-lanes/tools/test_exunit_boundary_probe.py
 findings:
-  critical: 0
-  warning: 1
+  critical: 1
+  warning: 2
   info: 0
-  total: 1
+  total: 3
 status: issues_found
 ---
 
-# Phase 247: Code Review Report
+# Phase 247: Incremental Code Review Report — Plans 23–25
 
-**Reviewed:** 2026-10-27T01:11:34Z
-**Depth:** standard
-**Files Reviewed:** 6 (incremental Plan 14 and Plan 15 test-fix scope)
+**Reviewed:** 2026-10-27T17:33:15Z
+**Depth:** deep
+**Files Reviewed:** 3
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the CI partition runner and project resolver, main CI measurement reader, ExUnit partition monitor, browser timing and receipt tooling, their Node contract tests, test setup, Playwright config, and CI workflow. The phase-summary scope also includes many pre-existing Elixir contract tests whose phase changes only add the `:repo_contract` classification tag; those tag-only edits do not change test behavior. CI-03's recorded numeric miss is an acceptance gap, not a code defect, and is excluded from findings.
+Reviewed the three scoped local tools against Plans 23–25 and the saved recheck evidence. The new pinned native ARM64 compile smoke exited 0 and emitted `THREADLINE_COMPILE_SMOKE|ok`; its only stderr was an unused-variable warning at runner line 140. The strict any-stderr rule therefore made the preflight `INVALID`, ran zero ExUnit arms, and produced no semantic result. This differs observably from the immutable Plan 22 receipt, which records an OTP compiler exception before a marker. CR-05 remains open as a semantic-readiness blocker, not as a claim that the current compiler still crashes.
 
-The incremental Plan 14 review covered `bin/ci-test-partitions`, `test/partition_weights.txt`, `test/partition_weights_min.txt`, `test/partition_weights_latest.txt`, and `test/threadline/ci_topology_contract_test.exs`. Strict ingestion constrains explicit destinations to the three committed weight files, validates three distinct complete four-partition runs against the exact lane inventory, rejects malformed, duplicate, missing, wrong-lane, and stale observations, and writes by same-directory replacement. Lane selection rejects unknown values before compilation; exact-once assignment and colocation/watchdog paths remain wired through the existing runner. The five-file delta introduced no new confirmed findings.
+Plan 25 records a matching owned container name/CID and successful CID-only cleanup for its sole child. This satisfies current-run ownership evidence but cannot repair Plan 22's historical missing identity. The independent disposition also identifies two verifier/evidence limits confirmed in source: INVALID preflight details are not recomputed, and preflight elapsed time is not recorded. CI-02 remains INCOMPLETE, CI-03 remains MISS at `1.24/1.28/1.27`, and Phase 247 remains 2/4.
 
-The temporary routing-test coverage warning recorded in `247-14-REVIEW.md` was resolved before final review: sentinel weights now differ by lane, the test compares actual assignment TSVs against lane-specific expected assignments, and a mutation that routes latest through current weights must diverge. The report's existing WR-01 and its deferred disposition remain unchanged. Per the 247-14 summary, local full and min/toolchain suites and both Bash self-tests passed; local ratios are not main-run acceptance evidence. CI-03's numeric claim remains pending the required post-landing main runs.
+## Critical Issues
 
-The Plan 14 artifact provenance records three successful attempt-1 main runs at the recorded head, 12 TSVs per lane across three runs, and exact inventories of 206 scoped files for min/latest and 269 full files for current. The committed weight files are path sorted and positive; timing observations of zero milliseconds are valid and their generated medians are floored at 1 ms.
+### CR-05: The pinned runner still has no semantic result (current warning is not the historical compiler crash)
 
-The incremental Plan 15 test-fix review also covered `examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts`. After confirming the stress modal, the test now waits for it to become hidden and for the exact “Show Modal” trigger to regain focus before it moves focus to the persistent toast and presses Enter. This pins the expected dialog dismissal/focus-restoration sequence and removes the observed focus race from the test; the change does not alter product code. No new finding was confirmed. The final targeted zero-retry check and full `ci.all` run were in progress at review time and were not run by this reviewer.
+**Severity:** BLOCKER
+**File:** `.planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_case.exs:140`
+**Issue:** The Plan 22 immutable receipt records an OTP compiler exception before runtime identity or events. The current Plan 25 receipt is materially different: the pinned ARM64 compiler exited 0 and emitted the compile-smoke marker, but the unused `mode` argument emits a warning. The coordinator treats any compile-smoke stderr as `compile_smoke_stderr_present` (`exunit_boundary_probe.py:873-890, 1838-1858`), so the strict preflight is terminal `INVALID` and launches zero semantic arms. The current failure is the warning-gated preflight, not a continuing compiler crash; the underlying semantic-readiness gate remains open.
+
+**Fix:** Remove or use the unused argument, then obtain a separately authorized preflight and semantic run. Preserve both historical receipts and do not reuse the consumed Plan 25 grant.
 
 ## Warnings
 
-### WR-01: Playwright list parsing is ambiguous when a title contains the separator (pre-existing)
+### WR-01: Playwright list parsing is ambiguous when a title contains the separator (inherited; deferred)
 
+**Severity:** WARNING
 **File:** `examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts:51-54`
-**Issue:** `parseDiscovered` splits a `playwright test --list` line on ` › ` and `parseExecuted` treats the corresponding JSON title as one title-path element. Playwright titles are arbitrary strings and may themselves contain ` › `. For example, a test declared with title `opens A › B` is emitted with that text in the final title segment; this parser splits it into `opens A` and `B`, so its discovered identity does not match the executed/inventory identity and the receipt job fails. Deterministic reproduction from the repository root (no browser required): `node --experimental-strip-types --input-type=module -e 'import {parseDiscovered, identityKey} from "./examples/threadline_phoenix/e2e/support/operator-ci-evidence.ts"; const got=parseDiscovered("[desktop-chromium] › tests/example.spec.ts:4:1 › opens A › B")[0]; console.log(got.titlePath, identityKey(got) === identityKey({project:"desktop-chromium",file:"tests/example.spec.ts",titlePath:["opens A › B"]}));'` prints `[ 'opens A', 'B' ] false`. Git blame attributes the ambiguous regex and split at lines 51-54 to `81c920e4` (2026-10-23), before phase 247. Phase 247 commit `3e832c12` adds multi-file fan-in but leaves this parser unchanged, so this is an inherited defect carried into the new required receipt fan-in rather than a newly introduced parser change.
-**Fix:** Avoid parsing the display-oriented `--list` output for machine identities. Generate the discovered identity list from a structured Playwright reporter/API, or use an unambiguous encoding for each title-path component and decode it before `identityKey` comparison.
+**Issue:** `parseDiscovered` splits display output on ` › `, which can also occur in a valid test title. Discovered and executed identities can then disagree. This is inherited, outside the Plan 23–25 source scope, and remains deferred.
+
+**Fix:** Build identities from structured Playwright output or encode title-path components unambiguously.
+
+### WR-04: Plan 22 preflight and arm receipts lack historical owned-container identity
+
+**Severity:** WARNING
+**File:** `.planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py:911-925`
+**Issue:** The Plan 22 receipts do not preserve sufficient owned container identity to independently tie cleanup to a specific container. The current implementation records name, captured CID, inspected name, and cleanup outcome; Plan 25's one child has matching identity and successful CID-only cleanup. That current evidence does not retroactively fill the immutable Plan 22 gap, so the inherited finding remains open only for the historical evidence.
+
+**Fix:** Keep the old finding open as a historical evidence limitation; retain per-child name/CID/inspect/cleanup evidence for any separately authorized future run.
+
+### WR-05: INVALID preflight verification accepts an unsubstantiated reason and compile result — FIXED 8c9f1541
+
+**Severity:** WARNING
+**File:** `.planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py:1875-1895`
+**Issue:** `check_recheck_preflight` recomputes compile output, runtime, image, and ownership predicates only inside the `status == "VALID"` branch. For an `INVALID` receipt it only checks that the status is one of the allowed values, then verifies source and reservation bindings. A pure-Python probe against the saved receipt returned no errors after changing its result reason to `forged-invalid-reason`; changing `compile_smoke_result` to a fabricated semantic result also returned no errors. Consequently `--verify` can accept a self-consistent report projection whose INVALID cause or compile classification is not supported by the raw child fields.
+
+**Fix:** For INVALID preflights, derive `compile_smoke_result` and the expected reason from the captured exit code, stdout, stderr, runtime, and ownership fields; reject a result whose cause is not reproduced from those fields. Add negative controls for modified reason/status and fabricated compile results.
+
+### WR-06: Recheck preflight receipts cannot establish the elapsed-time cap — FIXED FOR NEW RECEIPTS 8c9f1541
+
+**Severity:** WARNING
+**File:** `.planning/phases/247-ci-critical-path-and-suite-lanes/tools/exunit_boundary_probe.py:1810-1823, 1829-1837, 1868-1913`
+**Issue:** The reservation stores only the preflight start monotonic timestamp. The preflight receipt records no finish timestamp or elapsed duration, and its verifier does not validate the 45-second preflight limit. Although the child and image-inspection helpers have individual timeouts, the raw evidence cannot establish that the overall preflight stayed within its plan cap. The recorded Plan 25 child's cleanup evidence does not supply this missing timing evidence.
+
+**Fix:** Record monotonic preflight start/end and elapsed duration, enforce one deadline across image inspection and the child, and have verification check both the recorded duration and the cap.
+
+## Verification Performed
+
+- Read the Plan 23 review, Plans 23–25, their summaries, the authorization, machine decision, raw preflight, projected report, reservation, and recheck disposition.
+- Traced the warning, strict stderr classification, owned-container capture/cleanup, INVALID verification branch, and preflight timing fields in the three scoped tools.
+- Pure-Python verifier probe: the saved raw preflight returned no errors; changing its INVALID reason and separately fabricating its `compile_smoke_result` also returned no errors. No test suite was run.
+- No Docker, Elixir, Mix, CI, network, install, source edit, or new observation was performed.
+
+## Prior Finding Disposition
+
+`CR-01` through `CR-04`, `WR-02`, `WR-03`, and `IN-01` remain historically fixed as recorded in `247-REVIEW-DISPOSITION.md`. `WR-01` remains deferred. `CR-05` remains open with the current no-semantic-result evidence distinguished from the old compiler-exception receipt. `WR-04` remains open for the Plan 22 historical identity gap; Plan 25's owned CID is verified for its own child. `WR-05` and `WR-06` are fixed in source by offline repair commit `8c9f1541`; the independent repair review is clean. Historical Plan 25 timing is not retroactively supplied. No old receipt or disposition was rewritten.
 
 ---
 
-_Reviewed: 2026-10-27T01:11:34Z_
+_Reviewed: 2026-10-27T17:33:15Z_
 _Reviewer: the agent (gsd-code-reviewer)_
-_Depth: standard_
+_Depth: deep_
+
+## Offline repair re-review
+
+Commit 8c9f1541 fixes WR-05/T-247-48 and implements WR-06 for new producer-bound `/2` preflights. The independent 247-OFFLINE-REPAIR-REVIEW.md reports zero findings. Fresh checks: 37 Python tests, synthetic round-trip, old receipt/report verification and warning-free host compile-only all pass. The `_mode` edit removes the reported warning; no pinned-runtime/ExUnit arm was run. CR-05 remains an empirical semantic-readiness gap; WR-04 remains historical; WR-01 remains deferred. Current active counts: 1 critical, 2 warnings, 0 info. Timing consistency is verified; authenticated physical elapsed time remains a documented provenance boundary. See 247-OFFLINE-REPAIR.md.

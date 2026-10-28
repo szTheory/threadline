@@ -207,3 +207,114 @@ Fallback for gap closure (D-11 per-lane weights):
    per-lane weights land.
 
 Threshold not relaxed. Next: /gsd-plan-phase 247 --gaps; a miss remaining after the fallback is a maintainer scope decision.
+
+
+## B4 bounded outcome — INCOMPLETE
+
+B4 measurement: INCOMPLETE
+
+The exact PR #97 candidate `4ff7af655315a927eb5a62e14cb2abc7e72d4ab8` landed as main `02d115a32e4479f353d284c04fc838ba58938d16`. The authorized six-run window is exhausted: four successful attempt-1 runs and two failed exclusions, using the merge push and five serial dispatches. Source and acceptance limits stayed fixed; no attempt/job was retried and no seventh run was dispatched.
+
+CI-02 on B4 is **INCOMPLETE**: five qualifying successes were required and only four exist. The canonical reader reports `median_wall_s: null`; no five-run PASS is inferred. Historical B3 CI-02 PASS at 444 s remains historical; SEED-006 retains that last complete bound.
+
+CI-03 is **MISS** on the fixed first-three successful runs: all six current/latest ratios pass, while all three min ratios exceed 1.15. Startup remains part of the accepted full-wall measurement.
+
+| Qualifying run | Event | Wall s |
+|---|---|---:|
+| 40449332597 | push | 454 |
+| 40450141708 | workflow_dispatch | 423 |
+| 40450801580 | workflow_dispatch | 468 |
+| 40451533079 | workflow_dispatch | 404 |
+
+| Lane | First / second / third printed ratios |
+|---|---|
+| current | 1.12 / 1.11 / 1.12 |
+| min | 1.24 / 1.28 / 1.27 |
+| latest | 1.10 / 1.04 / 1.12 |
+
+### Failed exclusions and follow-up
+
+- 40452150109, min job 122017125177, partition 3, seed 675682: `Threadline.OperatorSurface.RowHistoryLiveScopedTest` at `row_history_live_test.exs:361`, `audit_changes_transaction_id_fkey` during child insertion after parent insertion. Source triage confirms parent/child use the same Repo options and each partition has its own database; it does not establish why the parent row was absent. Do not label a root cause or patch colocation from that evidence.
+- 40452833440, min job 122019295198, partition 1, seed 856063: `Threadline.Export.OrchestratorTest` at `export/orchestrator_test.exs:239`, setup line 177, `File.rm_rf!("priv/threadline_exports")` failed with “file already exists.” The fixture uses a checkout-shared directory. A read-only replay maps orchestrator to min partition 1, export controller to partition 4, and cleanup/local-storage tests to partition 2. This demonstrates cross-process shared-path exposure; further diagnosis must capture the competing writer/cleanup before claiming the failure cause or a fix.
+
+Both newly observed failures remain failed, excluded and unresolved. Failed initial PR run 40446515239 and historical B3 failed run 40435657557 remain separately recorded and were not retried. CI-01 timing artifacts, both browser projects, full 31-journey receipts and CI-04 guards were verified on the exact green PR and four qualifying main successes; they do not erase the two failed attempts.
+
+### Residual diagnosis and scope recommendation
+
+All three min misses have partition 3 slowest. Its pre-first-module boot intervals are 20.469 / 18.940 / 17.227 s; min active-only ratios are 1.140 / 1.165 / 1.127. The first p3 active wall is 145.075 s versus a 145.070 s observed sync-module sum. These intervals recur; the artifacts do not establish their cause. Current and latest pass all six full-wall ratios. Both independent researchers recommend no further optimizer, weight, N=4, inventory, or threshold change from this evidence.
+
+Stop paid sampling at this cap. Recommended next scope is a bounded local diagnosis of fixture isolation (shared export directory and the separate row-history FK failure), then a concrete reviewed candidate and a new sampling budget decision. Do not spend more runs trying to obtain a favorable sample or waive the fixed 1.15 / 540 s limits silently.
+
+The unchanged canonical count-5 reader payload is `247-B4-INCOMPLETE.json`. No complete `247-B4-MEASUREMENT.json` or B4-GATE-JSON block is produced. Plan 19 Task 2's complete-five reconciliation and its mutation controls cannot run because their sample precondition is unmet. The incomplete payload, both projections, six-run chronology and two exclusions are reconciled separately; this is not a substitute PASS.
+
+<!-- B4-INCOMPLETE-JSON-BEGIN -->
+{
+  "schema": "threadline.phase247-b4-incomplete/1",
+  "squash_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+  "state": "INCOMPLETE",
+  "required_successes": 5,
+  "found_successes": 4,
+  "total_runs": 6,
+  "run_cap": 6,
+  "extra_dispatches": 5,
+  "runs": [
+    {
+      "id": 40449332597,
+      "event": "push",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "wall_s": 454
+    },
+    {
+      "id": 40450141708,
+      "event": "workflow_dispatch",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "wall_s": 423
+    },
+    {
+      "id": 40450801580,
+      "event": "workflow_dispatch",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "wall_s": 468
+    },
+    {
+      "id": 40451533079,
+      "event": "workflow_dispatch",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "wall_s": 404
+    }
+  ],
+  "first_three_ratios": {
+    "current": [
+      1.12,
+      1.11,
+      1.12
+    ],
+    "min": [
+      1.24,
+      1.28,
+      1.27
+    ],
+    "latest": [
+      1.1,
+      1.04,
+      1.12
+    ]
+  },
+  "excluded": [
+    {
+      "id": 40452150109,
+      "event": "workflow_dispatch",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "reason": "failure"
+    },
+    {
+      "id": 40452833440,
+      "event": "workflow_dispatch",
+      "head_sha": "02d115a32e4479f353d284c04fc838ba58938d16",
+      "reason": "failure"
+    }
+  ],
+  "ci02_verdict": "INCOMPLETE",
+  "ci03_verdict": "MISS"
+}
+<!-- B4-INCOMPLETE-JSON-END -->

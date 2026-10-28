@@ -1,0 +1,920 @@
+{
+  "schema": "threadline.phase247-off-main-diagnostic/1",
+  "authorization": {
+    "total_run_cap": 1,
+    "dispatch_requests": 1,
+    "retries": 0,
+    "main_runs": 0
+  },
+  "main_measurement_eligible": false,
+  "run": {
+    "id": 40504321590,
+    "html_url": "https://github.com/szTheory/threadline/actions/runs/40504321590",
+    "event": "workflow_dispatch",
+    "head_branch": "diag/v1.47-min-startup",
+    "head_sha": "8177d00d74b03527c2b14bbb0ef17f6c5895b464",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-27T12:30:40Z",
+    "run_started_at": "2026-10-27T12:30:40Z",
+    "updated_at": "2026-10-27T12:38:10Z"
+  },
+  "workflow_wall_s": 450,
+  "jobs": [
+    {
+      "id": 122189624192,
+      "name": "Credo (strict)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:31:51Z"
+    },
+    {
+      "id": 122189624474,
+      "name": "Example app browser E2E (mobile-chromium)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:43Z",
+      "completed_at": "2026-10-27T12:37:44Z"
+    },
+    {
+      "id": 122189624547,
+      "name": "Dependency audit (Mix lockfiles)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:43Z",
+      "completed_at": "2026-10-27T12:31:13Z"
+    },
+    {
+      "id": 122189624585,
+      "name": "Build and test (current)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:36:35Z"
+    },
+    {
+      "id": 122189624593,
+      "name": "Next-minor release rehearsal (docs + contracts)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:33:41Z"
+    },
+    {
+      "id": 122189624616,
+      "name": "Build and test (min)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:33:45Z"
+    },
+    {
+      "id": 122189624622,
+      "name": "Dialyzer (full optional build)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:32:47Z"
+    },
+    {
+      "id": 122189624654,
+      "name": "CHANGELOG matches version",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:30:51Z"
+    },
+    {
+      "id": 122189624666,
+      "name": "Hex package install (rehearsal registry)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:31:52Z"
+    },
+    {
+      "id": 122189624675,
+      "name": "Repo hygiene (no machine-local paths)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:30:52Z"
+    },
+    {
+      "id": 122189624684,
+      "name": "Formatting",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:30:59Z"
+    },
+    {
+      "id": 122189624910,
+      "name": "Compile without optional deps",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:32:15Z"
+    },
+    {
+      "id": 122189624915,
+      "name": "Tests through PgBouncer (transaction mode)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:32:01Z"
+    },
+    {
+      "id": 122189624952,
+      "name": "Build and test (latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:43Z",
+      "completed_at": "2026-10-27T12:34:35Z"
+    },
+    {
+      "id": 122189625038,
+      "name": "Example app browser E2E (desktop-chromium)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:30:44Z",
+      "completed_at": "2026-10-27T12:35:41Z"
+    },
+    {
+      "id": 122192820590,
+      "name": "Browser journey receipt",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:37:46Z",
+      "completed_at": "2026-10-27T12:38:05Z"
+    },
+    {
+      "id": 122192979008,
+      "name": "CI required",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-27T12:38:07Z",
+      "completed_at": "2026-10-27T12:38:09Z"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 12735240076,
+      "name": "operator-ci-discovered-mobile-chromium-40504321590",
+      "digest": "sha256:a62a52f68eb0292359082290b4aceb1c13f4d99b1df7fc39b1c30bbc9598cc56",
+      "size_in_bytes": 7309,
+      "created_at": "2026-10-27T12:37:40Z",
+      "expires_at": "2026-11-10T12:37:39Z"
+    },
+    {
+      "id": 12735140350,
+      "name": "operator-ci-executed-mobile-chromium-40504321590",
+      "digest": "sha256:44384ea131ff9a0ec04d4843be1569bbcd22ca7fe1a6779cb508cae4abf04120",
+      "size_in_bytes": 34957,
+      "created_at": "2026-10-27T12:37:39Z",
+      "expires_at": "2026-11-10T12:37:39Z"
+    },
+    {
+      "id": 12734457128,
+      "name": "operator-ci-executed-desktop-chromium-40504321590",
+      "digest": "sha256:3f2b4a416567868b6bbc3ce219d407ce5bc21b577ffcdd7d251ec17bd34b842c",
+      "size_in_bytes": 39922,
+      "created_at": "2026-10-27T12:35:36Z",
+      "expires_at": "2026-11-10T12:35:35Z"
+    },
+    {
+      "id": 12734347365,
+      "name": "browser-timings-desktop-chromium-40504321590",
+      "digest": "sha256:918d4abb7a9ee8b9b100b189fe11820233d24b7dc11037884466701584874855",
+      "size_in_bytes": 1751,
+      "created_at": "2026-10-27T12:35:34Z",
+      "expires_at": "2026-11-10T12:35:33Z"
+    },
+    {
+      "id": 12734302353,
+      "name": "operator-ci-discovered-desktop-chromium-40504321590",
+      "digest": "sha256:58f528874b31c8ca67fdbeecc6928f76a12974190b3c02bc54d25271f620f7d8",
+      "size_in_bytes": 7315,
+      "created_at": "2026-10-27T12:35:37Z",
+      "expires_at": "2026-11-10T12:35:36Z"
+    },
+    {
+      "id": 12734158440,
+      "name": "operator-ci-evidence-40504321590",
+      "digest": "sha256:517e063adcda801ac90e98616f43dea3e2ad4a5b95c82da9f4f5711784c32745",
+      "size_in_bytes": 1382,
+      "created_at": "2026-10-27T12:38:02Z",
+      "expires_at": "2026-11-10T12:38:01Z"
+    },
+    {
+      "id": 12734028076,
+      "name": "partition-timings-current-40504321590",
+      "digest": "sha256:69c3012e70c18f9c14dcf77a139d6ea9f0d3b4cdeed93e2ba78067986311ca6d",
+      "size_in_bytes": 5409,
+      "created_at": "2026-10-27T12:34:47Z",
+      "expires_at": "2026-11-10T12:34:46Z"
+    },
+    {
+      "id": 12733933935,
+      "name": "partition-timings-latest-40504321590",
+      "digest": "sha256:63a43787dd14669ac0270f601d1bcbaeea0e883fb18276fa6c4ce9bd76af3d7c",
+      "size_in_bytes": 4390,
+      "created_at": "2026-10-27T12:34:32Z",
+      "expires_at": "2026-11-10T12:34:32Z"
+    },
+    {
+      "id": 12733764933,
+      "name": "browser-timings-mobile-chromium-40504321590",
+      "digest": "sha256:96ae5b4469f3c3b6d9c9bc33900d6dafd8e10bf94c7c7fab001b85bbdedc2852",
+      "size_in_bytes": 1675,
+      "created_at": "2026-10-27T12:37:37Z",
+      "expires_at": "2026-11-10T12:37:37Z"
+    },
+    {
+      "id": 12733554747,
+      "name": "partition-timings-min-40504321590",
+      "digest": "sha256:4def3397f7cd4b5a1e2943fa5feb8b53a39f9aa601d22342283151515dbc2665",
+      "size_in_bytes": 4310,
+      "created_at": "2026-10-27T12:33:41Z",
+      "expires_at": "2026-11-10T12:33:40Z"
+    },
+    {
+      "id": 12733544739,
+      "name": "minimum-startup-trace-40504321590",
+      "digest": "sha256:6dcb1aabe04640f9c530219c944d3a9faf730359132524425ec5a81834407134",
+      "size_in_bytes": 4973,
+      "created_at": "2026-10-27T12:33:40Z",
+      "expires_at": "2026-11-10T12:33:39Z"
+    }
+  ],
+  "lanes": {
+    "min": {
+      "printed_ratio": 1.31,
+      "file_count": 206,
+      "test_count": 2563,
+      "partitions": [
+        {
+          "partition": 1,
+          "exit": 0,
+          "printed_seconds": 88,
+          "tests": 552,
+          "failures": 0,
+          "boot_ms": 1886,
+          "wall_ms": 87846,
+          "file_count": 35,
+          "timing_sha256": "d38e76ed7619ef4a02f565d3d445de10f30ff65fce14d81fc09e4758b2890772"
+        },
+        {
+          "partition": 2,
+          "exit": 0,
+          "printed_seconds": 91,
+          "tests": 989,
+          "failures": 0,
+          "boot_ms": 2239,
+          "wall_ms": 90269,
+          "file_count": 88,
+          "timing_sha256": "2fada20fa27d9a36b1899d92e395915c62d7c6d65c345dc21cf82e957eac4687"
+        },
+        {
+          "partition": 3,
+          "exit": 0,
+          "printed_seconds": 102,
+          "tests": 488,
+          "failures": 0,
+          "boot_ms": 1598,
+          "wall_ms": 101470,
+          "file_count": 36,
+          "timing_sha256": "b8e3afec7b7a7d3fdb82502cd71905437bdba4708cd00c09bc0a86ab0a6c0e63"
+        },
+        {
+          "partition": 4,
+          "exit": 0,
+          "printed_seconds": 78,
+          "tests": 534,
+          "failures": 0,
+          "boot_ms": 2063,
+          "wall_ms": 77060,
+          "file_count": 47,
+          "timing_sha256": "2b0f28c5120581de82e4d85e4b83b6b41fcdcc16d13e1309e0807624c14882d5"
+        }
+      ]
+    },
+    "current": {
+      "printed_ratio": 1.17,
+      "file_count": 269,
+      "test_count": 3383,
+      "partitions": [
+        {
+          "partition": 1,
+          "exit": 0,
+          "printed_seconds": 139,
+          "tests": 1038,
+          "failures": 0,
+          "boot_ms": 3248,
+          "wall_ms": 138999,
+          "file_count": 65,
+          "timing_sha256": "bf72321eab6239129c258231768301d470c66e7b2f65334985e28a22af0419d5"
+        },
+        {
+          "partition": 2,
+          "exit": 0,
+          "printed_seconds": 162,
+          "tests": 963,
+          "failures": 0,
+          "boot_ms": 3156,
+          "wall_ms": 161975,
+          "file_count": 80,
+          "timing_sha256": "72ae9323dd92c5e9c77fe23fae7f0bcc5f6687de50ac4e685ced81fe051e1103"
+        },
+        {
+          "partition": 3,
+          "exit": 0,
+          "printed_seconds": 159,
+          "tests": 718,
+          "failures": 0,
+          "boot_ms": 2659,
+          "wall_ms": 159126,
+          "file_count": 67,
+          "timing_sha256": "de6709a8dcf7777d1ef8bf939896761c19a8b38cd097175eb5fa26edb7ccde29"
+        },
+        {
+          "partition": 4,
+          "exit": 0,
+          "printed_seconds": 163,
+          "tests": 664,
+          "failures": 0,
+          "boot_ms": 2871,
+          "wall_ms": 162902,
+          "file_count": 57,
+          "timing_sha256": "6716dc60cf76b13e4214cb0467eb41de7ea325da85cb63bc2ce495f56b89dcd3"
+        }
+      ]
+    },
+    "latest": {
+      "printed_ratio": 1.1,
+      "file_count": 206,
+      "test_count": 2560,
+      "partitions": [
+        {
+          "partition": 1,
+          "exit": 0,
+          "printed_seconds": 147,
+          "tests": 1111,
+          "failures": 0,
+          "boot_ms": 2190,
+          "wall_ms": 146903,
+          "file_count": 75,
+          "timing_sha256": "55ba796899000efbd039e027ea09a5d8cc954f79406875fe3ecd33bb480d2086"
+        },
+        {
+          "partition": 2,
+          "exit": 0,
+          "printed_seconds": 144,
+          "tests": 439,
+          "failures": 0,
+          "boot_ms": 2827,
+          "wall_ms": 143169,
+          "file_count": 39,
+          "timing_sha256": "1ad6248fbbcfa20295a889e2f2b11bd86e11daf5ea621f182e68363038bd2f1a"
+        },
+        {
+          "partition": 3,
+          "exit": 0,
+          "printed_seconds": 159,
+          "tests": 311,
+          "failures": 0,
+          "boot_ms": 1993,
+          "wall_ms": 158205,
+          "file_count": 33,
+          "timing_sha256": "e75995199581e3ca384475409f5b1ebb1e56fd2604c4a8f108d1de7bbc256694"
+        },
+        {
+          "partition": 4,
+          "exit": 0,
+          "printed_seconds": 155,
+          "tests": 699,
+          "failures": 0,
+          "boot_ms": 2707,
+          "wall_ms": 154781,
+          "file_count": 59,
+          "timing_sha256": "f7b8285f75c70d6b2abe06336daa399f93244361a20fd74799b1a593c71316f2"
+        }
+      ]
+    }
+  },
+  "min_phase_analysis": {
+    "run_id": 40504321590,
+    "head_sha": "8177d00d74b03527c2b14bbb0ef17f6c5895b464",
+    "lane": "min",
+    "partition_data": [
+      {
+        "partition": 1,
+        "files": 35,
+        "async_files": 11,
+        "boot_ms": 1886,
+        "wall_ms": 87846,
+        "helper_phases": {
+          "helper_start": 954,
+          "exunit_ready": 961,
+          "database_ready": 1203,
+          "repo_started": 1214,
+          "database_checks_done": 1246,
+          "migrations_done": 1518,
+          "application_stopped": 1519,
+          "application_restarted": 1519,
+          "helper_done": 1524
+        },
+        "helper_duration_ms": 570,
+        "after_helper_to_first_module_ms": 362,
+        "predicted": {
+          "sync_ms": 126663,
+          "async_sum_ms": 23910,
+          "max_async_ms": 6554,
+          "model_ms": 133644
+        },
+        "observed_cost": {
+          "sync_ms": 76430,
+          "async_sum_ms": 6958,
+          "max_async_ms": 2194,
+          "model_ms": 78624
+        },
+        "active_residual_ms": 7336,
+        "top_file_weight_errors": [
+          {
+            "file": "test/threadline/public_surface_contract_test.exs",
+            "committed_ms": 104601,
+            "observed_ms": 59667,
+            "difference_ms": -44934
+          },
+          {
+            "file": "test/threadline/dialyzer_ignore_contract_test.exs",
+            "committed_ms": 5939,
+            "observed_ms": 826,
+            "difference_ms": -5113
+          },
+          {
+            "file": "test/threadline/operator_surface/component_contract_test.exs",
+            "committed_ms": 6554,
+            "observed_ms": 1843,
+            "difference_ms": -4711
+          },
+          {
+            "file": "test/threadline/mix/trigger_migration_test.exs",
+            "committed_ms": 4547,
+            "observed_ms": 892,
+            "difference_ms": -3655
+          }
+        ]
+      },
+      {
+        "partition": 2,
+        "files": 88,
+        "async_files": 60,
+        "boot_ms": 2239,
+        "wall_ms": 90269,
+        "helper_phases": {
+          "helper_start": 979,
+          "exunit_ready": 987,
+          "database_ready": 1243,
+          "repo_started": 1257,
+          "database_checks_done": 1272,
+          "migrations_done": 1645,
+          "application_stopped": 1646,
+          "application_restarted": 1650,
+          "helper_done": 1659
+        },
+        "helper_duration_ms": 680,
+        "after_helper_to_first_module_ms": 580,
+        "predicted": {
+          "sync_ms": 29048,
+          "async_sum_ms": 208615,
+          "max_async_ms": 104594,
+          "model_ms": 133642
+        },
+        "observed_cost": {
+          "sync_ms": 26754,
+          "async_sum_ms": 96551,
+          "max_async_ms": 51308,
+          "model_ms": 78062
+        },
+        "active_residual_ms": 9968,
+        "top_file_weight_errors": [
+          {
+            "file": "test/threadline/deps_audit_gate_test.exs",
+            "committed_ms": 104594,
+            "observed_ms": 51308,
+            "difference_ms": -53286
+          },
+          {
+            "file": "test/threadline/credo_config_contract_test.exs",
+            "committed_ms": 10400,
+            "observed_ms": 2145,
+            "difference_ms": -8255
+          },
+          {
+            "file": "test/threadline/capture/public_sql_contract_test.exs",
+            "committed_ms": 8764,
+            "observed_ms": 1914,
+            "difference_ms": -6850
+          },
+          {
+            "file": "test/threadline/source_comment_location_contract_test.exs",
+            "committed_ms": 7695,
+            "observed_ms": 1270,
+            "difference_ms": -6425
+          }
+        ]
+      },
+      {
+        "partition": 3,
+        "files": 36,
+        "async_files": 8,
+        "boot_ms": 1598,
+        "wall_ms": 101470,
+        "helper_phases": {
+          "helper_start": 863,
+          "exunit_ready": 866,
+          "database_ready": 996,
+          "repo_started": 1006,
+          "database_checks_done": 1023,
+          "migrations_done": 1372,
+          "application_stopped": 1373,
+          "application_restarted": 1373,
+          "helper_done": 1377
+        },
+        "helper_duration_ms": 514,
+        "after_helper_to_first_module_ms": 221,
+        "predicted": {
+          "sync_ms": 133451,
+          "async_sum_ms": 662,
+          "max_async_ms": 174,
+          "model_ms": 133644
+        },
+        "observed_cost": {
+          "sync_ms": 86706,
+          "async_sum_ms": 775,
+          "max_async_ms": 218,
+          "model_ms": 86932
+        },
+        "active_residual_ms": 12940,
+        "top_file_weight_errors": [
+          {
+            "file": "test/threadline/operator_surface/stress_router_prod_compile_test.exs",
+            "committed_ms": 78164,
+            "observed_ms": 34339,
+            "difference_ms": -43825
+          },
+          {
+            "file": "test/threadline/dialyzer_slice_contract_test.exs",
+            "committed_ms": 9532,
+            "observed_ms": 11879,
+            "difference_ms": 2347
+          },
+          {
+            "file": "test/threadline/release_artifact_contract_test.exs",
+            "committed_ms": 9837,
+            "observed_ms": 11829,
+            "difference_ms": 1992
+          },
+          {
+            "file": "test/threadline/capture/collision_free_emission_test.exs",
+            "committed_ms": 1938,
+            "observed_ms": 445,
+            "difference_ms": -1493
+          }
+        ]
+      },
+      {
+        "partition": 4,
+        "files": 47,
+        "async_files": 20,
+        "boot_ms": 2063,
+        "wall_ms": 77060,
+        "helper_phases": {
+          "helper_start": 1090,
+          "exunit_ready": 1094,
+          "database_ready": 1246,
+          "repo_started": 1256,
+          "database_checks_done": 1275,
+          "migrations_done": 1583,
+          "application_stopped": 1584,
+          "application_restarted": 1584,
+          "helper_done": 1589
+        },
+        "helper_duration_ms": 499,
+        "after_helper_to_first_module_ms": 474,
+        "predicted": {
+          "sync_ms": 99174,
+          "async_sum_ms": 118043,
+          "max_async_ms": 23659,
+          "model_ms": 133642
+        },
+        "observed_cost": {
+          "sync_ms": 56690,
+          "async_sum_ms": 52747,
+          "max_async_ms": 10585,
+          "model_ms": 72092
+        },
+        "active_residual_ms": 2905,
+        "top_file_weight_errors": [
+          {
+            "file": "test/threadline/operator_surface/stress_router_test.exs",
+            "committed_ms": 71136,
+            "observed_ms": 37697,
+            "difference_ms": -33439
+          },
+          {
+            "file": "test/threadline/retry_network_contract_test.exs",
+            "committed_ms": 23659,
+            "observed_ms": 10256,
+            "difference_ms": -13403
+          },
+          {
+            "file": "test/threadline/formatter_topology_contract_test.exs",
+            "committed_ms": 18255,
+            "observed_ms": 7846,
+            "difference_ms": -10409
+          },
+          {
+            "file": "test/threadline/ci_topology_contract_test.exs",
+            "committed_ms": 16065,
+            "observed_ms": 6374,
+            "difference_ms": -9691
+          }
+        ]
+      }
+    ],
+    "profile_cycle_ms": 3327,
+    "profile_modules": 118,
+    "timeline_compile_ms": 3288,
+    "profile_exit": 1,
+    "printed_ratio": 1.31,
+    "old_p3_files": 31
+  },
+  "raw_min_timings": {
+    "partition-timings-1.tsv": "# threadline.partition-timings/1 partition=1 lane=min boot_ms=1886 wall_ms=87846\ntest/mix/tasks/threadline/gen_row_history_index_test.exs\t101\t98\ntest/mix/tasks/threadline/gen_triggers_test.exs\t287\t260\ntest/threadline/actor_reads_doc_contract_test.exs\t139\t134\ntest/threadline/audit_transaction_test.exs\t481\t472\ntest/threadline/capture/trigger_migrate_time_errors_test.exs\t2356\t1898\ntest/threadline/capture_semantics_boundary_test.exs\t83\t82\ntest/threadline/continuity_brownfield_test.exs\t219\t199\ntest/threadline/db_property_harness_test.exs\t152\t126\ntest/threadline/dialyzer_ignore_contract_test.exs\t826\t821\ntest/threadline/health/legacy_key_findings_test.exs\t992\t921\ntest/threadline/health/trigger_findings_test.exs\t985\t859\ntest/threadline/ignore_advisories_contract_test.exs\t28\t1\ntest/threadline/layer_boundary_contract_test.exs\t2194\t2189\ntest/threadline/lookup_return_shapes_contract_test.exs\t118\t67\ntest/threadline/mix/trigger_migration_test.exs\t892\t658\ntest/threadline/operator_surface/card_nesting_regression_test.exs\t169\t167\ntest/threadline/operator_surface/component_contract_test.exs\t1843\t1834\ntest/threadline/operator_surface/coverage_doc_contract_test.exs\t43\t39\ntest/threadline/operator_surface/export_controller_telemetry_test.exs\t2129\t2088\ntest/threadline/operator_surface/exports_mix_parity_test.exs\t123\t121\ntest/threadline/operator_surface/live/actor_live_test.exs\t746\t739\ntest/threadline/operator_surface/live/coverage_live_test.exs\t317\t303\ntest/threadline/operator_surface/pager_test.exs\t151\t149\ntest/threadline/operator_surface/transaction_live_test.exs\t982\t957\ntest/threadline/operator_surface_doc_contract_test.exs\t165\t164\ntest/threadline/page_test.exs\t190\t188\ntest/threadline/public_surface_contract_test.exs\t59667\t59659\ntest/threadline/query/action_hydration_test.exs\t537\t536\ntest/threadline/query/filter_params_test.exs\t22\t21\ntest/threadline/query/row_key_composite_test.exs\t371\t342\ntest/threadline/query/scope_fail_closed_test.exs\t545\t543\ntest/threadline/retention/policy_test.exs\t525\t476\ntest/threadline/retention_test.exs\t680\t677\ntest/threadline/row_history_test.exs\t4032\t4029\ntest/threadline/upgrade_backfill_test.exs\t298\t239\n",
+    "partition-timings-2.tsv": "# threadline.partition-timings/1 partition=2 lane=min boot_ms=2239 wall_ms=90269\ntest/mix/tasks/threadline.evidence_show_test.exs\t292\t291\ntest/mix/tasks/threadline.incident_test.exs\t169\t168\ntest/threadline/application_test.exs\t1\t0\ntest/threadline/audit_indexing_doc_contract_test.exs\t4\t1\ntest/threadline/brandbook_token_parity_test.exs\t127\t125\ntest/threadline/capture/naming_property_test.exs\t3577\t3557\ntest/threadline/capture/naming_test.exs\t0\t1\ntest/threadline/capture/notice_guard_canary_test.exs\t2147\t2146\ntest/threadline/capture/notice_guard_test.exs\t5\t3\ntest/threadline/capture/public_sql_contract_test.exs\t1914\t1912\ntest/threadline/capture/redaction_policy_property_test.exs\t26\t22\ntest/threadline/capture/trigger_body_invariants_test.exs\t7\t6\ntest/threadline/capture/trigger_changed_from_test.exs\t194\t180\ntest/threadline/capture/trigger_rerun_test.exs\t873\t796\ntest/threadline/capture/trigger_sql_storage_schema_test.exs\t1\t0\ntest/threadline/capture/trigger_test.exs\t157\t146\ntest/threadline/change_diff_property_test.exs\t1142\t1132\ntest/threadline/change_diff_test.exs\t410\t400\ntest/threadline/ci_all_dedup_contract_test.exs\t28\t26\ntest/threadline/cloak_advisory_reachability_contract_test.exs\t1306\t1304\ntest/threadline/code_walkthrough_doc_contract_test.exs\t56\t55\ntest/threadline/credo_config_contract_test.exs\t2145\t2140\ntest/threadline/deprecation_parity_test.exs\t4423\t4420\ntest/threadline/deps_audit_gate_test.exs\t51308\t51033\ntest/threadline/evidence/subject_test.exs\t168\t167\ntest/threadline/example_phoenix_readme_contract_test.exs\t113\t109\ntest/threadline/export_property_test.exs\t1135\t1129\ntest/threadline/export_public_contract_test.exs\t62\t62\ntest/threadline/export_queue/oban_test.exs\t413\t412\ntest/threadline/export_test.exs\t2582\t2574\ntest/threadline/facade_naming_contract_test.exs\t530\t526\ntest/threadline/getting_started_fixtures_test.exs\t136\t132\ntest/threadline/getting_started_saas_doc_contract_test.exs\t163\t154\ntest/threadline/health/trigger_findings_key_test.exs\t817\t777\ntest/threadline/health/trigger_findings_non_owner_test.exs\t29\t28\ntest/threadline/health_findings_doc_contract_test.exs\t176\t176\ntest/threadline/health_test.exs\t847\t825\ntest/threadline/integration_contracts_doc_contract_test.exs\t5\t4\ntest/threadline/integrations/phx_gen_auth_integration_test.exs\t69\t60\ntest/threadline/integrations/sigra_test.exs\t199\t197\ntest/threadline/job_test.exs\t207\t205\ntest/threadline/mix/migrations_path_test.exs\t6\t5\ntest/threadline/mix/trigger_migration_property_test.exs\t943\t943\ntest/threadline/operator_surface/coverage/on_mount_test.exs\t332\t332\ntest/threadline/operator_surface/data_state_mapping_wave0_test.exs\t197\t196\ntest/threadline/operator_surface/exports/filename_test.exs\t77\t76\ntest/threadline/operator_surface/live/export_status_live_test.exs\t1122\t1102\ntest/threadline/operator_surface/live/policy_redaction_live_test.exs\t394\t275\ntest/threadline/operator_surface/live/retention_history_live_test.exs\t695\t685\ntest/threadline/operator_surface/policy_show_doc_contract_test.exs\t5\t4\ntest/threadline/operator_surface/presentation_test.exs\t101\t98\ntest/threadline/operator_surface/skip_link_test.exs\t581\t575\ntest/threadline/operator_surface/storybook_boundary_test.exs\t1845\t1842\ntest/threadline/operator_surface/style_byte_lock_test.exs\t506\t501\ntest/threadline/operator_surface/surface_header_csp_test.exs\t32\t15\ntest/threadline/operator_surface/surface_header_test.exs\t448\t448\ntest/threadline/operator_surface/theme_auth_plug_test.exs\t329\t328\ntest/threadline/operator_surface/timeline_browse_doc_contract_test.exs\t542\t537\ntest/threadline/operator_surface/ui_form_policy_contract_test.exs\t677\t676\ntest/threadline/operator_surface/ui_stress_test.exs\t0\t0\ntest/threadline/operator_surface/ui_test.exs\t1369\t1356\ntest/threadline/option_allowlist_test.exs\t97\t96\ntest/threadline/optional_deps_contract_test.exs\t1782\t1782\ntest/threadline/partition_monitor_test.exs\t7480\t7479\ntest/threadline/plug_test.exs\t4\t0\ntest/threadline/policy/redaction_presenter_catalog_test.exs\t31\t21\ntest/threadline/policy/redaction_presenter_test.exs\t195\t189\ntest/threadline/property_generator_coverage_test.exs\t8139\t8128\ntest/threadline/property_scale_contract_test.exs\t2291\t2263\ntest/threadline/query/as_of_property_test.exs\t1452\t1438\ntest/threadline/query/cursors_property_test.exs\t997\t990\ntest/threadline/query/row_key_override_test.exs\t317\t253\ntest/threadline/query/row_key_read_test.exs\t463\t418\ntest/threadline/query/row_key_validation_test.exs\t461\t432\ntest/threadline/retention/cutoff_property_test.exs\t248\t247\ntest/threadline/schema_fields_contract_test.exs\t201\t199\ntest/threadline/semantics/actor_ref_test.exs\t1\t0\ntest/threadline/source_comment_location_contract_test.exs\t1270\t1270\ntest/threadline/source_family_test.exs\t245\t193\ntest/threadline/source_size_contract_test.exs\t5197\t5195\ntest/threadline/storage_schema_migration_contract_test.exs\t10\t8\ntest/threadline/storage_schema_prefix_contract_test.exs\t280\t215\ntest/threadline/strict_rfc4180_test.exs\t160\t158\ntest/threadline/telemetry_doc_contract_test.exs\t131\t131\ntest/threadline/telemetry_repo_query_recipe_test.exs\t1251\t1239\ntest/threadline/telemetry_test.exs\t106\t105\ntest/threadline/upgrade_path_doc_contract_test.exs\t132\t128\ntest/threadline/zero_skips_contract_test.exs\t2200\t2199\n",
+    "partition-timings-3.tsv": "# threadline.partition-timings/1 partition=3 lane=min boot_ms=1598 wall_ms=101470\ntest/mix/tasks/threadline/install_test.exs\t79\t69\ntest/threadline/adoption_pilot_doc_contract_test.exs\t84\t82\ntest/threadline/capture/collision_free_emission_test.exs\t445\t340\ntest/threadline/capture/legacy_function_upgrade_test.exs\t712\t583\ntest/threadline/capture/legacy_trigger_pk_fallback_test.exs\t450\t388\ntest/threadline/capture/legacy_trigger_regeneration_test.exs\t537\t427\ntest/threadline/capture/redaction_leak_property_test.exs\t194\t185\ntest/threadline/capture/trigger_capture_config_test.exs\t124\t118\ntest/threadline/capture/trigger_pk_override_test.exs\t539\t459\ntest/threadline/capture/trigger_rerun_property_test.exs\t2421\t2421\ntest/threadline/clean_checkout_contract_test.exs\t8946\t8945\ntest/threadline/dialyzer_slice_contract_test.exs\t11879\t11872\ntest/threadline/doc_spec_coverage_contract_test.exs\t345\t342\ntest/threadline/evidence/proof_test.exs\t169\t167\ntest/threadline/export_queue/task_adapter_test.exs\t69\t68\ntest/threadline/governance/evidence_record_test.exs\t51\t50\ntest/threadline/how_threadline_works_doc_contract_test.exs\t10\t8\ntest/threadline/idle_transaction_reaper_contract_test.exs\t59\t58\ntest/threadline/investigation_test.exs\t426\t425\ntest/threadline/not_found_error_test.exs\t73\t72\ntest/threadline/operator_surface/auth_test.exs\t218\t213\ntest/threadline/operator_surface/coverage_mix_test.exs\t3544\t2738\ntest/threadline/operator_surface/gating_test.exs\t37\t32\ntest/threadline/operator_surface/live/start_live_test.exs\t829\t822\ntest/threadline/operator_surface/live/timeline_live_test.exs\t5216\t5171\ntest/threadline/operator_surface/rendered_output_contract_test.exs\t651\t645\ntest/threadline/operator_surface/stress_router_prod_compile_test.exs\t34339\t34338\ntest/threadline/query/row_key_legacy_test.exs\t164\t146\ntest/threadline/query_test.exs\t1854\t1847\ntest/threadline/readme_doc_contract_test.exs\t399\t396\ntest/threadline/release_artifact_contract_test.exs\t11829\t11695\ntest/threadline/storage/s3_test.exs\t188\t188\ntest/threadline/storage_catalog_contract_test.exs\t43\t42\ntest/threadline/storage_schema_integration_test.exs\t509\t507\ntest/threadline/storage_schema_test.exs\t8\t7\ntest/threadline/telemetry_helpers_test.exs\t41\t0\n",
+    "partition-timings-4.tsv": "# threadline.partition-timings/1 partition=4 lane=min boot_ms=2063 wall_ms=77060\ntest/mix/tasks/threadline/export_test.exs\t22\t22\ntest/threadline/capture/trigger_context_test.exs\t82\t72\ntest/threadline/capture/trigger_pk_shapes_test.exs\t1001\t864\ntest/threadline/capture/trigger_redaction_test.exs\t133\t121\ntest/threadline/ci_topology_contract_test.exs\t6374\t6355\ntest/threadline/dep_floor_guard_test.exs\t1019\t1018\ntest/threadline/doc_rubric_contract_test.exs\t3098\t3091\ntest/threadline/evidence_test.exs\t165\t164\ntest/threadline/export/cleanup_test.exs\t116\t113\ntest/threadline/export/orchestrator_test.exs\t1344\t1339\ntest/threadline/facade_only_references_contract_test.exs\t2838\t2834\ntest/threadline/formatter_topology_contract_test.exs\t7846\t7846\ntest/threadline/health/policy_test.exs\t82\t80\ntest/threadline/integrations/phx_gen_auth_doc_contract_test.exs\t3\t2\ntest/threadline/integrations/sigra_doc_contract_test.exs\t32\t19\ntest/threadline/mix/migration_version_test.exs\t1174\t672\ntest/threadline/no_warn_undefined_contract_test.exs\t1542\t1541\ntest/threadline/operator_surface/breadcrumb_test.exs\t39\t38\ntest/threadline/operator_surface/controllers/export_controller_test.exs\t1026\t1021\ntest/threadline/operator_surface/copy_contract_test.exs\t436\t424\ntest/threadline/operator_surface/export_auth_plug_test.exs\t280\t279\ntest/threadline/operator_surface/exports_doc_contract_test.exs\t1289\t1279\ntest/threadline/operator_surface/live/evidence_live_test.exs\t425\t418\ntest/threadline/operator_surface/live/row_history_live_test.exs\t362\t358\ntest/threadline/operator_surface/page_header_test.exs\t335\t334\ntest/threadline/operator_surface/policy_show_mix_test.exs\t252\t142\ntest/threadline/operator_surface/router_test.exs\t10585\t10575\ntest/threadline/operator_surface/row_history_component_test.exs\t299\t298\ntest/threadline/operator_surface/session_plug_test.exs\t249\t248\ntest/threadline/operator_surface/stress_fixtures_test.exs\t578\t572\ntest/threadline/operator_surface/stress_ledger_test.exs\t426\t423\ntest/threadline/operator_surface/stress_router_test.exs\t37697\t37348\ntest/threadline/pgbouncer_topology_test.exs\t1\t0\ntest/threadline/query/row_history_index_explain_test.exs\t942\t920\ntest/threadline/query/row_key_types_test.exs\t1565\t1300\ntest/threadline/retention/pruner_test.exs\t781\t777\ntest/threadline/retry_network_contract_test.exs\t10256\t9724\ntest/threadline/semantics/audit_action_test.exs\t225\t223\ntest/threadline/storage/local_test.exs\t23\t21\ntest/threadline/storage_schema_call_site_contract_test.exs\t4295\t4294\ntest/threadline/telemetry_raising_handler_test.exs\t123\t122\ntest/threadline/telemetry_registry_contract_test.exs\t268\t267\ntest/threadline/test_structure_contract_test.exs\t3460\t3456\ntest/threadline/transaction_lookup_test.exs\t1059\t1055\ntest/threadline/upgrade_rollback_test.exs\t264\t229\ntest/threadline/verify_coverage_policy_test.exs\t84\t76\ntest/threadline/verify_coverage_task_test.exs\t4942\t4908\n"
+  },
+  "raw_helper_trace": "tmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=helper_start vm_ms=954\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=exunit_ready vm_ms=961\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=database_ready vm_ms=1203\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=repo_started vm_ms=1214\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=database_checks_done vm_ms=1246\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=migrations_done vm_ms=1518\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=application_stopped vm_ms=1519\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=application_restarted vm_ms=1519\ntmp/ci-test-partitions/partition-1.log:STARTUP_TRACE partition=1 phase=helper_done vm_ms=1524\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=helper_start vm_ms=979\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=exunit_ready vm_ms=987\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=database_ready vm_ms=1243\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=repo_started vm_ms=1257\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=database_checks_done vm_ms=1272\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=migrations_done vm_ms=1645\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=application_stopped vm_ms=1646\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=application_restarted vm_ms=1650\ntmp/ci-test-partitions/partition-2.log:STARTUP_TRACE partition=2 phase=helper_done vm_ms=1659\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=helper_start vm_ms=863\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=exunit_ready vm_ms=866\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=database_ready vm_ms=996\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=repo_started vm_ms=1006\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=database_checks_done vm_ms=1023\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=migrations_done vm_ms=1372\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=application_stopped vm_ms=1373\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=application_restarted vm_ms=1373\ntmp/ci-test-partitions/partition-3.log:STARTUP_TRACE partition=3 phase=helper_done vm_ms=1377\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=helper_start vm_ms=1090\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=exunit_ready vm_ms=1094\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=database_ready vm_ms=1246\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=repo_started vm_ms=1256\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=database_checks_done vm_ms=1275\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=migrations_done vm_ms=1583\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=application_stopped vm_ms=1584\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=application_restarted vm_ms=1584\ntmp/ci-test-partitions/partition-4.log:STARTUP_TRACE partition=4 phase=helper_done vm_ms=1589\n",
+  "raw_frozen_profile_stdout": "STARTUP_TRACE partition=3 phase=helper_start vm_ms=532\nSTARTUP_TRACE partition=3 phase=exunit_ready vm_ms=535\nSTARTUP_TRACE partition=3 phase=database_ready vm_ms=585\nSTARTUP_TRACE partition=3 phase=repo_started vm_ms=592\nSTARTUP_TRACE partition=3 phase=database_checks_done vm_ms=602\nSTARTUP_TRACE partition=3 phase=migrations_done vm_ms=615\nSTARTUP_TRACE partition=3 phase=application_stopped vm_ms=615\nSTARTUP_TRACE partition=3 phase=application_restarted vm_ms=615\nSTARTUP_TRACE partition=3 phase=helper_done vm_ms=619\n[profile]     37ms compiling +      0ms waiting while compiling test/threadline/operator_surface/stress_router_prod_compile_test.exs\n[profile]    113ms compiling +      0ms waiting while compiling test/threadline/dialyzer_slice_contract_test.exs\n[profile]    198ms compiling +      0ms waiting while compiling test/threadline/clean_checkout_contract_test.exs\n[profile]    224ms compiling +      0ms waiting while compiling test/threadline/release_artifact_contract_test.exs\n[profile]    326ms compiling +      0ms waiting while compiling test/threadline/operator_surface/coverage_mix_test.exs\n[profile]    304ms compiling +      0ms waiting while compiling test/threadline/deprecation_parity_test.exs\n[profile]    305ms compiling +      0ms waiting while compiling test/threadline/query/row_key_types_test.exs\n[profile]    145ms compiling +      0ms waiting while compiling test/threadline/query/as_of_property_test.exs\n[profile]    158ms compiling +      0ms waiting while compiling test/threadline/health/trigger_findings_test.exs\n[profile]    167ms compiling +      0ms waiting while compiling test/threadline/audit_transaction_test.exs\n[profile]     84ms compiling +      0ms waiting while compiling test/threadline/health_test.exs\n[profile]    153ms compiling +      0ms waiting while compiling test/threadline/retention/pruner_test.exs\n[profile]    899ms compiling +      0ms waiting while compiling test/threadline/operator_surface/live/actor_live_test.exs\n[profile]    616ms compiling +      0ms waiting while compiling test/threadline/operator_surface/copy_contract_test.exs\n[profile]    803ms compiling +      0ms waiting while compiling test/threadline/operator_surface/live/evidence_live_test.exs\n[profile]    128ms compiling +      0ms waiting while compiling test/threadline/upgrade_rollback_test.exs\n[profile]     62ms compiling +      0ms waiting while compiling test/threadline/continuity_brownfield_test.exs\n[profile]    258ms compiling +      0ms waiting while compiling test/threadline/retention/cutoff_property_test.exs\n[profile]    127ms compiling +      0ms waiting while compiling test/threadline/evidence_test.exs\n[profile]    107ms compiling +      0ms waiting while compiling test/threadline/operator_surface/row_history_component_test.exs\n[profile]     79ms compiling +      0ms waiting while compiling test/threadline/operator_surface/policy_show_mix_test.exs\n[profile]     72ms compiling +      0ms waiting while compiling test/threadline/capture/trigger_test.exs\n[profile]     96ms compiling +      0ms waiting while compiling test/threadline/export_public_contract_test.exs\n[profile]     51ms compiling +      0ms waiting while compiling test/mix/tasks/threadline/gen_row_history_index_test.exs\n[profile]    834ms compiling +      0ms waiting while compiling test/threadline/operator_surface/live/row_history_live_test.exs\n[profile]    360ms compiling +      0ms waiting while compiling test/threadline/operator_surface/exports_mix_parity_test.exs\n[profile]     30ms compiling +      0ms waiting while compiling test/mix/tasks/threadline/export_test.exs\n[profile]    141ms compiling +      0ms waiting while compiling test/threadline/storage_schema_test.exs\n[profile]     72ms compiling +      0ms waiting while compiling test/threadline/operator_surface/policy_show_doc_contract_test.exs\n[profile]    323ms compiling +      0ms waiting while compiling test/threadline/operator_surface/breadcrumb_test.exs\n[profile]   3288ms compiling +      0ms waiting while compiling test/threadline/operator_surface/live/timeline_live_test.exs\n[profile] Finished compilation cycle of 118 modules in 3327ms\n[profile] Finished group pass check of 118 modules in 63ms\nPaths given to \"mix test\" did not match any directory/file: test/threadline/operator_surface/stress_router_prod_compile_test.exs, test/threadline/clean_checkout_contract_test.exs, test/threadline/release_artifact_contract_test.exs, test/threadline/dialyzer_slice_contract_test.exs, test/threadline/operator_surface/live/timeline_live_test.exs, test/threadline/operator_surface/coverage_mix_test.exs, test/threadline/deprecation_parity_test.exs, test/threadline/query/row_key_types_test.exs, test/threadline/query/as_of_property_test.exs, test/threadline/operator_surface/live/actor_live_test.exs, test/threadline/health/trigger_findings_test.exs, test/threadline/audit_transaction_test.exs, test/threadline/health_test.exs, test/threadline/operator_surface/live/evidence_live_test.exs, test/threadline/retention/pruner_test.exs, test/threadline/operator_surface/copy_contract_test.exs, test/threadline/operator_surface/live/row_history_live_test.exs, test/threadline/retention/cutoff_property_test.exs, test/threadline/upgrade_rollback_test.exs, test/threadline/continuity_brownfield_test.exs, test/threadline/evidence_test.exs, test/threadline/operator_surface/row_history_component_test.exs, test/threadline/operator_surface/policy_show_mix_test.exs, test/threadline/capture/trigger_test.exs, test/threadline/operator_surface/exports_mix_parity_test.exs, test/threadline/export_public_contract_test.exs, test/mix/tasks/threadline/gen_row_history_index_test.exs, test/threadline/operator_surface/breadcrumb_test.exs, test/threadline/storage_schema_test.exs, test/mix/tasks/threadline/export_test.exs, test/threadline/operator_surface/policy_show_doc_contract_test.exs\n",
+  "frozen_profile_files": [
+    "test/threadline/operator_surface/stress_router_prod_compile_test.exs",
+    "test/threadline/clean_checkout_contract_test.exs",
+    "test/threadline/release_artifact_contract_test.exs",
+    "test/threadline/dialyzer_slice_contract_test.exs",
+    "test/threadline/operator_surface/live/timeline_live_test.exs",
+    "test/threadline/operator_surface/coverage_mix_test.exs",
+    "test/threadline/deprecation_parity_test.exs",
+    "test/threadline/query/row_key_types_test.exs",
+    "test/threadline/query/as_of_property_test.exs",
+    "test/threadline/operator_surface/live/actor_live_test.exs",
+    "test/threadline/health/trigger_findings_test.exs",
+    "test/threadline/audit_transaction_test.exs",
+    "test/threadline/health_test.exs",
+    "test/threadline/operator_surface/live/evidence_live_test.exs",
+    "test/threadline/retention/pruner_test.exs",
+    "test/threadline/operator_surface/copy_contract_test.exs",
+    "test/threadline/operator_surface/live/row_history_live_test.exs",
+    "test/threadline/retention/cutoff_property_test.exs",
+    "test/threadline/upgrade_rollback_test.exs",
+    "test/threadline/continuity_brownfield_test.exs",
+    "test/threadline/evidence_test.exs",
+    "test/threadline/operator_surface/row_history_component_test.exs",
+    "test/threadline/operator_surface/policy_show_mix_test.exs",
+    "test/threadline/capture/trigger_test.exs",
+    "test/threadline/operator_surface/exports_mix_parity_test.exs",
+    "test/threadline/export_public_contract_test.exs",
+    "test/mix/tasks/threadline/gen_row_history_index_test.exs",
+    "test/threadline/operator_surface/breadcrumb_test.exs",
+    "test/threadline/storage_schema_test.exs",
+    "test/mix/tasks/threadline/export_test.exs",
+    "test/threadline/operator_surface/policy_show_doc_contract_test.exs"
+  ],
+  "actual_min_assignments": {
+    "1": [
+      "test/threadline/public_surface_contract_test.exs",
+      "test/threadline/operator_surface/component_contract_test.exs",
+      "test/threadline/dialyzer_ignore_contract_test.exs",
+      "test/threadline/layer_boundary_contract_test.exs",
+      "test/threadline/capture/trigger_migrate_time_errors_test.exs",
+      "test/threadline/mix/trigger_migration_test.exs",
+      "test/threadline/row_history_test.exs",
+      "test/threadline/health/legacy_key_findings_test.exs",
+      "test/threadline/upgrade_backfill_test.exs",
+      "test/threadline/operator_surface/export_controller_telemetry_test.exs",
+      "test/threadline/operator_surface/live/actor_live_test.exs",
+      "test/threadline/health/trigger_findings_test.exs",
+      "test/threadline/audit_transaction_test.exs",
+      "test/threadline/query/scope_fail_closed_test.exs",
+      "test/threadline/retention_test.exs",
+      "test/threadline/query/action_hydration_test.exs",
+      "test/threadline/operator_surface/transaction_live_test.exs",
+      "test/mix/tasks/threadline/gen_triggers_test.exs",
+      "test/threadline/operator_surface/live/coverage_live_test.exs",
+      "test/threadline/capture_semantics_boundary_test.exs",
+      "test/threadline/operator_surface/pager_test.exs",
+      "test/threadline/lookup_return_shapes_contract_test.exs",
+      "test/threadline/continuity_brownfield_test.exs",
+      "test/threadline/query/row_key_composite_test.exs",
+      "test/threadline/page_test.exs",
+      "test/threadline/operator_surface/card_nesting_regression_test.exs",
+      "test/threadline/operator_surface/exports_mix_parity_test.exs",
+      "test/threadline/db_property_harness_test.exs",
+      "test/threadline/operator_surface_doc_contract_test.exs",
+      "test/threadline/retention/policy_test.exs",
+      "test/mix/tasks/threadline/gen_row_history_index_test.exs",
+      "test/threadline/ignore_advisories_contract_test.exs",
+      "test/threadline/query/filter_params_test.exs",
+      "test/threadline/actor_reads_doc_contract_test.exs",
+      "test/threadline/operator_surface/coverage_doc_contract_test.exs"
+    ],
+    "2": [
+      "test/threadline/deps_audit_gate_test.exs",
+      "test/threadline/property_generator_coverage_test.exs",
+      "test/threadline/source_size_contract_test.exs",
+      "test/threadline/credo_config_contract_test.exs",
+      "test/threadline/capture/public_sql_contract_test.exs",
+      "test/threadline/operator_surface/storybook_boundary_test.exs",
+      "test/threadline/source_comment_location_contract_test.exs",
+      "test/threadline/optional_deps_contract_test.exs",
+      "test/threadline/partition_monitor_test.exs",
+      "test/threadline/capture/notice_guard_canary_test.exs",
+      "test/threadline/capture/naming_property_test.exs",
+      "test/threadline/cloak_advisory_reachability_contract_test.exs",
+      "test/threadline/deprecation_parity_test.exs",
+      "test/threadline/property_scale_contract_test.exs",
+      "test/threadline/change_diff_property_test.exs",
+      "test/threadline/export_property_test.exs",
+      "test/threadline/export_test.exs",
+      "test/threadline/query/cursors_property_test.exs",
+      "test/threadline/query/as_of_property_test.exs",
+      "test/threadline/mix/trigger_migration_property_test.exs",
+      "test/threadline/operator_surface/ui_form_policy_contract_test.exs",
+      "test/threadline/operator_surface/live/retention_history_live_test.exs",
+      "test/threadline/operator_surface/ui_test.exs",
+      "test/threadline/telemetry_repo_query_recipe_test.exs",
+      "test/threadline/zero_skips_contract_test.exs",
+      "test/threadline/operator_surface/style_byte_lock_test.exs",
+      "test/threadline/health_test.exs",
+      "test/threadline/example_phoenix_readme_contract_test.exs",
+      "test/threadline/health/trigger_findings_key_test.exs",
+      "test/threadline/source_family_test.exs",
+      "test/threadline/operator_surface/timeline_browse_doc_contract_test.exs",
+      "test/threadline/operator_surface/live/policy_redaction_live_test.exs",
+      "test/threadline/storage_schema_prefix_contract_test.exs",
+      "test/threadline/operator_surface/ui_stress_test.exs",
+      "test/threadline/getting_started_fixtures_test.exs",
+      "test/threadline/operator_surface/live/export_status_live_test.exs",
+      "test/threadline/capture/trigger_rerun_test.exs",
+      "test/threadline/integrations/sigra_test.exs",
+      "test/threadline/retention/cutoff_property_test.exs",
+      "test/threadline/facade_naming_contract_test.exs",
+      "test/threadline/brandbook_token_parity_test.exs",
+      "test/threadline/operator_surface/data_state_mapping_wave0_test.exs",
+      "test/threadline/operator_surface/skip_link_test.exs",
+      "test/threadline/query/row_key_validation_test.exs",
+      "test/threadline/operator_surface/theme_auth_plug_test.exs",
+      "test/threadline/health_findings_doc_contract_test.exs",
+      "test/threadline/query/row_key_read_test.exs",
+      "test/threadline/operator_surface/exports/filename_test.exs",
+      "test/threadline/operator_surface/surface_header_test.exs",
+      "test/threadline/code_walkthrough_doc_contract_test.exs",
+      "test/threadline/export_queue/oban_test.exs",
+      "test/mix/tasks/threadline.evidence_show_test.exs",
+      "test/threadline/operator_surface/presentation_test.exs",
+      "test/threadline/ci_all_dedup_contract_test.exs",
+      "test/threadline/change_diff_test.exs",
+      "test/threadline/telemetry_test.exs",
+      "test/threadline/integrations/phx_gen_auth_integration_test.exs",
+      "test/threadline/operator_surface/coverage/on_mount_test.exs",
+      "test/threadline/query/row_key_override_test.exs",
+      "test/threadline/schema_fields_contract_test.exs",
+      "test/threadline/option_allowlist_test.exs",
+      "test/threadline/getting_started_saas_doc_contract_test.exs",
+      "test/threadline/upgrade_path_doc_contract_test.exs",
+      "test/threadline/telemetry_doc_contract_test.exs",
+      "test/threadline/capture/redaction_policy_property_test.exs",
+      "test/threadline/capture/trigger_changed_from_test.exs",
+      "test/threadline/policy/redaction_presenter_test.exs",
+      "test/threadline/capture/trigger_sql_storage_schema_test.exs",
+      "test/threadline/capture/trigger_test.exs",
+      "test/threadline/job_test.exs",
+      "test/mix/tasks/threadline.incident_test.exs",
+      "test/threadline/evidence/subject_test.exs",
+      "test/threadline/export_public_contract_test.exs",
+      "test/threadline/health/trigger_findings_non_owner_test.exs",
+      "test/threadline/policy/redaction_presenter_catalog_test.exs",
+      "test/threadline/integration_contracts_doc_contract_test.exs",
+      "test/threadline/capture/notice_guard_test.exs",
+      "test/threadline/audit_indexing_doc_contract_test.exs",
+      "test/threadline/operator_surface/surface_header_csp_test.exs",
+      "test/threadline/capture/trigger_body_invariants_test.exs",
+      "test/threadline/capture/naming_test.exs",
+      "test/threadline/mix/migrations_path_test.exs",
+      "test/threadline/storage_schema_migration_contract_test.exs",
+      "test/threadline/operator_surface/policy_show_doc_contract_test.exs",
+      "test/threadline/application_test.exs",
+      "test/threadline/plug_test.exs",
+      "test/threadline/semantics/actor_ref_test.exs",
+      "test/threadline/strict_rfc4180_test.exs"
+    ],
+    "3": [
+      "test/threadline/operator_surface/stress_router_prod_compile_test.exs",
+      "test/threadline/clean_checkout_contract_test.exs",
+      "test/threadline/release_artifact_contract_test.exs",
+      "test/threadline/dialyzer_slice_contract_test.exs",
+      "test/threadline/operator_surface/live/timeline_live_test.exs",
+      "test/threadline/operator_surface/coverage_mix_test.exs",
+      "test/threadline/capture/trigger_rerun_property_test.exs",
+      "test/threadline/query_test.exs",
+      "test/threadline/capture/collision_free_emission_test.exs",
+      "test/threadline/capture/trigger_pk_override_test.exs",
+      "test/threadline/operator_surface/live/start_live_test.exs",
+      "test/threadline/capture/legacy_function_upgrade_test.exs",
+      "test/threadline/storage_schema_integration_test.exs",
+      "test/threadline/investigation_test.exs",
+      "test/threadline/capture/legacy_trigger_regeneration_test.exs",
+      "test/threadline/operator_surface/rendered_output_contract_test.exs",
+      "test/threadline/capture/redaction_leak_property_test.exs",
+      "test/mix/tasks/threadline/install_test.exs",
+      "test/threadline/readme_doc_contract_test.exs",
+      "test/threadline/doc_spec_coverage_contract_test.exs",
+      "test/threadline/query/row_key_legacy_test.exs",
+      "test/threadline/capture/legacy_trigger_pk_fallback_test.exs",
+      "test/threadline/storage/s3_test.exs",
+      "test/threadline/evidence/proof_test.exs",
+      "test/threadline/export_queue/task_adapter_test.exs",
+      "test/threadline/adoption_pilot_doc_contract_test.exs",
+      "test/threadline/operator_surface/gating_test.exs",
+      "test/threadline/not_found_error_test.exs",
+      "test/threadline/idle_transaction_reaper_contract_test.exs",
+      "test/threadline/how_threadline_works_doc_contract_test.exs",
+      "test/threadline/storage_catalog_contract_test.exs",
+      "test/threadline/governance/evidence_record_test.exs",
+      "test/threadline/telemetry_helpers_test.exs",
+      "test/threadline/operator_surface/auth_test.exs",
+      "test/threadline/capture/trigger_capture_config_test.exs",
+      "test/threadline/storage_schema_test.exs"
+    ],
+    "4": [
+      "test/threadline/operator_surface/stress_router_test.exs",
+      "test/threadline/retry_network_contract_test.exs",
+      "test/threadline/formatter_topology_contract_test.exs",
+      "test/threadline/ci_topology_contract_test.exs",
+      "test/threadline/operator_surface/router_test.exs",
+      "test/threadline/test_structure_contract_test.exs",
+      "test/threadline/storage_schema_call_site_contract_test.exs",
+      "test/threadline/facade_only_references_contract_test.exs",
+      "test/threadline/verify_coverage_task_test.exs",
+      "test/threadline/doc_rubric_contract_test.exs",
+      "test/threadline/export/cleanup_test.exs",
+      "test/threadline/export/orchestrator_test.exs",
+      "test/threadline/operator_surface/controllers/export_controller_test.exs",
+      "test/threadline/storage/local_test.exs",
+      "test/threadline/no_warn_undefined_contract_test.exs",
+      "test/threadline/query/row_key_types_test.exs",
+      "test/threadline/operator_surface/stress_fixtures_test.exs",
+      "test/threadline/query/row_history_index_explain_test.exs",
+      "test/threadline/transaction_lookup_test.exs",
+      "test/threadline/dep_floor_guard_test.exs",
+      "test/threadline/capture/trigger_pk_shapes_test.exs",
+      "test/threadline/mix/migration_version_test.exs",
+      "test/threadline/operator_surface/live/evidence_live_test.exs",
+      "test/threadline/retention/pruner_test.exs",
+      "test/threadline/operator_surface/copy_contract_test.exs",
+      "test/threadline/operator_surface/stress_ledger_test.exs",
+      "test/threadline/operator_surface/live/row_history_live_test.exs",
+      "test/threadline/operator_surface/exports_doc_contract_test.exs",
+      "test/threadline/semantics/audit_action_test.exs",
+      "test/threadline/upgrade_rollback_test.exs",
+      "test/threadline/operator_surface/export_auth_plug_test.exs",
+      "test/threadline/telemetry_registry_contract_test.exs",
+      "test/threadline/evidence_test.exs",
+      "test/threadline/operator_surface/row_history_component_test.exs",
+      "test/threadline/operator_surface/policy_show_mix_test.exs",
+      "test/threadline/capture/trigger_redaction_test.exs",
+      "test/threadline/telemetry_raising_handler_test.exs",
+      "test/threadline/capture/trigger_context_test.exs",
+      "test/threadline/operator_surface/breadcrumb_test.exs",
+      "test/threadline/verify_coverage_policy_test.exs",
+      "test/threadline/health/policy_test.exs",
+      "test/threadline/integrations/sigra_doc_contract_test.exs",
+      "test/threadline/integrations/phx_gen_auth_doc_contract_test.exs",
+      "test/mix/tasks/threadline/export_test.exs",
+      "test/threadline/operator_surface/page_header_test.exs",
+      "test/threadline/operator_surface/session_plug_test.exs",
+      "test/threadline/pgbouncer_topology_test.exs"
+    ]
+  },
+  "limits": [
+    "Off-main single-run diagnostic; not a B4 success or a main five-run median.",
+    "Actual min P3 assignment changed from 31 all-sync files to 36 files including 8 async.",
+    "Compilation-only frozen profile is not a concurrent normal test reproduction; expected min profile exit was 1.",
+    "Offline derived model costs are explanatory, not authoritative acceptance ratios.",
+    "No weight/factor/async/threshold change is supported from one sample."
+  ]
+}
