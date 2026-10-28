@@ -181,13 +181,16 @@ entry only makes the split less even — every test file still runs exactly
 once, and the script refuses to run if it would not. Tests that write into
 the shared checkout or snapshot its `git status` must not overlap another
 partition: list them together on one line of `test/partition_colocate.txt`
-so they always share a partition. After the weighted split, the 12 heaviest
-test files that are synchronous and not colocated (`TAIL_QUEUE_K` in
+so they always share a partition. On the current lane, after the weighted
+split, the 12 heaviest test files that are synchronous and not colocated
+(`TAIL_QUEUE_K` in
 `bin/ci-test-partitions`) are held back in a tail queue: each partition,
 once its own files finish, claims the next-largest queued file and runs it
 as its own `mix test <file>` on the same partition database, so every file
 still runs exactly once. The step summary lists each claim (file, partition,
-start, seconds, exit, overhead). Local `mix test` stays
+start, seconds, exit, overhead). The min and latest lanes queue none
+(`lane_tail_k` in `bin/ci-test-partitions`), so they run the static weighted
+split unchanged. Local `mix test` stays
 whole and unpartitioned — the literal `threadline_test` database,
 `MIX_TEST_PARTITION` unset. `mix verify.test_partitioned` reproduces CI
 locally. A test that creates a

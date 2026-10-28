@@ -293,7 +293,7 @@ defmodule Threadline.CiTopologyContractTest do
 
   @tail_queue_sync_weights for n <- 1..14, do: {"test/q/s#{n}_test.exs", 150_000 - n * 10_000}
 
-  defp tail_queue_sandbox!(dir, script) do
+  defp tail_queue_sandbox!(dir, script, lane \\ "") do
     File.mkdir_p!(Path.join(dir, "bin"))
     File.mkdir_p!(Path.join(dir, "test/q"))
     File.write!(Path.join(dir, "bin/ci-test-partitions"), script)
@@ -310,10 +310,10 @@ defmodule Threadline.CiTopologyContractTest do
 
     for {path, _ms, body} <- files, do: File.write!(Path.join(dir, path), body)
 
-    File.write!(
-      Path.join(dir, "test/partition_weights.txt"),
-      Enum.map_join(files, "", fn {path, ms, _body} -> "#{ms} #{path}\n" end)
-    )
+    weights = Enum.map_join(files, "", fn {path, ms, _body} -> "#{ms} #{path}\n" end)
+
+    for name <- ["partition_weights", "partition_weights_min", "partition_weights_latest"],
+        do: File.write!(Path.join(dir, "test/#{name}.txt"), weights)
 
     File.write!(
       Path.join(dir, "test/partition_colocate.txt"),
@@ -326,7 +326,7 @@ defmodule Threadline.CiTopologyContractTest do
         env: [
           {"MIX_BIN", "false"},
           {"THREADLINE_TEST_SCOPE", ""},
-          {"THREADLINE_CI_LANE", ""},
+          {"THREADLINE_CI_LANE", lane},
           {"GITHUB_STEP_SUMMARY", nil},
           {"CI_TEST_PARTITIONS_TAIL_K", nil},
           {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")}
@@ -472,6 +472,27 @@ defmodule Threadline.CiTopologyContractTest do
         do: "wrong rule for lane #{arm}"
   end
 
+  defp lane_tail_k_errors(script) do
+    # Read only the production lane_tail_k; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_tail_k\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    arms =
+      for {arm, k} <- [{"''|current", ~s("$TAIL_QUEUE_K")}, {"min", "'0'"}, {"latest", "'0'"}],
+          not String.contains?(body, "#{arm}) printf '%s\\n' #{k} ;;"),
+          do: "wrong tail K for lane #{arm}"
+
+    seam =
+      if String.contains?(script, ~s(lane_tail_k "${THREADLINE_CI_LANE:-}")),
+        do: [],
+        else: ["run_partitions must default the tail-K seam to lane_tail_k"]
+
+    arms ++ seam
+  end
+
   # A sandbox with the given runner text, two plain test files, R1-headed
   # weights and three runs x four partitions of min and current TSVs:
   # test/a_test.exs is 100/300/200 ms (median 200, max 300), b is 100 throughout.
@@ -572,6 +593,41 @@ defmodule Threadline.CiTopologyContractTest do
 
     refute File.read!(Path.join(mutant_dir, "test/partition_weights_min.txt")) =~
              "300 test/a_test.exs"
+  end
+
+  @tag :tmp_dir
+  test "lane_tail_k queues TAIL_QUEUE_K on the current lane and nothing on min or latest, and a min mutant is caught",
+       %{tmp_dir: dir} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    assert lane_tail_k_errors(script) == [],
+           "rule=lane-tail-k: lane_tail_k must queue TAIL_QUEUE_K on current and 0 on min and latest, and default the seam (D-32)"
+
+    expected = Enum.take(@tail_queue_sync_weights, 12)
+
+    assert tail_queue_sandbox!(Path.join(dir, "current"), script, "current") == expected,
+           "rule=lane-tail-k: the current lane must queue the 12 heaviest ungrouped sync files"
+
+    for lane <- ["min", "latest"] do
+      assert tail_queue_sandbox!(Path.join(dir, lane), script, lane) == [],
+             "rule=lane-tail-k: the #{lane} lane must queue nothing (D-32)"
+    end
+
+    # Mutant: the min lane queuing TAIL_QUEUE_K again.
+    mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '0' ;;",
+        ~s(min\) printf '%s\\n' "$TAIL_QUEUE_K" ;;)
+      )
+
+    refute mutant == script, "rule=lane-tail-k: the min mutation did not change the script"
+
+    assert lane_tail_k_errors(mutant) == ["wrong tail K for lane min"],
+           "rule=lane-tail-k: the textual rule must catch a min lane that queues TAIL_QUEUE_K"
+
+    assert length(tail_queue_sandbox!(Path.join(dir, "min-mutant"), mutant, "min")) == 12,
+           "rule=lane-tail-k: the min mutant must queue 12 files in the sandbox"
   end
 
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
@@ -1105,7 +1161,12 @@ defmodule Threadline.CiTopologyContractTest do
       {String.contains?(paragraph, "tail queue"),
        "CONTRIBUTING's partition paragraph must describe the tail queue"},
       {k != nil and String.contains?(paragraph, "the #{k} heaviest"),
-       "CONTRIBUTING's partition paragraph must name the runner's K (the #{k} heaviest)"}
+       "CONTRIBUTING's partition paragraph must name the runner's K (the #{k} heaviest)"},
+      {String.contains?(paragraph, "lane_tail_k") and
+         String.contains?(paragraph, "min and latest lanes queue none"),
+       "CONTRIBUTING's partition paragraph must say the min and latest lanes queue none (lane_tail_k)"},
+      {lane_tail_k_errors(script) == [],
+       "the runner's lane_tail_k must queue none on min and latest, as CONTRIBUTING says"}
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&("rule=tail-queue-doc: " <> elem(&1, 1)))
@@ -1127,6 +1188,29 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert tail_queue_doc_errors(script, doc_mutant) != [],
            "changing the documented K alone must fail the doc-parity rule"
+
+    lane_doc_mutant =
+      String.replace(
+        contributing,
+        "min and latest lanes queue none",
+        "min and latest lanes queue too"
+      )
+
+    lane_k_mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '0' ;;",
+        ~s(min\) printf '%s\\n' "$TAIL_QUEUE_K" ;;)
+      )
+
+    refute lane_doc_mutant == contributing, "mutation anchor missing"
+    refute lane_k_mutant == script, "mutation anchor missing"
+
+    assert tail_queue_doc_errors(script, lane_doc_mutant) != [],
+           "removing the min/latest no-queue sentence alone must fail the doc-parity rule"
+
+    assert tail_queue_doc_errors(lane_k_mutant, contributing) != [],
+           "a runner whose min lane queues again must fail the doc-parity rule"
   end
 
   test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
