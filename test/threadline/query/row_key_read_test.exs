@@ -48,6 +48,16 @@ defmodule Threadline.Query.RowKeyReadTest do
     Repo.query!("DROP TABLE IF EXISTS rk_dropped_users CASCADE")
   end
 
+  # The capture trigger stamps captured_at with the database's
+  # clock_timestamp(), so "now" for as_of/4 is read from that same clock. The
+  # BEAM's DateTime.utc_now() is a different clock: with the database in a VM
+  # (Docker Desktop) it can trail the database by milliseconds, and an as_of/4
+  # at that instant precedes the write it is meant to see (247-31 triage).
+  defp db_now do
+    %{rows: [[now]]} = Repo.query!("SELECT clock_timestamp()")
+    now
+  end
+
   defmodule RkBigserialUser do
     use Ecto.Schema
 
@@ -203,12 +213,12 @@ defmodule Threadline.Query.RowKeyReadTest do
 
     test "as_of/4 returns the latest snapshot, then :deleted_record after a delete", %{id: id} do
       assert {:ok, %{"name" => "b"}} =
-               Threadline.as_of(RkBigserialUser, to_string(id), DateTime.utc_now(), repo: Repo)
+               Threadline.as_of(RkBigserialUser, to_string(id), db_now(), repo: Repo)
 
       Repo.query!("DELETE FROM #{@table} WHERE id = $1", [id])
 
       assert {:error, :deleted_record} =
-               Threadline.as_of(RkBigserialUser, id, DateTime.utc_now(), repo: Repo)
+               Threadline.as_of(RkBigserialUser, id, db_now(), repo: Repo)
     end
 
     test "row_history/3 raises ArgumentError naming :id and the schema for an uncastable id" do
@@ -244,7 +254,7 @@ defmodule Threadline.Query.RowKeyReadTest do
       assert Enum.map(after_drop, & &1.id) == Enum.map(before_drop, & &1.id)
 
       assert {:ok, %{"name" => "b"}} =
-               Threadline.as_of(RkDroppedUser, id, DateTime.utc_now(), repo: Repo)
+               Threadline.as_of(RkDroppedUser, id, db_now(), repo: Repo)
     end
   end
 
