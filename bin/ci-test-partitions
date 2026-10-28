@@ -97,13 +97,18 @@
 #                                    # from its per-module timings (summed per
 #                                    # file). Needs Elixir >= 1.17 and the
 #                                    # local test database.
-#   bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>]
+#   bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>] [--rule median|max]
 #                                    # rewrite test/partition_weights.txt from
 #                                    # the partition-timings-*.tsv files the
 #                                    # partition monitor wrote on CI (found
 #                                    # anywhere under <dir>): per file, the
 #                                    # median wall_ms across the TSVs (the
-#                                    # lower middle value for an even count).
+#                                    # lower middle value for an even count)
+#                                    # or, with --rule max, the maximum. The
+#                                    # rule defaults to lane_rule: current
+#                                    # median, min max, latest median. A
+#                                    # strict --output refresh with another
+#                                    # --rule exits 2 before writing.
 #                                    # Files absent from the TSVs keep their
 #                                    # current weight. With --lane, only TSVs
 #                                    # whose header says lane=<name> are read.
@@ -188,7 +193,10 @@
 # the exactly-once check passes and the output and summary name 1
 # repo-contract file; unset or empty it runs exactly once; `bogus` exits 2
 # with a usage line; (x) the long async raw-duration floor spreads work while
-# the fitted constant still scales the output per-file weight.
+# the fitted constant still scales the output per-file weight; (z2) a
+# strict --ingest-weights refresh takes lane_rule's rule by default (min the
+# per-file maximum, current the median), and a strict mismatched or unknown
+# --rule exits 2 with the target unchanged.
 # The partitions also receive the monitor formatter and its env. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
@@ -204,15 +212,17 @@ usage() {
   cat <<'EOF'
 Usage: bin/ci-test-partitions [N]
        bin/ci-test-partitions --write-weights
-       bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>]
+       bin/ci-test-partitions --ingest-weights <dir> [--lane <name>] [--output <committed-weight-path>] [--rule median|max]
        bin/ci-test-partitions --self-test
        bin/ci-test-partitions -h
 
 N is a positive integer from 1 to 8. Omit it to use the default (4, per
 225-CONTEXT.md D-03b). --write-weights refreshes test/partition_weights.txt
 from one full local run. --ingest-weights refreshes it from the
-partition-timings-*.tsv files under <dir> (per-file median), optionally only
-those whose header says lane=<name>.
+partition-timings-*.tsv files under <dir>, optionally only those whose header
+says lane=<name>. --rule picks the per-file median or maximum; it defaults to
+the lane's rule (current median, min max, latest median), and a strict
+--output refresh with a different --rule exits 2.
 
 THREADLINE_TEST_SCOPE is empty or unset (run every test file) or `toolchain`
 (skip files tagged `@moduletag :repo_contract`, as the min and latest CI
@@ -256,6 +266,19 @@ lane_weights() {
     min) printf '%s\n' 'test/partition_weights_min.txt' ;;
     latest) printf '%s\n' 'test/partition_weights_latest.txt' ;;
     *) die "unknown THREADLINE_CI_LANE: $1" ;;
+  esac
+}
+
+# The per-file rule --ingest-weights uses for each lane's weights (247 D-28):
+# the median for current and latest, the maximum for min (the min lane's
+# weights were derived with the maximum; the median replayed worse). A strict
+# --output refresh with any other --rule exits 2.
+lane_rule() {
+  case "$1" in
+    ''|current) printf '%s\n' 'median' ;;
+    min) printf '%s\n' 'max' ;;
+    latest) printf '%s\n' 'median' ;;
+    *) die "unknown lane for lane_rule: $1" ;;
   esac
 }
 
@@ -1049,9 +1072,11 @@ write_weights() {
 # is a `test/...*_test.exs` path and whose wall_ms is a whole number are
 # read; anything else in a TSV is ignored. TSVs are selected by their header
 # `lane=` field, never by path or artifact name.
-# Args: <dir> [--lane <name>] [--output <committed-weight-path>].
+# Args: <dir> [--lane <name>] [--output <committed-weight-path>]
+# [--rule median|max]. The rule defaults to lane_rule for current, min,
+# latest and no lane, and to the median for any other lane.
 ingest_weights() {
-  local dir="${1:-}" lane="" lane_set=0 output="$WEIGHTS_REL" strict=0
+  local dir="${1:-}" lane="" lane_set=0 output="$WEIGHTS_REL" strict=0 rule="" rule_set=0
   [ -n "$dir" ] || die "--ingest-weights needs a directory of partition-timings-*.tsv files"
   shift
   while [ $# -gt 0 ]; do
@@ -1066,6 +1091,14 @@ ingest_weights() {
         [ $# -ge 2 ] || die "--output needs a committed weight path"
         output="$2"; strict=1; shift 2
         ;;
+      --rule)
+        [ $# -ge 2 ] || die "--rule needs median or max"
+        rule="$2"; rule_set=1; shift 2
+        case "$rule" in
+          median|max) ;;
+          *) die "--rule must be median or max, got '$rule'" ;;
+        esac
+        ;;
       *) die "--ingest-weights: unexpected argument '$1'" ;;
     esac
   done
@@ -1079,6 +1112,15 @@ ingest_weights() {
   if [ "$strict" -eq 1 ]; then
     [ "$lane_set" = 1 ] || die "--output requires --lane current|min|latest"
     [ "$output" = "$(lane_weights "$lane")" ] || die "disallowed --output for lane $lane: $output"
+    if [ "$rule_set" -eq 1 ] && [ "$rule" != "$(lane_rule "$lane")" ]; then
+      die "strict --output for lane $lane requires --rule $(lane_rule "$lane"), got $rule"
+    fi
+  fi
+  if [ "$rule_set" -eq 0 ]; then
+    case "$lane" in
+      ''|current|min|latest) rule="$(lane_rule "$lane")" ;;
+      *) rule=median ;;
+    esac
   fi
   [ -d "$dir" ] || die "--ingest-weights: no such directory: $dir"
   dir="$(cd "$dir" && pwd -P)"
@@ -1129,12 +1171,17 @@ ingest_weights() {
   tmp="$(mktemp "$(dirname "$output")/.partition_weights.XXXXXX")"
   {
     weights_header
-    # Median per file: rows sorted by file, then by wall_ms; the middle value
-    # of an odd count, the lower middle of an even one. Merged with the old
-    # weights (files absent from the TSVs keep theirs) and sorted by path.
+    # Per file, rows sorted by file, then by wall_ms. The median rule takes
+    # the middle value of an odd count, the lower middle of an even one; the
+    # max rule takes the last (largest) value. Floor 1 either way. Merged
+    # with the old weights (files absent from the TSVs keep theirs) and
+    # sorted by path.
     LC_ALL=C sort -t "$(printf '\t')" -k1,1 -k2,2n "$rows" |
-      awk -F'\t' '
-        function flush() { if (c > 0) printf "%d %s\n", (v[int((c + 1) / 2)] < 1 ? 1 : v[int((c + 1) / 2)]), key }
+      awk -F'\t' -v rule="$rule" '
+        function flush() {
+          if (c > 0 && rule == "max") printf "%d %s\n", (v[c] < 1 ? 1 : v[c]), key
+          else if (c > 0) printf "%d %s\n", (v[int((c + 1) / 2)] < 1 ? 1 : v[int((c + 1) / 2)]), key
+        }
         $1 != key { flush(); key = $1; c = 0 }
         { v[++c] = $2 + 0 }
         END { flush() }
@@ -1164,6 +1211,7 @@ ingest_weights() {
   tmp=""
   printf 'ingest-weights: %s files from %s TSVs (%s skipped by --lane)\n' \
     "$(cut -f1 "$rows" | LC_ALL=C sort -u | wc -l | tr -d ' ')" "$used" "$skipped"
+  printf 'ingest-weights: rule %s\n' "$rule"
   LC_ALL=C sort -k6,6 "$moved"
 }
 
@@ -1954,7 +2002,73 @@ WEIGHTS
   [ -z "$(find "$proj/test" -name '.partition_weights.*' -print)" ] || die "self-test: interrupted ingest left temporary output"
   printf 'lane-ingest-integrity: ok\n'
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor)\n'
+  # (z2) Per-lane ingest rule (247 D-28): one file is 100/300/200 ms across
+  # the three runs (median 200, max 300), the rest 100. Strict min defaults
+  # to the maximum, strict current to the median, a mismatched or unknown
+  # --rule exits 2 without touching the target, and the header is verbatim.
+  local lr="$self_test_dir/lane-rule" lr_lane lr_ms lr_first lr_status
+  lr_first="$(head -n 1 "$expected_files")"
+  for lr_lane in min current; do
+    for run in 201 202 203; do
+      mkdir -p "$lr/$lr_lane/$run/$lr_lane"
+      case "$run" in 201) lr_ms=100 ;; 202) lr_ms=300 ;; *) lr_ms=200 ;; esac
+      for part in 1 2 3 4; do
+        printf '# threadline.partition-timings/1 partition=%s lane=%s boot_ms=1 wall_ms=1000\n' "$part" "$lr_lane" \
+          >"$lr/$lr_lane/$run/$lr_lane/partition-timings-$part.tsv"
+      done
+      idx=0
+      while IFS= read -r f; do
+        part=$((idx % 4 + 1)); idx=$((idx + 1))
+        if [ "$f" = "$lr_first" ]; then
+          printf '%s\t%s\t90\n' "$f" "$lr_ms"
+        else
+          printf '%s\t100\t90\n' "$f"
+        fi >>"$lr/$lr_lane/$run/$lr_lane/partition-timings-$part.tsv"
+      done <"$expected_files"
+    done
+  done
+  lane_rule_expected() {
+    weights_header
+    awk -v first="$lr_first" -v ms="$1" '{ printf "%d %s\n", ($0 == first ? ms : 100), $0 }' "$expected_files"
+  }
+  # (a) strict min without --rule takes the per-file maximum.
+  output="$("$sandbox_script" --ingest-weights "$lr/min" --lane min --output test/partition_weights_min.txt 2>&1)" ||
+    die "self-test: strict min ingest without --rule failed: $output"
+  grep -qx 'ingest-weights: rule max' <<<"$output" || die "self-test: strict min ingest must report rule max: $output"
+  cmp -s <(lane_rule_expected 300) "$strict_target" ||
+    die "self-test: strict min ingest must take the per-file maximum, got: $(cat "$strict_target")"
+  # (f) the header block is exactly weights_header.
+  cmp -s <(weights_header) <(grep '^#' "$strict_target") || die "self-test: strict ingest must keep the weights header verbatim"
+  local lr_default="$self_test_dir/lane-rule-default"
+  cp "$strict_target" "$lr_default"
+  # (b) --rule max gives identical bytes.
+  "$sandbox_script" --ingest-weights "$lr/min" --lane min --rule max --output test/partition_weights_min.txt >/dev/null 2>&1 ||
+    die "self-test: strict min ingest with --rule max failed"
+  cmp -s "$lr_default" "$strict_target" || die "self-test: --rule max must equal the min default"
+  # (c) --rule median on strict min exits 2 and leaves the target unchanged.
+  lr_status=0
+  "$sandbox_script" --ingest-weights "$lr/min" --lane min --rule median --output test/partition_weights_min.txt >/dev/null 2>&1 || lr_status=$?
+  [ "$lr_status" -eq 2 ] || die "self-test: strict min with --rule median must exit 2, got $lr_status"
+  cmp -s "$lr_default" "$strict_target" || die "self-test: a rejected --rule changed the min weights"
+  [ -z "$(find "$proj/test" -name '.partition_weights.*' -print)" ] || die "self-test: a rejected --rule left temporary output"
+  # (d) strict current without --rule takes the per-file median.
+  output="$("$sandbox_script" --ingest-weights "$lr/current" --lane current --output test/partition_weights.txt 2>&1)" ||
+    die "self-test: strict current ingest without --rule failed: $output"
+  grep -qx 'ingest-weights: rule median' <<<"$output" || die "self-test: strict current ingest must report rule median: $output"
+  cmp -s <(lane_rule_expected 200) "$proj/test/partition_weights.txt" ||
+    die "self-test: strict current ingest must take the per-file median, got: $(cat "$proj/test/partition_weights.txt")"
+  cmp -s <(weights_header) <(grep '^#' "$proj/test/partition_weights.txt") || die "self-test: strict current ingest must keep the weights header verbatim"
+  # (e) an unknown rule exits 2.
+  lr_status=0
+  "$sandbox_script" --ingest-weights "$lr/min" --lane min --rule p90 --output test/partition_weights_min.txt >/dev/null 2>&1 || lr_status=$?
+  [ "$lr_status" -eq 2 ] || die "self-test: --rule p90 must exit 2, got $lr_status"
+  cmp -s "$lr_default" "$strict_target" || die "self-test: --rule p90 changed the min weights"
+  [ "$(lane_rule '')" = median ] && [ "$(lane_rule current)" = median ] &&
+    [ "$(lane_rule min)" = max ] && [ "$(lane_rule latest)" = median ] ||
+    die "self-test: lane_rule must map current/'' and latest to median, min to max"
+  printf 'lane-rule: ok\n'
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
