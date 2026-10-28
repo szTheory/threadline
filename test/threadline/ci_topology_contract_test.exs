@@ -197,7 +197,7 @@ defmodule Threadline.CiTopologyContractTest do
     "test/threadline/operator_surface/controllers/export_controller_test.exs"
   ]
 
-  defp run_export_storage_partitions!(dir, colocate) do
+  defp run_export_storage_partitions!(dir, colocate, extra_env) do
     File.mkdir_p!(Path.join(dir, "bin"))
 
     File.cp!(
@@ -255,6 +255,7 @@ defmodule Threadline.CiTopologyContractTest do
         {"THREADLINE_CI_LANE", ""},
         {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")},
         {"CI_TEST_PARTITIONS_BUDGET_S", "20"}
+        | extra_env
       ],
       stderr_to_stdout: true
     )
@@ -263,14 +264,116 @@ defmodule Threadline.CiTopologyContractTest do
   @tag :tmp_dir
   test "shared local export fixtures never overlap across partition processes", %{tmp_dir: dir} do
     colocate = read_rel!(["test", "partition_colocate.txt"])
-    {output, status} = run_export_storage_partitions!(Path.join(dir, "grouped"), colocate)
+
+    # The grouped case runs at the runner's real TAIL_QUEUE_K (seam unset):
+    # colocated files are never queued, so the group still shares one partition.
+    {output, status} =
+      run_export_storage_partitions!(Path.join(dir, "grouped"), colocate, [
+        {"CI_TEST_PARTITIONS_TAIL_K", nil}
+      ])
+
     assert status == 0, output
 
     # Negative control: without the ownership group, the same production runner
     # splits these four real files and the shared-root claim detects overlap.
-    {output, status} = run_export_storage_partitions!(Path.join(dir, "split"), "")
+    # It runs at CI_TEST_PARTITIONS_TAIL_K=0 (the static split): ungrouped, the
+    # sync files would otherwise be lifted into the tail queue and this control
+    # would stop testing the colocation rule. The control isolates the colocation
+    # rule on the static split; the queue's own colocation exclusion is proven
+    # separately by the runner's tq-colocate self-test and the TAIL_QUEUE_K
+    # contract test below.
+    {output, status} =
+      run_export_storage_partitions!(Path.join(dir, "split"), "", [
+        {"CI_TEST_PARTITIONS_TAIL_K", "0"}
+      ])
+
     assert status != 0
     assert output =~ "export fixture overlap"
+  end
+
+  @tail_queue_sync_weights for n <- 1..14, do: {"test/q/s#{n}_test.exs", 150_000 - n * 10_000}
+
+  defp tail_queue_sandbox!(dir, script) do
+    File.mkdir_p!(Path.join(dir, "bin"))
+    File.mkdir_p!(Path.join(dir, "test/q"))
+    File.write!(Path.join(dir, "bin/ci-test-partitions"), script)
+
+    sync = "defmodule Sandbox.Q do\n  use ExUnit.Case\nend\n"
+    async = "defmodule Sandbox.Q do\n  use ExUnit.Case, async: true\nend\n"
+
+    # The async file and the colocated pair are the heaviest, so a broken
+    # eligibility rule would lift them first.
+    files =
+      [{"test/q/async_test.exs", 900_000, async}] ++
+        [{"test/q/c1_test.exs", 800_000, sync}, {"test/q/c2_test.exs", 700_000, sync}] ++
+        for {path, ms} <- @tail_queue_sync_weights, do: {path, ms, sync}
+
+    for {path, _ms, body} <- files, do: File.write!(Path.join(dir, path), body)
+
+    File.write!(
+      Path.join(dir, "test/partition_weights.txt"),
+      Enum.map_join(files, "", fn {path, ms, _body} -> "#{ms} #{path}\n" end)
+    )
+
+    File.write!(
+      Path.join(dir, "test/partition_colocate.txt"),
+      "# sandbox group\ntest/q/c1_test.exs test/q/c2_test.exs\n"
+    )
+
+    {output, status} =
+      System.cmd("/bin/bash", ["bin/ci-test-partitions", "4"],
+        cd: dir,
+        env: [
+          {"MIX_BIN", "false"},
+          {"THREADLINE_TEST_SCOPE", ""},
+          {"THREADLINE_CI_LANE", ""},
+          {"GITHUB_STEP_SUMMARY", nil},
+          {"CI_TEST_PARTITIONS_TAIL_K", nil},
+          {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")}
+        ],
+        stderr_to_stdout: true
+      )
+
+    assert status == 2 and output =~ "serial compile failed",
+           "a MIX_BIN=false run must stop at the serial compile, got #{status}: #{output}"
+
+    dir
+    |> Path.join("logs/tail-queue.tsv")
+    |> File.read!()
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn row ->
+      [_seq, path, weight] = String.split(row, "\t")
+      {path, String.to_integer(weight)}
+    end)
+  end
+
+  @tag :tmp_dir
+  test "tail queue lifts exactly TAIL_QUEUE_K=12 ungrouped sync files and a smaller K is caught",
+       %{tmp_dir: dir} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    assert length(Regex.scan(~r/^TAIL_QUEUE_K=12$/m, script)) == 1,
+           "rule=tail-queue-k: bin/ci-test-partitions must set TAIL_QUEUE_K=12 on exactly one line (D-27)"
+
+    expected = Enum.take(@tail_queue_sync_weights, 12)
+    rows = tail_queue_sandbox!(Path.join(dir, "real"), script)
+
+    assert rows == expected,
+           "rule=tail-queue-k: the queue must be the 12 heaviest ungrouped sync files, heaviest first, got #{inspect(rows)}"
+
+    weights = Enum.map(rows, &elem(&1, 1))
+    assert weights == Enum.sort(weights, :desc)
+
+    for {path, _ms} <- rows do
+      refute path in ["test/q/async_test.exs", "test/q/c1_test.exs", "test/q/c2_test.exs"],
+             "an async or colocated file was queued: #{path}"
+    end
+
+    mutant = Regex.replace(~r/^TAIL_QUEUE_K=12$/m, script, "TAIL_QUEUE_K=4")
+    refute mutant == script, "the TAIL_QUEUE_K mutation did not change the script"
+    mutant_rows = tail_queue_sandbox!(Path.join(dir, "mutant"), mutant)
+    assert length(mutant_rows) == 4
+    refute mutant_rows == expected, "a TAIL_QUEUE_K=4 mutant must be caught"
   end
 
   defp scoped_test_files! do
@@ -751,6 +854,14 @@ defmodule Threadline.CiTopologyContractTest do
            "the xref cycle gate must run after compile and before the test suite"
   end
 
+  @tail_queue_seams [
+    "CI_TEST_PARTITIONS_TAIL_K",
+    "CI_TEST_PARTITIONS_LOCK_WAIT_S",
+    "CI_TEST_PARTITIONS_FAKE_FILE_PLAN"
+  ]
+
+  @canonical_invocation ~S("$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}")
+
   defp partition_topology_errors(yaml, mix_exs, script) do
     job = workflow_job(yaml, "verify-test")
     run_tests_step = workflow_step(job, "Run tests")
@@ -795,6 +906,10 @@ defmodule Threadline.CiTopologyContractTest do
        "the Verify Threadline trigger coverage step must set MIX_TEST_PARTITION: \"1\" (D-07)"},
       {not String.contains?(yaml, "MIX_BIN"),
        "MIX_BIN (the test-only seam) must never appear in ci.yml"},
+      {Enum.all?(@tail_queue_seams, &(not String.contains?(yaml, &1))),
+       "rule=tail-queue-seams: the tail-queue test-only seams (#{Enum.join(@tail_queue_seams, ", ")}) must never appear in ci.yml (D-27)"},
+      {length(String.split(script, @canonical_invocation)) == 2,
+       "rule=single-invocation-site: bin/ci-test-partitions must hold the canonical mix test invocation exactly once, shared by static sets and tail-queue claims (D-27)"},
       {String.contains?(script, "|| fail=1") and
          not Regex.match?(~r/^\s*wait\s*$/m, script),
        "bin/ci-test-partitions must wait on each recorded PID individually, never a bare wait"},
@@ -1097,31 +1212,49 @@ defmodule Threadline.CiTopologyContractTest do
     assert timings_step != "", "mutation anchor missing"
     assert logs_step != "", "mutation anchor missing"
 
-    rule_controls = [
-      {"the Run tests step timeout removed",
-       String.replace(yaml, step_timeout_text, run_tests_step_text), script,
-       "rule=run-tests-step-timeout"},
-      {"the Run tests step timeout raised to the job's",
-       String.replace(
-         yaml,
-         step_timeout_text,
-         run_tests_step_text <> "        timeout-minutes: 20\n"
-       ), script, "rule=run-tests-step-timeout"},
-      {"the partition budget raised past the step timeout", yaml,
-       String.replace(
-         script,
-         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-480}\"",
-         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-900}\""
-       ), "rule=run-tests-step-timeout"},
-      {"the watchdog call removed", yaml,
-       String.replace(script, watchdog_text, "  local fail=0\n"), "rule=watchdog"},
-      {"the monitor formatter args dropped", yaml, String.replace(script, monitor_args_text, ""),
-       "rule=monitor-args"},
-      {"the partition timings upload removed", String.replace(yaml, timings_step, ""), script,
-       "rule=timings-upload"},
-      {"the partition logs upload removed", String.replace(yaml, logs_step, ""), script,
-       "rule=logs-upload"}
-    ]
+    rule_controls =
+      [
+        {"the Run tests step timeout removed",
+         String.replace(yaml, step_timeout_text, run_tests_step_text), script,
+         "rule=run-tests-step-timeout"},
+        {"the Run tests step timeout raised to the job's",
+         String.replace(
+           yaml,
+           step_timeout_text,
+           run_tests_step_text <> "        timeout-minutes: 20\n"
+         ), script, "rule=run-tests-step-timeout"},
+        {"the partition budget raised past the step timeout", yaml,
+         String.replace(
+           script,
+           "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-480}\"",
+           "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-900}\""
+         ), "rule=run-tests-step-timeout"},
+        {"the watchdog call removed", yaml,
+         String.replace(script, watchdog_text, "  local fail=0\n"), "rule=watchdog"},
+        {"the monitor formatter args dropped", yaml,
+         String.replace(script, monitor_args_text, ""), "rule=monitor-args"},
+        {"the partition timings upload removed", String.replace(yaml, timings_step, ""), script,
+         "rule=timings-upload"},
+        {"the partition logs upload removed", String.replace(yaml, logs_step, ""), script,
+         "rule=logs-upload"},
+        {"a second canonical invocation site added", yaml,
+         String.replace(
+           script,
+           @canonical_invocation,
+           @canonical_invocation <> "\n    " <> @canonical_invocation,
+           global: false
+         ), "rule=single-invocation-site"}
+      ]
+      |> Enum.concat(
+        for seam <- @tail_queue_seams do
+          {"#{seam} env added to verify-test",
+           String.replace(
+             yaml,
+             "  verify-test:\n",
+             "  verify-test:\n    env:\n      #{seam}: \"0\"\n"
+           ), script, "rule=tail-queue-seams"}
+        end
+      )
 
     for {label, y, s, rule} <- rule_controls do
       refute {y, s} == {yaml, script}, "#{label} control did not change the input"
