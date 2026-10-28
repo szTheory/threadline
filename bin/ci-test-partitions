@@ -2708,8 +2708,10 @@ TQ_WEIGHTS
     awk -F'\t' -v re="^($1)$" '$2 ~ re { f = 1 } END { exit !f }' "$tq_queue"
   }
 
-  # (tq-k-pin, tq-order, tq-colocate, tq-async) one pass, the real K
+  # (tq-k-pin, tq-order, tq-colocate, tq-async) one pass, the real K; lane ''
+  # is the current lane, so tq-lane-k reuses this lift for its current case
   tq_lift ""
+  local tq_kpin_logs="$case_logs"
   [ "$(awk 'NF' "$tq_queue" | wc -l | tr -d ' ')" -eq 12 ] ||
     die "self-test: tq-k-pin: the real K must queue exactly 12 files: $(cat "$tq_queue")"
   tq_in_static test/q/s13_test.exs && tq_in_static test/q/s14_test.exs ||
@@ -2769,32 +2771,29 @@ TQ_WEIGHTS
 
   # (tq-lane-k) the per-lane queue size (D-32): current queues TAIL_QUEUE_K,
   # min and latest queue none and keep their seam-0 static sets, and the
-  # seam overrides the lane map
+  # seam overrides the lane map. The sandbox's lane weights are copies of its
+  # current weights, so min's greedy assignment is tq-k-pin's, and its seam-0
+  # static sets are that assignment's rows per partition (K=0 lifts nothing).
   cp "$tq_proj/test/partition_weights.txt" "$tq_proj/test/partition_weights_min.txt"
   cp "$tq_proj/test/partition_weights.txt" "$tq_proj/test/partition_weights_latest.txt"
   [ "$(lane_tail_k '')" = 12 ] && [ "$(lane_tail_k current)" = 12 ] &&
     [ "$(lane_tail_k min)" = 0 ] && [ "$(lane_tail_k latest)" = 0 ] ||
     die "self-test: tq-lane-k: lane_tail_k must map ''/current to 12 and min/latest to 0"
   (lane_tail_k bogus) 2>/dev/null && die "self-test: tq-lane-k: lane_tail_k must reject an unknown lane"
-  local tq_min_static="$self_test_dir/tq-min-static"
+  [ "$(awk 'NF' "$tq_kpin_logs/tail-queue.tsv" | wc -l | tr -d ' ')" -eq 12 ] ||
+    die "self-test: tq-lane-k: current must queue exactly 12 files: $(cat "$tq_kpin_logs/tail-queue.tsv")"
   THREADLINE_CI_LANE=min tq_lift ""
   [ ! -s "$tq_queue" ] || die "self-test: tq-lane-k: min must queue nothing with the seam unset: $(cat "$tq_queue")"
   grep -qF 'tail queue: 0 files lifted (K=0)' <<<"$output" ||
     die "self-test: tq-lane-k: min must print the K=0 lift line: $output"
-  mkdir -p "$tq_min_static"
+  cmp -s "$tq_kpin_logs/assignment.tsv" "$case_logs/assignment.tsv" ||
+    die "self-test: tq-lane-k: min must keep the greedy assignment"
   for i in 1 2 3 4; do
-    cp "$case_logs/partition-$i.files" "$tq_min_static/partition-$i.files"
-  done
-  THREADLINE_CI_LANE=min tq_lift 0
-  for i in 1 2 3 4; do
-    cmp -s "$tq_min_static/partition-$i.files" "$case_logs/partition-$i.files" ||
+    cmp -s <(awk -F'\t' -v i="$i" '$1 == i { print $2 }' "$case_logs/assignment.tsv") "$case_logs/partition-$i.files" ||
       die "self-test: tq-lane-k: min partition-$i.files must equal its seam-0 static set"
   done
   THREADLINE_CI_LANE=latest tq_lift ""
   [ ! -s "$tq_queue" ] || die "self-test: tq-lane-k: latest must queue nothing with the seam unset: $(cat "$tq_queue")"
-  THREADLINE_CI_LANE=current tq_lift ""
-  [ "$(awk 'NF' "$tq_queue" | wc -l | tr -d ' ')" -eq 12 ] ||
-    die "self-test: tq-lane-k: current must queue exactly 12 files: $(cat "$tq_queue")"
   THREADLINE_CI_LANE=min tq_lift 12
   [ "$(awk 'NF' "$tq_queue" | wc -l | tr -d ' ')" -eq 12 ] ||
     die "self-test: tq-lane-k: the seam must override the lane map (min, K=12): $(cat "$tq_queue")"
