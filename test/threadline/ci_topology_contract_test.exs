@@ -1079,6 +1079,56 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
+  @partition_paragraph_lead "**CI runs the suite as N concurrent partitions.**"
+
+  # D-27 doc parity: CONTRIBUTING's partition paragraph names the tail queue
+  # and the runner's own TAIL_QUEUE_K, so neither can change alone.
+  defp tail_queue_doc_errors(script, contributing) do
+    k =
+      case Regex.scan(~r/^TAIL_QUEUE_K=(\d+)$/m, script) do
+        [[_, k]] -> k
+        _ -> nil
+      end
+
+    paragraph =
+      case String.split(contributing, @partition_paragraph_lead, parts: 2) do
+        [_, rest] ->
+          rest |> String.split(~r/\n\s*\n/, parts: 2) |> hd() |> String.replace(~r/\s+/, " ")
+
+        _ ->
+          ""
+      end
+
+    [
+      {k != nil, "bin/ci-test-partitions must set TAIL_QUEUE_K on exactly one line"},
+      {paragraph != "", "CONTRIBUTING.md has no partition paragraph"},
+      {String.contains?(paragraph, "tail queue"),
+       "CONTRIBUTING's partition paragraph must describe the tail queue"},
+      {k != nil and String.contains?(paragraph, "the #{k} heaviest"),
+       "CONTRIBUTING's partition paragraph must name the runner's K (the #{k} heaviest)"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("rule=tail-queue-doc: " <> elem(&1, 1)))
+  end
+
+  test "CONTRIBUTING documents the tail queue with the runner's K" do
+    script = read_rel!(["bin", "ci-test-partitions"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert tail_queue_doc_errors(script, contributing) == []
+
+    k_mutant = Regex.replace(~r/^TAIL_QUEUE_K=12$/m, script, "TAIL_QUEUE_K=13")
+    doc_mutant = String.replace(contributing, "the 12 heaviest", "the 13 heaviest")
+    refute k_mutant == script, "mutation anchor missing"
+    refute doc_mutant == contributing, "mutation anchor missing"
+
+    assert tail_queue_doc_errors(k_mutant, contributing) != [],
+           "changing TAIL_QUEUE_K alone must fail the doc-parity rule"
+
+    assert tail_queue_doc_errors(script, doc_mutant) != [],
+           "changing the documented K alone must fail the doc-parity rule"
+  end
+
   test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
     mix_exs = read_rel!(["mix.exs"])
