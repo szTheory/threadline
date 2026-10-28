@@ -210,6 +210,10 @@ refresh the weights with `bin/ci-test-partitions --ingest-weights <dir>`
 (optionally `--lane current`), with `--write-weights` as the offline
 fallback. The step summary also shows a `max/min` ratio of the slowest to
 the fastest partition, and warns above 1.15 without failing the run.
+Each lane's weights are refreshed with that lane's rule from `lane_rule` in
+`bin/ci-test-partitions` (per-file median for current and latest, per-file
+maximum for min), and a strict `--output` refresh given a different `--rule`
+exits 2.
 
 **Rules of thumb:**
 

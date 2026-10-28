@@ -356,6 +356,121 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
+  defp lane_rule_errors(script) do
+    # Read only the production lane_rule; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_rule\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    for {arm, rule} <- [{"''|current", "median"}, {"min", "max"}, {"latest", "median"}],
+        not String.contains?(body, "#{arm}) printf '%s\\n' '#{rule}' ;;"),
+        do: "wrong rule for lane #{arm}"
+  end
+
+  # A sandbox with the given runner text, two plain test files, R1-headed
+  # weights and three runs x four partitions of min and current TSVs:
+  # test/a_test.exs is 100/300/200 ms (median 200, max 300), b is 100 throughout.
+  defp lane_rule_sandbox!(dir, script) do
+    File.mkdir_p!(Path.join(dir, "bin"))
+    File.mkdir_p!(Path.join(dir, "test"))
+    runner = Path.join(dir, "bin/ci-test-partitions")
+    File.write!(runner, script)
+    File.chmod!(runner, 0o755)
+
+    for name <- ["a", "b"],
+        do: File.write!(Path.join(dir, "test/#{name}_test.exs"), "  use ExUnit.Case\n")
+
+    header =
+      read_rel!(["test", "partition_weights_min.txt"])
+      |> String.split("\n")
+      |> Enum.filter(&String.starts_with?(&1, "#"))
+      |> Enum.join("\n")
+
+    for path <- ["test/partition_weights.txt", "test/partition_weights_min.txt"],
+        do:
+          File.write!(Path.join(dir, path), header <> "\n1 test/a_test.exs\n1 test/b_test.exs\n")
+
+    for lane <- ["min", "current"], {run, ms} <- [{"301", 100}, {"302", 300}, {"303", 200}] do
+      run_dir = Path.join([dir, "ing-#{lane}", run, lane])
+      File.mkdir_p!(run_dir)
+
+      for part <- 1..4 do
+        File.write!(
+          Path.join(run_dir, "partition-timings-#{part}.tsv"),
+          "# threadline.partition-timings/1 partition=#{part} lane=#{lane} boot_ms=1 wall_ms=1000\n" <>
+            lane_rule_rows(part, ms)
+        )
+      end
+    end
+
+    dir
+  end
+
+  defp lane_rule_rows(1, ms), do: "test/a_test.exs\t#{ms}\t90\n"
+  defp lane_rule_rows(2, _ms), do: "test/b_test.exs\t100\t90\n"
+  defp lane_rule_rows(_part, _ms), do: ""
+
+  defp strict_ingest(dir, lane, output, extra \\ []) do
+    System.cmd(
+      "/bin/bash",
+      [
+        "bin/ci-test-partitions",
+        "--ingest-weights",
+        Path.join(dir, "ing-#{lane}"),
+        "--lane",
+        lane
+      ] ++
+        extra ++ ["--output", output],
+      cd: dir,
+      stderr_to_stdout: true
+    )
+  end
+
+  @tag :tmp_dir
+  test "lane weight rules: current and latest take the median, min the maximum, and a strict mismatch exits 2",
+       %{tmp_dir: tmp} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+    assert lane_rule_errors(script) == []
+
+    dir = lane_rule_sandbox!(Path.join(tmp, "prod"), script)
+    min_path = Path.join(dir, "test/partition_weights_min.txt")
+
+    {output, status} = strict_ingest(dir, "min", "test/partition_weights_min.txt")
+    assert status == 0, output
+    assert output =~ "ingest-weights: rule max"
+    min_weights = File.read!(min_path)
+    assert min_weights =~ ~r/^300 test\/a_test\.exs$/m
+    assert min_weights =~ ~r/^100 test\/b_test\.exs$/m
+
+    {output, status} = strict_ingest(dir, "current", "test/partition_weights.txt")
+    assert status == 0, output
+
+    assert File.read!(Path.join(dir, "test/partition_weights.txt")) =~
+             ~r/^200 test\/a_test\.exs$/m
+
+    {output, status} =
+      strict_ingest(dir, "min", "test/partition_weights_min.txt", ["--rule", "median"])
+
+    assert status == 2, output
+    assert output =~ "requires --rule max, got median"
+    assert File.read!(min_path) == min_weights
+
+    # Mutant: the min lane mapped back to the median must lose the maximum.
+    mutant =
+      String.replace(script, "min) printf '%s\\n' 'max' ;;", "min) printf '%s\\n' 'median' ;;")
+
+    refute mutant == script
+    assert lane_rule_errors(mutant) == ["wrong rule for lane min"]
+    mutant_dir = lane_rule_sandbox!(Path.join(tmp, "mutant"), mutant)
+    {output, status} = strict_ingest(mutant_dir, "min", "test/partition_weights_min.txt")
+    assert status == 0, output
+
+    refute File.read!(Path.join(mutant_dir, "test/partition_weights_min.txt")) =~
+             "300 test/a_test.exs"
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
