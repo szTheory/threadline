@@ -38,7 +38,8 @@
 #
 # Tail queue (D-27). After the greedy assignment below (unchanged, written
 # to assignment.tsv and printed as `partition <i>: <n> files, weight <w>
-# ms`), the TAIL_QUEUE_K (12) heaviest files that are `async: false` and on
+# ms`), the lane's K heaviest files (K from lane_tail_k: TAIL_QUEUE_K, 12,
+# on current, 0 on min and latest) that are `async: false` and on
 # no colocate line are lifted into tail-queue.tsv (`<seq>\t<file>\t<weight>`,
 # largest first, ties by path); partition-<i>.files keeps the static rest
 # (`partition <i>: static <n> files, ...`). Colocation groups and async files
@@ -194,9 +195,11 @@
 #                                  report for them and exit 0.
 #   These four let --self-test shrink the hang cases to seconds and stay
 #   offline.
-#   CI_TEST_PARTITIONS_TAIL_K     (default TAIL_QUEUE_K, 12) the tail queue
-#                                  size, a non-negative integer; 0 turns the
-#                                  queue off (the legacy self-test cases).
+#   CI_TEST_PARTITIONS_TAIL_K     (default lane_tail_k for the lane (12 on
+#                                  current, 0 on min and latest)) the tail
+#                                  queue size, a non-negative integer; 0
+#                                  turns the queue off (the legacy self-test
+#                                  cases).
 #   CI_TEST_PARTITIONS_LOCK_WAIT_S  (default 30) seconds a partition waits
 #                                  for the tail-queue lock before it fails.
 #   CI_TEST_PARTITIONS_FAKE_FILE_PLAN  newline-separated `<file>=<behavior>`
@@ -257,7 +260,10 @@
 # (tq-colocate) colocated files never queued and kept together, (tq-async)
 # async files never queued, (tq-empty) K=99 queues exactly the 14 eligible
 # files and K=0 none, (tq-scope) toolchain drops a tagged eligible file from
-# both; (tq-fail) a failing claim fails only its partition and the queue is
+# both; (tq-lane-k) lane_tail_k maps ''/current to 12 and min/latest to 0
+# and dies on an unknown lane, min and latest with the seam unset queue
+# nothing and min's static sets equal its seam-0 sets, current queues 12,
+# and the seam overrides the lane map; (tq-fail) a failing claim fails only its partition and the queue is
 # still claimed once; (tq-deadline) the claim's in-VM deadline is what is
 # left, and 0 when disarmed; (tq-lock-stale) a stale lock is broken, a live
 # one times out with no claim, release is keyed on the partition index;
@@ -312,10 +318,12 @@ COLOCATE_REL="test/partition_colocate.txt"
 # k=0.2918, residual RMS=13994 ms over partitions of 101-231 s. Replaces the
 # guessed 1/4 (250). Refit with the same TSVs whenever the weights refresh.
 ASYNC_FACTOR_PERMILLE=292
-# Runtime tail queue size (247 D-27): the K heaviest ungrouped `async: false`
-# files are lifted out of the static sets and claimed at runtime. Pinned by
-# --self-test (tq-k-pin). 247-B6-REMEDY-RESEARCH.md replays K=12 at about
-# 1.02-1.06 on every lane; K=4 replays at 1.31, so K is a constant.
+# Runtime tail queue size of the current lane (247 D-27, D-32): the K
+# heaviest ungrouped `async: false` files are lifted out of the static sets
+# and claimed at runtime. Pinned by --self-test (tq-k-pin, tq-lane-k).
+# 247-B6-PREDICTION.md replays K=12 at <= 1.064 on current at 8 s per claim,
+# while min (1.101) and latest (1.107) replayed above 1.08, so those lanes
+# queue none via lane_tail_k (D-32). K=4 replays at 1.31, so K is a constant.
 TAIL_QUEUE_K=12
 # The async test the assignment applies (assign_files greps the same pattern):
 # a file that matches is never queued.
@@ -355,6 +363,19 @@ lane_rule() {
     min) printf '%s\n' 'max' ;;
     latest) printf '%s\n' 'median' ;;
     *) die "unknown lane for lane_rule: $1" ;;
+  esac
+}
+
+# The tail-queue size for each lane (247 D-32): the current lane queues
+# TAIL_QUEUE_K; min and latest queue none, so they keep origin/main
+# 824c2851's static assignment (B5 measured them passing). The
+# CI_TEST_PARTITIONS_TAIL_K seam still overrides it.
+lane_tail_k() {
+  case "$1" in
+    ''|current) printf '%s\n' "$TAIL_QUEUE_K" ;;
+    min) printf '%s\n' '0' ;;
+    latest) printf '%s\n' '0' ;;
+    *) die "unknown lane for lane_tail_k: $1" ;;
   esac
 }
 
@@ -1176,9 +1197,11 @@ run_partitions() {
   seconds_env CI_TEST_PARTITIONS_DIAG_WAIT_S 30 >/dev/null
   seconds_env CI_TEST_PARTITIONS_KILL_GRACE_S 10 >/dev/null
   seconds_env CI_TEST_PARTITIONS_LOCK_WAIT_S 30 >/dev/null
-  count_env CI_TEST_PARTITIONS_TAIL_K "$TAIL_QUEUE_K" >/dev/null
+  local lane_k
+  lane_k="$(lane_tail_k "${THREADLINE_CI_LANE:-}")"
+  count_env CI_TEST_PARTITIONS_TAIL_K "$lane_k" >/dev/null
   local tail_k lock_wait_s
-  tail_k="$(count_env CI_TEST_PARTITIONS_TAIL_K "$TAIL_QUEUE_K")"
+  tail_k="$(count_env CI_TEST_PARTITIONS_TAIL_K "$lane_k")"
   lock_wait_s="$(seconds_env CI_TEST_PARTITIONS_LOCK_WAIT_S 30)"
   # The monitor's in-VM deadline leaves 30 s of the budget for its stack dump
   # and halt; a budget of 30 s or less disarms it (the value is not positive).
@@ -2744,6 +2767,39 @@ TQ_WEIGHTS
     die "self-test: tq-scope: the queue must refill from the scoped set: $(cat "$tq_queue")"
   printf 'tail-queue-scope: ok\n'
 
+  # (tq-lane-k) the per-lane queue size (D-32): current queues TAIL_QUEUE_K,
+  # min and latest queue none and keep their seam-0 static sets, and the
+  # seam overrides the lane map
+  cp "$tq_proj/test/partition_weights.txt" "$tq_proj/test/partition_weights_min.txt"
+  cp "$tq_proj/test/partition_weights.txt" "$tq_proj/test/partition_weights_latest.txt"
+  [ "$(lane_tail_k '')" = 12 ] && [ "$(lane_tail_k current)" = 12 ] &&
+    [ "$(lane_tail_k min)" = 0 ] && [ "$(lane_tail_k latest)" = 0 ] ||
+    die "self-test: tq-lane-k: lane_tail_k must map ''/current to 12 and min/latest to 0"
+  (lane_tail_k bogus) 2>/dev/null && die "self-test: tq-lane-k: lane_tail_k must reject an unknown lane"
+  local tq_min_static="$self_test_dir/tq-min-static"
+  THREADLINE_CI_LANE=min tq_lift ""
+  [ ! -s "$tq_queue" ] || die "self-test: tq-lane-k: min must queue nothing with the seam unset: $(cat "$tq_queue")"
+  grep -qF 'tail queue: 0 files lifted (K=0)' <<<"$output" ||
+    die "self-test: tq-lane-k: min must print the K=0 lift line: $output"
+  mkdir -p "$tq_min_static"
+  for i in 1 2 3 4; do
+    cp "$case_logs/partition-$i.files" "$tq_min_static/partition-$i.files"
+  done
+  THREADLINE_CI_LANE=min tq_lift 0
+  for i in 1 2 3 4; do
+    cmp -s "$tq_min_static/partition-$i.files" "$case_logs/partition-$i.files" ||
+      die "self-test: tq-lane-k: min partition-$i.files must equal its seam-0 static set"
+  done
+  THREADLINE_CI_LANE=latest tq_lift ""
+  [ ! -s "$tq_queue" ] || die "self-test: tq-lane-k: latest must queue nothing with the seam unset: $(cat "$tq_queue")"
+  THREADLINE_CI_LANE=current tq_lift ""
+  [ "$(awk 'NF' "$tq_queue" | wc -l | tr -d ' ')" -eq 12 ] ||
+    die "self-test: tq-lane-k: current must queue exactly 12 files: $(cat "$tq_queue")"
+  THREADLINE_CI_LANE=min tq_lift 12
+  [ "$(awk 'NF' "$tq_queue" | wc -l | tr -d ' ')" -eq 12 ] ||
+    die "self-test: tq-lane-k: the seam must override the lane map (min, K=12): $(cat "$tq_queue")"
+  printf 'tail-queue-lane-k: ok\n'
+
   # (tq-fail) a failing queued file fails only its claiming partition; the
   # rest of the queue is still claimed exactly once
   case_tail_k= CI_TEST_PARTITIONS_FAKE_FILE_PLAN="test/b/light2_test.exs=fail" \
@@ -2858,7 +2914,7 @@ test/a/heavy2_test.exs=hang_quit" run_case "tail queue hang" "pass,pass" 2
   pgrep -f 247hangsentinel >/dev/null && die "self-test: tq-hang: a hung claim's process was left running"
   pgrep -f "$fake_mix" >/dev/null && die "self-test: tq-hang: a fake mix process was left running"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-lock-stale, tq-contention, tq-hang)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-lock-stale, tq-contention, tq-hang, tq-lane-k)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
