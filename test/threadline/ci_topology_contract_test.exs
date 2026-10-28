@@ -493,6 +493,15 @@ defmodule Threadline.CiTopologyContractTest do
     arms ++ seam
   end
 
+  # The runner's --self-test ok line must name tq-lane-k (D-32), so the case
+  # cannot be dropped without the contract noticing.
+  defp tq_lane_k_ok_token?(script) do
+    Regex.match?(
+      ~r/^  printf 'ci-test-partitions self-test: ok \(.*, tq-lane-k[,)].*\\n'$/m,
+      script
+    )
+  end
+
   # A sandbox with the given runner text, two plain test files, R1-headed
   # weights and three runs x four partitions of min and current TSVs:
   # test/a_test.exs is 100/300/200 ms (median 200, max 300), b is 100 throughout.
@@ -628,6 +637,17 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert length(tail_queue_sandbox!(Path.join(dir, "min-mutant"), mutant, "min")) == 12,
            "rule=lane-tail-k: the min mutant must queue 12 files in the sandbox"
+
+    assert tq_lane_k_ok_token?(script),
+           "rule=lane-tail-k: the --self-test ok line must name tq-lane-k"
+
+    token_mutant = String.replace(script, ", tq-lane-k)\\n'", ")\\n'")
+
+    refute token_mutant == script,
+           "rule=lane-tail-k: the ok-token mutation did not change the script"
+
+    refute tq_lane_k_ok_token?(token_mutant),
+           "rule=lane-tail-k: an ok line without tq-lane-k must be caught"
   end
 
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
