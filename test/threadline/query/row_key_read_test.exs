@@ -50,9 +50,9 @@ defmodule Threadline.Query.RowKeyReadTest do
 
   # The capture trigger stamps captured_at with the database's
   # clock_timestamp(), so "now" for as_of/4 is read from that same clock. The
-  # BEAM's DateTime.utc_now() is a different clock: with the database in a VM
-  # (Docker Desktop) it can trail the database by milliseconds, and an as_of/4
-  # at that instant precedes the write it is meant to see (247-31 triage).
+  # BEAM's DateTime.utc_now() is a different clock (the database may run in a
+  # VM), and an as_of/4 at an instant the stamping clock has not reached yet
+  # precedes the write it is meant to see (247-31 triage).
   defp db_now do
     %{rows: [[now]]} = Repo.query!("SELECT clock_timestamp()")
     now
