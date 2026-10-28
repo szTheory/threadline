@@ -569,6 +569,7 @@ claim_next() {
   tab="$(printf '\t')"
   CLAIM_SEQ=""
   CLAIM_FILE=""
+  CLAIM_START_MS=""
   # The next pointer only grows, so an exhausted queue needs no lock.
   next="$(cat "$log_dir/tail-queue.next" 2>/dev/null || true)"
   case "$next" in '' | *[!0-9]*) next=1 ;; esac
@@ -588,7 +589,8 @@ claim_next() {
   if [ -n "$row" ]; then
     IFS="$tab" read -r CLAIM_SEQ CLAIM_FILE _ <<<"$row"
     printf '%s\n' "$((next + 1))" >"$log_dir/tail-queue.next"
-    printf 'claim\t%s\t%s\t%s\n' "$CLAIM_SEQ" "$CLAIM_FILE" "$(now_ms)" >>"$log_dir/partition-$i.claims"
+    CLAIM_START_MS="$(now_ms)"
+    printf 'claim\t%s\t%s\t%s\n' "$CLAIM_SEQ" "$CLAIM_FILE" "$CLAIM_START_MS" >>"$log_dir/partition-$i.claims"
   fi
   rm -f "$lock/owner"
   rmdir "$lock" 2>/dev/null || true
@@ -632,9 +634,33 @@ parse_counts() {
 
 # --- Report ------------------------------------------------------------------
 
+# A partition's ExUnit counts: the sum over its invocations/p<i>-*.log when
+# any exist (static set plus claims, D-27), else its single partition log.
+partition_counts() {
+  local i="$1" log_dir="$2" f c found=0 any=0 tests=0 failures=0
+  for f in "$log_dir/invocations/p$i-"*.log; do
+    [ -f "$f" ] || continue
+    found=1
+    c="$(parse_counts "$f")"
+    [ "$c" != "no tests" ] || continue
+    any=1
+    tests=$((tests + $(printf '%s' "$c" | sed -E 's/^([0-9]+) tests.*/\1/')))
+    failures=$((failures + $(printf '%s' "$c" | sed -E 's/.*, ([0-9]+) failures$/\1/')))
+  done
+  if [ "$found" -eq 0 ]; then
+    parse_counts "$log_dir/partition-$i.log"
+  elif [ "$any" -eq 1 ]; then
+    printf '%s tests, %s failures' "$tests" "$failures"
+  else
+    printf 'no tests'
+  fi
+}
+
+# Args: N, log dir, step seconds, [step start epoch seconds, tail queue K].
 report() {
-  local n="$1" log_dir="$2" step_seconds="$3"
+  local n="$1" log_dir="$2" step_seconds="$3" step_start="${4:-}" tail_k="${5:-}"
   local i status start end seconds counts body hung ratio_secs ratio
+  local tq_rows="" tq_queued=0 tq_claimed=0 tq_mean="n/a"
 
   body=""
   hung=""
@@ -650,7 +676,7 @@ report() {
       seconds="unknown"
     fi
 
-    counts="$(parse_counts "$log_dir/partition-$i.log")"
+    counts="$(partition_counts "$i" "$log_dir")"
     if [ "$counts" = "no tests" ] && [ -s "$log_dir/partition-$i.files" ] && [ -s "$log_dir/partition-$i.log" ]; then
       # Stdout only, never the step summary: show what the log ends with so an
       # unrecognised ExUnit summary format is visible instead of silent.
@@ -661,7 +687,11 @@ report() {
 "
     case "$seconds" in
       '' | *[!0-9]*) ;;
-      *) [ ! -s "$log_dir/partition-$i.files" ] || ratio_secs="$ratio_secs $seconds" ;;
+      *)
+        if [ -s "$log_dir/partition-$i.files" ] || [ -s "$log_dir/partition-$i.claims" ]; then
+          ratio_secs="$ratio_secs $seconds"
+        fi
+        ;;
     esac
     if [ -f "$log_dir/partition-$i.budget" ]; then
       hung="${hung}$(hung_rows "$i" "$log_dir/partition-$i.log")
@@ -669,8 +699,35 @@ report() {
     fi
   done
 
+  # D-27 claim map rows: `| seq | file | partition | start s | seconds |
+  # exit | overhead ms |`, start relative to the step start; file paths and
+  # integers only, "-" for a claim that never finished.
+  if [ -s "$log_dir/tail-queue.tsv" ]; then
+    tq_queued="$(awk 'NF { c++ } END { print c + 0 }' "$log_dir/tail-queue.tsv")"
+    tq_rows="$(for i in $(seq 1 "$n"); do
+      [ ! -f "$log_dir/partition-$i.claims" ] ||
+        awk -F'\t' -v p="$i" -v t0="$step_start" '
+          $1 == "claim" { f[$2] = $3; s[$2] = $4; order[++m] = $2 }
+          $1 == "done" { e[$2] = $3; x[$2] = $4; o[$2] = $6 }
+          END {
+            for (j = 1; j <= m; j++) {
+              q = order[j]
+              st = (t0 == "") ? "-" : int(s[q] / 1000) - t0
+              if (q in e) { secs = int((e[q] - s[q] + 500) / 1000); ex = x[q]; ov = o[q] }
+              else { secs = "-"; ex = "-"; ov = "-" }
+              printf "%d\t| %s | %s | %s | %s | %s | %s | %s |\n", q, q, f[q], p, st, secs, ex, ov
+            }
+          }
+        ' "$log_dir/partition-$i.claims"
+    done | LC_ALL=C sort -n | cut -f2-)"
+    tq_claimed="$(printf '%s' "$tq_rows" | awk 'NF { c++ } END { print c + 0 }')"
+    tq_mean="$(for i in $(seq 1 "$n"); do
+      [ ! -f "$log_dir/partition-$i.claims" ] || awk -F'\t' '$1 == "done" { print $6 }' "$log_dir/partition-$i.claims"
+    done | awk 'NF { s += $1; c++ } END { if (c == 0) print "n/a"; else printf "%.0f\n", s / c }')"
+  fi
+
   # Slowest over fastest partition, over partitions with at least one file
-  # and a known time; n/a when there is none or the fastest took 0 s.
+  # or claim and a known time; n/a when there is none or the fastest took 0 s.
   ratio="$(printf '%s\n' $ratio_secs | awk '
     NF { v = $1 + 0; if (n == 0 || v < lo) lo = v; if (n == 0 || v > hi) hi = v; n++ }
     END { if (n == 0 || lo <= 0) print "n/a"; else printf "%.2f\n", hi / lo }
@@ -690,7 +747,20 @@ report() {
       printf '|---|---|\n'
       printf '%s' "$hung"
     fi
+    if [ -n "$tq_rows" ] || [ "$tq_queued" -gt 0 ]; then
+      printf '\nTail queue (K=%s): %s queued, %s claimed, mean overhead %s ms\n\n' \
+        "${tail_k:-?}" "$tq_queued" "$tq_claimed" "$tq_mean"
+      printf '| Seq | File | Partition | Start s | Seconds | Exit | Overhead ms |\n'
+      printf '|---|---|---|---|---|---|---|\n'
+      [ -z "$tq_rows" ] || printf '%s\n' "$tq_rows"
+    fi
   } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+  # The queue summary for the job log and preflight readers (stdout only).
+  if [ -n "$tail_k" ]; then
+    printf 'ci-test-partitions: tail queue K=%s queued=%s claimed=%s overhead_mean_ms=%s\n' \
+      "$tail_k" "$tq_queued" "$tq_claimed" "$tq_mean"
+  fi
 
   # D-12: visible every run, never a gate. Stdout only, so the step summary
   # never shows it as a failure, and the exit status is unchanged.
@@ -912,6 +982,57 @@ watch_partitions() {
 
 # --- Run N partitions ----------------------------------------------------------
 
+# Merges a partition's per-invocation TSVs (invocations/p<i>-<k>.tsv, k
+# ascending) into partition-timings-<i>.tsv with the monitor's unchanged
+# header schema: boot_ms from the first invocation, wall_ms the sum of every
+# invocation's wall_ms, then every row, each file once. Every header must
+# name the same partition and lane. Written atomically (temp file, then mv);
+# returns 1 on a mismatch, a bad header or a duplicate file.
+# Args: partition index, log dir, last invocation index.
+merge_partition_timings() {
+  local i="$1" log_dir="$2" last_k="$3" k tmp
+  local list=()
+  for k in $(seq 0 "$last_k"); do
+    [ ! -f "$log_dir/invocations/p$i-$k.tsv" ] || list+=("$log_dir/invocations/p$i-$k.tsv")
+  done
+  [ "${#list[@]}" -gt 0 ] || return 0
+  tmp="$(mktemp "$log_dir/merge-timings-$i.XXXXXX")"
+  if awk '
+    FNR == 1 {
+      if ($0 !~ /^# threadline\.partition-timings\/1 /) { print "bad header: " FILENAME > "/dev/stderr"; bad = 1; next }
+      p = ""; l = ""; b = ""; w = ""
+      for (x = 3; x <= NF; x++) {
+        split($x, kv, "=")
+        if (kv[1] == "partition") p = kv[2]
+        else if (kv[1] == "lane") l = kv[2]
+        else if (kv[1] == "boot_ms") b = kv[2]
+        else if (kv[1] == "wall_ms") w = kv[2]
+      }
+      if (b !~ /^[0-9]+$/ || w !~ /^[0-9]+$/) { print "bad header: " FILENAME > "/dev/stderr"; bad = 1 }
+      if (n++ == 0) { P = p; L = l; B = b }
+      else if (p != P || l != L) { print "partition/lane mismatch: " FILENAME > "/dev/stderr"; bad = 1 }
+      W += w
+      next
+    }
+    NF == 0 { next }
+    {
+      split($0, c, "\t")
+      if (seen[c[1]]++) { print "duplicate file " c[1] ": " FILENAME > "/dev/stderr"; bad = 1 }
+      rows[++r] = $0
+    }
+    END {
+      if (bad) exit 1
+      print "# threadline.partition-timings/1 partition=" P " lane=" L " boot_ms=" B " wall_ms=" W
+      for (j = 1; j <= r; j++) print rows[j]
+    }
+  ' "${list[@]}" >"$tmp"; then
+    mv "$tmp" "$log_dir/partition-timings-$i.tsv"
+  else
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
 # One `mix test` invocation of a partition, on its own database: the static
 # set (k=0, which truncates partition-<i>.log) or one claimed file (k>=1,
 # appended). Reads i, log_dir, files, deadline_ms, p_start and monitor_args
@@ -1127,8 +1248,8 @@ run_partitions() {
       # D-27: then claim queued files, largest first, one `mix test <file>`
       # each on this partition's database, until the queue is exhausted.
       # The first non-zero exit is the partition's; claiming continues.
+      k=0
       if [ -s "$queue" ]; then
-        k=0
         while [ ! -f "$log_dir/partition-$i.budget" ]; do
           if ! claim_next "$i" "$log_dir" "$lock_wait_s"; then
             printf 'ci-test-partitions: partition %s: tail-queue lock timeout\n' "$i" >>"$log_dir/partition-$i.log"
@@ -1140,7 +1261,23 @@ run_partitions() {
           files=("$CLAIM_FILE")
           partition_invoke "$k"
           [ "$p_status" -ne 0 ] || p_status="$INV_STATUS"
+          # The claim map: one `done` row and one stdout line per claim.
+          c_end="$(now_ms)"
+          c_wall="$(awk -F'\t' -v f="$CLAIM_FILE" 'NR > 1 && $1 == f { print $2; exit }' \
+            "$log_dir/invocations/p$i-$k.tsv" 2>/dev/null)"
+          case "$c_wall" in '' | *[!0-9]*) c_wall=0 ;; esac
+          c_over=$((c_end - CLAIM_START_MS - c_wall))
+          printf 'done\t%s\t%s\t%s\t%s\t%s\n' "$CLAIM_SEQ" "$c_end" "$INV_STATUS" "$c_wall" "$c_over" \
+            >>"$log_dir/partition-$i.claims"
+          printf 'ci-test-partitions: claim partition=%s seq=%s file=%s start_ms=%s end_ms=%s exit=%s file_wall_ms=%s overhead_ms=%s\n' \
+            "$i" "$CLAIM_SEQ" "$CLAIM_FILE" "$CLAIM_START_MS" "$c_end" "$INV_STATUS" "$c_wall" "$c_over"
         done
+      fi
+      # D-27: one partition-timings-<i>.tsv per partition, as before.
+      if ! merge_partition_timings "$i" "$log_dir" "$k"; then
+        printf 'ci-test-partitions: partition %s: could not merge its invocation timings\n' "$i" |
+          tee -a "$log_dir/partition-$i.log"
+        [ "$p_status" -ne 0 ] || p_status=1
       fi
       set -e
       p_end="$(date +%s)"
@@ -1172,7 +1309,7 @@ run_partitions() {
   step_end="$(date +%s)"
   step_seconds=$((step_end - step_start))
 
-  report "$n" "$log_dir" "$step_seconds"
+  report "$n" "$log_dir" "$step_seconds" "$step_start" "$tail_k"
 
   if [ "$fail" -ne 0 ]; then
     print_failing_logs "$n" "$log_dir"
@@ -1528,21 +1665,40 @@ case "${1:-}" in
       done <<<"$file_plan"
     fi
 
+    # A finished suite writes the monitor's TSV schema: boot_ms is 5 plus the
+    # invocation index k of a runner path ending in -<k>.tsv, each file 7 ms.
+    write_timings() {
+      local tf="${THREADLINE_PARTITION_TIMINGS_FILE:-}" k boot
+      [ -n "$tf" ] || return 0
+      k="${tf##*-}"
+      k="${k%.tsv}"
+      case "$k" in '' | *[!0-9]*) k=0 ;; esac
+      boot=$((5 + k))
+      {
+        printf '# threadline.partition-timings/1 partition=%s lane=%s boot_ms=%s wall_ms=%s\n' \
+          "$idx" "${THREADLINE_CI_LANE:-local}" "$boot" "$((boot + 7 * ${#files[@]}))"
+        for f in "${files[@]}"; do printf '%s\t7\t6\n' "$f"; done
+      } >"$tf"
+    }
+
     case "$behavior" in
       sleep:*)
         sleep "${behavior#sleep:}"
         echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
         echo "1 test, 0 failures"
+        write_timings
         exit 0
         ;;
       fail)
         echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
         echo "1 test, 1 failure"
+        write_timings
         exit 1
         ;;
       empty)
         echo "Finished in 0.0 seconds (0.0s async, 0.0s sync)"
         echo "0 tests, 0 failures"
+        write_timings
         exit 0
         ;;
       killed)
@@ -1569,6 +1725,7 @@ case "${1:-}" in
       *)
         echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
         echo "1 test, 0 failures"
+        write_timings
         exit 0
         ;;
     esac
@@ -2320,6 +2477,58 @@ test/a/light1_test.exs=sleep:0.1" run_case "tail queue basic" "pass,pass,pass,pa
   [ "$(cat "$self_test_dir/tq-claimed.txt")" = "$(cut -f2 "$tq_queue" | LC_ALL=C sort)" ] ||
     die "self-test: tq-basic must claim each queued file exactly once: $(cat "$self_test_dir/tq-claimed.txt")"
   [ ! -e "$case_logs/tail-queue.lock" ] || die "self-test: tq-basic left the tail-queue lock behind"
+  # (tq-tsv) one merged partition-timings-<i>.tsv per partition that ran an
+  # invocation: the strict header schema, boot_ms from the lowest k, wall_ms
+  # summed, each static and claimed file once; no invocation file matches
+  # the upload or --ingest-weights glob.
+  local tq_ran=0 tq_tsv tq_hdr tq_want tq_got
+  for i in 1 2 3 4; do
+    tq_tsv="$case_logs/partition-timings-$i.tsv"
+    if ! ls "$case_logs/invocations/p$i-"*.tsv >/dev/null 2>&1; then
+      [ ! -e "$tq_tsv" ] || die "self-test: tq-tsv: partition $i ran nothing but has a merged TSV"
+      continue
+    fi
+    tq_ran=$((tq_ran + 1))
+    [ "$(grep -c '^#' "$tq_tsv")" -eq 1 ] && tq_hdr="$(head -n 1 "$tq_tsv")" &&
+      grep -qE "^# threadline.partition-timings/1 partition=$i lane=local boot_ms=[0-9]+ wall_ms=[0-9]+$" <<<"$tq_hdr" ||
+      die "self-test: tq-tsv: partition $i's merged header breaks the schema: $(cat "$tq_tsv" 2>/dev/null)"
+    tq_want="$(for tq_f in "$case_logs/invocations/p$i-"*.tsv; do head -n 1 "$tq_f"; done |
+      sed -E 's/.* wall_ms=([0-9]+)$/\1/' | awk '{ s += $1 } END { print s }')"
+    [ "${tq_hdr##* wall_ms=}" = "$tq_want" ] ||
+      die "self-test: tq-tsv: partition $i's wall_ms must sum its invocations ($tq_want): $tq_hdr"
+    tq_want="$(ls "$case_logs/invocations/" | sed -nE "s/^p$i-([0-9]+)[.]tsv$/\1/p" | LC_ALL=C sort -n | head -n 1)"
+    tq_want="$(head -n 1 "$case_logs/invocations/p$i-$tq_want.tsv" | sed -E 's/.* boot_ms=([0-9]+) .*/\1/')"
+    [ "$(sed -E 's/.* boot_ms=([0-9]+) .*/\1/' <<<"$tq_hdr")" = "$tq_want" ] ||
+      die "self-test: tq-tsv: partition $i's boot_ms must be its first invocation's ($tq_want): $tq_hdr"
+    tq_want="$({ cat "$case_logs/partition-$i.files"
+      [ ! -f "$case_logs/partition-$i.claims" ] || awk -F'\t' '$1 == "claim" { print $3 }' "$case_logs/partition-$i.claims"
+    } | LC_ALL=C sort)"
+    tq_got="$(sed 1d "$tq_tsv" | cut -f1 | LC_ALL=C sort)"
+    [ "$tq_got" = "$tq_want" ] ||
+      die "self-test: tq-tsv: partition $i's rows must list its static and claimed files once: $tq_got"
+  done
+  [ "$(find "$case_logs" -name 'partition-timings-*.tsv' | wc -l | tr -d ' ')" -eq "$tq_ran" ] &&
+    [ -z "$(find "$case_logs/invocations" -name 'partition-timings-*.tsv')" ] ||
+    die "self-test: tq-tsv: exactly one TSV per partition that ran may match partition-timings-*.tsv"
+  # (tq-claim-map) 6 claim lines with every field, the queue summary line,
+  # the step-summary table (paths and integers only) and counts summed over
+  # every invocation (the fake prints one test per invocation)
+  [ "$(grep -cE '^ci-test-partitions: claim partition=[1-4] seq=[1-6] file=test/[^ ]+_test[.]exs start_ms=[0-9]+ end_ms=[0-9]+ exit=0 file_wall_ms=7 overhead_ms=-?[0-9]+$' <<<"$output")" -eq 6 ] &&
+    [ "$(grep -c '^ci-test-partitions: claim ' <<<"$output")" -eq 6 ] ||
+    die "self-test: tq-claim-map: expected 6 complete claim lines: $output"
+  [ "$(grep -cE '^ci-test-partitions: tail queue K=12 queued=6 claimed=6 overhead_mean_ms=-?[0-9]+$' <<<"$output")" -eq 1 ] ||
+    die "self-test: tq-claim-map: expected one tail queue summary line: $output"
+  grep -qx 'Tail queue (K=12): 6 queued, 6 claimed, mean overhead -*[0-9]* ms' "$case_summary" &&
+    grep -qx '| Seq | File | Partition | Start s | Seconds | Exit | Overhead ms |' "$case_summary" &&
+    [ "$(grep -cE '^\| [1-6] \| test/[^ |]+_test[.]exs \| [1-4] \| -?[0-9]+ \| [0-9]+ \| 0 \| -?[0-9]+ \|$' "$case_summary")" -eq 6 ] ||
+    die "self-test: tq-claim-map: the step summary must carry the Tail queue table: $(cat "$case_summary")"
+  grep -qE 'FAKE_MIX|Finished in' "$case_summary" && die "self-test: tq-claim-map: raw log text in the step summary"
+  for i in 1 2 3 4; do
+    tq_n="$(grep -c '^FAKE_MIX_FILE=' "$case_logs/partition-$i.log" || true)"
+    if [ "$tq_n" -eq 0 ]; then tq_want="no tests"; else tq_want="$tq_n tests, 0 failures"; fi
+    grep -qE "^\| $i \| 0 \| [0-9]+ \| $tq_want \|$" "$case_summary" ||
+      die "self-test: tq-claim-map: partition $i's counts must sum its invocations ($tq_want): $(cat "$case_summary")"
+  done
   local tq_basic_logs="$case_logs" tq_basic_output="$output" tq_basic_summary="$case_summary"
 
   # A second sandbox: 14 ungrouped sync files with distinct weights plus one
@@ -2446,7 +2655,7 @@ TQ_WEIGHTS
     die "self-test: tq-scope: the queue must refill from the scoped set: $(cat "$tq_queue")"
   printf 'tail-queue-scope: ok\n'
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
