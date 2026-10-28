@@ -27,7 +27,7 @@
 - [ ] **CI-03**: Repo-file contract tests run only on the current lane (local `mix test` stays whole and the honest-default docs stay true), and partition weights are refreshed from CI timings so the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
 - [ ] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-Phase 247 verification: 2/4 criteria passed on the authoritative B4 record: CI-02 is INCOMPLETE and CI-03 is MISS; CI-01 and CI-04 retain passing evidence in `247-VERIFICATION.md`. The earlier B3 3/4 result is historical. Gap execution resets phase completion markers until re-verification. Plan 22 is a local diagnostic prerequisite and does not close either main-CI acceptance gap.
+Phase 247 verification: 2/4 criteria passed on the authoritative B4 record (CI-02 INCOMPLETE, CI-03 MISS; CI-01 and CI-04 retain passing evidence in `247-VERIFICATION.md`). B5 (247-28, main 824c2851) since measured CI-02 PASS (median 457 s) and CI-03 MISS on the current lane (1.17/1.17/1.09; min and latest pass). The D-27 tail-queue remedy (247-30/31) stopped at the D-29 pre-registration gate in 247-32: the worst 8 s/claim replay is 1.101 on min and 1.107 on latest, above 1.08, so no B6 cohort ran (0 hosted runs). See 247-B6-PREDICTION.md and 247-B6-ESCALATION.md, which recommends accepting CI-03 as unmet-but-bounded with a measured-trigger seed. 247-33 was not run. No CI-0x requirement is marked complete until phase re-verification and the maintainer's CI-03 scope decision. The earlier B3 3/4 result is historical.
 
 ### Debt closeout
 

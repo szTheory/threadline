@@ -318,3 +318,118 @@ The unchanged canonical count-5 reader payload is `247-B4-INCOMPLETE.json`. No c
   "ci03_verdict": "MISS"
 }
 <!-- B4-INCOMPLETE-JSON-END -->
+
+
+## B5 bounded outcome — CI-02 PASS, CI-03 MISS
+
+B5 measurement: measured (five attempt-1 successes)
+
+PR #98's exact tested head `14f9562115153c58a792a349f7ef6479496d2d44` landed as main `824c28517820c1cd6595f2e0e60b34ec3ce64d14`. The bounded cohort used 5/6 runs: the merge push plus four serial dispatches. All five are attempt-1 successes at the squash, so sampling stopped with one slot unused. Nothing was retried or re-run, and the 540 s and 1.15 limits are unchanged. The unedited canonical reader payload is `247-B5-MEASUREMENT.json`.
+
+| Selected run | Event | Wall s | Slowest job |
+|---|---|---:|---|
+| 40692111621 | push | 449 | Build and test (current) (441 s) |
+| 40693451272 | workflow_dispatch | 457 | Example app browser E2E (mobile-chromium) (432 s) |
+| 40694602284 | workflow_dispatch | 450 | Build and test (current) (438 s) |
+| 40695763585 | workflow_dispatch | 461 | Build and test (current) (430 s) |
+| 40696978392 | workflow_dispatch | 589 | Example app browser E2E (desktop-chromium) (444 s) |
+
+CI-02 is **PASS**: the median wall over the five qualifying runs is **457 s**, at or under 540 s. The last run's 589 s includes runner pickup delay (its Build and test jobs started 40–116 s after creation) and is counted in full.
+
+CI-03 is **MISS** on the fixed first three successful runs:
+
+| Lane | First / second / third printed ratios | Result |
+|---|---|---|
+| current | 1.17 / 1.17 / 1.09 | two values above 1.15 |
+| min | 1.07 / 1.06 / 1.11 | all at or under 1.15 |
+| latest | 1.08 / 1.09 / 1.06 | all at or under 1.15 |
+
+Min partition seconds (P1/P2/P3/P4) on the first three runs: 134/140/137/143, 150/153/159/154 and 96/104/107/104. For the failing lane, current partition seconds were 202/204/187/219, 188/198/181/212 and 204/209/199/217. Partition 4 was slowest in all three, and partition 3 fastest in two.
+
+Exclusions: none. No cohort run failed, so neither B4 failure (`row_history_live_test.exs:361` FK, `orchestrator_test.exs:239` rm_rf) recurred, and there is nothing to triage.
+
+### Prediction versus measurement (min lane)
+
+| Source | Min ratio |
+|---|---|
+| B5-WEIGHTS predicted (production runner) | 1.00011 |
+| Candidate B training replays (40449332597 / 40450141708 / 40450801580) | 1.054 / 1.032 / 1.161 |
+| Candidate B holdout replays (40451533079 / 40504321590) | 1.273 / 1.044 |
+| Measured B5 first three | 1.07 / 1.06 / 1.11 |
+| Measured B5 runs 4–5 (outside the gate) | 1.03 / 1.11 |
+
+Plan 27's advisory `ci03_expectation` was **EXPECTED_MISS**. The measured CI-03 verdict is MISS, so the expectation is confirmed at the verdict level. That is not a plan failure. The mechanism differs from the prediction, though. The expected min-lane miss did not occur: all three min ratios pass after the fixture isolation and candidate B weights. The miss is on the current lane instead, which passed on B4 (1.12 / 1.11 / 1.12). The current weights, runner, async factor and N are unchanged since B4. The current-lane inputs did change: 136bb932 put a new colocation group of the four export-root files into one partition and flipped `storage/local_test.exs` to `async: false`. A read-only local runner assignment (`MIX_BIN=false`, lane current) puts that colocation group in partition 3 and `deps_audit_gate_test.exs` in partition 2, while partition 4 is the measured slow side. The artifacts do not establish the cause of the current-lane spread.
+
+CI-01 and CI-04 continuity: every selected run has unexpired `browser-timings-desktop-chromium-<run>`, `browser-timings-mobile-chromium-<run>` and `partition-timings-{current,min,latest}-<run>` artifacts (10 artifacts per run). `git diff --quiet 02d115a32e4479f353d284c04fc838ba58938d16 824c28517820c1cd6595f2e0e60b34ec3ce64d14 -- test/support/partition_monitor.ex bin/ci-test-partitions .github/workflows/ci.yml` exits 0, so the monitor, runner and workflow are byte-identical to the B4 squash where CI-04 was verified.
+
+### Remaining gap (maintainer scope question)
+
+CI-02 now passes on fresh same-head main evidence, at 457 s. CI-03 remains unmet. Two of the nine first-three ratios exceed 1.15, both on the current lane (1.17, 1.17), while min and latest pass. Plan 27 named the D-11 split of `test/threadline/deps_audit_gate_test.exs` into two module files as the next candidate, and it stays named here without being implemented. That split was aimed at the min-lane async floor, which this cohort no longer shows. So the maintainer's scope question is which candidate addresses the current-lane spread: that split, a current-lane weight refresh from B5 timings that accounts for the 136bb932 colocation group, or both. Any choice needs its own sampling budget. Per D-25, nothing is re-sampled, no threshold changes and no further cohort is planned here.
+
+<!-- B5-GATE-JSON-BEGIN -->
+{
+  "schema": "threadline.phase247-b5-gate/1",
+  "squash_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+  "state": "measured",
+  "runs": [
+    {
+      "id": 40692111621,
+      "event": "push",
+      "head_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+      "wall_s": 449
+    },
+    {
+      "id": 40693451272,
+      "event": "workflow_dispatch",
+      "head_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+      "wall_s": 457
+    },
+    {
+      "id": 40694602284,
+      "event": "workflow_dispatch",
+      "head_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+      "wall_s": 450
+    },
+    {
+      "id": 40695763585,
+      "event": "workflow_dispatch",
+      "head_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+      "wall_s": 461
+    },
+    {
+      "id": 40696978392,
+      "event": "workflow_dispatch",
+      "head_sha": "824c28517820c1cd6595f2e0e60b34ec3ce64d14",
+      "wall_s": 589
+    }
+  ],
+  "median_wall_s": 457,
+  "first_three_ratios": {
+    "current": [
+      1.17,
+      1.17,
+      1.09
+    ],
+    "min": [
+      1.07,
+      1.06,
+      1.11
+    ],
+    "latest": [
+      1.08,
+      1.09,
+      1.06
+    ]
+  },
+  "excluded": [],
+  "ci02_verdict": "PASS",
+  "ci03_verdict": "MISS",
+  "continuity": {
+    "ci01_browser_timings_all_runs": true,
+    "ci04_monitor_runner_workflow_unchanged_since_b4": true,
+    "partition_timings_all_runs": true
+  },
+  "ci03_expectation": "EXPECTED_MISS",
+  "follow_up": "The named next candidate is the D-11 split of test/threadline/deps_audit_gate_test.exs into two module files (not implemented here); because the measured CI-03 miss is on the current lane, where that file is predicted in partition 2 while partition 4 is slowest, the maintainer scope question should also weigh a current-lane weight refresh after the 136bb932 colocation change."
+}
+<!-- B5-GATE-JSON-END -->
