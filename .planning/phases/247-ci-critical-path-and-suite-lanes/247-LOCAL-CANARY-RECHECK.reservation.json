@@ -1,0 +1,12 @@
+{
+  "created_at_utc": "2026-10-27T17:23:05.224Z",
+  "decision_sha256": "72bbd731eb7457f41fdbd684d7d4ca1bb180a6046d442b4be843003dcef9a725",
+  "plan": "247-23",
+  "preflight_output": "247-LOCAL-CANARY-RECHECK-PREFLIGHT.json",
+  "producer_sha256": "7e4cd2f2fc125638a8b13d46e064c22beb7a43e2f6b77430b715b4d35ebce78d",
+  "schema": "threadline.exunit-boundary-recheck-reservation/1",
+  "series_budget_seconds": 150,
+  "series_id": "d108cf57d49641a09a2d7308b9962dad",
+  "series_started_monotonic_ns": 210637708,
+  "source_head": "d42f0912f17dc8dcd265a52f72c41d9f58e4e4b0"
+}

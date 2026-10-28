@@ -1,0 +1,9 @@
+{
+  "plan": "247-22",
+  "preflight_sha256": "6915bb07923065354184cb0085bb29653629f3e560b9b043654766eee6ca7e81",
+  "producer_sha256": "8f810426c637b4152f4cd77e4375b45157f22ee1362b108a53e4aa3807334eba",
+  "reserved_at_utc": "2026-10-27T15:31:09.053Z",
+  "schema": "threadline.exunit-boundary-reservation/1",
+  "series_id": "247-22-authorized-local-series",
+  "status": "RESERVED; authorization consumed even if interrupted"
+}

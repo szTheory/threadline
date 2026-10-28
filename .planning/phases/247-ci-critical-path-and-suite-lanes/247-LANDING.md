@@ -547,3 +547,80 @@ Five qualifying attempt-1 successes, all at 89add23e: 40433193088 (push, 423 s),
 | 40437416932 | 17/17 | 121971494579 | 31 |
 
 All five runs have the two browser-timings artifacts, three lane-scoped partition-timings artifacts and receipt artifact present and unexpired. Median wall **444 s, CI-02 PASS**; fixed first-three lane ratios yield **CI-03 MISS** (seven of nine above 1.15). Full values, per-partition diagnosis and exclusion details are in 247-MEASUREMENT.md and the captured canonical JSON. No numeric limit was changed; phase 247 remains open.
+
+
+## Land B4 candidate
+
+B4 tested land HEAD: 4ff7af655315a927eb5a62e14cb2abc7e72d4ab8
+
+Candidate `land/v1.47-ci03-duration-floor` is isolated in scratch `threadline-247-b4-land`, based on main 89add23ede29b7840e6cfa29cd70eb3c8ea59ae2. Reviewed source picks a0b678c9/e989ae15/94a34440/832bfe5e map to 280db792/da984e9b/ed97fe68/cab00efc. Planning snapshot commit 0e313435 freezes the approved gap plans and execution evidence before the gate. Only six non-planning files differ from main: runner, three weights, topology contract and motion fixture. No CHANGELOG or release/API change.
+
+### Initial local gate (historical head 0e313435)
+
+This first local receipt belongs to 0e313435. The final corrected-head receipt is in "Corrected B4 exact-head gate" below.
+
+Ran inside the candidate on pinned Elixir 1.17.3 / OTP 27 with Bash 5 available, `CI=true DB_HOST=127.0.0.1 DB_PORT=<discovered ephemeral port> npm_config_cache=<scratch cache> mix ci.all`. Ephemeral postgres:16 is labelled dev.threadline.plan=247-18 and bound only to loopback. Local caches were copied, not linked; locked E2E dependencies were installed before the successful gate. Full command exited 0 on the exact head above.
+
+| Gate | Result |
+|---|---|
+| format / Credo | clean; 5692 mods/funs, no issues |
+| dependency audit | three lockfiles clean at configured gates; 11 unchanged non-blocking example-only findings |
+| root suite | 32 properties, 3382 tests, zero failures, 3 configured exclusions |
+| example suite | 132 tests, zero failures |
+| Dialyzer / live slice | zero errors; 17 slice tests passed, 16 outside-slice exclusions |
+| desktop + mobile browsers | 418 passed, 56 configured skips; 5.8 min; zero failures |
+| Bash 5.2 + Bash 3.2 runner self-tests | both exit 0, including duration floor, strict lane ingestion, exact-once routing and hang safeguards |
+| hygiene | 4571 tracked text files clean; 8 used allowlist entries, zero inert |
+| branch protection (read-only) | exactly CI required@15368, no stacked classic protection |
+
+After the gate, candidate HEAD is unchanged, tracked status is clean, and `git diff --quiet milestone/v1.47 HEAD -- . ':!.planning'` inside the candidate exits 0. Source and candidate non-planning trees are identical. Independent reviews of Plans 16 and 17 found no issues. This proves local readiness, not main numeric acceptance.
+
+### Local setup and process corrections
+
+An initial PATH put Homebrew Elixir ahead of the pinned asdf toolchain; corrected PATH without source edits. A fresh-checkout run exposed two missing-Playwright-CLI discovery failures; installed the locked E2E dependencies. That alias continued after the root failures, and an early restart briefly overlapped it; stopped both identified task-owned process trees, confirmed terminal exits, replaced the task-owned database and reran the whole gate in isolation. The successful final run above is the complete unchanged-head receipt. No failed local attempt is credited as green, no assertions/thresholds changed, and nothing was pushed before full success.
+
+
+### B4 hosted landing
+
+B4 PR number: 97
+B4 PR head SHA: 4ff7af655315a927eb5a62e14cb2abc7e72d4ab8
+B4 PR run ID: 40448573344
+
+PR https://github.com/szTheory/threadline/pull/97 opened under D-01's standing quality-PR grant only after the complete exact-head local gate. Initial hosted run 40446515239 completed failure: all three Build and test lanes stopped in the unconditional self-test with GNU awk 5.2.1 fatal Node_array_tree. Both browser legs and other checks completed; this run is not credited as green and was not rerun. No merge or main measurement occurred. Source correction f81f859c, land 4ff7af65, forces scalar numeric cost inputs; a one-file Linux reproduction changed from the same crash to the expected assignment, full GNU awk and both Mac Bash self-tests passed, 45 focused contracts passed, all B3 fit/load results are identical, and independent review found no issues. The complete local gate is being repeated on corrected land HEAD 4ff7af655315a927eb5a62e14cb2abc7e72d4ab8 before any push.
+
+
+### Corrected B4 exact-head gate
+
+Initial locally green head 0e313435 was not merged: PR run 40446515239 exposed a GNU awk 5.2.1 unset-array-argument crash in every lane's self-test. The empirical one-file reproduction and original seven-file self-test both failed on Linux; coercing the cost arguments to numeric values made the minimized and whole Linux loops pass. Changing only the ternary result or passing the omitted scratch argument did not fix it. No model, weights, inventory, assertion or threshold changed.
+
+Source f81f859c maps to land 4ff7af65. On exact final head 4ff7af655315a927eb5a62e14cb2abc7e72d4ab8, the complete pinned-toolchain `CI=true mix ci.all` exited 0 again: 32 properties / 3382 root tests / 0 failures / 3 configured exclusions; 132 example tests / 0 failures; Dialyzer 0 errors; live slice 17/0; browsers 418 passed / 56 configured skips (6.8 min). Both Bash self-tests, hygiene and sole required-context readback also exited 0 on this final candidate. Its runner hash equals the fully passing GNU awk container copy. The three-lane B3 model-fit and new assignments are byte-for-byte numerically unchanged; 45 focused topology/scope tests passed; independent review found no issues.
+
+A checkout mix-up while preparing this correction was caught before another push; the resulting old-head gate was stopped and the empty cherry-pick aborted. Explicit `git -C` paths, fail-fast command sequencing, exact-SHA assertion, clean status and non-planning tree equality guarded the successful amended run. Failed/interrupted receipts are never used as the complete gate. The candidate is now ready to update the same PR; merge still requires new exact-head hosted success.
+
+
+B4 squash SHA: 02d115a32e4479f353d284c04fc838ba58938d16
+
+PR #97 was squash-merged under D-01 with `--match-head-commit` at the exact locally and hosted-tested head. Run 40448573344 attempt 1 passed all 17 jobs, including all three Build and test lanes, both browser projects, Browser journey receipt and CI required. All ten named phase artifacts are present and unexpired; downloaded browser payloads have two correctly ranked top-20 arrays, the receipt reconciles all 31 required journeys, and the three timing families each contain four correctly labelled TSVs. The earlier failed PR run 40446515239 is preserved and was never retried. Protected-main squash and tested-candidate non-planning trees are identical; CHANGELOG/API/CI job IDs remain unchanged. Main measurements are not yet claimed.
+
+Post-merge required-context readback initially confirmed the sole configured context but correctly failed its emitted-check assertion because the new main push was still running and had not emitted CI required yet. Awaiting that automatic run before the final readback and any optional dispatch. No protection setting was changed.
+
+
+B4 automatic main push run: 40449332597
+
+Automatic main attempt 1 run 40449332597 completed success on 02d115a32e4479f353d284c04fc838ba58938d16 before any optional dispatch. Final `bin/verify-branch-protection` inside the candidate exited 0: exactly CI required@15368, emitted once on that main head, no stacked classic protection. The earlier transient missing-emission readback is resolved without configuration changes. Plan 18 exact PR/tested-head/squash/tree/readback checks all pass; Plan 19 may collect the bounded same-head sample.
+
+
+## B4 bounded main chronology — INCOMPLETE
+
+B4 measurement: INCOMPLETE
+
+| Run | Event | Exact head | Started at UTC | Dispatch time / automatic | Conclusion |
+|---|---|---|---|---|---|
+| 40449332597 | push | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T04:22:00Z | automatic merge push | success |
+| 40450141708 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T04:30:47Z | 2026-10-27T04:30:46.132531+00:00 | success |
+| 40450801580 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T04:38:00Z | 2026-10-27T04:37:58.707584+00:00 | success |
+| 40451533079 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T04:45:58Z | 2026-10-27T04:45:56.932421+00:00 | success |
+| 40452150109 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T04:52:47Z | 2026-10-27T04:52:45.981837+00:00 | failure |
+| 40452833440 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T05:00:17Z | 2026-10-27T05:00:15.797550+00:00 | failure |
+
+Used 6/6 total runs and 5/5 extra serial dispatches. Four successes, two failed exclusions (40452150109 and 40452833440); no retries or seventh run. Five-success wall gate is INCOMPLETE; fixed first-three ratio gate is MISS. The complete measurement/projection gate is not claimed, and Plan 19 halts at its designed budget stop. Fixture-isolation diagnosis and a further sampling budget are a new scope decision; do not blindly refresh weights.

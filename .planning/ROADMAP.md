@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 19 plans (17 executed; 2 gap-closure plans pending; reverified 3/4, CI-03 remains open)
+**Plans**: 28 plans (27 executed, Plan 19 halted; Plans 23–25 executed and reviewed; Plan 25 warning-gated preflight INVALID; B4 CI-02 incomplete and CI-03 MISS; Plan 26 replayed both B4 min failures green on the exact min toolchain and fixed one sibling worker race; Plan 27 selected the B5 min weights by a pre-registered training-only rule (candidate B, per-file max; advisory ci03_expectation EXPECTED_MISS); Plan 28 pending for the D-25 landing and capped cohort)
 
 Plans:
 **Wave 1**
@@ -203,10 +203,39 @@ Plans:
 - [x] 247-17-PLAN.md — Synchronize the already-diagnosed motion-fixture modal/toast focus race; retain the failed B3 attempt as an explicit exclusion
 
 **Wave 13 — exact-head landing** *(blocked on Wave 12 completion)*
-- [ ] 247-18-PLAN.md — Land the reviewed combined CI-only candidate; bind recorded PR number, tested head and squash SHA to live GitHub and protected main
+- [x] 247-18-PLAN.md — Land the reviewed combined CI-only candidate; bind recorded PR number, tested head and squash SHA to live GitHub and protected main
 
 **Wave 14 — bounded main measurement** *(blocked on Wave 13 completion)*
-- [ ] 247-19-PLAN.md — Collect first-three ratios per lane and five attempt-1 walls, then machine-reconcile both reports and fixed numeric verdicts with the persisted live JSON
+- [ ] 247-19-PLAN.md — HALTED at the six-run cap;  Collect first-three ratios per lane and five attempt-1 walls, then machine-reconcile both reports and fixed numeric verdicts with the persisted live JSON
+
+**Wave 15 — bounded runtime-semantic canary** *(depends on executed Plan 18; halted Plan 19 is evidence only)*
+- [x] 247-20-PLAN.md — Bounded semantic canary executed; INVALID after one warmup, zero pairs/controls; original receipt preserved and tooling repaired offline
+
+**Wave 16 — frozen replay and disposition** *(blocked on Wave 15 completion; local-only)*
+- [x] 247-21-PLAN.md — Replay B3/B4/diagnostic evidence with historical source classifications, then independently review one bounded decision record
+
+**Wave 17 — repaired probe validation** *(blocked on Waves 15–16 completion; fresh observations require a separate scope decision)*
+- [x] 247-22-PLAN.md — Prove pure harness plumbing, obtain explicit scope approval, then collect at most one separate capped native ARM64 validation and independently review its limited verdict
+
+**Wave 18 — pure diagnostic prerequisite repairs** *(blocked on executed Plan 22; no Docker or observations)*
+- [x] 247-23-PLAN.md — Prepare compiler-shape and owned-container provenance repairs; 25 pure tests pass, independent review fixes committed; no native observation
+
+**Wave 19 — fresh local scope decision** *(blocked on Wave 18 completion)*
+- [x] 247-24-PLAN.md — Recorded explicit maintainer approval and reviewed hashes for one fixed local recheck
+
+**Wave 20 — conditional pinned-runtime recheck** *(blocked on Wave 19 explicit authorization)*
+- [x] 247-25-PLAN.md — One preflight stopped INVALID on unused-variable stderr despite compile exit 0; zero arms; grant consumed and independently reviewed
+
+**Wave 21 — D-25 min-lane fixture proof** *(blocked on Wave 20 completion; local only)*
+- [x] 247-26-PLAN.md — Replay both B4 min failures on exact Elixir 1.15.8/OTP 26/PG15 with failing seeds and red/green controls; three-class hazard sweep with masking review; close CR-05 by descoping (D-26). Both replays and controls green/red as required; sibling RetentionHistoryLiveTest Pruner worker race fixed test-only; CR-05 descoped
+
+**Wave 22 — D-25 min weights** *(blocked on Wave 21 completion; local only)*
+- [x] 247-27-PLAN.md — Pre-registered min weights rule (median vs per-file max, training-only selection) from hash-verified B4 runs; replay spread on all five min observations; advisory ci03_expectation (EXPECTED_MISS likely) with D-11 deps_audit_gate follow-up; local new-mix runs
+
+**Wave 23 — D-25 landing and capped cohort** *(blocked on Waves 21–22 completion)*
+- [ ] 247-28-PLAN.md — Weights-record precondition; land the B5 candidate unconditionally under the standing grant; at most six serial main runs; derived CI-02/CI-03 verdicts with CI-01/CI-04 continuity
+
+Cross-cutting constraints: D-20–D-24; no new package, actual-suite async change, workflow/weight/model/threshold tuning, hosted run, PR or merge; original acceptance and exhausted budgets remain intact.
 
 ## Progress
 
@@ -217,12 +246,12 @@ Plans:
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 15/19 | Gaps Found | - |
+| 247. CI critical path and suite lanes | 27/28 | Gaps found 2/4; 247-26 min-lane fixtures re-proved; 247-27 B5 min weights selected (B, EXPECTED_MISS advisory); Plan 28 (land + capped cohort) pending | - |
 
 ## Current Position
 
-v1.47 Release on autopilot is active. Phases 244–246 are complete; Phase 247 remains verified 3/4 with CI-03 unmet. Plans 01–15 are executed; independently checked gap plans 16–19 are ready in waves 12–14. The latest published package is Hex 1.1.0. v1.46 is a completed planning milestone and local Git tag.
+v1.47 Release on autopilot is active. Phases 244–246 are complete; Phase 247 is freshly verified 2/4 on B4: CI-02 incomplete and CI-03 unmet; CI-01/CI-04 pass. The earlier B3 3/4 result remains historical. Plans 01–18 are executed. PR #97 landed the exact green candidate at main 02d115a3; the first main run passed. Plan 19 halted after six main runs: four successes and two failed exclusions. B4 CI-02 is incomplete and CI-03 misses all three min ratios. The maintainer authorized bounded local recovery: commits 136bb932 and 714b4dbb fix the two fixture hazards; full 269-file runner and 206-file min-scope runner pass locally, with 100 targeted tests passing on exact minimum Elixir/OTP. The proposed fixture compilation move was rejected after measurement. The reviewed temporary patch was used for the separately authorized one-off diagnostic. The approved one-off diagnostic 40504321590 at 8177d00d passed 17/17 jobs in 450 s, but its current/min/latest ratios were 1.17/1.31/1.10. The old startup delay did not recur; changed assignment prevents a causal fix claim. One-run budget 1/1 used. Subsequent parallel research and adversarial review produced local-only Plans 20–21 (24/24 decisions covered), now executed. The canary stopped INVALID after one warmup; zero pairs/controls ran. Frozen replay checked 96 rows. Tool defects were repaired with pure saved-output and trace-only checks, then independently re-reviewed with zero blockers. Original receipts remain unchanged; B3/B4 archive/member authenticity remains unproven. Phase 247 is 24/25 executed, with Plan 19 halted and Plans 23–25 executed and reviewed. Plan 22 completed its explicitly authorized one-shot native ARM64 series: preflight passed, first warmup compiler-failed, terminal INVALID, zero pairs/controls. The distinct receipt and report were independently reviewed; missing container identities and open instrument controls are disclosed. Its reservation remains consumed. CI-02 INCOMPLETE, CI-03 MISS and phase 2/4 remain unchanged. No retry, landing or new main cohort is authorized. See 247-DIAGNOSTIC-RUN.md and 247-LOCAL-RECOVERY.md. The latest published package is Hex 1.1.0. v1.46 is a completed planning milestone and local Git tag.
 
 ## Next
 
-Run `$gsd-execute-phase 247 --gaps-only` from the quality-baseline worktree. Keep the 1.15 and 540-second acceptance gates unchanged. Before closing v1.47, read .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md; the next rung is v1.48 Safe by default.
+Next: `$gsd-plan-phase 247 --gaps` for the remaining empirical gaps. Offline repair 8c9f1541 fixes warning-free host readiness, raw-derived VALID/INVALID verification and future /2 elapsed/cap evidence; 37 tests and clean independent review pass, T-247-48 is closed, zero high threats remain. All 14 saved evidence files retain hashes. No Docker/pinned semantic/hosted run occurred in this repair; Plan 25 remains historical warning-gated INVALID with zero arms. Pinned validation needs a fresh bounded grant and distinct write-once outputs; old budgets and paths do not roll over. CI-02 median and CI-03 ratios remain unproved, so phase verification stays 2/4. A future CI-03 candidate and main cohort need separately scoped authorization. The 1.15 and 540-second gates remain unchanged. Before closing v1.47, read .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md; the next rung is v1.48 Safe by default.

@@ -2,17 +2,20 @@
 phase: "247"
 slug: "ci-critical-path-and-suite-lanes"
 status: verified
-threats_open: 0
+threats_open: 2
+threats_blocking: 0
+threats_open_nonblocking: 2
+block_on: high
 asvs_level: 1
 register_authored_at_plan_time: true
-threats_total: 35
-threats_closed: 35
+threats_total: 53
+threats_closed: 51
 created: "2026-10-26"
 ---
 
 # Phase 247 — Security
 
-The initial register was verified by the security auditor; the six gap-plan additions were rechecked inline under the workflow’s ASVS L1 short circuit against actual implementation, tests, landing proofs and live receipts. Blocking threshold: high. All 35 distinct threat IDs are closed after the gap-execution L1 verification. CI-03 remains an unmet performance acceptance gate.
+The initial register was verified by the security auditor; subsequent gap threats, including Plans 20–21, were rechecked inline under the configured ASVS L1 short circuit against implementation, tests and receipts. Blocking threshold: high. The earlier 44 distinct threat IDs retain their recorded L1 dispositions. Plan 22 adds three IDs: T-247-45 is closed; T-247-46 and T-247-47 remain medium-severity open controls. The Plans 23–25 incremental audit adds six threats; T-247-48 was high and OPEN at Plan 25 closeout; offline repair 8c9f1541 closes it with raw-derived terminal verification and regression controls. All six additions are now closed on the scoped source evidence. This does not close performance acceptance: B4 CI-02 is INCOMPLETE and CI-03 MISS; full-five verification is not claimed.
 
 ## Trust Boundaries
 
@@ -93,8 +96,8 @@ The six additional plan-authored threats were checked against actual source, mut
 
 - [x] All threats have a disposition.
 - [x] Existing plan-accepted risks recorded.
-- [x] threats_open: 0 confirmed at high threshold.
-- [x] status: verified set.
+- [x] Current high-threshold clearance: offline repair 8c9f1541 and independent review close T-247-48; zero high threats remain.
+- [x] Current status is verified at the high threshold; two inherited medium controls remain open. Main performance acceptance remains incomplete.
 
 Security verification does not complete phase 247: CI-03 is still MISS.
 
@@ -105,3 +108,90 @@ Security verification does not complete phase 247: CI-03 is still MISS.
 | Threats found | 35 |
 | Closed | 35 |
 | Open | 0 |
+
+
+## B4 gap-plan register additions (ASVS L1)
+
+| Threat ID | Category | Component | Severity | Disposition | Mitigation / Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-35 | Tampering | timing artifact ingest | medium | mitigate | Fixed three B3 main attempt-1 SHAs/artifacts checked; strict 12-TSV lane ingest, exact 269/206 inventories, positive sorted weights and interrupted atomic-replace self-test pass. | closed |
+| T-247-36 | Tampering | non-additive assignment | high | mitigate | Long-async RED/GREEN and floor-removal mutation, exact-once guard, colocation, full/scoped runs and Linux/macOS self-tests. GNU awk scalar correction independently reviewed; real CI self-test failed closed before correction and passes after. | closed |
+| T-247-37 | Tampering | browser motion acceptance | medium | mitigate | Keyboard Enter/toast-hidden/motion assertions retained; focused 2/2 and full 24/24 no-retry browser runs, exact full gate and PR receipts. Historical failed run unchanged. | closed |
+| T-247-38 | Tampering | main landing | high | mitigate | Exact 4ff7af65 full local gate and hosted run 40448573344; PR 97 SHA-guarded squash 02d115a3; fetched main/tested non-planning tree equality and sole CI required@15368 readback. | closed |
+| T-247-39 | Tampering | main measurement record | high | mitigate | Main identity stayed fixed; six-run/five-dispatch cap stopped with four successes and two explicit failures. Fresh canonical insufficient payload equals persisted JSON and both incomplete projections. Median null; complete B4 file/blocks absent; phase/requirements remain pending. Full-five reconciliation/negative controls are blocked and expressly not credited. | closed |
+
+The new fixture failures are retained as unresolved execution evidence; they are not accepted risks or success samples. No waiver of 1.15/540 s, publication, hidden retry, or additional CI spend occurred. The ASVS L1 workflow permits inline closure after authored-register controls are found; no L2/L3 claim is made.
+
+## Security Audit 2026-10-27
+
+| Metric | Count |
+|---|---|
+| Threats found | 40 |
+| Closed | 40 |
+| Open | 0 |
+
+## Local diagnostic additions (ASVS L1)
+
+| Threat ID | Category | Component | Severity | Disposition | Mitigation / Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-41 | Tampering | image/formatter/probe inputs | medium | mitigate | Probe check_receipt verifies exact runtime/architecture, immutable image identity, historical producer/runner/formatter and generated-case hashes; producer mutations fail. Actual observed arm fails closed as INVALID; image-after comparison remains. | closed |
+| T-247-42 | Denial of service | Docker child and timing loop | medium | mitigate | Fixed 15 s child / 150 s overall caps, bounded arm loop, unique owned container and process group, timeout cleanup in run_child/execute_run. Actual series stopped after one invalid warmup with no replacements. No timing rerun during repair. | closed |
+| T-247-43 | Tampering | frozen artifact and source replay | medium | mitigate | Source blobs, cohort/run/head/attempt identity, exclusions, inventory and payload digests checked before parsing; valid-schema payload mutations rejected. Diagnostic TSVs bind directly to saved manifest digests. B3/B4 bind to the SHA-pinned original replay: later substitution detected, original upstream archive/member authenticity unproven because archives were not retained. | closed |
+| T-247-44 | Repudiation | local diagnostic verdict | medium | mitigate | Report/validation projections, report body and automated-review receipt hashes checked; changed acceptance/causal fields rejected. Printed ratios remain authoritative, CI-02 INCOMPLETE / CI-03 MISS / cause UNPROVEN. Independent final tool review has no blockers. | closed |
+
+L1 closure means the planned controls are present and their scoped negative checks pass. It does not establish upstream B3/B4 authenticity, validate the failed canary, or assert L2/L3 security coverage. The tooling fixes and trace-only test are recorded in 247-LOCAL-TOOLS-FIX-SUMMARY.md and independently re-reviewed in 247-REVIEW.md. No new risk acceptance is made.
+
+## Security Audit 2026-10-27
+
+| Metric | Count |
+|---|---|
+| Threats found | 44 |
+| Closed | 44 |
+| Open | 0 |
+
+## Plan 22 incremental audit — 2026-10-27
+
+Independent auditor: `/root/audit_247_22_security` (`gsd-security-auditor`, ASVS L1, block_on high). The shared T-247-SC entry is deduplicated; Plan 22 installed nothing and used `--pull=never`. Register totals: 47 distinct, 45 closed, 2 open medium, 0 blocking high. `threats_open` counts all open controls honestly; `threats_blocking` records the severity threshold separately.
+
+| Threat ID | Category | Component | Severity | Disposition | Mitigation / Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-45 | Tampering | old/new receipt provenance | high | mitigate | Committed source, image/runtime/preflight and historical SHA bindings; false-status and rebind regression tests; old/new saved receipt verifiers pass; original three hashes unchanged. | closed |
+| T-247-46 | Denial of service | Docker child and local loop | medium | mitigate | Explicit one-series decision, reservation and bounded loop exist. Missing owned preflight identities/timeout cleanup and redacted attempted-arm identity leave ownership evidence incomplete. Terminal first-warmup compile failure is preserved; no retry. | open |
+| T-247-47 | Repudiation | local report versus CI verdict | medium | mitigate | JSON projection verifies. Independent review checks narrative and inputs; final body re-attested with reproducible hash 6f6525d1490bfcb46e6f3b7be3049827e4b4cbfa557ef7027b28f69f8336eb58. CLI does not itself verify narrative/review-attestation claims, so reusable verification coverage remains open. | open |
+
+The original review-body hash mismatch was corrected through independent re-attestation of the final body; no raw receipt or source changed. Pure evidence checks: 13 mocked tests, synthetic round trip, old/new saved receipt/report verification and historical hashes pass. The observed result remains INVALID after one compiler-failed warmup. CI-02 INCOMPLETE, CI-03 MISS and Phase 247 2/4 remain unchanged.
+
+## Plans 23–25 incremental security audit — 2026-10-27
+
+Reviewer: `/root/security_247_closeout` (`gsd-security-auditor`, ASVS L1). Verified only the plan-authored register against current source, pure mutation controls and committed evidence. No new Docker, network, compiler or hosted observation was performed by this audit. Prior 45 closed threats remain historical; no new accepted risk is introduced.
+
+| Threat ID | Category | Component | Severity | Disposition | Mitigation / Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-48 | Tampering | old/new receipt dispatch | high | mitigate | FIXED 8c9f1541: both preflight statuses are derived from raw output/runtime/image/CID evidence; inconsistent INVALID reasons and compile projections fail. INVALID series reasons are also checked. Producer-bound schema and current-source execution gates remain. 37 tests and clean independent offline review corroborate the fix. Historical receipts are unchanged. | closed |
+| T-247-49 | Repudiation | owned Docker launches | medium | mitigate | Owned CID and inspected name gate CID-only removal; collision/missing/mismatch mocked controls exist. Plan 25 sole child has matching name/CID and successful removal. Historical Plan 22 missing identity stays disclosed. | closed |
+| T-247-50 | Elevation of privilege | scope checkpoint | high | mitigate | Dated human authorization records actual maintainer answer and approved hashes; strict machine grant binds post-approval HEAD before reservation. Exact-match rejection controls cover incidental/duplicate/mismatched grants. | closed |
+| T-247-51 | Elevation of privilege | one-shot reservation and launch | high | mitigate | Durable reservation precedes Docker launch; pull=never/network=none; INVALID preflight caused zero arms and no retry or series JSON. Only one grant was consumed. | closed |
+| T-247-52 | Tampering | image/compiler/container provenance | high | mitigate | Committed producer/runner/formatter binding and actual cached ARM64 identity; Elixir 1.15.8 / OTP 26.2.5.21 child exit 0 plus compile marker. Unused-variable stderr correctly stops this observed preflight as INVALID; owned CID matches. False VALID is rejected. This does not close T-247-48's false INVALID direction. | closed |
+| T-247-53 | Repudiation | local-to-CI interpretation | medium | mitigate | Exact report projection and independent disposition retain warning-only INVALID, zero arms, historical AMD64 cause UNPROVEN, CI-02 INCOMPLETE/null median, CI-03 MISS and future scope gates. | closed |
+
+Current counts: 50/53 closed, 3 open (one high blocking, two inherited medium nonblocking). The raw preflight lacks elapsed-duration fields, so timeout enforcement in source is not empirical cap proof. No source repair or new observation is authorized by this audit. UI review is reused as N/A; this local tool/evidence slice has no frontend changes.
+
+## Security Audit 2026-10-27
+
+| Metric | Count |
+|---|---|
+| Threats found | 53 |
+| Closed | 50 |
+| Open | 3 |
+
+## Offline repair security closure
+
+T-247-48 is closed by 8c9f1541 and independent 247-OFFLINE-REPAIR-REVIEW.md. Current counts: 51/53 closed, two inherited medium open (T-247-46/47), zero high blocking. No new risk acceptance or measurement grant. New /2 timings verify recorded arithmetic, caps and containment; coherent rewriting of all raw observations remains a provenance limit requiring independent attestation. Historical Plan 25 timing stays absent. Main CI-02/03 acceptance remains unproved.
+
+## Security Audit 2026-10-27
+
+| Metric | Count |
+|---|---|
+| Threats found | 53 |
+| Closed | 51 |
+| Open | 2 |

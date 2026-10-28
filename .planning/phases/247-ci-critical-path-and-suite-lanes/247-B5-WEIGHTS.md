@@ -34,12 +34,49 @@ Both candidates are eligible under R2, and R3 selects **B** (the lower worst tra
 spread). Disclosure, as pre-registered: the candidate family and R5 were authored after the
 iteration-1 checker numbers were known, holdouts included.
 
+## Holdouts and expectation (R4, R5)
+
+Holdouts 40451533079 and 40504321590 were replayed once, after `selected_weights_commit`
+8ef4b801. They did not change the selection. Over all five persisted min
+observations, the selected candidate's worst replay spread is 1.273 (run 40451533079).
+The predicted ratios are min 1.00011, current 1.000017 and latest 1.000046.
+
+`ci03_expectation` is **EXPECTED_MISS**. It is advisory only: it never halts and never re-selects, and
+Plan 28 lands and runs the cohort under either value (D-25). CI-03 is decided only by measured
+main ratios in Plan 28 (D-24). The checker's scratch replay of R1–R5 had already made
+EXPECTED_MISS the likely outcome; the drift concentrates in
+`test/threadline/deps_audit_gate_test.exs`, which sets the async floor L. CI-02 (B4 walls
+404–468 s) remains the likely pass.
+
+`follow_up`: the D-11 split of `test/threadline/deps_audit_gate_test.exs` into two module
+files is the next candidate if CI-03 misses. It is not implemented here.
+
+## Local runs (Task 3, D-12)
+
+All five recorded runs exited 0 with zero failures, on HEAD with candidate B: three host
+min-scope runs (Elixir 1.17.3 / OTP 27, postgres:16 16.14), one host full run, and one exact-min
+min-scope run in `hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824` against
+postgres:15 (15.18) on a private Docker network. Local ratios are informational only (arm64
+host, not CI's runner). One earlier host min-scope invocation was discarded, not counted: it ran
+with a non-normalized `TMPDIR` (a path containing `..`), which made two path-equality
+assertions in `source_family_test.exs` and two in `deps_audit_gate_test.exs` compare
+`a/../b` against `b`. That was an invocation artifact, not a mix defect; the sequence was
+restarted from the first host run with the default `TMPDIR`. All labelled containers and the
+network were removed.
+
 ## Record
 
 ```json
 <!-- B5-WEIGHTS-JSON-BEGIN -->
 {
   "async_factor_permille": 292,
+  "async_flips": [
+    {
+      "file": "test/threadline/storage/local_test.exs",
+      "from": "async",
+      "to": "sync"
+    }
+  ],
   "candidates": {
     "A": {
       "all_sync_partitions": [],
@@ -118,20 +155,151 @@ iteration-1 checker numbers were known, holdouts included.
       "weights_sha256": "cb833068ef4eec9a8896edea1e4ae405b11bb1d7a5e1515724850fc5b663b187"
     }
   },
+  "ci03_expectation": "EXPECTED_MISS",
+  "ci03_expectation_advisory": true,
+  "dominating_files": [
+    {
+      "error_ms": -47333,
+      "file": "test/threadline/deps_audit_gate_test.exs",
+      "observed_ms": 51308,
+      "run": 40504321590,
+      "weight_ms": 98641
+    },
+    {
+      "error_ms": -41285,
+      "file": "test/threadline/public_surface_contract_test.exs",
+      "observed_ms": 59667,
+      "run": 40504321590,
+      "weight_ms": 100952
+    },
+    {
+      "error_ms": -32070,
+      "file": "test/threadline/operator_surface/stress_router_test.exs",
+      "observed_ms": 37697,
+      "run": 40504321590,
+      "weight_ms": 69767
+    },
+    {
+      "error_ms": -26622,
+      "file": "test/threadline/operator_surface/stress_router_prod_compile_test.exs",
+      "observed_ms": 34339,
+      "run": 40504321590,
+      "weight_ms": 60961
+    },
+    {
+      "error_ms": -12921,
+      "file": "test/threadline/release_artifact_contract_test.exs",
+      "observed_ms": 8852,
+      "run": 40450141708,
+      "weight_ms": 21773
+    }
+  ],
+  "follow_up": "If CI-03 misses on min, the next candidate is the D-11 split of test/threadline/deps_audit_gate_test.exs into two module files, so the async floor L it sets is halved; it is named here and not implemented in Plan 27.",
   "frozen_replay_sha256": "5bbf55a8e9958e6f38d33da9ff21a816fb2b7542b03a33829ed5b881a7b8a6f1",
+  "holdout_costs_ms": {
+    "40451533079": [
+      133015,
+      141626,
+      111251,
+      128176
+    ],
+    "40504321590": [
+      78676,
+      75976,
+      75326,
+      75429
+    ]
+  },
+  "holdout_max_boot_ms": {
+    "40451533079": 22723,
+    "40504321590": 2239
+  },
   "holdout_runs": [
     40451533079,
     40504321590
   ],
+  "holdout_spreads": {
+    "40451533079": 1.273031,
+    "40504321590": 1.044473
+  },
+  "local_runs": [
+    {
+      "exit": 0,
+      "failures": 0,
+      "head": "b46d935cd2c956963baa99ba713fea1894e307c4",
+      "name": "host-min-1",
+      "note": "THREADLINE_CI_LANE=min THREADLINE_TEST_SCOPE=toolchain mix verify.test_partitioned; partition seconds 39/49/47/38",
+      "postgres": "16",
+      "printed_ratio": 1.29,
+      "scope": "toolchain",
+      "tests": 2564,
+      "toolchain": "elixir 1.17.3-otp-27 (erlang 27.3.4.15), host arm64"
+    },
+    {
+      "exit": 0,
+      "failures": 0,
+      "head": "b46d935cd2c956963baa99ba713fea1894e307c4",
+      "name": "host-min-2",
+      "note": "same; partition seconds 39/48/46/37",
+      "postgres": "16",
+      "printed_ratio": 1.3,
+      "scope": "toolchain",
+      "tests": 2564,
+      "toolchain": "elixir 1.17.3-otp-27 (erlang 27.3.4.15), host arm64"
+    },
+    {
+      "exit": 0,
+      "failures": 0,
+      "head": "b46d935cd2c956963baa99ba713fea1894e307c4",
+      "name": "host-min-3",
+      "note": "same; partition seconds 39/48/46/39",
+      "postgres": "16",
+      "printed_ratio": 1.23,
+      "scope": "toolchain",
+      "tests": 2564,
+      "toolchain": "elixir 1.17.3-otp-27 (erlang 27.3.4.15), host arm64"
+    },
+    {
+      "exit": 0,
+      "failures": 0,
+      "head": "b46d935cd2c956963baa99ba713fea1894e307c4",
+      "name": "host-full-1",
+      "note": "mix verify.test_partitioned (current weights, full scope); partition seconds 62/74/67/46",
+      "postgres": "16",
+      "printed_ratio": 1.61,
+      "scope": "full",
+      "tests": 3384,
+      "toolchain": "elixir 1.17.3-otp-27 (erlang 27.3.4.15), host arm64"
+    },
+    {
+      "exit": 0,
+      "failures": 0,
+      "head": "b46d935cd2c956963baa99ba713fea1894e307c4",
+      "name": "exact-min-1",
+      "note": "git archive HEAD scratch copy, container-local _build/deps, git+jq+gawk via apt inside the container, private Docker network, DB_HOST=postgres:15 (15.18) container; partition seconds 40/43/44/45",
+      "postgres": "15",
+      "printed_ratio": 1.12,
+      "scope": "toolchain",
+      "tests": 2564,
+      "toolchain": "elixir 1.15.8 (OTP 26.2.5.21), hexpm/elixir:1.15.8-erlang-26.2.5.21-debian-bookworm-20260824, arm64, GNU Awk 5.2.1"
+    }
+  ],
   "n_partitions": 4,
   "pre_registered_rule": "R1 candidates. A = output of `bin/ci-test-partitions --ingest-weights <train> --lane min --output test/partition_weights_min.txt` (per-file median of the three training runs). B = for every file in the strictly validated min lane inventory, the maximum wall_ms across the same three training runs (floor 1), written in the identical header and `<ms> <file>` format sorted by path.\nR2 eligibility. A candidate is eligible if `predict --lane min` on the production assignment gives ratio <= 1.15.\nR3 selection (training runs only). Select the eligible candidate with the lower worst replay spread over the three training runs; on a tie, or if B is ineligible, select A; if neither is eligible, select A.\nR4 holdouts. Replay 40451533079 and 40504321590 exactly once, after selected_weights_commit; holdouts never change the selection.\nR5 expectation (advisory, never a halt). ci03_expectation = EXPECTED_PASS if and only if the selected candidate's worst replay spread across the three training runs and two holdouts is <= 1.15 and the min, current and latest predictions are each <= 1.15; otherwise EXPECTED_MISS.\nDisclosure. The candidate family (A, B) and R5 were authored after the iteration-1 checker numbers were known, holdouts included. B is worse than A on holdout 40451533079 (1.273 vs 1.114), so no sign of holdout tuning exists.",
   "pre_registration_commit": "425a3965e76ce3ac440c94fc262e3aee1920f251",
+  "predicted": {
+    "current": 1.000017,
+    "latest": 1.000046,
+    "min": 1.00011
+  },
   "r3_worst_training_spread": {
     "A": 1.348177,
     "B": 1.161237
   },
+  "risk": "The selected candidate B's worst replay spread is 1.273 on B4 holdout 40451533079, dominated by test/threadline/deps_audit_gate_test.exs (observed 112715 ms against a 98641 ms weight, the async floor L of its partition), so ci03_expectation is EXPECTED_MISS (advisory).",
   "schema": "threadline.phase247-b5-weights/1",
   "selected": "B",
+  "selected_weights_commit": "8ef4b801294289bc7f06d0f74fc2a986697dec5d",
   "source_sha256": {
     "colocation": "ac8c8d194e981af4eda888e4ffd3e855ac85c0de518186f5b20b159331f6f543",
     "runner": "bae639ed3162fcf6a1bd2ef2d07c35cabe032057d5c8b7e13fbe23a8ce360259"
@@ -162,7 +330,10 @@ iteration-1 checker numbers were known, holdouts included.
     "40504321590/min/2": "2fada20fa27d9a36b1899d92e395915c62d7c6d65c345dc21cf82e957eac4687",
     "40504321590/min/3": "b8e3afec7b7a7d3fdb82502cd71905437bdba4708cd00c09bc0a86ab0a6c0e63",
     "40504321590/min/4": "2b0f28c5120581de82e4d85e4b83b6b41fcdcc16d13e1309e0807624c14882d5"
-  }
+  },
+  "weights_sha256": "cb833068ef4eec9a8896edea1e4ae405b11bb1d7a5e1515724850fc5b663b187",
+  "worst_spread": 1.273031,
+  "worst_spread_run": "40451533079"
 }
 <!-- B5-WEIGHTS-JSON-END -->
 ```
