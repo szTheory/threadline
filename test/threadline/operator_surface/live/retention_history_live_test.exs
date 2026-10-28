@@ -42,6 +42,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Retention.Pruner
     alias Threadline.Semantics.AuditAction
 
+    @worker_supervisor Threadline.OperatorSurface.RetentionHistoryLiveTest.WorkerSupervisor
+    @pruner_lock_key :erlang.phash2("threadline_retention_pruner")
+
     defp live_retention(conn) do
       {:ok, view, _initial_html} = live(conn, "/audit/policy/retention")
       {:ok, view, render(view)}
@@ -54,6 +57,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [repo: Threadline.Test.Repo]
         |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
 
+      start_supervised!({Task.Supervisor, name: @worker_supervisor})
       start_supervised!({Threadline.Retention.Pruner, opts})
     end
 
@@ -712,6 +716,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert count_audit_actions() == before + 1,
                "the backend run must not duplicate the operator-request audit action"
+      end
+
+      test "an accepted prune's worker is owned by this test and cannot outlive it",
+           %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+        policy_name = view |> open_prune_modal() |> canonical_policy_name()
+
+        # While the pruner's advisory lock is held here, the accepted worker
+        # retries instead of purging, so its owner can be observed. A worker
+        # that outlives this test runs the orphan sweep under a later test.
+        with_advisory_lock_held(Repo, @pruner_lock_key, fn ->
+          render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+
+          assert_eventually(fn -> Repo.aggregate(RetentionRun, :count, repo_opts()) > 0 end)
+
+          assert_eventually(
+            fn -> Task.Supervisor.children(@worker_supervisor) != [] end,
+            message: "the accepted retention worker must belong to the test supervisor"
+          )
+        end)
       end
 
       defp canonical_policy_name(html) do
