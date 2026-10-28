@@ -733,7 +733,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         policy_name = view |> open_prune_modal() |> canonical_policy_name()
 
         # While the pruner's advisory lock is held here, the accepted worker
-        # retries instead of purging, so its owner can be observed. A worker
+        # waits for it instead of purging, so its owner can be observed. A worker
         # that outlives this test runs the orphan sweep under a later test.
         with_advisory_lock_held(Repo, @pruner_lock_key, fn ->
           render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
