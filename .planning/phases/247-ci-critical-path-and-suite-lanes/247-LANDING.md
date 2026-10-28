@@ -624,3 +624,78 @@ B4 measurement: INCOMPLETE
 | 40452833440 | workflow_dispatch | 02d115a32e4479f353d284c04fc838ba58938d16 | 2026-10-27T05:00:17Z | 2026-10-27T05:00:15.797550+00:00 | failure |
 
 Used 6/6 total runs and 5/5 extra serial dispatches. Four successes, two failed exclusions (40452150109 and 40452833440); no retries or seventh run. Five-success wall gate is INCOMPLETE; fixed first-three ratio gate is MISS. The complete measurement/projection gate is not claimed, and Plan 19 halts at its designed budget stop. Fixture-isolation diagnosis and a further sampling budget are a new scope decision; do not blindly refresh weights.
+
+
+## Land B5 — min-lane fixtures and weights
+
+B5 tested land HEAD: 14f9562115153c58a792a349f7ef6479496d2d44
+
+Candidate `land/v1.47-ci03-min-b5` is isolated in scratch `threadline-247-b5-land`, based on main 02d115a32e4479f353d284c04fc838ba58938d16 (the B4 squash; `origin/main` had not moved). The precondition passed before any push: 247-B5-WEIGHTS.md holds exactly one B5-WEIGHTS-JSON block, its `weights_sha256` equals the sha256 of `test/partition_weights_min.txt` (cb833068…b187), and `ci03_expectation` is EXPECTED_MISS. That value is advisory and never halts this plan (D-25).
+
+Pick map, from `git log --reverse f81f859c..milestone/v1.47 -- . ':!.planning'`, all `git cherry-pick -x` with no conflict:
+
+| Source | Land | Subject |
+|---|---|---|
+| 136bb932 | 5e494ebe | test: serialize shared local export fixtures |
+| 714b4dbb | 58979913 | test: own retention worker lifetime in pruner fixtures |
+| 14badb2c | 7007e706 | test(247-26): add failing test that retention live prune workers are test-owned |
+| d4688d58 | a431f0cd | test(247-26): own retention live prune worker lifetime |
+| eed59aa2 | f4af5640 | test(247-26): describe the lock-held prune worker as waiting |
+| 3b510219 | c04500d8 | ci(247-27): re-derive min partition weights from B4 main timings |
+| 8ef4b801 | 8973fd3b | docs(247-27): record B5 min weights selection (B) |
+
+Planning snapshot commit 14f95621 (`docs(planning): sync v1.47 planning through phase 247 plan 28`) syncs `.planning` from milestone/v1.47 at be93b37a. No tracked planning file on main was absent on milestone/v1.47, so nothing was removed.
+
+Tree proofs, inside the land worktree on the tested head: `git diff --quiet milestone/v1.47 HEAD -- . ':!.planning'` exits 0, and `git diff --quiet milestone/v1.47 HEAD -- .planning` exits 0.
+
+Scope proof (D-03): `git diff --name-only origin/main HEAD -- . ':!.planning'` lists only six files under test/: `test/partition_colocate.txt`, `test/partition_weights_min.txt`, `test/threadline/ci_topology_contract_test.exs`, `test/threadline/operator_surface/live/retention_history_live_test.exs`, `test/threadline/retention/pruner_test.exs` and `test/threadline/storage/local_test.exs`. `git diff --quiet origin/main HEAD -- lib/ bin/ .github/ mix.exs mix.lock CHANGELOG.md` exits 0.
+
+### B5 exact-head local gate
+
+Ran inside the land worktree on the pinned Elixir 1.17.3 / OTP 27 toolchain (asdf shims first on PATH, Bash 5.2 available): `CI=true DB_HOST=127.0.0.1 DB_PORT=<discovered ephemeral port> npm_config_cache=<scratch cache> mix ci.all`. The ephemeral postgres:16 (16.14) carried label `dev.threadline.plan=247-28` and was bound to loopback only. `deps`, `_build`, `.dialyzer` and the example app's `deps`/`_build` were copied from the source root, not linked. The locked example E2E dependencies were installed with `npm ci` into a scratch cache first. The whole command exited 0 on the first attempt, then the follow-up checks below also exited 0. Tracked status stayed clean.
+
+| Gate | Result |
+|---|---|
+| format / Credo | clean; 5693 mods/funs, no issues |
+| dependency audit | three lockfiles clean at their configured gates; 11 unchanged non-blocking example-only advisories |
+| hygiene (inside ci.all and standalone) | 4636 tracked text files clean; 8 allowlist entries used, 0 inert |
+| root suite | 32 properties, 3384 tests, 0 failures, 3 configured exclusions |
+| Phoenix example suite | 132 tests, 0 failures |
+| Dialyzer | 0 errors; passed successfully |
+| live Dialyzer slice | 17 tests, 0 failures, 16 outside-slice exclusions |
+| desktop + mobile browsers | 418 passed, 56 configured skips, 0 failures (5.6 min) |
+| runner self-test | `bin/ci-test-partitions --self-test` exits 0 under Bash 5.2 and under /bin/bash 3.2 |
+| branch protection (read-only) | exactly `CI required@15368`, emitted on main 02d115a3, no stacked classic protection |
+
+This proves local readiness on the exact head, not main numeric acceptance. Thresholds stay 540 s and 1.15.
+
+### B5 hosted landing
+
+B5 PR number: 98
+B5 PR head SHA: 14f9562115153c58a792a349f7ef6479496d2d44
+B5 PR run ID: 40690983585
+B5 squash SHA: 824c28517820c1cd6595f2e0e60b34ec3ce64d14
+B5 automatic main push run: 40692111621
+
+The land branch was pushed once with a plain `git push -u`, and PR https://github.com/szTheory/threadline/pull/98 was opened under D-01's standing own-green-quality-PR grant. Its body states `ci03_expectation` EXPECTED_MISS with the B5-WEIGHTS `risk` sentence, the two fixed mechanisms, rule B, all five replay spreads, the three predicted ratios, the D-11 follow-up and the local gate. Only one PR head ever ran ci.yml, and the PR timeline has zero `head_ref_force_pushed` events.
+
+PR run 40690983585, attempt 1 at the exact tested head, concluded success with all 17 jobs green, including all three Build and test lanes, both browser projects, Browser journey receipt and CI required. `gh pr merge 98 --squash --match-head-commit 14f95621…` merged it as a non-releasable `ci:` squash, and GitHub reported no head mismatch. After fetch, `origin/main` equals the PR mergeCommit 824c2851, and `git diff --quiet origin/main 14f95621 -- . ':!.planning'` exits 0. The remote land branch was deleted.
+
+Automatic main push run 40692111621 was created 2026-10-28T12:57:17Z at the squash. Its attempt 1 concluded success at 13:04:46Z with 17/17 jobs green. No dispatch happened before that terminal state. The post-merge `bin/verify-branch-protection` readback then exited 0: exactly `CI required@15368`, emitted on main head 824c2851, no stacked classic protection. The land worktree and the `dev.threadline.plan=247-28` container were removed after this readback.
+
+
+## B5 bounded main chronology
+
+| Run | Event | Exact head | Created at UTC | Dispatch time / automatic | Attempt-1 updated at UTC | Conclusion |
+|---|---|---|---|---|---|---|
+| 40692111621 | push | 824c28517820c1cd6595f2e0e60b34ec3ce64d14 | 2026-10-28T12:57:17Z | automatic merge push | 2026-10-28T13:04:46Z | success |
+| 40693451272 | workflow_dispatch | 824c28517820c1cd6595f2e0e60b34ec3ce64d14 | 2026-10-28T13:06:31Z | dispatched after 13:06:24Z | 2026-10-28T13:14:08Z | success |
+| 40694602284 | workflow_dispatch | 824c28517820c1cd6595f2e0e60b34ec3ce64d14 | 2026-10-28T13:14:19Z | dispatched after 13:14:13Z | 2026-10-28T13:21:49Z | success |
+| 40695763585 | workflow_dispatch | 824c28517820c1cd6595f2e0e60b34ec3ce64d14 | 2026-10-28T13:22:02Z | dispatched after 13:21:56Z | 2026-10-28T13:29:43Z | success |
+| 40696978392 | workflow_dispatch | 824c28517820c1cd6595f2e0e60b34ec3ce64d14 | 2026-10-28T13:30:06Z | dispatched after 13:29:59Z | 2026-10-28T13:39:55Z | success |
+
+Used 5/6 total runs and 4/5 extra serial dispatches. Sampling stopped at five attempt-1 successes, so the sixth slot was not used. Before each dispatch a guard confirmed that `origin/main` still equalled the B5 squash, that no ci.yml main run was queued or in progress, and that fewer than six push/dispatch runs existed at the squash. Each dispatched run was created after the previous run's attempt-1 terminal time. There were no failed runs, no exclusions, no retries and no job re-runs. Neither B4 failure (`row_history_live_test.exs:361` FK, `orchestrator_test.exs:239` rm_rf) recurred: every cohort run passed all 17 jobs.
+
+The last run's 589 s wall includes runner pickup delay: its Build and test jobs were created at 13:30:07Z but started between 13:30:47Z and 13:32:03Z. The full attempt-1 wall is counted as measured, as for every run.
+
+`bin/measure-main-ci --since 824c28517820c1cd6595f2e0e60b34ec3ce64d14 --count 5 --ratios --format json` returned `state: measured`, `found: 5`. Its unedited stdout is `247-B5-MEASUREMENT.json`. No `247-B5-INCOMPLETE.json` exists.

@@ -92,6 +92,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       stop_named_process!(Pruner)
       Repo.delete_all(RetentionRun, repo_opts())
 
+      # on_exit runs after ExUnit has stopped the test-owned Pruner and its workers,
+      # so a killed worker's queued or running run cannot outlive the test.
+      on_exit(fn -> Repo.delete_all(RetentionRun, repo_opts()) end)
+
       original_retention = Application.get_env(:threadline, :retention)
 
       Application.put_env(

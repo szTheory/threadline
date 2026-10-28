@@ -197,7 +197,7 @@ defmodule Threadline.CiTopologyContractTest do
     "test/threadline/operator_surface/controllers/export_controller_test.exs"
   ]
 
-  defp run_export_storage_partitions!(dir, colocate) do
+  defp run_export_storage_partitions!(dir, colocate, extra_env) do
     File.mkdir_p!(Path.join(dir, "bin"))
 
     File.cp!(
@@ -255,6 +255,7 @@ defmodule Threadline.CiTopologyContractTest do
         {"THREADLINE_CI_LANE", ""},
         {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")},
         {"CI_TEST_PARTITIONS_BUDGET_S", "20"}
+        | extra_env
       ],
       stderr_to_stdout: true
     )
@@ -263,14 +264,116 @@ defmodule Threadline.CiTopologyContractTest do
   @tag :tmp_dir
   test "shared local export fixtures never overlap across partition processes", %{tmp_dir: dir} do
     colocate = read_rel!(["test", "partition_colocate.txt"])
-    {output, status} = run_export_storage_partitions!(Path.join(dir, "grouped"), colocate)
+
+    # The grouped case runs at the runner's real TAIL_QUEUE_K (seam unset):
+    # colocated files are never queued, so the group still shares one partition.
+    {output, status} =
+      run_export_storage_partitions!(Path.join(dir, "grouped"), colocate, [
+        {"CI_TEST_PARTITIONS_TAIL_K", nil}
+      ])
+
     assert status == 0, output
 
     # Negative control: without the ownership group, the same production runner
     # splits these four real files and the shared-root claim detects overlap.
-    {output, status} = run_export_storage_partitions!(Path.join(dir, "split"), "")
+    # It runs at CI_TEST_PARTITIONS_TAIL_K=0 (the static split): ungrouped, the
+    # sync files would otherwise be lifted into the tail queue and this control
+    # would stop testing the colocation rule. The control isolates the colocation
+    # rule on the static split; the queue's own colocation exclusion is proven
+    # separately by the runner's tq-colocate self-test and the TAIL_QUEUE_K
+    # contract test below.
+    {output, status} =
+      run_export_storage_partitions!(Path.join(dir, "split"), "", [
+        {"CI_TEST_PARTITIONS_TAIL_K", "0"}
+      ])
+
     assert status != 0
     assert output =~ "export fixture overlap"
+  end
+
+  @tail_queue_sync_weights for n <- 1..14, do: {"test/q/s#{n}_test.exs", 150_000 - n * 10_000}
+
+  defp tail_queue_sandbox!(dir, script, lane \\ "") do
+    File.mkdir_p!(Path.join(dir, "bin"))
+    File.mkdir_p!(Path.join(dir, "test/q"))
+    File.write!(Path.join(dir, "bin/ci-test-partitions"), script)
+
+    sync = "defmodule Sandbox.Q do\n  use ExUnit.Case\nend\n"
+    async = "defmodule Sandbox.Q do\n  use ExUnit.Case, async: true\nend\n"
+
+    # The async file and the colocated pair are the heaviest, so a broken
+    # eligibility rule would lift them first.
+    files =
+      [{"test/q/async_test.exs", 900_000, async}] ++
+        [{"test/q/c1_test.exs", 800_000, sync}, {"test/q/c2_test.exs", 700_000, sync}] ++
+        for {path, ms} <- @tail_queue_sync_weights, do: {path, ms, sync}
+
+    for {path, _ms, body} <- files, do: File.write!(Path.join(dir, path), body)
+
+    weights = Enum.map_join(files, "", fn {path, ms, _body} -> "#{ms} #{path}\n" end)
+
+    for name <- ["partition_weights", "partition_weights_min", "partition_weights_latest"],
+        do: File.write!(Path.join(dir, "test/#{name}.txt"), weights)
+
+    File.write!(
+      Path.join(dir, "test/partition_colocate.txt"),
+      "# sandbox group\ntest/q/c1_test.exs test/q/c2_test.exs\n"
+    )
+
+    {output, status} =
+      System.cmd("/bin/bash", ["bin/ci-test-partitions", "4"],
+        cd: dir,
+        env: [
+          {"MIX_BIN", "false"},
+          {"THREADLINE_TEST_SCOPE", ""},
+          {"THREADLINE_CI_LANE", lane},
+          {"GITHUB_STEP_SUMMARY", nil},
+          {"CI_TEST_PARTITIONS_TAIL_K", nil},
+          {"CI_TEST_PARTITIONS_LOG_DIR", Path.join(dir, "logs")}
+        ],
+        stderr_to_stdout: true
+      )
+
+    assert status == 2 and output =~ "serial compile failed",
+           "a MIX_BIN=false run must stop at the serial compile, got #{status}: #{output}"
+
+    dir
+    |> Path.join("logs/tail-queue.tsv")
+    |> File.read!()
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn row ->
+      [_seq, path, weight] = String.split(row, "\t")
+      {path, String.to_integer(weight)}
+    end)
+  end
+
+  @tag :tmp_dir
+  test "tail queue lifts exactly TAIL_QUEUE_K=12 ungrouped sync files and a smaller K is caught",
+       %{tmp_dir: dir} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    assert length(Regex.scan(~r/^TAIL_QUEUE_K=12$/m, script)) == 1,
+           "rule=tail-queue-k: bin/ci-test-partitions must set TAIL_QUEUE_K=12 on exactly one line (D-27)"
+
+    expected = Enum.take(@tail_queue_sync_weights, 12)
+    rows = tail_queue_sandbox!(Path.join(dir, "real"), script)
+
+    assert rows == expected,
+           "rule=tail-queue-k: the queue must be the 12 heaviest ungrouped sync files, heaviest first, got #{inspect(rows)}"
+
+    weights = Enum.map(rows, &elem(&1, 1))
+    assert weights == Enum.sort(weights, :desc)
+
+    for {path, _ms} <- rows do
+      refute path in ["test/q/async_test.exs", "test/q/c1_test.exs", "test/q/c2_test.exs"],
+             "an async or colocated file was queued: #{path}"
+    end
+
+    mutant = Regex.replace(~r/^TAIL_QUEUE_K=12$/m, script, "TAIL_QUEUE_K=4")
+    refute mutant == script, "the TAIL_QUEUE_K mutation did not change the script"
+    mutant_rows = tail_queue_sandbox!(Path.join(dir, "mutant"), mutant)
+    assert length(mutant_rows) == 4
+    refute mutant_rows == expected, "a TAIL_QUEUE_K=4 mutant must be caught"
   end
 
   defp scoped_test_files! do
@@ -354,6 +457,197 @@ defmodule Threadline.CiTopologyContractTest do
         assert partition_weight_inventory_errors([path], "#{invalid} #{path}\n") != []
       end
     end
+  end
+
+  defp lane_rule_errors(script) do
+    # Read only the production lane_rule; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_rule\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    for {arm, rule} <- [{"''|current", "median"}, {"min", "max"}, {"latest", "median"}],
+        not String.contains?(body, "#{arm}) printf '%s\\n' '#{rule}' ;;"),
+        do: "wrong rule for lane #{arm}"
+  end
+
+  defp lane_tail_k_errors(script) do
+    # Read only the production lane_tail_k; self-test literals cannot satisfy this guard.
+    body =
+      case Regex.run(~r/^lane_tail_k\(\) \{\n(.*?)^\}/ms, script) do
+        [_, body] -> body
+        _ -> ""
+      end
+
+    arms =
+      for {arm, k} <- [{"''|current", ~s("$TAIL_QUEUE_K")}, {"min", "'0'"}, {"latest", "'0'"}],
+          not String.contains?(body, "#{arm}) printf '%s\\n' #{k} ;;"),
+          do: "wrong tail K for lane #{arm}"
+
+    seam =
+      if String.contains?(script, ~s(lane_tail_k "${THREADLINE_CI_LANE:-}")),
+        do: [],
+        else: ["run_partitions must default the tail-K seam to lane_tail_k"]
+
+    arms ++ seam
+  end
+
+  # The runner's --self-test ok line must name tq-lane-k (D-32), so the case
+  # cannot be dropped without the contract noticing.
+  defp tq_lane_k_ok_token?(script) do
+    Regex.match?(
+      ~r/^  printf 'ci-test-partitions self-test: ok \(.*, tq-lane-k[,)].*\\n'$/m,
+      script
+    )
+  end
+
+  # A sandbox with the given runner text, two plain test files, R1-headed
+  # weights and three runs x four partitions of min and current TSVs:
+  # test/a_test.exs is 100/300/200 ms (median 200, max 300), b is 100 throughout.
+  defp lane_rule_sandbox!(dir, script) do
+    File.mkdir_p!(Path.join(dir, "bin"))
+    File.mkdir_p!(Path.join(dir, "test"))
+    runner = Path.join(dir, "bin/ci-test-partitions")
+    File.write!(runner, script)
+    File.chmod!(runner, 0o755)
+
+    for name <- ["a", "b"],
+        do: File.write!(Path.join(dir, "test/#{name}_test.exs"), "  use ExUnit.Case\n")
+
+    header =
+      read_rel!(["test", "partition_weights_min.txt"])
+      |> String.split("\n")
+      |> Enum.filter(&String.starts_with?(&1, "#"))
+      |> Enum.join("\n")
+
+    for path <- ["test/partition_weights.txt", "test/partition_weights_min.txt"],
+        do:
+          File.write!(Path.join(dir, path), header <> "\n1 test/a_test.exs\n1 test/b_test.exs\n")
+
+    for lane <- ["min", "current"], {run, ms} <- [{"301", 100}, {"302", 300}, {"303", 200}] do
+      run_dir = Path.join([dir, "ing-#{lane}", run, lane])
+      File.mkdir_p!(run_dir)
+
+      for part <- 1..4 do
+        File.write!(
+          Path.join(run_dir, "partition-timings-#{part}.tsv"),
+          "# threadline.partition-timings/1 partition=#{part} lane=#{lane} boot_ms=1 wall_ms=1000\n" <>
+            lane_rule_rows(part, ms)
+        )
+      end
+    end
+
+    dir
+  end
+
+  defp lane_rule_rows(1, ms), do: "test/a_test.exs\t#{ms}\t90\n"
+  defp lane_rule_rows(2, _ms), do: "test/b_test.exs\t100\t90\n"
+  defp lane_rule_rows(_part, _ms), do: ""
+
+  defp strict_ingest(dir, lane, output, extra \\ []) do
+    System.cmd(
+      "/bin/bash",
+      [
+        "bin/ci-test-partitions",
+        "--ingest-weights",
+        Path.join(dir, "ing-#{lane}"),
+        "--lane",
+        lane
+      ] ++
+        extra ++ ["--output", output],
+      cd: dir,
+      stderr_to_stdout: true
+    )
+  end
+
+  @tag :tmp_dir
+  test "lane weight rules: current and latest take the median, min the maximum, and a strict mismatch exits 2",
+       %{tmp_dir: tmp} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+    assert lane_rule_errors(script) == []
+
+    dir = lane_rule_sandbox!(Path.join(tmp, "prod"), script)
+    min_path = Path.join(dir, "test/partition_weights_min.txt")
+
+    {output, status} = strict_ingest(dir, "min", "test/partition_weights_min.txt")
+    assert status == 0, output
+    assert output =~ "ingest-weights: rule max"
+    min_weights = File.read!(min_path)
+    assert min_weights =~ ~r/^300 test\/a_test\.exs$/m
+    assert min_weights =~ ~r/^100 test\/b_test\.exs$/m
+
+    {output, status} = strict_ingest(dir, "current", "test/partition_weights.txt")
+    assert status == 0, output
+
+    assert File.read!(Path.join(dir, "test/partition_weights.txt")) =~
+             ~r/^200 test\/a_test\.exs$/m
+
+    {output, status} =
+      strict_ingest(dir, "min", "test/partition_weights_min.txt", ["--rule", "median"])
+
+    assert status == 2, output
+    assert output =~ "requires --rule max, got median"
+    assert File.read!(min_path) == min_weights
+
+    # Mutant: the min lane mapped back to the median must lose the maximum.
+    mutant =
+      String.replace(script, "min) printf '%s\\n' 'max' ;;", "min) printf '%s\\n' 'median' ;;")
+
+    refute mutant == script
+    assert lane_rule_errors(mutant) == ["wrong rule for lane min"]
+    mutant_dir = lane_rule_sandbox!(Path.join(tmp, "mutant"), mutant)
+    {output, status} = strict_ingest(mutant_dir, "min", "test/partition_weights_min.txt")
+    assert status == 0, output
+
+    refute File.read!(Path.join(mutant_dir, "test/partition_weights_min.txt")) =~
+             "300 test/a_test.exs"
+  end
+
+  @tag :tmp_dir
+  test "lane_tail_k queues TAIL_QUEUE_K on the current lane and nothing on min or latest, and a min mutant is caught",
+       %{tmp_dir: dir} do
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    assert lane_tail_k_errors(script) == [],
+           "rule=lane-tail-k: lane_tail_k must queue TAIL_QUEUE_K on current and 0 on min and latest, and default the seam (D-32)"
+
+    expected = Enum.take(@tail_queue_sync_weights, 12)
+
+    assert tail_queue_sandbox!(Path.join(dir, "current"), script, "current") == expected,
+           "rule=lane-tail-k: the current lane must queue the 12 heaviest ungrouped sync files"
+
+    for lane <- ["min", "latest"] do
+      assert tail_queue_sandbox!(Path.join(dir, lane), script, lane) == [],
+             "rule=lane-tail-k: the #{lane} lane must queue nothing (D-32)"
+    end
+
+    # Mutant: the min lane queuing TAIL_QUEUE_K again.
+    mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '0' ;;",
+        ~s(min\) printf '%s\\n' "$TAIL_QUEUE_K" ;;)
+      )
+
+    refute mutant == script, "rule=lane-tail-k: the min mutation did not change the script"
+
+    assert lane_tail_k_errors(mutant) == ["wrong tail K for lane min"],
+           "rule=lane-tail-k: the textual rule must catch a min lane that queues TAIL_QUEUE_K"
+
+    assert length(tail_queue_sandbox!(Path.join(dir, "min-mutant"), mutant, "min")) == 12,
+           "rule=lane-tail-k: the min mutant must queue 12 files in the sandbox"
+
+    assert tq_lane_k_ok_token?(script),
+           "rule=lane-tail-k: the --self-test ok line must name tq-lane-k"
+
+    token_mutant = String.replace(script, ", tq-lane-k)\\n'", ")\\n'")
+
+    refute token_mutant == script,
+           "rule=lane-tail-k: the ok-token mutation did not change the script"
+
+    refute tq_lane_k_ok_token?(token_mutant),
+           "rule=lane-tail-k: an ok line without tq-lane-k must be caught"
   end
 
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
@@ -636,6 +930,14 @@ defmodule Threadline.CiTopologyContractTest do
            "the xref cycle gate must run after compile and before the test suite"
   end
 
+  @tail_queue_seams [
+    "CI_TEST_PARTITIONS_TAIL_K",
+    "CI_TEST_PARTITIONS_LOCK_WAIT_S",
+    "CI_TEST_PARTITIONS_FAKE_FILE_PLAN"
+  ]
+
+  @canonical_invocation ~S("$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}")
+
   defp partition_topology_errors(yaml, mix_exs, script) do
     job = workflow_job(yaml, "verify-test")
     run_tests_step = workflow_step(job, "Run tests")
@@ -680,6 +982,10 @@ defmodule Threadline.CiTopologyContractTest do
        "the Verify Threadline trigger coverage step must set MIX_TEST_PARTITION: \"1\" (D-07)"},
       {not String.contains?(yaml, "MIX_BIN"),
        "MIX_BIN (the test-only seam) must never appear in ci.yml"},
+      {Enum.all?(@tail_queue_seams, &(not String.contains?(yaml, &1))),
+       "rule=tail-queue-seams: the tail-queue test-only seams (#{Enum.join(@tail_queue_seams, ", ")}) must never appear in ci.yml (D-27)"},
+      {length(String.split(script, @canonical_invocation)) == 2,
+       "rule=single-invocation-site: bin/ci-test-partitions must hold the canonical mix test invocation exactly once, shared by static sets and tail-queue claims (D-27)"},
       {String.contains?(script, "|| fail=1") and
          not Regex.match?(~r/^\s*wait\s*$/m, script),
        "bin/ci-test-partitions must wait on each recorded PID individually, never a bare wait"},
@@ -849,6 +1155,84 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
+  @partition_paragraph_lead "**CI runs the suite as N concurrent partitions.**"
+
+  # D-27 doc parity: CONTRIBUTING's partition paragraph names the tail queue
+  # and the runner's own TAIL_QUEUE_K, so neither can change alone.
+  defp tail_queue_doc_errors(script, contributing) do
+    k =
+      case Regex.scan(~r/^TAIL_QUEUE_K=(\d+)$/m, script) do
+        [[_, k]] -> k
+        _ -> nil
+      end
+
+    paragraph =
+      case String.split(contributing, @partition_paragraph_lead, parts: 2) do
+        [_, rest] ->
+          rest |> String.split(~r/\n\s*\n/, parts: 2) |> hd() |> String.replace(~r/\s+/, " ")
+
+        _ ->
+          ""
+      end
+
+    [
+      {k != nil, "bin/ci-test-partitions must set TAIL_QUEUE_K on exactly one line"},
+      {paragraph != "", "CONTRIBUTING.md has no partition paragraph"},
+      {String.contains?(paragraph, "tail queue"),
+       "CONTRIBUTING's partition paragraph must describe the tail queue"},
+      {k != nil and String.contains?(paragraph, "the #{k} heaviest"),
+       "CONTRIBUTING's partition paragraph must name the runner's K (the #{k} heaviest)"},
+      {String.contains?(paragraph, "lane_tail_k") and
+         String.contains?(paragraph, "min and latest lanes queue none"),
+       "CONTRIBUTING's partition paragraph must say the min and latest lanes queue none (lane_tail_k)"},
+      {lane_tail_k_errors(script) == [],
+       "the runner's lane_tail_k must queue none on min and latest, as CONTRIBUTING says"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("rule=tail-queue-doc: " <> elem(&1, 1)))
+  end
+
+  test "CONTRIBUTING documents the tail queue with the runner's K" do
+    script = read_rel!(["bin", "ci-test-partitions"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert tail_queue_doc_errors(script, contributing) == []
+
+    k_mutant = Regex.replace(~r/^TAIL_QUEUE_K=12$/m, script, "TAIL_QUEUE_K=13")
+    doc_mutant = String.replace(contributing, "the 12 heaviest", "the 13 heaviest")
+    refute k_mutant == script, "mutation anchor missing"
+    refute doc_mutant == contributing, "mutation anchor missing"
+
+    assert tail_queue_doc_errors(k_mutant, contributing) != [],
+           "changing TAIL_QUEUE_K alone must fail the doc-parity rule"
+
+    assert tail_queue_doc_errors(script, doc_mutant) != [],
+           "changing the documented K alone must fail the doc-parity rule"
+
+    lane_doc_mutant =
+      String.replace(
+        contributing,
+        "min and latest lanes queue none",
+        "min and latest lanes queue too"
+      )
+
+    lane_k_mutant =
+      String.replace(
+        script,
+        "min) printf '%s\\n' '0' ;;",
+        ~s(min\) printf '%s\\n' "$TAIL_QUEUE_K" ;;)
+      )
+
+    refute lane_doc_mutant == contributing, "mutation anchor missing"
+    refute lane_k_mutant == script, "mutation anchor missing"
+
+    assert tail_queue_doc_errors(script, lane_doc_mutant) != [],
+           "removing the min/latest no-queue sentence alone must fail the doc-parity rule"
+
+    assert tail_queue_doc_errors(lane_k_mutant, contributing) != [],
+           "a runner whose min lane queues again must fail the doc-parity rule"
+  end
+
   test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
     mix_exs = read_rel!(["mix.exs"])
@@ -982,31 +1366,49 @@ defmodule Threadline.CiTopologyContractTest do
     assert timings_step != "", "mutation anchor missing"
     assert logs_step != "", "mutation anchor missing"
 
-    rule_controls = [
-      {"the Run tests step timeout removed",
-       String.replace(yaml, step_timeout_text, run_tests_step_text), script,
-       "rule=run-tests-step-timeout"},
-      {"the Run tests step timeout raised to the job's",
-       String.replace(
-         yaml,
-         step_timeout_text,
-         run_tests_step_text <> "        timeout-minutes: 20\n"
-       ), script, "rule=run-tests-step-timeout"},
-      {"the partition budget raised past the step timeout", yaml,
-       String.replace(
-         script,
-         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-480}\"",
-         "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-900}\""
-       ), "rule=run-tests-step-timeout"},
-      {"the watchdog call removed", yaml,
-       String.replace(script, watchdog_text, "  local fail=0\n"), "rule=watchdog"},
-      {"the monitor formatter args dropped", yaml, String.replace(script, monitor_args_text, ""),
-       "rule=monitor-args"},
-      {"the partition timings upload removed", String.replace(yaml, timings_step, ""), script,
-       "rule=timings-upload"},
-      {"the partition logs upload removed", String.replace(yaml, logs_step, ""), script,
-       "rule=logs-upload"}
-    ]
+    rule_controls =
+      [
+        {"the Run tests step timeout removed",
+         String.replace(yaml, step_timeout_text, run_tests_step_text), script,
+         "rule=run-tests-step-timeout"},
+        {"the Run tests step timeout raised to the job's",
+         String.replace(
+           yaml,
+           step_timeout_text,
+           run_tests_step_text <> "        timeout-minutes: 20\n"
+         ), script, "rule=run-tests-step-timeout"},
+        {"the partition budget raised past the step timeout", yaml,
+         String.replace(
+           script,
+           "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-480}\"",
+           "  local budget_s=\"${CI_TEST_PARTITIONS_BUDGET_S:-900}\""
+         ), "rule=run-tests-step-timeout"},
+        {"the watchdog call removed", yaml,
+         String.replace(script, watchdog_text, "  local fail=0\n"), "rule=watchdog"},
+        {"the monitor formatter args dropped", yaml,
+         String.replace(script, monitor_args_text, ""), "rule=monitor-args"},
+        {"the partition timings upload removed", String.replace(yaml, timings_step, ""), script,
+         "rule=timings-upload"},
+        {"the partition logs upload removed", String.replace(yaml, logs_step, ""), script,
+         "rule=logs-upload"},
+        {"a second canonical invocation site added", yaml,
+         String.replace(
+           script,
+           @canonical_invocation,
+           @canonical_invocation <> "\n    " <> @canonical_invocation,
+           global: false
+         ), "rule=single-invocation-site"}
+      ]
+      |> Enum.concat(
+        for seam <- @tail_queue_seams do
+          {"#{seam} env added to verify-test",
+           String.replace(
+             yaml,
+             "  verify-test:\n",
+             "  verify-test:\n    env:\n      #{seam}: \"0\"\n"
+           ), script, "rule=tail-queue-seams"}
+        end
+      )
 
     for {label, y, s, rule} <- rule_controls do
       refute {y, s} == {yaml, script}, "#{label} control did not change the input"

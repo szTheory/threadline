@@ -15,9 +15,10 @@ is violated. Not a CI gate.
       20 TSVs to equal their pinned artifact_sha256.
   derive --rule max --train <dir> --output <path>
       Strictly validate the three training runs by running the runner's own
-      strict ingest in a temporary copy of the lane weights path, then write
-      the per-file maximum wall_ms (floor 1) in the ingest's header and
-      `<ms> <file>` format, sorted by path. Any other rule is refused.
+      strict ingest (`--rule max`) in a temporary copy, then write the
+      per-file maximum wall_ms (floor 1) in the ingest's header and
+      `<ms> <file>` format, sorted by path, and require it to equal the
+      runner's output byte for byte. Any other rule is refused.
   predict --lane <current|min|latest> [--weights <path>] [--max-ratio R]
       Run `bin/ci-test-partitions 4` with MIX_BIN=false (it stops at the
       serial compile, before any test runs), recompute S, A, L, D and
@@ -27,10 +28,12 @@ is violated. Not a CI gate.
       Cost the production assignment of the (candidate) min weights against
       each <root>/**/<run>/min run's observed per-file wall_ms.
   --self-test
-      Offline unit checks of the cost, derivation, hash and restore logic.
+      Offline unit checks of the cost, ratio, derivation, hash and temp-copy
+      logic.
 
-`--weights` places a candidate at the lane path temporarily and restores the
-original bytes afterwards, including on error or signal.
+The runner always runs in a temporary copy of the runner and the test tree
+(which holds the colocation file). `--weights` writes the candidate to the
+copy's lane path only; the live lane weights file is never written.
 """
 import argparse
 import hashlib
@@ -38,11 +41,9 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
 import tempfile
-from contextlib import contextmanager
 from pathlib import Path
 
 PHASE_DIR = Path(__file__).resolve().parents[1]
@@ -156,8 +157,12 @@ def partition_costs(assignment, amount, async_map, factor):
 
 
 def ratio_of(costs):
-    vals = [c["cost"] for c in costs.values() if c["files"] > 0]
-    require(vals and min(vals) > 0, "no non-empty partition with a positive cost")
+    """max/min cost over every partition; an empty or zero-cost partition fails closed."""
+    require(costs, "no partitions to compare")
+    empty = sorted(p for p, c in costs.items() if c["files"] <= 0)
+    require(not empty, f"empty partitions: {empty}")
+    vals = [c["cost"] for c in costs.values()]
+    require(min(vals) > 0, f"a partition has a non-positive cost: {vals}")
     return max(vals) / min(vals)
 
 
@@ -196,8 +201,7 @@ def load_run(run_dir, lane):
         for f, wall in parsed["rows"].items():
             require(f not in observed, f"file observed twice in one run: {f}")
             observed[f] = wall
-    return {"observed": observed, "max_boot_ms": max(x["boot_ms"] for x in parts.values()),
-            "partition_wall_ms": {p: x["wall_ms"] for p, x in parts.items()}}
+    return {"observed": observed, "max_boot_ms": max(x["boot_ms"] for x in parts.values())}
 
 
 def find_runs(root, lane):
@@ -211,55 +215,51 @@ def find_runs(root, lane):
     return runs
 
 
-# --- weights placement ----------------------------------------------------------
+# --- temporary copy --------------------------------------------------------------
 
-@contextmanager
-def placed(target, candidate):
-    """Put candidate bytes at target; restore the original bytes on exit, error or signal."""
-    target = Path(target)
-    if candidate is None:
-        yield
-        return
-    original = target.read_bytes() if target.exists() else None
-    data = Path(candidate).read_bytes()
-    previous = {}
-
-    def on_signal(signum, _frame):
-        raise KeyboardInterrupt(f"signal {signum}")
-
-    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
-        previous[sig] = signal.signal(sig, on_signal)
+def stage_copy(root=ROOT, lane=None, candidate=None):
+    """A temporary copy of the runner and the whole test tree (with the colocation
+    file). With a candidate, its bytes go to the copy's lane path. The caller removes it."""
+    root = Path(root)
+    tmp = Path(tempfile.mkdtemp(prefix="min-balance-copy-"))
     try:
-        target.write_bytes(data)
-        yield
-    finally:
-        if original is None:
-            target.unlink(missing_ok=True)
-        else:
-            target.write_bytes(original)
-        for sig, handler in previous.items():
-            signal.signal(sig, handler)
-        require(original is None or target.read_bytes() == original, f"failed to restore {target}")
+        (tmp / "bin").mkdir()
+        shutil.copy2(root / RUNNER_REL, tmp / RUNNER_REL)
+        for src in (root / "test").rglob("*"):
+            if src.is_file():
+                dst = tmp / src.relative_to(root)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        if candidate is not None:
+            require(lane in LANE_WEIGHTS, f"unknown lane {lane!r}")
+            (tmp / LANE_WEIGHTS[lane]).write_bytes(Path(candidate).read_bytes())
+        return tmp
+    except BaseException:
+        shutil.rmtree(tmp, ignore_errors=True)
+        raise
 
 
 # --- predict --------------------------------------------------------------------
 
-def run_assignment(lane, root=ROOT):
-    log_dir = Path(tempfile.mkdtemp(prefix="min-balance-predict-"))
+def run_assignment(lane, root=ROOT, candidate=None):
+    """Run the runner in a temporary copy (candidate at the copy's lane path) up to
+    the serial compile. Everything is read from the copy; the live tree is never written."""
+    copy = stage_copy(root, lane, candidate)
     try:
+        log_dir = copy / "min-balance-logs"
         env = dict(os.environ)
-        env.update({"MIX_BIN": "false", "CI_TEST_PARTITIONS_LOG_DIR": str(log_dir / "logs"),
+        env.update({"MIX_BIN": "false", "CI_TEST_PARTITIONS_LOG_DIR": str(log_dir),
                     "THREADLINE_CI_LANE": lane})
         env.pop("GITHUB_STEP_SUMMARY", None)
         if lane in ("min", "latest"):
             env["THREADLINE_TEST_SCOPE"] = "toolchain"
         else:
             env.pop("THREADLINE_TEST_SCOPE", None)
-        proc = subprocess.run([str(root / RUNNER_REL), str(N_PARTITIONS)], cwd=root, env=env,
+        proc = subprocess.run([str(copy / RUNNER_REL), str(N_PARTITIONS)], cwd=copy, env=env,
                               capture_output=True, text=True, timeout=300)
         require(proc.returncode != 0 and "serial compile failed" in proc.stderr,
                 f"runner did not stop at the serial compile (exit {proc.returncode}): {proc.stderr[-400:]}")
-        assignment_tsv = log_dir / "logs" / "assignment.tsv"
+        assignment_tsv = log_dir / "assignment.tsv"
         require(assignment_tsv.is_file(), "runner wrote no assignment.tsv")
         assignment, eff = {p: [] for p in range(1, N_PARTITIONS + 1)}, {}
         for line in assignment_tsv.read_text().splitlines():
@@ -269,19 +269,28 @@ def run_assignment(lane, root=ROOT):
         printed = {int(m.group(1)): (int(m.group(2)), int(m.group(3)))
                    for m in PRINTED_RX.finditer(proc.stdout)}
         require(sorted(printed) == list(range(1, N_PARTITIONS + 1)), "runner did not print every partition weight")
-        enumerated = (log_dir / "logs" / "enumerated.txt").read_text().splitlines()
-        return assignment, eff, printed, enumerated
+        enumerated = (log_dir / "enumerated.txt").read_text().splitlines()
+        lane_path = copy / LANE_WEIGHTS[lane]
+        return {"assignment": assignment, "eff": eff, "printed": printed, "enumerated": enumerated,
+                "weights": read_weights(lane_path),
+                "factor": factor_permille(copy),
+                "async": {f: is_async(f, copy) for f in eff},
+                "sha256": {"runner": sha256_file(copy / RUNNER_REL),
+                           "colocation": sha256_file(copy / COLOCATE_REL),
+                           "weights": sha256_file(lane_path)}}
     finally:
-        shutil.rmtree(log_dir, ignore_errors=True)
+        shutil.rmtree(copy, ignore_errors=True)
 
 
-def predict_core(lane, root=ROOT):
-    factor = factor_permille(root)
-    assignment, eff, printed, enumerated = run_assignment(lane, root)
+def predict_core(lane, root=ROOT, candidate=None):
+    run = run_assignment(lane, root, candidate)
+    factor, assignment, eff, printed, enumerated = (
+        run["factor"], run["assignment"], run["eff"], run["printed"], run["enumerated"])
     files = sorted(eff)
     require(sorted(enumerated) == files, "assignment does not cover the enumerated files exactly once")
-    raw = raw_weight_map(read_weights(root / LANE_WEIGHTS[lane]), enumerated)
-    async_map = {f: is_async(f, root) for f in files}
+    # Raw weights come from the copy's lane path, i.e. from the candidate when one is given.
+    raw = raw_weight_map(run["weights"], enumerated)
+    async_map = run["async"]
     for f in files:
         require(effective_weight(raw[f], async_map[f], factor) == eff[f],
                 f"effective weight mismatch for {f}: runner {eff[f]}")
@@ -290,14 +299,11 @@ def predict_core(lane, root=ROOT):
                 f"partition {p}: printed {printed[p]} != recomputed")
     costs = partition_costs(assignment, raw, async_map, factor)
     return {"assignment": assignment, "raw": raw, "async": async_map, "costs": costs,
-            "factor": factor, "printed": printed}
+            "factor": factor, "printed": printed, "sha256": run["sha256"]}
 
 
 def cmd_predict(args):
-    lane_path = ROOT / LANE_WEIGHTS[args.lane]
-    with placed(lane_path, args.weights):
-        core = predict_core(args.lane)
-        weights_sha = sha256_file(lane_path)
+    core = predict_core(args.lane, ROOT, args.weights)
     ratio = ratio_of(core["costs"])
     out = {
         "lane": args.lane,
@@ -310,9 +316,7 @@ def cmd_predict(args):
         "async_files": sum(1 for v in core["async"].values() if v),
         "all_sync_partitions": [p for p, c in core["costs"].items() if c["files"] > 0 and c["A"] == 0],
         "async_factor_permille": core["factor"],
-        "sha256": {"runner": sha256_file(ROOT / RUNNER_REL),
-                   "colocation": sha256_file(ROOT / COLOCATE_REL),
-                   "weights": weights_sha},
+        "sha256": core["sha256"],
         "weights_source": str(args.weights) if args.weights else LANE_WEIGHTS[args.lane],
     }
     if args.max_ratio is not None:
@@ -326,8 +330,8 @@ def cmd_predict(args):
 
 # --- replay ---------------------------------------------------------------------
 
-def replay_core(lane, root_dir, root=ROOT):
-    core = predict_core(lane, root)
+def replay_core(lane, root_dir, root=ROOT, candidate=None):
+    core = predict_core(lane, root, candidate)
     files = set(core["raw"])
     out = {}
     for run, run_dir in find_runs(root_dir, lane).items():
@@ -345,14 +349,11 @@ def replay_core(lane, root_dir, root=ROOT):
                     "all_sync_partitions": [p for p, c in costs.items() if c["files"] > 0 and c["A"] == 0],
                     "top_errors": [{"file": f, "observed_ms": observed[f], "weight_ms": core["raw"][f],
                                     "error_ms": e} for e, f in errors]}
-    return out
+    return out, core["sha256"]["weights"]
 
 
 def cmd_replay(args):
-    lane_path = ROOT / LANE_WEIGHTS[args.lane]
-    with placed(lane_path, args.weights):
-        runs = replay_core(args.lane, Path(args.root))
-        weights_sha = sha256_file(lane_path)
+    runs, weights_sha = replay_core(args.lane, Path(args.root), ROOT, args.weights)
     print(json.dumps({"lane": args.lane, "weights_sha256": weights_sha, "runs": runs}, indent=2, sort_keys=True))
     return 0
 
@@ -415,26 +416,17 @@ def cmd_fetch(args):
 
 # --- derive ---------------------------------------------------------------------
 
-def strict_ingest_copy(train_dir, lane, root=ROOT):
-    """Run the runner's strict ingest in a temporary copy (runner + test tree) and return its output."""
-    tmp = Path(tempfile.mkdtemp(prefix="min-balance-derive-"))
+def strict_ingest_copy(train_dir, lane, rule, root=ROOT):
+    """Run the runner's strict ingest with --rule in a temporary copy and return its output."""
+    copy = stage_copy(root)
     try:
-        (tmp / "bin").mkdir()
-        shutil.copy2(root / RUNNER_REL, tmp / RUNNER_REL)
-        for src in (root / "test").rglob("*"):
-            if src.is_file():
-                dst = tmp / src.relative_to(root)
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, dst)
-        proc = subprocess.run([str(tmp / RUNNER_REL), "--ingest-weights", str(Path(train_dir).resolve()),
-                               "--lane", lane, "--output", LANE_WEIGHTS[lane]],
-                              cwd=tmp, capture_output=True, text=True, timeout=300)
+        proc = subprocess.run([str(copy / RUNNER_REL), "--ingest-weights", str(Path(train_dir).resolve()),
+                               "--lane", lane, "--rule", rule, "--output", LANE_WEIGHTS[lane]],
+                              cwd=copy, capture_output=True, text=True, timeout=300)
         require(proc.returncode == 0, f"strict ingest rejected the training runs: {proc.stderr.strip()}")
-        inventory = sorted(f.relative_to(tmp).as_posix() for f in (tmp / "test").rglob("*_test.exs")
-                           if not any(part.startswith(".") for part in f.relative_to(tmp).parts))
-        return (tmp / LANE_WEIGHTS[lane]).read_text(), inventory
+        return (copy / LANE_WEIGHTS[lane]).read_text()
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        shutil.rmtree(copy, ignore_errors=True)
 
 
 def max_rule(header_lines, runs):
@@ -451,15 +443,15 @@ def cmd_derive(args):
     train = Path(args.train)
     runs = find_runs(train, "min")
     require(sorted(int(r) for r in runs) == TRAIN_RUNS, f"training runs {sorted(runs)} != {TRAIN_RUNS}")
-    median_text, _ = strict_ingest_copy(train, "min")
-    header = [line for line in median_text.splitlines() if line.startswith("#")]
-    require(header and median_text.startswith("\n".join(header) + "\n"), "unexpected ingest header layout")
+    runner_text = strict_ingest_copy(train, "min", "max")
+    header = [line for line in runner_text.splitlines() if line.startswith("#")]
+    require(header and runner_text.startswith("\n".join(header) + "\n"), "unexpected ingest header layout")
     observed = [load_run(runs[r], "min")["observed"] for r in sorted(runs)]
-    ingested = {line.split(" ", 1)[1] for line in median_text.splitlines() if not line.startswith("#")}
+    ingested = {line.split(" ", 1)[1] for line in runner_text.splitlines() if not line.startswith("#")}
     require(ingested == set(observed[0]), "strict-ingest inventory differs from the observed files")
     text = max_rule(header, observed)
-    order = lambda t: [line.split(" ", 1)[1] for line in t.splitlines() if not line.startswith("#")]
-    require(order(text) == order(median_text), "max-rule file order differs from the strict ingest's order")
+    # D-28 parity, the other way round: the runner's own max rule must equal max_rule byte for byte.
+    require(text == runner_text, "the runner's strict --rule max output differs from max_rule")
     Path(args.output).write_text(text)
     print(json.dumps({"rule": "max", "training_runs": sorted(int(r) for r in runs), "files": len(ingested),
                       "output": str(args.output), "weights_sha256": sha256_bytes(text.encode())},
@@ -468,6 +460,25 @@ def cmd_derive(args):
 
 
 # --- self-test ------------------------------------------------------------------
+
+# Stands in for bin/ci-test-partitions in self_test: reads THREADLINE_CI_LANE's
+# weights (min only) from its own root, puts every row in partition 1, and stops
+# like the real runner at the serial compile.
+FAKE_RUNNER = """#!/bin/sh
+set -eu
+ASYNC_FACTOR_PERMILLE=292
+cd "$(dirname "$0")/.."
+[ "$THREADLINE_CI_LANE" = min ] || exit 3
+w=test/partition_weights_min.txt
+mkdir -p "$CI_TEST_PARTITIONS_LOG_DIR"
+grep -v '^#' "$w" | awk '{ printf "1\\t%s\\t%s\\n", $2, $1 }' >"$CI_TEST_PARTITIONS_LOG_DIR/assignment.tsv"
+grep -v '^#' "$w" | awk '{ print $2 }' >"$CI_TEST_PARTITIONS_LOG_DIR/enumerated.txt"
+printf 'ci-test-partitions: partition 1: %s files, weight %s ms\\n' \\
+  "$(grep -vc '^#' "$w")" "$(grep -v '^#' "$w" | awk '{ s += $1 } END { print s }')"
+for p in 2 3 4; do printf 'ci-test-partitions: partition %s: 0 files, weight 0 ms\\n' "$p"; done
+echo 'ci-test-partitions: serial compile failed' >&2
+exit 1
+"""
 
 def self_test():
     checks = []
@@ -520,20 +531,47 @@ def self_test():
             check("malformed row rejected", False)
         except CheckError:
             checks.append("malformed row rejected")
-        # Byte restoration after --weights, on success and on error.
-        target, cand = tmp / "weights.txt", tmp / "cand.txt"
-        original = b"# header\r\n100 test/a_test.exs\n\n"
-        target.write_bytes(original)
-        cand.write_bytes(b"1 test/a_test.exs\n")
-        with placed(target, cand):
-            check("candidate placed", target.read_bytes() == b"1 test/a_test.exs\n")
-        check("bytes restored after success", target.read_bytes() == original)
+        # --weights runs in a temporary copy: a fake root whose fake runner
+        # assigns every lane-weights row to partition 1 at its own weight.
+        fake = tmp / "fake-root"
+        (fake / "bin").mkdir(parents=True)
+        (fake / "test").mkdir()
+        (fake / RUNNER_REL).write_text(FAKE_RUNNER)
+        (fake / RUNNER_REL).chmod(0o755)
+        (fake / COLOCATE_REL).write_text("")
+        for name in ("a", "b"):
+            (fake / f"test/{name}_test.exs").write_text("  use ExUnit.Case\n")
+        live = fake / LANE_WEIGHTS["min"]
+        live_bytes = b"# header\n300 test/a_test.exs\n100 test/b_test.exs\n"
+        live.write_bytes(live_bytes)
+        os.utime(live, (1_000_000_000, 1_000_000_000))
+        live_mtime = live.stat().st_mtime_ns
+        same, other = tmp / "same.txt", tmp / "other.txt"
+        same.write_bytes(live_bytes)
+        other.write_bytes(b"# header\n900 test/a_test.exs\n100 test/b_test.exs\n")
+        base = predict_core("min", fake)
+        with_same = predict_core("min", fake, same)
+        with_other = predict_core("min", fake, other)
+        check("candidate leaves the live lane file untouched",
+              live.read_bytes() == live_bytes and live.stat().st_mtime_ns == live_mtime)
+        check("no copy artifacts in the live tree",
+              sorted(x.relative_to(fake).as_posix() for x in fake.rglob("*") if x.is_file())
+              == sorted([RUNNER_REL, COLOCATE_REL, LANE_WEIGHTS["min"], "test/a_test.exs", "test/b_test.exs"]))
+        check("raw weights come from the copy", base["raw"] == {"test/a_test.exs": 300, "test/b_test.exs": 100})
+        check("an identical candidate predicts the same", with_same["raw"] == base["raw"]
+              and with_same["costs"] == base["costs"])
+        check("a distinct candidate is used", with_other["raw"]["test/a_test.exs"] == 900
+              and with_other["costs"] != base["costs"]
+              and with_other["sha256"]["weights"] == sha256_file(other))
+    # ratio_of fails closed on an empty or a zero-cost partition.
+    for label, bad in (("ratio rejects an empty partition", {1: {"cost": 5, "files": 1}, 2: {"cost": 0, "files": 0}}),
+                       ("ratio rejects a zero cost", {1: {"cost": 5, "files": 1}, 2: {"cost": 0, "files": 1}}),
+                       ("ratio rejects no partitions", {})):
         try:
-            with placed(target, cand):
-                raise RuntimeError("boom")
-        except RuntimeError:
-            pass
-        check("bytes restored after error", target.read_bytes() == original)
+            ratio_of(bad)
+            check(label, False)
+        except CheckError:
+            checks.append(label)
     check("async regex", bool(ASYNC_RX.search("  use ExUnit.Case, async: true\n"))
           and not ASYNC_RX.search("  use ExUnit.Case, async: false\n")
           and not ASYNC_RX.search("# use ExUnit.Case,\n async: true\n"))

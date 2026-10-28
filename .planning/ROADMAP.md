@@ -158,7 +158,7 @@ Plans:
   3. Repo-file contract tests run only on the current lane while local `mix test` still runs them, the honest-default docs stay true, and with partition weights refreshed from CI timings the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
   4. A hung test fails within its partition timeout and names the stuck test instead of running to the 25-minute job timeout, reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-**Plans**: 28 plans (27 executed, Plan 19 halted; Plans 23–25 executed and reviewed; Plan 25 warning-gated preflight INVALID; B4 CI-02 incomplete and CI-03 MISS; Plan 26 replayed both B4 min failures green on the exact min toolchain and fixed one sibling worker race; Plan 27 selected the B5 min weights by a pre-registered training-only rule (candidate B, per-file max; advisory ci03_expectation EXPECTED_MISS); Plan 28 pending for the D-25 landing and capped cohort)
+**Plans**: 37 plans (34 executed incl. halted Plan 19; 247-35 complete 2026-10-28 (prediction-2 gate PASS: current 1.063714, CI-02 493.8 s); 247-34 complete 2026-10-28 after D-34 (interleaved self-test cap measurement); 247-33 superseded by 247-36 under D-32 and never run; gap plans 34–37 planned 2026-10-28 for D-32 (current-lane-only tail queue) and revised for D-33 (uniform ≤ 1.15 preflight bound) at plan-check; gap plans 29–33 planned 2026-10-28 for D-27..D-30; Plans 23–25 executed and reviewed; Plan 25 warning-gated preflight INVALID; B4 CI-02 incomplete and CI-03 MISS; Plan 26 replayed both B4 min failures green on the exact min toolchain and fixed one sibling worker race; Plan 27 selected the B5 min weights by a pre-registered training-only rule (candidate B, per-file max; advisory ci03_expectation EXPECTED_MISS); Plan 28 landed B5 as PR #98 / main 824c2851 and spent the capped cohort in 5/6 runs: CI-02 PASS at median 457 s, CI-03 MISS on the current lane)
 
 Plans:
 **Wave 1**
@@ -233,9 +233,36 @@ Plans:
 - [x] 247-27-PLAN.md — Pre-registered min weights rule (median vs per-file max, training-only selection) from hash-verified B4 runs; replay spread on all five min observations; advisory ci03_expectation (EXPECTED_MISS likely) with D-11 deps_audit_gate follow-up; local new-mix runs
 
 **Wave 23 — D-25 landing and capped cohort** *(blocked on Waves 21–22 completion)*
-- [ ] 247-28-PLAN.md — Weights-record precondition; land the B5 candidate unconditionally under the standing grant; at most six serial main runs; derived CI-02/CI-03 verdicts with CI-01/CI-04 continuity
+- [x] 247-28-PLAN.md — Weights-record precondition; land the B5 candidate unconditionally under the standing grant; at most six serial main runs; derived CI-02/CI-03 verdicts with CI-01/CI-04 continuity. PR #98 → main 824c2851; 5/6 runs, five successes; CI-02 PASS (median 457 s), CI-03 MISS (current 1.17/1.17/1.09; min and latest pass)
 
-Cross-cutting constraints: D-20–D-24; no new package, actual-suite async change, workflow/weight/model/threshold tuning, hosted run, PR or merge; original acceptance and exhausted budgets remain intact.
+**Wave 24 — D-28 review closure** *(blocked on Wave 23 completion; local only)*
+- [x] 247-29-PLAN.md — R3-WR-01..04: `lane_rule()` + `--ingest-weights --rule median|max` (strict mismatch exit 2) with self-test, contract mutant, CONTRIBUTING sentence and byte parity vs committed min weights; RetentionRun on_exit cleanup; min_balance.py fail-closed ratio and temp-copy predict; R3 dispositions. Done: e9bb16ca, f27d11b9, 5b3e5ab8, 17376b84; strict min ingest byte-identical to the committed min weights
+
+**Wave 25 — D-27 runtime tail queue** *(blocked on Wave 24 completion; local only)*
+- [x] 247-30-PLAN.md — `TAIL_QUEUE_K=12` lift of ungrouped sync files, mkdir-locked largest-first claims on the same partition DB, merged timings TSV, claim map, exactly-once static+claimed, one CI-04 budget across invocations; tq-* self-tests under bash 3.2. Done: cbcda76b, c23401cd, f1bffd76; self-test median +14/+15 s (cap +20)
+
+**Wave 26 — D-27 contracts, docs and local proof** *(blocked on Wave 25 completion; local only)*
+- [x] 247-31-PLAN.md — K mutant, seam-absence and single-invocation contracts; CONTRIBUTING tail-queue doc parity; three current + min + latest local partitioned runs with whole-suite equality; real-BEAM queued-hang naming proof. Done: 0de4c4e5, f2dbe251, 29636579, eae71898, 59966463; whole suite 3387/0, all five lane runs green, hang named in 64 s
+
+**Wave 27 — D-29 pre-registration** *(blocked on Wave 26 completion; local only)*
+- [x] 247-32-PLAN.md — Hash-pinned `tools/tail_queue_replay.py` (replay P1–P6, preflight P8); `247-B6-PREDICTION.md` committed before any push; gate worst replay <= 1.08 at 8 s/claim on every lane, else escalate with zero hosted spend. Done: b25c3c29, 3508bd6a, 1f1ede48; gate FAIL (worst 8 s replay current 1.064, min 1.101, latest 1.107; predicted CI-02 491.8 s <= 510), escalated in 247-B6-ESCALATION.md with 0 hosted runs
+
+**Wave 28 — D-29/D-30 landing, preflight and final cohort** *(blocked on Wave 27 gate PASS)*
+- [ ] 247-33-PLAN.md — NOT RUN: B6 prediction gate FAIL (247-B6-ESCALATION.md); superseded by 247-36 under D-32 (never run; 247-33-SUMMARY.md status superseded)
+
+**Wave 29 — D-32 per-lane tail queue** *(blocked on Wave 27 completion; local only)*
+- [x] 247-34-PLAN.md — `lane_tail_k()` beside `lane_rule()` (current 12, min 0, latest 0; seam still overrides); min/latest `partition-<i>.files` byte-identical to 824c2851 under both bashes; `tq-lane-k` self-test, contract mutant (min → TAIL_QUEUE_K caught), CONTRIBUTING "min and latest lanes queue none" with doc parity; D-31 self-test cap re-measured; whole suite + current/min/latest + queued-hang proof in 247-B6-LOCAL-2.md; D-32 resolution appended to 247-B6-ESCALATION.md Done: 8caf2295, 99f0a595, 462a6063 (I5 trim), 4f872f5e (ok-token pin), 1ea452e7 (247-B6-LOCAL-2.md + D-32 resolution). A first halt at the D-31 cap (non-interleaved) was resolved by D-34; the interleaved cap passed (env 30→45, /bin/bash 30→47).
+
+**Wave 30 — D-32 second pre-registration** *(blocked on Wave 29 completion; local only)*
+- [x] 247-35-PLAN.md — TQ-PREREG-2 (P1–P10 + disclosure); `tools/tail_queue_replay.py` extended for per-lane K (LANE_K, current-only gate, K>0-only claim checks); `247-B6-PREDICTION-2.md` before any push (247-B6-PREDICTION.md byte-unchanged); gate (a) current ≤ 1.08 at 8 s/claim with B4+B5, (b) P10 ≤ 510 s; all 42 run/lane artifacts unexpired (else halt); FAIL → final D-32 fallback to option 1 (247-B6-ESCALATION-2.md, SEED-009, not-run SUMMARYs for 247-36/37), 0 hosted runs Done: b94edfe0 (tool, per-lane K), bdfd6ddf (247-B6-PREDICTION-2.md); gate PASS (current worst 1.063714 at 8 s; predicted CI-02 493.8 s <= 510; min/latest static information only), 0 hosted runs.
+
+**Wave 31 — D-32 landing, preflight and final cohort** *(blocked on Wave 30 gate PASS)*
+- [ ] 247-36-PLAN.md — Supersedes 247-33: land 247-29..31 + 247-34 as one `ci:` squash from `land/v1.47-ci03-tail-queue` after exact-head `CI=true mix ci.all`; P8 preflight (D-33: every lane ≤ 1.15; claim-line and overhead checks on current only); `--match-head-commit` merge; B6 cohort (cap 6, 5 successes, first 3 → CI-03, median of 5 → CI-02); B6-GATE-JSON; any non-PASS → final D-32 option-1 fallback
+
+**Wave 32 — D-32 round closure** *(blocked on Wave 31; runs on paths N, C and S; closed by a not-run SUMMARY on a prediction-2 gate FAIL)*
+- [ ] 247-37-PLAN.md — Mechanical terminal-path derivation (preflight NO_GO / cohort miss / success); append-only D-32 sections in 247-B6-ESCALATION, REVIEW-DISPOSITION, VALIDATION and SECURITY (T-247-87..102, audit pending) with zero-deletion checks; ROADMAP ticks, REQUIREMENTS line and STATE `stopped_at` by hand
+
+Cross-cutting constraints: D-20–D-24; no new package, actual-suite async change, workflow/weight/model/threshold tuning, hosted run, PR or merge; original acceptance and exhausted budgets remain intact. Waves 24–28 instead follow D-27–D-30: one D-29-authorized capped B6 cohort and its landing PR, with thresholds 540 s / 1.15 unchanged and B6 final. Waves 29–31 follow D-32 (escalation option 2): the queue runs on the current lane only, under a second pre-registration that leaves round 1 byte-unchanged; the unspent B6 cohort runs under the D-29 rules; D-33 sets the PR preflight to ≤ 1.15 on every lane, with claim-line and overhead checks on the current lane only; any gate FAIL, preflight NO_GO or CI-02/CI-03 miss falls back to option 1 as final.
 
 ## Progress
 
@@ -246,7 +273,7 @@ Cross-cutting constraints: D-20–D-24; no new package, actual-suite async chang
 | 244. Release flow | 10/10 | Complete    | 2026-10-25 |
 | 245. Supply chain | 5/5 | Complete    | 2026-10-25 |
 | 246. Debt closeout and critic retirement | 10/10 | Complete    | 2026-10-25 |
-| 247. CI critical path and suite lanes | 27/28 | Gaps found 2/4; 247-26 min-lane fixtures re-proved; 247-27 B5 min weights selected (B, EXPECTED_MISS advisory); Plan 28 (land + capped cohort) pending | - |
+| 247. CI critical path and suite lanes | 34/37 | Gaps found 2/4; 247-26 min-lane fixtures re-proved; 247-27 B5 min weights selected (B, EXPECTED_MISS advisory); 247-28 B5 landed (PR #98, 824c2851): CI-02 PASS 457 s, CI-03 MISS (current lane); 247-29 R3-WR-01..04 fixed (lane_rule in bin/); 247-30 D-27 tail queue K=12 in bin/; 247-31 tail queue contract-pinned + B6 local green; 247-32 B6 pre-registration gate FAIL (min 1.101, latest 1.107 > 1.08; CI-02 491.8 s) → escalated, 0 hosted runs; 247-33 NOT RUN (superseded by 247-36); D-32 (option 2) chose a current-lane-only tail queue: 247-34..37 planned (runner, second pre-registration, landing + final cohort, round closure); D-33 uniform ≤ 1.15 preflight bound; 247-35 prediction-2 gate PASS (current 1.063714 ≤ 1.08; CI-02 493.8 s ≤ 510), 0 hosted runs | - |
 
 ## Current Position
 

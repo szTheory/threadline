@@ -41,3 +41,13 @@
   five times. CI and normal shells have a normalized `TMPDIR`, so this is not a CI hazard;
   a `Path.expand/1` on the test side would remove it. Out of 247-27's scope (no test edit
   allowed by the plan's files list).
+
+## From 247-31 (Task 3)
+
+- **Sibling `as_of/4` sites still compare the database clock with the BEAM's.** 247-31 fixed
+  `test/threadline/query/row_key_read_test.exs` (commit `29636579`): its `as_of/4` instant now
+  comes from `clock_timestamp()`, the clock that stamps `captured_at`. The same write-then-
+  `as_of(DateTime.utc_now())` shape remains at `test/threadline/query/row_key_composite_test.exs:133`
+  and `:202`, and at `test/threadline/query/as_of_property_test.exs:295`. None of them failed in
+  247-31's runs (one whole suite plus five partitioned lanes, all green). If one flakes, use the
+  same `db_now/0` fix and mutation control. Out of 247-31's scope (files list).

@@ -8,8 +8,8 @@ threats_open_nonblocking: 2
 block_on: high
 asvs_level: 1
 register_authored_at_plan_time: true
-threats_total: 53
-threats_closed: 51
+threats_total: 63
+threats_closed: 61
 created: "2026-10-26"
 ---
 
@@ -194,4 +194,38 @@ T-247-48 is closed by 8c9f1541 and independent 247-OFFLINE-REPAIR-REVIEW.md. Cur
 |---|---|
 | Threats found | 53 |
 | Closed | 51 |
+| Open | 2 |
+
+## Plans 26–28 incremental security audit — 2026-10-28
+
+Reviewer: `gsd-security-auditor` (ASVS L1, block_on high), read-only, at HEAD 6e1e0b28. The register was authored in the plans. The auditor re-derived T-247-57, -58, -60, -61 and -62 live from code, git history and the GitHub API. The T-247-54 mutation runs and the exact-head local `ci.all` for T-247-60 are documentary evidence only.
+
+| Threat ID | Category | Component | Severity | Disposition | Mitigation / Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-54 | Tampering | retention worker and shared export directory fixtures | high | mitigate | Test-owned `Task.Supervisor` through `task_start` in pruner_test.exs and retention_history_live_test.exs, each with an ownership regression. Export colocation group is pinned by ci_topology_contract_test.exs:264. Red/green mutation controls recorded on the pinned min image (Elixir 1.15.8 / OTP 26.2.5.21, postgres 15.18). Controlled files are byte-identical to HEAD. Min job green on all five B5 main runs. | closed |
+| T-247-55 | Repudiation | fix evidence | medium | mitigate | A single MIN-FIXTURE-AUDIT-JSON block parses with toolchain digests, partition-list sha256, seeds, per-class search commands and red/green counts. Natural reproduction: exactly 3 attempts, recorded honestly. | closed |
+| T-247-56 | Denial of service | masking a race | medium | mitigate | `git diff 02d115a3 HEAD -- test/` adds 0 mask markers and 0 timing lines. The 2 removed asserts were moved inside the lock helper, and both are justified. Full suite 3384/0. | closed |
+| T-247-57 | Tampering | B4 timing artifacts | high | mitigate | FROZEN_REPLAY hash pinned at min_balance.py:58. Per-TSV pin and exact 20-file fetch. Lane, inventory and run-count validation is strict. A live re-fetch plus `derive --rule max` reproduced the weights file byte for byte (cb833068…b187). | closed |
+| T-247-58 | Repudiation | favorable-candidate selection | high | mitigate | R1–R5 at 425a3965 equal the recorded rule. Commit ancestry orders pre-registration before the first numbers and the selection commit 8ef4b801 before the holdouts (b46d935c). A scratch recomputation reproduces both candidates, the training spreads and the R3 choice of B. The disclosure is present. | closed |
+| T-247-59 | Spoofing | model fit claimed as balance | medium | mitigate | `ci03_expectation` is labelled advisory. The CI-03 verdict comes from measured main ratios, and the miss landed on a lane the model did not predict. | closed |
+| T-247-60 | Tampering | land branch → main | high | mitigate | PR #98 has 0 force-push events and one head, 14f95621. PR run 40690983585 ran on attempt 1, 17/17 green. The full tree of 824c2851 equals 14f95621. lib/, bin/, .github/ and the mix files have 0 diff lines since B4. | closed |
+| T-247-61 | Denial of service | hosted spend | medium | mitigate | 5 runs out of a cap of 6 at 824c2851, all attempt 1 and green. Serial dispatch is proven from attempt-1 timestamps. The weights precondition hash matches. | closed |
+| T-247-62 | Repudiation | B5 verdicts | medium | mitigate | A fresh `bin/measure-main-ci` read is byte-equal to 247-B5-MEASUREMENT.json, a single unedited commit. The two B5-GATE-JSON projections are byte-identical, and recomputed verdicts match them. | closed |
+| T-247-63 | Elevation of privilege | scope creep after a miss | medium | mitigate | The CI-03 miss is recorded as a maintainer scope question in 247-VERIFICATION.md. Nothing was re-sampled, deps_audit_gate_test.exs is unchanged, and the thresholds are unchanged. | closed |
+| T-247-SC | Tampering | package installs | low | accept | Covered by AR-247-02. No manifest, lockfile, .tool-versions or workflow changes. The tool uses the standard library only. | closed |
+
+Inherited T-247-46 and T-247-47 stay open, medium and nonblocking. D-26 descoping removes future canary exposure, but it is not a recorded risk acceptance, and nothing in plans 26–28 implements their mitigations. Closing them needs an explicit maintainer AR entry that cites D-26.
+
+Observations, not register gaps:
+- 247-MIN-FIXTURE-AUDIT.md says no async flag changed. In fact `test/threadline/storage/local_test.exs` went from async to sync in 136bb932, as 247-B5-WEIGHTS.md records.
+- Round-3 review warnings R3-WR-03 (the weights tool overwrites the live lane file) and R3-WR-04 (no documented max-rule regeneration path) are follow-up integrity items.
+
+Current counts: 61/63 closed, 2 open (T-247-46/47, medium, nonblocking), 0 high blocking.
+
+## Security Audit 2026-10-28
+
+| Metric | Count |
+|---|---|
+| Threats found | 63 |
+| Closed | 61 |
 | Open | 2 |
