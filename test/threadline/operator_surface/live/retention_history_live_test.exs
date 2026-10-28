@@ -58,7 +58,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> Keyword.merge(Keyword.take(retention, [:interval_ms, :sleep_ms]))
 
       start_supervised!({Task.Supervisor, name: @worker_supervisor})
-      start_supervised!({Threadline.Retention.Pruner, opts})
+      pruner = start_supervised!({Threadline.Retention.Pruner, opts})
+
+      # Match Task.start's unlinked caller contract while giving ExUnit ownership
+      # of workers that may still be purging when this test ends. The interval
+      # is 24 h (setup), so no scheduled run can start before this seam is set.
+      :sys.replace_state(pruner, fn state ->
+        %{state | task_start: &Task.Supervisor.start_child(@worker_supervisor, &1)}
+      end)
+
+      pruner
     end
 
     setup_all do
