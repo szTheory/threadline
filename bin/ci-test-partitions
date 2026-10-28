@@ -64,8 +64,9 @@
 # exactly one partition (otherwise the run fails with the difference). One
 # watchdog budget spans all of a partition's invocations: the watchdog ages
 # partitions from their fork, each invocation gets the remaining in-VM
-# deadline, beam.pid names the current BEAM, and a stopped partition claims
-# no more. Any failing invocation fails its partition, which keeps claiming
+# deadline, beam.pid names the current BEAM, a stopped partition claims
+# no more, and no claim starts with less than TAIL_CLAIM_MIN_MS of the
+# deadline left (the unclaimed rest then fails the exactly-once check). Any failing invocation fails its partition, which keeps claiming
 # so every file still runs.
 #
 # The report ends with a `| max/min | - | <ratio> | - |` row: slowest over
@@ -267,7 +268,9 @@
 # nothing and min's static sets equal its seam-0 sets, current queues 12,
 # and the seam overrides the lane map; (tq-fail) a failing claim fails only its partition and the queue is
 # still claimed once; (tq-deadline) the claim's in-VM deadline is what is
-# left, and 0 when disarmed; (tq-lock) a held lock is never broken by a
+# left, and 0 when disarmed; (tq-deadline-spent) with less than
+# TAIL_CLAIM_MIN_MS of the deadline left nothing is claimed, no BEAM starts,
+# no HANG is reported and verify_claims names the rest; (tq-lock) a held lock is never broken by a
 # claimer, even one whose owner has a status file: the claim times out
 # naming the holder and takes nothing, and release is keyed on the
 # partition index; (tq-lock-contention) 4 claimers behind such a lock, once
@@ -330,6 +333,13 @@ ASYNC_FACTOR_PERMILLE=292
 # while min (1.101) and latest (1.107) replayed above 1.08, so those lanes
 # queue none via lane_tail_k (D-32). K=4 replays at 1.31, so K is a constant.
 TAIL_QUEUE_K=12
+# No claim starts with less than this much of the partition's in-VM deadline
+# left (R4-WR-02): a claim needs a BEAM boot plus its file, and one started
+# on a spent deadline is halted at once by the monitor with a false HANG
+# report. The unclaimed rest fails verify_claims, which names it. A constant,
+# not a seam, so ci.yml stays seam-free. Pinned by --self-test
+# (tq-deadline-spent).
+TAIL_CLAIM_MIN_MS=15000
 # The async test the assignment applies (assign_files greps the same pattern):
 # a file that matches is never queued.
 ASYNC_USE_RE='^[[:space:]]*use [A-Za-z0-9_.]+,.*async:[[:space:]]*true'
@@ -657,14 +667,17 @@ now_ms() {
 # kill_all (release_tail_lock), never broken here (R4-WR-01). Sets CLAIM_SEQ
 # and CLAIM_FILE (both empty when the queue is exhausted) and appends a
 # `claim` row to partition-<i>.claims. Returns 1 on a lock timeout, naming
-# the holder. Args: partition index, log dir, lock wait seconds.
+# the holder. With a claim-by time (epoch ms, 0 for none) that has passed
+# when the lock is taken, it consumes nothing and sets CLAIM_STOP=budget.
+# Args: partition index, log dir, lock wait seconds, claim-by epoch ms.
 claim_next() {
-  local i="$1" log_dir="$2" wait_s="$3"
+  local i="$1" log_dir="$2" wait_s="$3" claim_by_ms="${4:-0}"
   local lock="$log_dir/tail-queue.lock" next row polls=0 tab owner
   tab="$(printf '\t')"
   CLAIM_SEQ=""
   CLAIM_FILE=""
   CLAIM_START_MS=""
+  CLAIM_STOP=""
   # The next pointer only grows, so an exhausted queue needs no lock.
   next="$(cat "$log_dir/tail-queue.next" 2>/dev/null || true)"
   case "$next" in '' | *[!0-9]*) next=1 ;; esac
@@ -678,6 +691,12 @@ claim_next() {
     sleep 0.1
     polls=$((polls + 1))
   done
+  # Decided under the lock, after any wait, before next advances.
+  if [ "$claim_by_ms" -gt 0 ] && [ "$(now_ms)" -ge "$claim_by_ms" ]; then
+    CLAIM_STOP=budget
+    rm -f "$lock"
+    return 0
+  fi
   next="$(cat "$log_dir/tail-queue.next" 2>/dev/null || true)"
   case "$next" in '' | *[!0-9]*) next=1 ;; esac
   row="$(awk -F'\t' -v s="$next" '$1 == s' "$log_dir/tail-queue.tsv")"
@@ -1147,11 +1166,12 @@ merge_partition_timings() {
 partition_invoke() {
   local k="$1" log="$log_dir/partition-$i.log" inv_deadline offset beam_pid
   # One in-VM deadline across every invocation: a claim gets what is left of
-  # the partition's (at least 1 ms); a disarmed deadline (<= 0) passes as is.
+  # the partition's, which the claim-by time keeps at about
+  # TAIL_CLAIM_MIN_MS or more (no 1 ms clamp: it only produced false HANG
+  # reports); a disarmed deadline (<= 0) passes as is.
   inv_deadline="$deadline_ms"
   if [ "$deadline_ms" -gt 0 ] && [ "$k" -gt 0 ]; then
     inv_deadline=$((deadline_ms - 1000 * ($(date +%s) - p_start)))
-    [ "$inv_deadline" -ge 1 ] || inv_deadline=1
   fi
   if [ "$k" -eq 0 ]; then : >"$log"; else : >>"$log"; fi
   offset="$(wc -c <"$log" | tr -d ' ')"
@@ -1360,11 +1380,20 @@ run_partitions() {
       # each on this partition's database, until the queue is exhausted.
       # The first non-zero exit is the partition's; claiming continues.
       k=0
+      # No claim starts once less than TAIL_CLAIM_MIN_MS of the in-VM
+      # deadline is left (R4-WR-02); 0 when the deadline is disarmed.
+      claim_by_ms=0
+      [ "$deadline_ms" -le 0 ] || claim_by_ms=$((p_start * 1000 + deadline_ms - TAIL_CLAIM_MIN_MS))
       if [ -s "$queue" ]; then
         while [ "$stop_claims" -eq 0 ] && [ ! -f "$log_dir/partition-$i.budget" ]; do
-          if ! claim_next "$i" "$log_dir" "$lock_wait_s"; then
+          if ! claim_next "$i" "$log_dir" "$lock_wait_s" "$claim_by_ms"; then
             printf 'ci-test-partitions: partition %s: tail-queue lock timeout\n' "$i" >>"$log_dir/partition-$i.log"
             [ "$p_status" -ne 0 ] || p_status=1
+            break
+          fi
+          if [ "$CLAIM_STOP" = budget ]; then
+            printf 'ci-test-partitions: partition %s: %s ms of in-VM budget left; claiming no more\n' \
+              "$i" "$((deadline_ms - 1000 * ($(date +%s) - p_start)))" | tee -a "$log_dir/partition-$i.log"
             break
           fi
           [ -n "$CLAIM_FILE" ] || break
@@ -2835,6 +2864,21 @@ TQ_WEIGHTS
     [ "$(sed -n 's/^FAKE_MIX_DEADLINE_MS=//p' "$case_logs/invocations/p1-0.log" "$case_logs/invocations/p1-1.log" | tr '\n' ' ')" = "0 0 " ] ||
     die "self-test: tq-deadline: a disarmed deadline must reach every invocation as 0: $output"
 
+  # (tq-deadline-spent) R4-WR-02: a 46 s budget arms a 16000 ms deadline,
+  # so after a 1.1 s static set less than TAIL_CLAIM_MIN_MS is left: the
+  # partition claims nothing, starts no BEAM, says why, reports no HANG, and
+  # the unclaimed file fails verify_claims
+  CI_TEST_PARTITIONS_BUDGET_S=46 CI_TEST_PARTITIONS_FAKE_FILE_PLAN="test/b/async_test.exs=sleep:1.1" case_tail_k=1 \
+    run_case "tail queue deadline spent" "pass" 1
+  [ "$case_status" -ne 0 ] &&
+    grep -qE '^ci-test-partitions: partition 1: -?[0-9]+ ms of in-VM budget left; claiming no more$' <<<"$output" &&
+    grep -q 'claiming no more' "$case_logs/partition-1.log" &&
+    ! grep -q 'HANG' <<<"$output" &&
+    [ ! -e "$case_logs/invocations/p1-1.log" ] &&
+    [ -z "$(awk -F'\t' '$1 == "claim"' "$case_logs/partition-1.claims" 2>/dev/null)" ] &&
+    grep -q 'tail queue claims do not cover the queue exactly once' <<<"$output" ||
+    die "self-test: tq-deadline-spent: a spent deadline must stop claiming, start no BEAM, and leave the rest to verify_claims: $output"
+
   # (tq-lock) the lock functions alone, from the copied script (R4-WR-01):
   # a lock held by a partition that already has a status file is never
   # broken by a claimer: the claim times out past
@@ -2933,7 +2977,7 @@ test/a/heavy2_test.exs=hang_quit" run_case "tail queue hang" "pass,pass" 2
   pgrep -f 247hangsentinel >/dev/null && die "self-test: tq-hang: a hung claim's process was left running"
   pgrep -f "$fake_mix" >/dev/null && die "self-test: tq-hang: a fake mix process was left running"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-lock, tq-lock-contention, tq-contention, tq-hang, tq-lane-k)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group, monitor formatter and env, ingest-weights, hang, hang_ignore_term, hang_quit, max/min ratio, test scope, async factor, lane rule, tq-basic, tq-tsv, tq-claim-map, tq-k-pin, tq-order, tq-colocate, tq-async, tq-empty, tq-scope, tq-fail, tq-deadline, tq-deadline-spent, tq-lock, tq-lock-contention, tq-contention, tq-hang, tq-lane-k)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
