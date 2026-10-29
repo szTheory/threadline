@@ -14,6 +14,13 @@ How did you verify the behavior?
 
 <!-- Add or update tests when behavior changes. Update public documentation when a supported API, configuration key, command, or workflow changes. -->
 
+## Release impact
+
+The PR title becomes the squash subject, and its type decides whether merging cuts a release. Check one:
+
+- [ ] Ships nothing to adopters (CI, tests, tooling, docs): the title uses `ci:`, `test:`, `chore:` or `docs:`, never `fix(ci):`.
+- [ ] Changes the published package: the title uses `feat:`, `fix:`, `perf:` or `deps:`, and this PR adds prose under `## Unreleased — highlights` in `CHANGELOG.md`.
+
 ## Related issue (optional)
 
 Link an issue when one exists; small fixes do not need a prior issue.

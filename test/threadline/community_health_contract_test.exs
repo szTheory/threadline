@@ -126,7 +126,12 @@ defmodule Threadline.CommunityHealthContractTest do
     end
 
     pr = File.read!(".github/pull_request_template.md")
-    Enum.each(["Why", "What changed", "Verification"], &assert(String.contains?(pr, &1)))
+
+    Enum.each(
+      ["Why", "What changed", "Verification", "Release impact"],
+      &assert(String.contains?(pr, &1))
+    )
+
     assert String.contains?(pr, "<!--") and String.contains?(String.downcase(pr), "vulnerab")
 
     conduct = File.read!("CODE_OF_CONDUCT.md")

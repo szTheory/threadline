@@ -966,6 +966,15 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
    - A non-releasable merge (`docs:`, `ci:`, `chore:` …) while a Release PR is open regenerates that PR on current `main` (`always-update` in `release-please-config.json`, pushed with the `RELEASE_PLEASE_TOKEN` PAT so its CI runs). No hand rebase and no branch delete are needed.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
+**The squash subject's type decides whether a merge cuts a release.** `feat:`, `fix:`, `perf:` and `deps:` are releasable, and so is any type marked breaking with `!`. The scope does not matter: `fix(ci):` is a fix. Apply the rule in both directions:
+
+- **Ships nothing to adopters** (CI, tests, tooling, planning): merge as `ci:`, `test:` or `chore:`, or as `docs:` for documentation only. Never `fix(ci):`. It opens a Release PR with no release prose to date.
+- **Changes the published package**: merge as `feat:`, `fix:`, `perf:` or `deps:`, and bring the release prose under `## Unreleased — highlights` in `CHANGELOG.md` in the same PR. Without it the Release PR cannot be dated and stays red.
+
+This repository squashes with the PR title, except that a single-commit PR squashes under its commit subject, so set both. Beyond the subject, Release Please also reads the squash body and the PR body, so keep both free of paragraphs that start with a commit type.
+
+`exclude-paths` in `release-please-config.json` is a backstop, not the rule. Release Please ignores a commit only when every file it touches sits under one of the listed directories. The list is the unshipped directories of the Hex package defined by `package()[:files]` in `mix.exs`, and a contract test keeps the two equal. Files at the repository root and single-file modules cannot be listed, so the type rule still applies to them.
+
 A landing PR that carries an adopter-facing `Security` or `Fixed` entry in `CHANGELOG.md` must merge under a releasable squash subject (`fix:`, `feat:`, `perf:` or `deps:`), or carry a `BEGIN_COMMIT_OVERRIDE` block in its PR body before merge — Release Please only parses the squash subject, and a `ci:` or `docs:` subject strands the fix unreleased.
 
 ### Upgrading the Release Please action
