@@ -19,7 +19,7 @@ How did you verify the behavior?
 The squash subject's type decides whether merging cuts a release. The squash subject is the PR title, or the commit subject when the PR has a single commit, so set both. Check one:
 
 - [ ] Ships no code to adopters (CI, tests, tooling) or changes documentation only: the title uses `ci:`, `test:`, `chore:` or `docs:`, never `fix(ci):`.
-- [ ] Changes the library code or dependency requirements: the title uses `feat:`, `fix:`, `perf:` or `deps:`, and this PR adds prose under `## Unreleased — highlights` in `CHANGELOG.md`.
+- [ ] Changes the library code or dependency requirements, or another shipped non-documentation file (`priv/fonts`, the brandbook logos, `.formatter.exs`): the title uses `feat:`, `fix:`, `perf:` or `deps:`, and this PR adds prose under `## Unreleased — highlights` in `CHANGELOG.md`.
 
 ## Related issue (optional)
 
