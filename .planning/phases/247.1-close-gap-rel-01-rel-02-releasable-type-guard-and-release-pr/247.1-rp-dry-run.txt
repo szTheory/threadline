@@ -1,0 +1,27 @@
+# release-please exclude-paths rehearsal (programmatic dry-run, read-only)
+# date (UTC):   2026-10-29T02:44:02Z
+# origin/main:  04169af7fc5f6644efc96f615f0f2de1e57f70af  (git fetch origin main; git rev-parse origin/main)
+# library:      release-please@17.6.0 (scratch install, npm_config_ignore_scripts=true, deleted after use)
+# script:       247.1-rp-dry-run.js (Manifest.fromManifest on main -> override repositoryConfig['.'].excludePaths -> buildPullRequests())
+# command shape (run once per EXCL set, from the scratch dir):
+#   RP_TOKEN="$(gh auth token)" EXCL='<json list>' NODE_PATH=<scratch>/node_modules node 247.1-rp-dry-run.js 2>&1 \
+#     | sed "s/\x1b\[[0-9;]*m//g" | grep -E "EXCLUDE|CANDIDATES|No user facing"
+# expected: [] -> 1 (release 1.1.1); committed list -> 0 with "No user facing"; ["bin/ci-test-partitions"] -> 1; ["bin"] -> 0
+
+## run 1: baseline, EXCL=[]
+EXCLUDE []
+CANDIDATES 1 [ 'chore(main): release 1.1.1' ]
+
+## run 2: committed list, EXCL=jq -c '.packages["."]["exclude-paths"]' release-please-config.json
+✔ No user facing commits found since c846ddce72f0ff6354f2cbf4f19fba7112ceed40 - skipping
+EXCLUDE [".github",".impeccable",".planning","bench","bin","brandbook/examples","brandbook/tools","config","examples","lib/threadline/operator_surface/live/stress_live","priv/ci","priv/repo","prompts","scripts","test"]
+CANDIDATES 0 []
+
+## run 3: control, a file path entry matches nothing, EXCL=["bin/ci-test-partitions"]
+EXCLUDE ["bin/ci-test-partitions"]
+CANDIDATES 1 [ 'chore(main): release 1.1.1' ]
+
+## run 4: control, the directory entry, EXCL=["bin"]
+✔ No user facing commits found since c846ddce72f0ff6354f2cbf4f19fba7112ceed40 - skipping
+EXCLUDE ["bin"]
+CANDIDATES 0 []

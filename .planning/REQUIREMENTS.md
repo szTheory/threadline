@@ -8,7 +8,7 @@
 
 ### Release flow
 
-- [x] **REL-01**: The maintainer writes release prose under `## Unreleased` (plus the upgrade-path row) in the landing PR, and the release workflow renames it to `## [X.Y.Z] - YYYY-MM-DD` on the release branch. The release PR's first CI run is green and no separate CHANGELOG-dating PR is needed; the release-shape and version-truth contract tests prove it.
+- [ ] **REL-01**: The maintainer writes release prose under `## Unreleased` (plus the upgrade-path row) in the landing PR, and the release workflow renames it to `## [X.Y.Z] - YYYY-MM-DD` on the release branch. The release PR's first CI run is green and no separate CHANGELOG-dating PR is needed; the release-shape and version-truth contract tests prove it.
 - [ ] **REL-02**: When a non-releasable merge leaves an open release PR behind main (release-please reports it unchanged), the release workflow rebases it with a CI-triggering token, and fresh CI runs with no human action.
 - [x] **REL-03**: Network dependency fetches in CI (`mix deps.get`, the hex-evaluator resolve) retry with backoff on transient failure; test steps are never retried.
 - [x] **REL-04**: The cause of the 1.1.0 `deps.get --check-locked` manager-field mismatch is verified. If Hex version drift is the cause, CI pins the Hex version, so the lock mismatch cannot recur silently.
@@ -22,12 +22,12 @@
 
 ### CI critical path and suite lanes
 
-- [ ] **CI-01**: Every main CI run publishes the slowest browser specs (at least the top 20 with durations) in the job summary or an artifact.
-- [ ] **CI-02**: Browser E2E runs as one parallel job per Playwright project. The operator-journey receipt still reconciles every journey, and median CI wall time over 5 main runs is ≤ 9 minutes. This is the measured gate for SEED-006's reopen condition.
-- [ ] **CI-03**: Repo-file contract tests run only on the current lane (local `mix test` stays whole and the honest-default docs stay true), and partition weights are refreshed from CI timings so the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
-- [ ] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
+- [x] **CI-01**: Every main CI run publishes the slowest browser specs (at least the top 20 with durations) in the job summary or an artifact.
+- [x] **CI-02**: Browser E2E runs as one parallel job per Playwright project. The operator-journey receipt still reconciles every journey, and median CI wall time over 5 main runs is ≤ 9 minutes. This is the measured gate for SEED-006's reopen condition.
+- [x] **CI-03**: Repo-file contract tests run only on the current lane (local `mix test` stays whole and the honest-default docs stay true), and partition weights are refreshed from CI timings so the slowest/fastest partition ratio is ≤ 1.15 over 3 runs.
+- [x] **CI-04**: A hung test fails within its partition timeout and names the stuck test, instead of running to the 25-minute job timeout. This is reproduced against the PR #89 evidence (run 40137607358, job 121002346075).
 
-Phase 247 verification: 2/4 criteria passed on the authoritative B4 record (CI-02 INCOMPLETE, CI-03 MISS; CI-01 and CI-04 retain passing evidence in `247-VERIFICATION.md`). B5 (247-28, main 824c2851) since measured CI-02 PASS (median 457 s) and CI-03 MISS on the current lane (1.17/1.17/1.09; min and latest pass). The D-27 tail-queue remedy (247-30/31) stopped at the D-29 pre-registration gate in 247-32: the worst 8 s/claim replay is 1.101 on min and 1.107 on latest, above 1.08, so no B6 cohort ran (0 hosted runs). See 247-B6-PREDICTION.md and 247-B6-ESCALATION.md, which recommends accepting CI-03 as unmet-but-bounded with a measured-trigger seed. 247-33 was not run. No CI-0x requirement is marked complete until phase re-verification and the maintainer's CI-03 scope decision. The earlier B3 3/4 result is historical.
+Phase 247 verification: status passed, 4/4 (`247-VERIFICATION.md`, 2026-10-28). CI-02 holds a median of 461 s over five attempt-1 main runs (limit 540 s), and CI-03 is at or below 1.15 on every lane at squash 11234b01 (PR #99; first three runs: current 1.06/1.02/1.02, min 1.06/1.07/1.06, latest 1.09/1.05/1.09). CI-01 and CI-04 keep their passing evidence. Earlier partial results are historical; see that file for the full record.
 
 ### Debt closeout
 
@@ -54,8 +54,8 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REL-01 | Phase 244 | Complete |
-| REL-02 | Phase 244 | Pending (contract verified; observed run deferred to first release cycle after landing, 244-REL02-EVIDENCE.md) |
+| REL-01 | Phase 244 → 247.1 | Pending (contract verified; first live release PR #101 went red at CHANGELOG dating, v1.47-MILESTONE-AUDIT.md F1; gap phase 247.1 planned) |
+| REL-02 | Phase 244 → 247.1 | Pending (contract verified; observation blocked until #101 is recovered, 244-REL02-EVIDENCE.md; gap phase 247.1 planned) |
 | REL-03 | Phase 244 | Complete |
 | REL-04 | Phase 244 | Complete |
 | SUP-01 | Phase 245 | Complete |
@@ -64,10 +64,10 @@ Ranked in `.planning/MILESTONE-ARC.md`: v1.48 Safe by default, v1.49 Honest spec
 | SUP-04 | Phase 245 | Complete |
 | DEBT-01 | Phase 246 | Complete |
 | DEBT-02 | Phase 246 | Complete |
-| CI-01 | Phase 247 | Gaps Found |
-| CI-02 | Phase 247 | Gaps Found |
-| CI-03 | Phase 247 | Pending |
-| CI-04 | Phase 247 | Gaps Found |
+| CI-01 | Phase 247 | Complete |
+| CI-02 | Phase 247 | Complete |
+| CI-03 | Phase 247 | Complete |
+| CI-04 | Phase 247 | Complete |
 
 **Coverage:**
 - v1.47 requirements: 14 total
