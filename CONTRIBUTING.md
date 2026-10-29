@@ -727,8 +727,8 @@ The test jobs restore a deps-only `_build` cache so they stop recompiling the
 same dependencies on every run. The root project caches `_build/$MIX_ENV`; the
 example app caches `examples/threadline_phoenix/_build/$MIX_ENV` together with
 its own `examples/threadline_phoenix/deps` (the root `deps/` keeps its existing
-`Cache deps` step). Each cache uses split `actions/cache/restore@v5` and
-`actions/cache/save@v5` steps, and the save runs only on a miss, after a
+`Cache deps` step). Each cache uses split `actions/cache/restore` and
+`actions/cache/save` steps, and the save runs only on a miss, after a
 successful `mix deps.compile`. No save uses `always()` or `continue-on-error`,
 so a failed or partial dependency build is never stored.
 
@@ -997,8 +997,9 @@ A new major of `googleapis/release-please-action` bundles a newer `release-pleas
    ```
 
    Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
-4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
-5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+4. On any bump that changes the bundled `release-please` version, read `src/util/commit-exclude.ts` at the new library tag before trusting the `exclude-paths` backstop described under "Ongoing releases". Confirm that it still matches directory prefixes only, and that it still drops a commit only when every file the commit touches is excluded. If either behavior changed, update the `exclude-paths` contract test and the "Ongoing releases" wording in the same change.
+5. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
+6. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
 
 Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
 
