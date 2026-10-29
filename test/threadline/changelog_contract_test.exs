@@ -320,26 +320,52 @@ defmodule Threadline.ChangelogContractTest do
 
     assert releasable != [], "#{@release_please_config} names no releasable changelog section"
 
-    type_needles =
-      Enum.map(["ci", "test", "chore"], &"`#{&1}:`") ++
-        ["`fix(ci):`"] ++ Enum.map(releasable, &"`#{&1}:`")
+    # Each direction is checked inside its own bullet or checkbox, so deleting
+    # one direction turns the test red even where older prose in the section
+    # still names the same types.
+    ship_nothing_needles =
+      Enum.map(["ci", "test", "chore", "docs"], &"`#{&1}:`") ++ ["`fix(ci):`"]
+
+    releasable_needles = Enum.map(releasable, &"`#{&1}:`") ++ [@unreleased_heading_text]
 
     contributing_section = ongoing_releases_section(read!("CONTRIBUTING.md"))
     assert contributing_section, "CONTRIBUTING.md has no `### Ongoing releases` section"
     pr_template = read!(@pr_template)
 
+    contributing_lines = String.split(contributing_section, "\n")
+    pr_lines = String.split(pr_template, "\n")
+
+    rules = [
+      {"CONTRIBUTING.md ship-nothing bullet",
+       line_starting(contributing_lines, "- **Ships no code to adopters**"),
+       ship_nothing_needles},
+      {"CONTRIBUTING.md releasable bullet",
+       line_starting(
+         contributing_lines,
+         "- **Changes the library code or dependency requirements**"
+       ), releasable_needles},
+      # A single-commit PR squashes under its commit subject, not the PR
+      # title (`squash_merge_commit_title=COMMIT_OR_PR_TITLE`).
+      {"CONTRIBUTING.md `### Ongoing releases`", contributing_section,
+       ["exclude-paths", "package()[:files]", "single-commit PR"]},
+      {"#{@pr_template} ship-nothing checkbox",
+       line_starting(pr_lines, "- [ ] Ships no code to adopters"), ship_nothing_needles},
+      {"#{@pr_template} releasable checkbox",
+       line_starting(pr_lines, "- [ ] Changes the library code or dependency requirements"),
+       releasable_needles},
+      {@pr_template, pr_template, ["single commit"]}
+    ]
+
     missing =
-      for {file, text, needles} <- [
-            {"CONTRIBUTING.md `### Ongoing releases`", contributing_section,
-             type_needles ++ [@unreleased_heading_text, "exclude-paths", "package()[:files]"]},
-            # A single-commit PR squashes under its commit subject, not the PR
-            # title (`squash_merge_commit_title=COMMIT_OR_PR_TITLE`).
-            {@pr_template, pr_template,
-             type_needles ++ [@unreleased_heading_text, "single commit"]}
-          ],
-          needle <- needles,
-          not String.contains?(text, needle),
-          do: "#{file} does not mention #{inspect(needle)}"
+      Enum.flat_map(rules, fn
+        {where, nil, _needles} ->
+          ["#{where} is missing"]
+
+        {where, text, needles} ->
+          for needle <- needles,
+              not String.contains?(text, needle),
+              do: "#{where} does not mention #{inspect(needle)}"
+      end)
 
     assert missing == [],
            Enum.join(missing, "\n") <>
@@ -352,6 +378,8 @@ defmodule Threadline.ChangelogContractTest do
              "would inherit it, and Release Please would replace the real commit message with " <>
              "the rest of the PR body."
   end
+
+  defp line_starting(lines, prefix), do: Enum.find(lines, &String.starts_with?(&1, prefix))
 
   # From the `### Ongoing releases` heading to the next `###`/`##` heading.
   defp ongoing_releases_section(contributing) do
