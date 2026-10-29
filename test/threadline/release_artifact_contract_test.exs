@@ -50,6 +50,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     ]
   }
 
+  @release_please_config "release-please-config.json"
+
   defp project_config, do: Threadline.MixProject.project()
 
   defp docs_config, do: project_config()[:docs]
@@ -227,6 +229,30 @@ defmodule Threadline.ReleaseArtifactContractTest do
              "release-automation output as a documentation page on the published docs site."
   end
 
+  # Release Please decides which commits can open a release PR. A commit whose
+  # files all sit under an `exclude-paths` entry is dropped before its type is
+  # read, so a `fix(ci):` that only touches CI tooling cannot cut an empty
+  # release. The built archive is the ground truth for what ships: the list
+  # must name exactly the tracked directories that ship nothing, and must
+  # never cover a shipped file.
+  test "exclude-paths names exactly the unshipped directories of the built Hex archive" do
+    %{entries: entries} = built_archive()
+    assert entries != [], "unpacked Hex archive contained no files"
+
+    tracked = tracked_files()
+    archived = MapSet.new(entries)
+    shipped = tracked |> Enum.filter(&MapSet.member?(archived, &1)) |> MapSet.new()
+
+    assert "lib/threadline.ex" in shipped
+    assert "mix.exs" in shipped
+
+    configured = configured_exclude_paths()
+    residue = uncovered_residue(configured, tracked, shipped)
+
+    errors = exclude_paths_errors(configured, tracked, shipped, residue)
+    assert errors == [], Enum.join(errors, "\n")
+  end
+
   test "planning-vocabulary matcher rejects every representative offender" do
     offenders = [
       {"README.md", "Phase 200 prepared this text"},
@@ -396,6 +422,82 @@ defmodule Threadline.ReleaseArtifactContractTest do
       [] -> "(README carries no `{:threadline, ...}` install snippet at all)"
       lines -> Enum.join(lines, " | ")
     end
+  end
+
+  defp configured_exclude_paths do
+    @release_please_config
+    |> File.read!()
+    |> Jason.decode!()
+    |> get_in(["packages", ".", "exclude-paths"])
+    |> List.wrap()
+  end
+
+  # `-z` is load-bearing: without it git C-quotes names holding non-ASCII
+  # characters, and a quoted name yields a bogus top-level directory.
+  defp tracked_files do
+    {out, 0} = System.cmd("git", ["ls-files", "-z"], cd: File.cwd!())
+    String.split(out, <<0>>, trim: true)
+  end
+
+  # Every ancestor directory of every given file.
+  defp dirs_of(files) do
+    for file <- files,
+        parts = file |> Path.split() |> Enum.drop(-1),
+        n <- 1..length(parts)//1,
+        into: MapSet.new(),
+        do: parts |> Enum.take(n) |> Path.join()
+  end
+
+  # Release Please matches an exclude entry against a file by directory
+  # prefix only: `file` starts with `entry <> "/"`.
+  defp under?(file, dir), do: String.starts_with?(file, dir <> "/")
+
+  defp ships_under?(shipped, dir), do: Enum.any?(shipped, &under?(&1, dir))
+
+  # The maximal tracked directories with no shipped file: a directory qualifies
+  # when nothing under it ships and its parent is the root or holds a shipped
+  # file.
+  defp expected_exclude_paths(tracked, shipped) do
+    for dir <- dirs_of(tracked),
+        not ships_under?(shipped, dir),
+        parent = Path.dirname(dir),
+        parent == "." or ships_under?(shipped, parent) do
+      dir
+    end
+    |> Enum.sort()
+  end
+
+  # Unshipped tracked files that no entry covers.
+  defp uncovered_residue(entries, tracked, shipped) do
+    tracked
+    |> Enum.reject(
+      &(MapSet.member?(shipped, &1) or Enum.any?(entries, fn e -> under?(&1, e) end))
+    )
+    |> Enum.sort()
+  end
+
+  # Pure contract rules over the `exclude-paths` list, returned as
+  # `rule=<id>: ...` messages (empty when the list is correct).
+  defp exclude_paths_errors(entries, tracked, shipped, _pinned_residue) do
+    expected = MapSet.new(expected_exclude_paths(tracked, shipped))
+    configured = MapSet.new(entries)
+    missing = expected |> MapSet.difference(configured) |> Enum.sort()
+    stale = configured |> MapSet.difference(expected) |> Enum.sort()
+
+    [
+      {missing == [],
+       "rule=set-equal: #{@release_please_config} `exclude-paths` is missing " <>
+         "#{inspect(missing)}: these tracked directories ship nothing in the built Hex " <>
+         "archive, so a commit touching only them could open a release PR. Add the " <>
+         "directory to `exclude-paths` in #{@release_please_config}, or ship a file under " <>
+         "it via `package()[:files]` in mix.exs"},
+      {stale == [],
+       "rule=set-equal: #{@release_please_config} `exclude-paths` has stale entries " <>
+         "#{inspect(stale)}: each is not a maximal tracked directory that ships nothing. " <>
+         "Remove the stale entry"}
+    ]
+    |> Enum.reject(fn {ok, _message} -> ok end)
+    |> Enum.map(fn {_ok, message} -> message end)
   end
 
   defp built_archive do
