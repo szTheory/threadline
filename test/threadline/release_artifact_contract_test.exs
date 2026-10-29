@@ -229,6 +229,50 @@ defmodule Threadline.ReleaseArtifactContractTest do
              "release-automation output as a documentation page on the published docs site."
   end
 
+  # Unshipped tracked files that `exclude-paths` cannot cover. Release Please
+  # matches entries as directory prefixes only, so a top-level file, a file
+  # sitting directly in a directory that also ships files (`brandbook/`), or a
+  # single module excluded from the package by `exclude_patterns` in mix.exs
+  # can never be listed. A commit touching only these paths is kept out of a
+  # release by its commit type instead (CONTRIBUTING "Ongoing releases"). The
+  # list is pinned so that every new entry is a conscious decision.
+  @exclude_paths_residue [
+    ".credo.exs",
+    ".dialyzer_ignore.exs",
+    ".dockerignore",
+    ".env.example",
+    ".gitignore",
+    ".release-please-manifest.json",
+    ".tool-versions",
+    "AGENTS.md",
+    "CHANGELOG-GENERATED.md",
+    "CLAUDE.md",
+    "CODE_OF_CONDUCT.md",
+    "DESIGN-SYSTEM.md",
+    "GEMINI.md",
+    "PRODUCT.md",
+    "SECURITY.md",
+    "brandbook/README.md",
+    "brandbook/brand-book.md",
+    "brandbook/index.html",
+    "brandbook/logo-mark.svg",
+    "brandbook/logo-monochrome.svg",
+    "brandbook/logo-primary-subtitle.svg",
+    "brandbook/logo-wordmark.svg",
+    "brandbook/pressure-test.md",
+    "brandbook/social-card.svg",
+    "brandbook/tokens.css",
+    "brandbook/tokens.json",
+    "docker-compose.proxy.yml",
+    "docker-compose.yml",
+    "lib/mix/tasks/release.pins.ex",
+    "lib/threadline/operator_surface/live/stress_live.ex",
+    "lib/threadline/operator_surface/stress_fixtures.ex",
+    "lib/threadline/operator_surface/stress_router.ex",
+    "mix.lock",
+    "release-please-config.json"
+  ]
+
   # Release Please decides which commits can open a release PR. A commit whose
   # files all sit under an `exclude-paths` entry is dropped before its type is
   # read, so a `fix(ci):` that only touches CI tooling cannot cut an empty
@@ -247,10 +291,49 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "mix.exs" in shipped
 
     configured = configured_exclude_paths()
-    residue = uncovered_residue(configured, tracked, shipped)
-
-    errors = exclude_paths_errors(configured, tracked, shipped, residue)
+    errors = exclude_paths_errors(configured, tracked, shipped, @exclude_paths_residue)
     assert errors == [], Enum.join(errors, "\n")
+
+    # Mutation controls: each broken list must fire its own rule. They reuse
+    # the archive built above; none needs a second hex.build.
+    fires? = fn errors, rule -> Enum.any?(errors, &String.starts_with?(&1, "rule=#{rule}:")) end
+
+    covers_lib =
+      exclude_paths_errors(configured ++ ["lib"], tracked, shipped, @exclude_paths_residue)
+
+    assert fires?.(covers_lib, "sound"),
+           "adding \"lib\" must fire rule=sound, got: #{inspect(covers_lib)}"
+
+    drops_bin =
+      exclude_paths_errors(configured -- ["bin"], tracked, shipped, @exclude_paths_residue)
+
+    assert fires?.(drops_bin, "set-equal") and
+             Enum.any?(drops_bin, &(&1 =~ ~s(missing ["bin"]))),
+           "dropping \"bin\" must fire rule=set-equal naming bin, got: #{inspect(drops_bin)}"
+
+    names_file =
+      exclude_paths_errors(
+        configured ++ ["bin/ci-test-partitions"],
+        tracked,
+        shipped,
+        @exclude_paths_residue
+      )
+
+    assert fires?.(names_file, "shape"),
+           "a file path entry must fire rule=shape, got: #{inspect(names_file)}"
+
+    new_top_level =
+      exclude_paths_errors(
+        configured,
+        ["NEW-NOTES.md" | tracked],
+        shipped,
+        @exclude_paths_residue
+      )
+
+    assert fires?.(new_top_level, "residue") and
+             Enum.any?(new_top_level, &(&1 =~ "NEW-NOTES.md")),
+           "a new unshipped top-level file must fire rule=residue, got: " <>
+             inspect(new_top_level)
   end
 
   test "planning-vocabulary matcher rejects every representative offender" do
@@ -478,12 +561,19 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   # Pure contract rules over the `exclude-paths` list, returned as
   # `rule=<id>: ...` messages (empty when the list is correct).
-  defp exclude_paths_errors(entries, tracked, shipped, _pinned_residue) do
+  defp exclude_paths_errors(entries, tracked, shipped, pinned_residue) do
     expected = MapSet.new(expected_exclude_paths(tracked, shipped))
     configured = MapSet.new(entries)
     missing = expected |> MapSet.difference(configured) |> Enum.sort()
     stale = configured |> MapSet.difference(expected) |> Enum.sort()
 
+    set_equal_errors(missing, stale) ++
+      sound_errors(entries, shipped) ++
+      shape_errors(entries, dirs_of(tracked)) ++
+      residue_errors(uncovered_residue(entries, tracked, shipped), pinned_residue)
+  end
+
+  defp set_equal_errors(missing, stale) do
     [
       {missing == [],
        "rule=set-equal: #{@release_please_config} `exclude-paths` is missing " <>
@@ -496,8 +586,61 @@ defmodule Threadline.ReleaseArtifactContractTest do
          "#{inspect(stale)}: each is not a maximal tracked directory that ships nothing. " <>
          "Remove the stale entry"}
     ]
-    |> Enum.reject(fn {ok, _message} -> ok end)
-    |> Enum.map(fn {_ok, message} -> message end)
+    |> failed_messages()
+  end
+
+  # No entry may cover a shipped file: Release Please would then ignore a
+  # commit that changes the published package.
+  defp sound_errors(entries, shipped) do
+    for entry <- Enum.uniq(entries),
+        swallowed = Enum.filter(shipped, &(entry == "." or under?(&1, entry))) |> Enum.sort(),
+        swallowed != [] do
+      "rule=sound: `exclude-paths` entry #{inspect(entry)} covers #{length(swallowed)} " <>
+        "shipped file(s), for example #{inspect(Enum.take(swallowed, 3))}. A real fix under " <>
+        "it would never cut a release. Remove the entry"
+    end
+  end
+
+  # Release Please matches entries as plain directory prefixes (`file` starts
+  # with `entry <> "/"`, and `"."` excludes everything). A glob, a file path, or
+  # a path with a leading or trailing slash silently matches nothing or too much.
+  defp shape_errors(entries, tracked_dirs) do
+    for entry <- Enum.uniq(entries),
+        entry == "." or String.contains?(entry, ["*", "?", "[", "{"]) or
+          String.starts_with?(entry, "/") or String.ends_with?(entry, "/") or
+          not MapSet.member?(tracked_dirs, entry) do
+      "rule=shape: `exclude-paths` entry #{inspect(entry)} is not a plain directory holding " <>
+        "tracked files. Release Please matches entries as directory prefixes only: no " <>
+        "`.`, no glob characters, no file paths, no leading or trailing slash"
+    end
+  end
+
+  defp residue_errors(uncovered, pinned_residue) do
+    uncovered = MapSet.new(uncovered)
+    pinned = MapSet.new(pinned_residue)
+    added = uncovered |> MapSet.difference(pinned) |> Enum.sort()
+    removed = pinned |> MapSet.difference(uncovered) |> Enum.sort()
+
+    remedy =
+      "Either move the file under an excluded directory, or add it to " <>
+        "`@exclude_paths_residue` in this test with a reason. Commits touching only " <>
+        "these paths are kept out of a release by their commit type (CONTRIBUTING " <>
+        "\"Ongoing releases\")"
+
+    [
+      {added == [],
+       "rule=residue: unshipped tracked file(s) #{inspect(added)} are not covered by any " <>
+         "`exclude-paths` entry and are not in the pinned residue. " <> remedy},
+      {removed == [],
+       "rule=residue: pinned residue #{inspect(removed)} is no longer an uncovered " <>
+         "unshipped tracked file (shipped, covered, renamed or deleted). Remove it from " <>
+         "`@exclude_paths_residue`"}
+    ]
+    |> failed_messages()
+  end
+
+  defp failed_messages(checks) do
+    for {false, message} <- checks, do: message
   end
 
   defp built_archive do
