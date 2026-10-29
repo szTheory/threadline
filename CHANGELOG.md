@@ -21,7 +21,25 @@
 
 ## Unreleased — highlights
 
-_Nothing yet for the next release._
+The documentation that ships with the package is updated, and the
+maintainer-only Mix aliases changed. Neither change touches the library
+code or its dependency requirements.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None. No migration, trigger regeneration or configuration change is needed.
+
+### Changed
+
+- The contributor guide, the configuration and commands reference and the
+  adoption-pilot guide are updated. The reference no longer lists
+  maintainer-only commands that are no longer part of the repository.
+- Maintainer-only Mix aliases in `mix.exs` changed. Mix does not expose a
+  dependency's aliases to the application that depends on it.
 
 ## [1.1.0] - 2026-10-23
 
