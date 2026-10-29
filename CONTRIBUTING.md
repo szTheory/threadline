@@ -727,8 +727,8 @@ The test jobs restore a deps-only `_build` cache so they stop recompiling the
 same dependencies on every run. The root project caches `_build/$MIX_ENV`; the
 example app caches `examples/threadline_phoenix/_build/$MIX_ENV` together with
 its own `examples/threadline_phoenix/deps` (the root `deps/` keeps its existing
-`Cache deps` step). Each cache uses split `actions/cache/restore@v5` and
-`actions/cache/save@v5` steps, and the save runs only on a miss, after a
+`Cache deps` step). Each cache uses split `actions/cache/restore` and
+`actions/cache/save` steps, and the save runs only on a miss, after a
 successful `mix deps.compile`. No save uses `always()` or `continue-on-error`,
 so a failed or partial dependency build is never stored.
 
@@ -966,7 +966,16 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
    - A non-releasable merge (`docs:`, `ci:`, `chore:` …) while a Release PR is open regenerates that PR on current `main` (`always-update` in `release-please-config.json`, pushed with the `RELEASE_PLEASE_TOKEN` PAT so its CI runs). No hand rebase and no branch delete are needed.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
-A landing PR that carries an adopter-facing `Security` or `Fixed` entry in `CHANGELOG.md` must merge under a releasable squash subject (`fix:`, `feat:`, `perf:` or `deps:`), or carry a `BEGIN_COMMIT_OVERRIDE` block in its PR body before merge — Release Please only parses the squash subject, and a `ci:` or `docs:` subject strands the fix unreleased.
+**The squash subject's type decides whether a merge cuts a release.** `feat:`, `fix:`, `perf:` and `deps:` are releasable, and so is any type marked breaking with `!`. The scope does not matter: `fix(ci):` is a fix. Apply the rule in both directions:
+
+- **Ships no code to adopters** (CI, tests, tooling, planning) **or changes documentation only**: merge as `ci:`, `test:` or `chore:`, or as `docs:` for documentation. Documentation ships with the package, so a `docs:` change reaches adopters in the next release without cutting one. Never `fix(ci):`: unless every file it touches is under `exclude-paths`, it opens a Release PR with no release prose to date.
+- **Changes the library code or dependency requirements**, or another shipped non-documentation file (`priv/fonts`, the brandbook logos, `.formatter.exs`): merge as `feat:`, `fix:`, `perf:` or `deps:`, and bring the release prose under `## Unreleased — highlights` in `CHANGELOG.md` in the same PR. Without it the Release PR cannot be dated and stays red.
+
+This repository squashes with the PR title, except that a single-commit PR squashes under its commit subject, so set both. Release Please also parses the squash body (the PR's commit messages), so keep it free of paragraphs that start with a commit type and of `BREAKING CHANGE` footers. Release Please reads a paragraph that starts with a type as a commit of its own, so a `fix:` paragraph makes even a `ci:` squash releasable, and a `BREAKING CHANGE` footer makes it a major release. The PR body matters only through `BEGIN_COMMIT_OVERRIDE`.
+
+`exclude-paths` in `release-please-config.json` is a backstop, not the rule. Release Please ignores a commit only when every file it touches sits under one of the listed directories. The list is the unshipped directories of the Hex package defined by `package()[:files]` in `mix.exs`, and a contract test keeps the two equal. Files at the repository root, files sitting directly in a directory that also ships files (such as `brandbook/`), and single-file modules cannot be listed, so the type rule still applies to them.
+
+A landing PR that carries an adopter-facing `Security` or `Fixed` entry in `CHANGELOG.md` must merge under a releasable squash subject (`fix:`, `feat:`, `perf:` or `deps:`), or carry a `BEGIN_COMMIT_OVERRIDE` block in its PR body before merge — Release Please reads the squash commit, not `CHANGELOG.md`, and a `ci:` or `docs:` subject strands the fix unreleased.
 
 ### Upgrading the Release Please action
 
@@ -988,8 +997,9 @@ A new major of `googleapis/release-please-action` bundles a newer `release-pleas
    ```
 
    Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
-4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
-5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+4. On any bump that changes the bundled `release-please` version, read `src/util/commit-exclude.ts` at the new library tag before trusting the `exclude-paths` backstop described under "Ongoing releases". Confirm that it still matches directory prefixes only, and that it still drops a commit only when every file the commit touches is excluded. If either behavior changed, update the `exclude-paths` contract test and the "Ongoing releases" wording in the same change.
+5. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml`'s `# vX.Y.Z` pin comment and this section disagree).
+6. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@<sha>'`, where `<sha>` is the 40-hex commit pinned in `release.yml` and matches the tag in that line's `# vX.Y.Z` comment, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
 
 Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
 

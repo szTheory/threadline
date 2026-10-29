@@ -1,6 +1,6 @@
 # 244 REL-02 Evidence: observed release-PR refresh
 
-Status: pending — bound to the first natural release cycle after this phase lands; no throwaway release (maintainer rule)
+Status: observed — release run 40816123990, CI run 40816299568, head 2c5fd6a7329a90fb02dcb008cd014b27ad8835d2
 
 Recorded: 2026-10-25, by plan 244-07 (agent-run, read-only `gh`).
 Closed by: the milestone close audit (v1.47) or the next phase's verifier. Whoever closes it re-runs the commands in section 3 once the trigger condition in section 2 holds, then rewrites the `Status:` line to `observed — release run <id>, CI run <id>, head <sha>`.
@@ -62,7 +62,7 @@ The sync job is gated on `needs.release-please.outputs.prs_created == 'true'`. 2
 
 ## 7. Status
 
-Status: pending — bound to the first natural release cycle after this phase lands; no throwaway release (maintainer rule)
+Status: observed — release run 40816123990, CI run 40816299568, head 2c5fd6a7329a90fb02dcb008cd014b27ad8835d2
 
 Snapshot taken 2026-10-25 while recording this file (phase 244 not yet landed on `main`):
 
@@ -74,3 +74,24 @@ The trigger condition (section 2) is therefore not met. That is the expected out
 ## 8. Maintainer-owned items
 
 - **Q2: `RELEASE_PLEASE_TOKEN` expiry.** The secret is a fine-grained PAT. `gh secret list` shows it was last updated 2026-05-28T15:14:58Z. Fine-grained PATs usually carry an expiry date, and agents cannot read it. An expired PAT fails loudly at the release-please step (see the ECON-03 comment above the `Bootstrap CI on Release PR` job in release.yml), so `prs_created` comes back false and the risk is a visible red run, not a silently stale release PR. Action: check the expiry date in the GitHub token settings, record it here, and rotate the PAT before it lapses.
+
+## 9. Observation
+
+Observed 2026-10-29 (UTC) by plan 247.1-03 (agent-run; the §3 commands were run verbatim and are read-only). The full snapshot is in `.planning/phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-LANDING.md` § REL-02 observation.
+
+**Trigger (§2).** Phase 244 is on `main`. Release PR #101 (`chore(main): release 1.1.1`) was open at head dbd2f72f3b5feac8232aa1b95c35215bf4b105e0 (H0), with red CI. PR A #102 was merged as squash bcc191d66c9444e9e2cfa970779c5247f6936930 at 2026-10-29T04:09:07Z. It was a `docs(changelog):` merge, non-releasable, made while #101 was open. No throwaway release, `fix:` commit, hand push or dispatch was made.
+
+**Results:**
+
+- a (re-run after the merge): #101 head is 2c5fd6a7329a90fb02dcb008cd014b27ad8835d2 (H1), which differs from H0.
+- b: release.yml push run 40816123990 on headSha bcc191d6 has conclusion `success`.
+- c: `0` (no `remained the same` line).
+- d: `Release Please` success, `Sync install pins on Release PR` **success** (it ran; its dating and push steps both succeeded). `Bootstrap CI on Release PR` concluded success, but its `Dispatch CI on release PR branch` step was skipped because the PAT is configured. All publish-chain jobs were skipped.
+- e: ci.yml `pull_request` run 40816299568 on H1 has conclusion `success`. Run 40816160001 on the intermediate head af89ded3 (release-please's force-push, superseded seconds later by the sync push) was `cancelled`. Per §5 that is not a failure.
+- Nobody acted by hand between the merge and the CI run. Every ci.yml run on the release branch is `event: pull_request`, and no `workflow_dispatch` run exists.
+
+All §4 pass conditions hold, so REL-02 is observed.
+
+Assumption A1 confirmed live: `prs_created` was true for the always-update refresh; the §6 fallback is not needed.
+
+**Dating mechanism working live.** The refreshed head's CHANGELOG.md carries `## [1.1.1] - 2026-10-29`, written by the sync job's "Date the CHANGELOG from the Unreleased block" step. PR A's summary paragraph follows it, and a fresh `## Unreleased — highlights` block sits above. All 17 checks on H1 are green, including `CHANGELOG matches version` and `CI required`. #101 was left open and unmerged, and no tag or GitHub Release was created.

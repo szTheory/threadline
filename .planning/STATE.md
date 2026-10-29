@@ -1,20 +1,18 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.47
-current_phase: 247
-current_phase_name: CI critical path and suite lanes
-status: gaps_found
-stopped_at: "247-35 complete (D-32 prediction-2 gate PASS: current worst 1.063714 <= 1.08, predicted CI-02 493.8 s <= 510); next 247-36 (landing PR, P8 preflight, B6 cohort)"
-last_updated: "2026-10-28T21:17:00.000Z"
-last_activity: 2026-10-28
-last_activity_desc: "247-35 complete. tools/tail_queue_replay.py extended for the per-lane runner (b94edfe0): LANE_K from the runner lift line, current assignment pinned to round 1, K=0 lanes static, current-only gate, uniform 1.15 preflight (D-33). One pre-registered replay (TQ-PREREG-2 at 7d555e68; 42 artifacts, 168 pinned TSVs, 0 unavailable) gave gate PASS in 247-B6-PREDICTION-2.md (bdfd6ddf): current worst 1.063714 (round 1 re-derived), predicted CI-02 457 + 19.837 + 17 = 493.8 s; min/latest static worst 1.277516/1.321384 information only. 0 hosted runs"
-state_head: 9c4d137a5f2ba70fff411bfee0a75831f37347ba
+current_phase: "247.1"
+status: Gap phase inserted after milestone audit
+stopped_at: "Phase 247 complete (verified 4/4 at main 11234b01: CI-02 461 s, CI-03 current 1.06/1.02/1.02); all v1.47 phases complete; follow-ups: /gsd-secure-phase 247, R4-WR-01..03"
+last_updated: "2026-10-29T01:38:59.608Z"
+last_activity: 2026-10-29
+last_activity_desc: v1.47 audit gaps_found; Phase 247.1 inserted
+state_head: 869d02c86003124891cc18ce952b572da52776f5
 progress:
-  total_phases: 4
-  completed_phases: 3
+  total_phases: 5
+  completed_phases: 4
   total_plans: 62
-  completed_plans: 58
-  percent: 75
+  completed_plans: 62
 milestone_name: Release on autopilot
 ---
 
@@ -29,15 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
 
 ## Current Position
 
-Phase: 247 (CI critical path and suite lanes) — D-32 GAP ROUND: 247-35 complete (prediction-2 gate PASS), 247-36 next
-Plan: 34 of 37 executed (247-33 superseded by 247-36 under D-32, never run; halted Plan 19 counted as executed; 247-36..37 planned)
-Status: 247-35 complete. The B6 second pre-registration is committed before any push: 247-B6-PREDICTION-2.md (bdfd6ddf, schema threadline.phase247-b6-prediction/2, pre_registration_commit 7d555e68). Gate PASS: (a) every current-lane run replays <= 1.08 at 8 s/claim (worst 1.063714, B4 and B5 covered; equal to round 1 by P1); (b) predicted CI-02 median 493.8 s <= 510. Min and latest are K=0, replayed static for information only (worst 1.277516 / 1.321384; B5 latest static 1.158/1.201/1.172 vs measured 1.08/1.09/1.09, so the model is pessimistic there). 247-B6-PREDICTION.md unchanged (33fbbc3f…fe09). 0 hosted runs. Ready for 247-36
-Last activity: 2026-10-28 — 247-35 complete: tool b94edfe0 (per-lane K, D-33 preflight, self-test 68 checks), prediction-2 bdfd6ddf gate PASS (current 1.063714; CI-02 493.8 s). Prior: 247-34 complete after D-34 (interleaved cap PASS; 4f872f5e ok-token pin; 1ea452e7 247-B6-LOCAL-2.md: whole suite 3388/0, current 3388 1.23 K=12 12/12/12, min and latest 2568 K=0 no claims, queued hang named in 65 s). Before that it executed and halted at D-31 (8caf2295 lane_tail_k + tq-lane-k; 99f0a595 contract mutant + CONTRIBUTING; 462a6063 I5 trim). The local proof at 99f0a595 was green: whole suite 3388/0; current 3388, 1.17, K=12 12/12/12; min and latest toolchain 2568, K=0, no claims; queued hang named test/zz_queued_hang_test.exs:4 from p1-1, exit 1 in 63 s. Prior: D-32 round planned: 247-34..36 (per-lane K; TQ-PREREG-2 in 247-35; 247-36 supersedes 247-33, whose SUMMARY records status superseded). Prior: 247-32 complete: B6 stopped at the pre-registration gate. tools/tail_queue_replay.py (b25c3c29) fetched 42 artifacts / 168 TSVs (42 zip digests, 84 frozen pins, 168 in-tool pins, 0 unavailable) and replayed the runner's own K=12 static sets + tail-queue.tsv over B3/B4/B5 with boot in every partition time (R3-IN-05 fixed, 3508bd6a). At 8 s/claim the worst replay is current 1.064, min 1.101 (B4 40450801580), latest 1.107 (B3 40436597341; also B4 40449332597 1.107, B5 40692111621 1.100, B5 40695763585 1.086) → gate component (a) false; predicted CI-02 median 457 + 19.8 + 15 = 491.8 s ≤ 510 → component (b) true; gate FAIL, ci03_expectation EXPECTED_MISS. No push, PR or cohort; 247-B6-ESCALATION.md (stage prediction, 0 hosted runs) recommends option 1, accept CI-03 as unmet-but-bounded with a measured-trigger seed (runner-up: a separately pre-registered current-lane-only queue). Prior: 247-31 complete (0de4c4e5, f2dbe251, 29636579, eae71898, 59966463): ci_topology contracts pin the tail queue (behavioral K=12 sandbox test with a K=4 mutant, rule=tail-queue-seams on ci.yml, rule=single-invocation-site, rule=tail-queue-doc tying CONTRIBUTING's "the 12 heaviest" to TAIL_QUEUE_K); export-overlap split control runs at CI_TEST_PARTITIONS_TAIL_K=0 and still reports overlap; CONTRIBUTING describes the queue. 247-B6-LOCAL.md at eae71898 on ephemeral postgres:16: whole suite 3387/0; current x3 (1.09/1.22/1.26), min and latest toolchain (1.04/1.03) all exit 0, K=12, 12/12 claimed, current totals = 3387; real PartitionMonitor names test/zz_queued_hang_test.exs:4 from claim invocation p1-1, exit 1 in 64 s (budget 90); self-test medians env 31→46, /bin/bash 33→46 (cap +20). A first-series red at row_key_read_test.exs:204 (cross-clock as_of) was fixed test-only with a mutation control and the series restarted. Prior: 247-30 complete (cbcda76b, c23401cd, f1bffd76): D-27 runtime tail queue in bin/ci-test-partitions — `TAIL_QUEUE_K=12` lifts the heaviest ungrouped async:false files (real repo: 12 queued, greedy lines unchanged, 4 static lines before compile), mkdir-locked largest-first claims through the single `mix test` call site, per-invocation TSVs merged into the unchanged partition-timings schema, claim map lines + `Tail queue (K=12)` table, verify_tail_queue/verify_claims, one CI-04 budget across invocations; 14 tq-* self-tests pass under env bash and /bin/bash 3.2 (legacy cases at K=0); self-test median HEAD 44/46 s vs origin/main 30/31 s (+14/+15, cap +20) after a watch_partitions 0.2 s early-poll trim. Prior: 247-29 complete (e9bb16ca, f27d11b9, 5b3e5ab8, 17376b84): `lane_rule()` + `--ingest-weights --rule median|max` in bin/ci-test-partitions (min → max, current/latest → median; a strict --output mismatch exits 2 before reading any TSV), self-test `lane-rule: ok`, contract mutant, CONTRIBUTING sentence. A strict min ingest of the hash-verified B4 training runs is byte-identical to test/partition_weights_min.txt (cb833068…b187). RetentionRun on_exit cleanup (R3-WR-01); min_balance.py fail-closed ratio_of and temp-copy predict (R3-WR-02/03); R3 dispositions recorded (open 2). No weight, inventory or threshold change. Prior: 247-28 complete: B5 (Plan 26/27 fixture isolation + candidate B min weights, picks 136bb932…8ef4b801) passed exact-head local CI=true ci.all on postgres:16 and PR #98 run 40690983585 17/17 attempt 1 (one head, no force-push), squash 824c2851 via --match-head-commit; push run 40692111621 plus four guarded serial dispatches (40693451272, 40694602284, 40695763585, 40696978392) = 5/6 runs, five attempt-1 successes, no exclusions; 247-B5-MEASUREMENT.json measured: CI-02 PASS median 457 s (≤ 540); CI-03 MISS — current 1.17/1.17/1.09, min 1.07/1.06/1.11 and latest 1.08/1.09/1.06 pass; EXPECTED_MISS confirmed at verdict level but on the current lane, not min; CI-01/CI-04 continuity holds; SEED-006 bound now B5 457 s
-Progress: [████████░░] 3 of 4 v1.47 phases complete (75%); 58/62 milestone plans complete (Phase 247 34/37 executed incl. halted Plan 19; 247-33 superseded, never run; 247-36..37 planned)
+Phase: 247.1
+Plan: 0 of 0 (not planned)
+Status: Gap phase inserted after milestone audit
+Last activity: 2026-10-29 — v1.47 audit gaps_found; Phase 247.1 inserted
+Progress: [██████████] 4 of 4 v1.47 phases complete (100%); 60/62 milestone plans complete (Phase 247: 36/37 executed incl. halted Plan 19; 247-33 superseded, never run)
 
 Verification: Fresh 37 Python tests, synthetic round-trip, old Plan 22/25 receipt verification and warning-free host compile-only (Elixir 1.17.3 / OTP 27.3.4.15, no ExUnit events) pass. All 14 historical raw JSON/report files retain pre-repair hashes. Both preflight statuses and INVALID series reasons are derived from raw evidence; new /2 receipts carry monotonic timing with shared absolute preflight/child deadlines. Read-only legacy verification binds to historical producer commits while execution still requires committed current bytes. WR-05/T-247-48 is closed; security is 51/53 closed, two inherited medium open, zero high blocking. WR-06 is repaired for future /2 evidence; Plan 25's legacy /1 missing timing remains disclosed. Raw clock consistency does not authenticate coherently rewritten observations. No Docker/pinned semantic/hosted CI run was performed in this repair. Main acceptance remains 2/4: CI-01/04 historical passes, CI-02 four successes/two exclusions and median_wall_s=null, CI-03 min ratios 1.24/1.28/1.27. Nyquist remains partial. Superseded on main by B5 (247-28, 2026-10-28): at squash 824c2851, CI-02 measured PASS (median 457 s over five attempt-1 successes) and CI-03 measured MISS (current 1.17/1.17/1.09; min and latest pass). CI-01/CI-04 continuity holds. Phase verification is pending.
 
-Next: `/gsd-execute-phase 247 --gaps-only` runs 247-36 → 247-37 sequentially (isolation none). 247-36 re-checks the prediction-2 gate PASS and the runner_sha256 (2d420a97…449b) and tool_sha256 (ca88478f…0a29) at the land head, lands one `ci:` squash from land/v1.47-ci03-tail-queue, runs the P8 preflight (`tail_queue_replay.py preflight --run <id>`: every lane <= 1.15; K per lane; claim lines and pooled overhead <= 8000 ms on current only), then the B6 cohort under P9 (cap 6, 5 successes, first 3 -> CI-03 at <= 1.15 on all lanes, median of 5 -> CI-02 at <= 540 s). A preflight NO_GO or a CI-02/CI-03 miss is final under D-32: fall back to option 1, with no further round. B3/B4 artifacts expire about 2026-11-10 and B5 about 2026-11-11.
+Next: /gsd-discuss-phase 247.1 (gap closure for REL-01/REL-02; see .planning/v1.47-MILESTONE-AUDIT.md)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -540,6 +538,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - Phase 205 added (2026-09-24): Release Reconciliation — gap closure for the v1.41 milestone audit (`.planning/v1.41-MILESTONE-AUDIT.md`, status gaps_found, finding F1). The milestone branch is 433 ahead / 5 behind origin/main and never merged Phase 202's shipped release commits (#41, #43, #44, the 0.10.0 release commit, #45); RELEASE-02/05 hold on origin/main only.
 - Phase 206 added (2026-09-24): Installer Migration Versions — tech-debt closure from the v1.41 re-audit (status tech_debt, 48/54, F1 resolved). `mix threadline.install` stamps all three migrations with one second-resolution `timestamp()` (lib/mix/tasks/threadline.install.ex:65), so a fresh `mix ecto.migrate` raises a duplicate-version error; 205-REVIEW CR-01, shipped since v0.9.0 incl. 0.10.0/0.10.1.
 - Phase 207 added (2026-09-24): Trigger Migration Rerun and Storage-Schema Default Docs — tech-debt closure from the v1.41 second re-audit (fe896464; status tech_debt, 48/54, flows 5/5, CR-01 resolved by 206). W1: rerunning `mix threadline.gen.triggers` for the same tables writes a duplicate migration name (gen.triggers.ex:141), which Ecto rejects, and the drift guides prescribe that rerun. W2: audit-indexing.md:7 and production-checklist.md:14 state the storage_schema default as `threadline`; the code default is `public`.
+- Phase 247.1 inserted after Phase 247: Close gap: REL-01/REL-02 — releasable-type guard and release PR recovery (from v1.47-MILESTONE-AUDIT.md F1/F2) (URGENT)
 
 ### Decisions
 
@@ -1218,7 +1217,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-28T16:25:00.000Z
-**Stopped at:** Completed 247-29-PLAN.md
+**Stopped at:** Phase 247 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

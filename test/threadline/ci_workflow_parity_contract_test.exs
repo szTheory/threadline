@@ -2542,8 +2542,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml caches deps and the e2e npm lockfile" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert Regex.match?(~r/uses: actions\/cache@[0-9a-f]{40} # v5\.\d+\.\d+$/m, yaml),
-             "ci.yml must use a SHA-pinned actions/cache v5 for the deps cache"
+      assert Regex.match?(~r/uses: actions\/cache@[0-9a-f]{40} # v\d+\.\d+\.\d+$/m, yaml),
+             "ci.yml must use a SHA-pinned actions/cache for the deps cache"
 
       assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
              "ci.yml must cache the `deps` directory"

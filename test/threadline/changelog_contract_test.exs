@@ -55,6 +55,12 @@ defmodule Threadline.ChangelogContractTest do
   @v0_11_0_heading_regex ~r/^## \[0\.11\.0\]/m
   @unreleased_heading_regex ~r/^## Unreleased — highlights$/m
 
+  # The same heading as plain text, for docs that quote it inline in backticks.
+  # The anchored regex above never matches there, and the 0.11.0 locator
+  # depends on its anchoring, so the two stay separate.
+  @unreleased_heading_text "## Unreleased — highlights"
+  @pr_template ".github/pull_request_template.md"
+
   defp read!(relative), do: @root |> Path.join(relative) |> File.read!()
 
   defp dated_entries do
@@ -295,5 +301,98 @@ defmodule Threadline.ChangelogContractTest do
 
     assert contributing =~ "`BEGIN_COMMIT_OVERRIDE`",
            "CONTRIBUTING.md lost the 223 D-06 BEGIN_COMMIT_OVERRIDE escape hatch"
+  end
+
+  test "CONTRIBUTING and the PR template state both directions of the release type rule" do
+    # `exclude-paths` cannot name top-level files or single-file modules, so the
+    # squash subject's type stays the primary rule. Both places a contributor
+    # reads before merging must say which types ship nothing, which types cut a
+    # release, and that a releasable type needs Unreleased prose in the same PR.
+    releasable =
+      for %{"type" => type} = section <-
+            @release_please_config
+            |> read!()
+            |> Jason.decode!()
+            |> Map.get("changelog-sections", []),
+          section["hidden"] != true,
+          uniq: true,
+          do: type
+
+    assert releasable != [], "#{@release_please_config} names no releasable changelog section"
+
+    # Each direction is checked inside its own bullet or checkbox, so deleting
+    # one direction turns the test red even where older prose in the section
+    # still names the same types.
+    ship_nothing_needles =
+      Enum.map(["ci", "test", "chore", "docs"], &"`#{&1}:`") ++ ["`fix(ci):`"]
+
+    releasable_needles = Enum.map(releasable, &"`#{&1}:`") ++ [@unreleased_heading_text]
+
+    contributing_section = ongoing_releases_section(read!("CONTRIBUTING.md"))
+    assert contributing_section, "CONTRIBUTING.md has no `### Ongoing releases` section"
+    pr_template = read!(@pr_template)
+
+    contributing_lines = String.split(contributing_section, "\n")
+    pr_lines = String.split(pr_template, "\n")
+
+    rules = [
+      {"CONTRIBUTING.md ship-nothing bullet",
+       line_starting(contributing_lines, "- **Ships no code to adopters**"),
+       ship_nothing_needles},
+      {"CONTRIBUTING.md releasable bullet",
+       line_starting(
+         contributing_lines,
+         "- **Changes the library code or dependency requirements**"
+       ), releasable_needles},
+      # A single-commit PR squashes under its commit subject, not the PR
+      # title (`squash_merge_commit_title=COMMIT_OR_PR_TITLE`).
+      {"CONTRIBUTING.md `### Ongoing releases`", contributing_section,
+       ["exclude-paths", "package()[:files]", "single-commit PR"]},
+      {"#{@pr_template} ship-nothing checkbox",
+       line_starting(pr_lines, "- [ ] Ships no code to adopters"), ship_nothing_needles},
+      {"#{@pr_template} releasable checkbox",
+       line_starting(pr_lines, "- [ ] Changes the library code or dependency requirements"),
+       releasable_needles},
+      {@pr_template, pr_template, ["single commit"]}
+    ]
+
+    missing =
+      Enum.flat_map(rules, fn
+        {where, nil, _needles} ->
+          ["#{where} is missing"]
+
+        {where, text, needles} ->
+          for needle <- needles,
+              not String.contains?(text, needle),
+              do: "#{where} does not mention #{inspect(needle)}"
+      end)
+
+    assert missing == [],
+           Enum.join(missing, "\n") <>
+             "\nContributors read these to pick a squash subject: ship-nothing changes merge " <>
+             "as `ci:`/`test:`/`chore:` (never `fix(ci):`), and a releasable subject brings " <>
+             "prose under `#{@unreleased_heading_text}` in the same PR."
+
+    refute String.contains?(pr_template, "BEGIN_COMMIT_OVERRIDE"),
+           "#{@pr_template} contains the commit-override token. Every PR opened from the web UI " <>
+             "would inherit it, and Release Please would replace the real commit message with " <>
+             "the rest of the PR body."
+  end
+
+  defp line_starting(lines, prefix), do: Enum.find(lines, &String.starts_with?(&1, prefix))
+
+  # From the `### Ongoing releases` heading to the next `###`/`##` heading.
+  defp ongoing_releases_section(contributing) do
+    case contributing
+         |> String.split("\n")
+         |> Enum.drop_while(&(not String.starts_with?(&1, "### Ongoing releases"))) do
+      [] ->
+        nil
+
+      [_heading | rest] ->
+        rest
+        |> Enum.take_while(&(not String.starts_with?(&1, ["### ", "## "])))
+        |> Enum.join("\n")
+    end
   end
 end
