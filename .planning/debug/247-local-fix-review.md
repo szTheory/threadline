@@ -1,3 +1,10 @@
+---
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
+  status: unknown
+---
+
 # 247 Local Fix Review
 
 **Scope:** Diff from `HEAD` for `test/partition_colocate.txt`,

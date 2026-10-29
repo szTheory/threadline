@@ -1,5 +1,30 @@
 # Project milestones: Threadline
 
+## v1.47 Release on autopilot (Shipped: 2026-10-29)
+
+**Phases completed:** 5 phases (244, 245, 246, 247, inserted gap phase 247.1), 66 plans, 68 tasks. Opened 2026-10-24; 435 commits since the v1.46 tag. Code paths (`lib`, `test`, `bin`, `.github`, `mix.exs`): 581 files, +16,335 / -105,475 lines, mostly the UI critic retirement.
+
+**Requirements:** 13/14 complete. **Integration:** 19/20 (0 broken, 1 deferred-unverified). **Flows:** 4/5 complete, 1 green to CI with its tail deferred.
+
+**Closeout type:** override_closeout. **Known verification overrides:** 12 newly acknowledged (4 debug sessions, 1 todo, SEED-008, 6 deferred items), 66 carried forward from prior closes (see STATE.md Deferred Items). The `init.manager` projection reported all five phases `stale`, but every phase VERIFICATION.md on disk is `passed` (244, 245, 246, 247 at 4/4, 247.1 at 17/17) and every plan has a SUMMARY. The Phase 246 deferred-items table was flattened to prose so the audit parser could acknowledge it as one item.
+
+**Release:** none. No v1.47 merge changed the shipped package, so Hex stays at 1.1.0. The one releasable-typed merge, the CI-only `fix(ci):` #100, is what opened #101. Release PR #101 ("release 1.1.1", opened by the CI-only `fix(ci):` PR #100) was closed unmerged after the 247.1 guard landed; there is no 1.1.1 tag.
+
+### Known Gaps
+
+- **REL-01** (deferred-with-trigger, accepted by the maintainer at close): the release workflow dates `## Unreleased` and the refreshed release PR goes green with no human action, as observed live on #101 (release run 40816123990, CI run 40816299568). The clause "the next release PR's first CI run is green with no separate CHANGELOG-dating PR" can only be proven by a natural release. It is bound to the first one in the archived `247.1-REL01-EVIDENCE.md`, including assumption A3 and the W-3 pass condition.
+
+**Milestone audit:** `tech_debt`. Carried debt includes: W-1 (`exclude-paths` covers directories only), W-2 (a `deps:` lock-only bump could reproduce F1), W-4 (no alert when Release@main goes red), F4 (Dependabot #92 red by design; needs its own `ci(deps):` PR), F6 (deps-health #61 stale), F7 (no CI-02 regression guard; main wall drifted to 486 s), T-247-46/47 (medium threats need an accepted-risk entry), and the open review findings in 244/245/246/247. Full list: `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
+
+**Key accomplishments:**
+- Release flow (244, 247.1): the release workflow dates the CHANGELOG `## Unreleased` block and refreshes a stale release PR with a CI-triggering token (REL-02 observed live). CI fetches retry with backoff and Hex is pinned (REL-03/04). release-please now ignores commits that touch only unshipped paths, and CONTRIBUTING plus the PR template state the release type rule (#103, ba0d80aa).
+- Supply chain (245): every third-party action is SHA-pinned with a contract test, Dependabot sends one grouped monthly actions PR, the `hex.audit` gate is tiered (runtime advisories fail required CI; dev/test-only ones file an issue), and the deps-health report classifies its findings under test.
+- Debt closeout (246): every row of the 2026-10-24 carried-debt register has a disposition, and the parked UI critic loop (about 14k lines plus 2.3 MB of fixtures) is off main as one revertable squash (#93), restorable from the local tag `archive/ui-critic-loop`.
+- CI critical path (247): browser E2E runs one job per Playwright project with slow-spec timings in the job summary. Repo-contract tests run on the current lane only. Partitions are lane-weighted with a current-lane runtime tail queue. A hung test now fails inside its partition timeout and is named. CI-02: median main wall 461 s over five runs (limit 540 s). CI-03: every lane at or below 1.15 (#99, 11234b01).
+- Measurement discipline: pre-registered, hash-pinned replays and capped hosted cohorts decided each CI landing. INVALID local canaries were recorded as INVALID, not retried until they passed.
+
+---
+
 ## v1.46 Operator UI Refinement (Shipped: 2026-10-11)
 
 **Phases completed:** 6 phases, 27 plans, 49 tasks

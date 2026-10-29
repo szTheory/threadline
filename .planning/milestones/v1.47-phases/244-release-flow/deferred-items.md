@@ -9,3 +9,4 @@
   scans tracked `.planning/` files.
   - Resolved: fixed at e89efba5; bin/verify-repo-hygiene clean on 2026-10-25 (244-10):
     `verify-repo-hygiene: 4912 tracked text file(s) clean; 8 allowlist entries used, 0 inert`.
+  status: acknowledged

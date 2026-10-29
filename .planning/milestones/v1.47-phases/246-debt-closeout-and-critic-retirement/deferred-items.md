@@ -9,11 +9,8 @@ Out-of-scope findings from plan executors. They are logged here rather than with
 - **Symptom:** "global chrome and Home workflow launchers stay stable" fails on desktop and
   mobile. The Home page's full-page screenshot height no longer matches `home.png`:
 
-  | tree | desktop height | mobile height |
-  |------|----------------|---------------|
-  | committed baseline | 1281 px | 2013 px |
-  | origin/main `23178fb0` | 1274 px | 2048 px |
-  | v1.47 HEAD | 1407 px | 2412 px |
+  committed baseline 1281 px desktop / 2013 px mobile; origin/main `23178fb0` 1274 px /
+  2048 px; v1.47 HEAD 1407 px / 2412 px.
 
 - **Not caused by phase 246:** it fails identically before the slices (`614cb1fd`) and on
   origin/main. The browser lane's standalone failure set is therefore 10, not 8: the four
@@ -26,3 +23,4 @@ Out-of-scope findings from plan executors. They are logged here rather than with
   419 passed / 10 failed / 58 skipped. This is a documented deviation from 246-07's
   8-failure expectation, evidenced by the origin/main `23178fb0` heights above, and not an
   override.
+  status: acknowledged

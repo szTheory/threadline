@@ -95,8 +95,52 @@ findings:
     severity: info
     disposition: deferred
     title: "The test depends on Pruner internals (private lock key and state shape)"
-open: 1
-total: 23
+  - id: R4-WR-01
+    severity: warning
+    disposition: fixed
+    title: "The stale-lock break can steal a live lock, and an ownerless lock can never be broken"
+  - id: R4-WR-02
+    severity: warning
+    disposition: fixed
+    title: "A partition with its deadline spent keeps claiming, and each claim dies at once with a false `HANG` report"
+  - id: R4-WR-03
+    severity: warning
+    disposition: fixed
+    title: "A TERM that arrives during `claim_next` still claims and starts a new BEAM after the stop"
+  - id: R4-IN-01
+    severity: info
+    disposition: open
+    title: "A non-strict `--ingest-weights --lane min` writes the current lane's file using the min lane's rule"
+  - id: R4-IN-02
+    severity: info
+    disposition: open
+    title: "The async test is duplicated as a literal, though the comment says it is shared"
+  - id: R4-IN-03
+    severity: info
+    disposition: open
+    title: "The counts table silently undercounts when one invocation's summary does not parse"
+  - id: R4-IN-04
+    severity: info
+    disposition: open
+    title: "Under the lock, `tail-queue.next` falls back to 1 on empty or garbled content"
+  - id: R4-IN-05
+    severity: info
+    disposition: open
+    title: "The self-test does not exercise the lock paths that R4-WR-01 and R4-WR-03 break"
+  - id: R4-IN-06
+    severity: info
+    disposition: open
+    title: "`min_balance.py predict --lane current` still models the greedy sets, and it inherits the caller's environment"
+  - id: R4-IN-07
+    severity: info
+    disposition: open
+    title: "`preflight` leaves claim exits and per-seq uniqueness to the run conclusion"
+  - id: R4-IN-08
+    severity: info
+    disposition: deferred
+    title: "Sibling cross-clock `as_of/4` call sites remain (known, deferred)"
+open: 11
+total: 34
 recorded: 2026-10-28T00:00:00Z
 ---
 
@@ -127,7 +171,22 @@ recorded: 2026-10-28T00:00:00Z
 | R3-IN-05 | info | fixed | 247-32 b25c3c29; tools/tail_queue_replay.py adds the run's boot_ms (lower middle of the four headers) to every partition time (P3). |
 | R3-IN-06 | info | deferred | Deferred: the test-name note is outside D-28; the lifetime bound comes from start_supervised! semantics. |
 | R3-IN-07 | info | deferred | Deferred: the Pruner-coupling note is outside D-28; a changed state shape fails loudly. |
+| R4-WR-01 | warning | fixed | Fixed in 4e91b3fb (247-REVIEW-FIX.md); regression case added to `bin/ci-test-partitions --self-test`. |
+| R4-WR-02 | warning | fixed | Fixed in 8d4ff4b5 (247-REVIEW-FIX.md); regression case added to `bin/ci-test-partitions --self-test`. |
+| R4-WR-03 | warning | fixed | Fixed in 100fc074 (247-REVIEW-FIX.md); regression case added to `bin/ci-test-partitions --self-test`. |
+| R4-IN-01 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-02 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-03 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-04 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-05 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-06 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-07 | info | open | Round 4 incremental review (plans 29-37) in 247-REVIEW.md; open, not yet triaged. Fail-closed by construction: no path turns a skipped file green. |
+| R4-IN-08 | info | deferred | Deferred: already logged by 247-31 in deferred-items.md (sibling cross-clock as_of call sites); none failed in B6. |
 
 WR-01 retains its inherited deferred identity. Fixed findings remain here as history. D-26 (Plan 26) closed CR-05 by descoping (no canary ran and no canary tool changed; the terminal INVALID preflight and historical receipts are unchanged), and Plan 29 dispositioned every round 3 finding, so WR-04 is the only open finding. Plan 32 closed R3-IN-05 with the boot-inclusive tail-queue replay. The current B5 standing is unchanged by these fixes: CI-02 PASS, CI-03 MISS on the current lane, and Phase 247 at 3/4. No weight file, lane inventory or threshold changed in Plan 29.
 
 Note: 247-REVIEW.md now holds round 3 (plans 26–28). Rows without the R3- prefix cite earlier rounds, whose report is preserved in git at 4f9f1e1c.
+
+D-32 round landing status (Plan 37, path S, success). The R3-WR-01..04 and R3-IN-03 fixes and the row_key_read clock fix are on main at the B6 squash 11234b01 (PR #99). The squash contains these source commits, cherry-picked onto the land branch per the pick map in 247-LANDING.md: 5b3e5ab8 (R3-WR-01..03 and R3-IN-03), e9bb16ca and f27d11b9 (R3-WR-04), and 29636579 and eae71898 (the row_key_read clock). Before B6 they lived only on milestone/v1.47. Dispositions are unchanged: WR-04 is still the only open finding, and the frontmatter counts stay at open 1 and total 23.
+
+Round 4 (2026-10-28, plans 29-37, diff vs 2f0148e0): 3 warnings and 8 info, no critical findings. All are recorded above with R4- ids, because round ids restart each round. R4-WR-01..03 are claim-path races in the tail-queue lock and signal handling of bin/ci-test-partitions (already on main at 11234b01). Each one can turn a run red for the wrong reason or misreport why it went red, but none can make a skipped file pass. B6 measured all 15 lane runs with every claim exit 0. They were fixed on 2026-10-28 by `/gsd-code-review 247 --fix` (4e91b3fb, 8d4ff4b5, 100fc074; see 247-REVIEW-FIX.md), each with a self-test case. R4-IN-08 is deferred as an already-logged item.

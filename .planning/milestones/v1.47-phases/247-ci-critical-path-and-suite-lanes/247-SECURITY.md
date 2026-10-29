@@ -8,8 +8,8 @@ threats_open_nonblocking: 2
 block_on: high
 asvs_level: 1
 register_authored_at_plan_time: true
-threats_total: 63
-threats_closed: 61
+threats_total: 102
+threats_closed: 100
 created: "2026-10-26"
 ---
 
@@ -228,4 +228,70 @@ Current counts: 61/63 closed, 2 open (T-247-46/47, medium, nonblocking), 0 high 
 |---|---|
 | Threats found | 63 |
 | Closed | 61 |
+| Open | 2 |
+
+## Plans 34–37 register (authored at plan time; audited 2026-10-28)
+
+These threats were authored in 247-34..37-PLAN.md and are listed here for the auditor. They are not yet audited, so the frontmatter counts above are unchanged. The round ended on path S (success), so every threat below was reached, including T-247-99 (cohort spend) and T-247-100 (B6 verdicts). Evidence paths are relative to this phase directory unless they start at the repository root.
+
+| Threat ID | Category | Component | Severity | Disposition | This round's evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-87 | Tampering | `lane_tail_k` map | high | mitigate | `bin/ci-test-partitions` (`lane_tail_k`, `tq-lane-k`), `test/threadline/ci_topology_contract_test.exs` (lane_tail_k test with the min mutant), 247-B6-LOCAL-2.md, 247-34-SUMMARY.md | closed |
+| T-247-88 | Repudiation | CONTRIBUTING claims every lane queues | medium | mitigate | `CONTRIBUTING.md`, the doc-parity test in `test/threadline/ci_topology_contract_test.exs`, 247-34-SUMMARY.md | closed |
+| T-247-89 | Denial of service | self-test cost on CI-02 | medium | mitigate | 247-B6-LOCAL-2.md (D-34 interleaved samples), 247-CONTEXT.md D-31/D-34, 247-34-SUMMARY.md | closed |
+| T-247-90 | Repudiation | dropped coverage under per-lane K | high | mitigate | 247-B6-LOCAL-2.md (lane totals, claims), 247-LANDING.md `## Land B6` (`current_partitioned`: 12 queued, 12 claimed) | closed |
+| T-247-91 | Tampering | failed round-1 records rewritten | high | mitigate | 247-B6-PREDICTION.md (sha256 33fbbc3f…cefe09), 247-B6-LOCAL.md, 247-33-PLAN.md, 247-B6-ESCALATION.md prefix | closed |
+| T-247-92 | Repudiation | post-hoc lane subset (forking path) | high | mitigate | 247-B6-PREDICTION-2.md (TQ-PREREG-2 block and disclosure), 247-35-SUMMARY.md, git ancestry | closed |
+| T-247-93 | Tampering | round-1 records | high | mitigate | 247-B6-PREDICTION.md sha256, 247-B6-PREDICTION-2.md `round1.prediction_sha256`, 247-B6-ESCALATION.md prefix | closed |
+| T-247-94 | Tampering | timing artifacts | high | mitigate | `tools/tail_queue_replay.py` (`PINNED_TSV_SHA256`, frozen pins), 247-B6-PREDICTION-2.md | closed |
+| T-247-95 | Spoofing | min/latest balance claimed from a replay | medium | mitigate | 247-B6-PREDICTION-2.md (min/latest labelled informational), B6-GATE-JSON in 247-MEASUREMENT.md (measured CI-03) | closed |
+| T-247-96 | Elevation of privilege | hosted spend despite a FAIL | high | mitigate | 247-B6-PREDICTION-2.md (gate PASS), 247-LANDING.md `## Land B6` precondition | closed |
+| T-247-97 | Tampering | land branch → main | high | mitigate | 247-LANDING.md `## Land B6` (exact-head gate, PR #99 one head, `--match-head-commit` squash 11234b01, tree and scope proofs) | closed |
+| T-247-98 | Elevation of privilege | spend after a failed gate or preflight | high | mitigate | 247-B6-PREFLIGHT.json (GO), `tools/tail_queue_replay.py preflight`, 247-LANDING.md | closed |
+| T-247-99 | Denial of service | hosted spend | medium | mitigate | 247-LANDING.md `## B6 bounded main chronology` (5/6 runs, serial, no re-runs), 247-B6-MEASUREMENT.json | closed |
+| T-247-100 | Repudiation | B6 verdicts and continuity | medium | mitigate | 247-B6-MEASUREMENT.json, B6-GATE-JSON in 247-MEASUREMENT.md and 247-VALIDATION.md, 247-36-SUMMARY.md | closed |
+| T-247-101 | Elevation of privilege | scope creep after a miss | medium | mitigate | 247-B6-ESCALATION.md (`## Resolution — D-32` and `## D-32 round outcome`). Path S needed no fallback, so there is no 247-B6-ESCALATION-2.md and no SEED-009 | closed |
+| T-247-102 | Repudiation | round-closure records | medium | mitigate | 247-37 Task 1/2 `<automated>` checks, 247-37-SUMMARY.md | closed |
+
+## Plans 29–37 incremental security audit — 2026-10-28
+
+Reviewer: `gsd-security-auditor` (ASVS L1, block_on high). It was read-only, at HEAD fc7e0811; the non-planning tree of main 11234b01 is identical. The register was authored in 247-29..37-PLAN.md, and the auditor verified mitigations rather than scanning for new threats. Live checks: `bin/ci-test-partitions --self-test` exits 0 under Bash 5.2 and /bin/bash 3.2; `mix test test/threadline/ci_topology_contract_test.exs` gives 35 tests, 0 failures; the `min_balance.py` and `tail_queue_replay.py` self-tests exit 0. Fresh `gh` reads (GET only, no hosted spend) reproduce 247-B6-PREFLIGHT.json and 247-B6-MEASUREMENT.json byte for byte. T-247-87..T-247-102 above are now closed on that evidence.
+
+| Threat ID | Category | Component | Severity | Disposition | Evidence | Status |
+|---|---|---|---|---|---|---|
+| T-247-64 | Tampering | `--ingest-weights` min-lane rule | high | mitigate | `lane_rule()` bin/ci-test-partitions:360-367; a mismatched `--rule` dies with exit 2 before any read or temp file (:1569-1571); `lane-rule: ok` self-test; contract min→median mutant (:565-605); test/partition_weights_min.txt sha256 cb833068…b187 unchanged since 824c2851 | closed |
+| T-247-65 | Tampering | `min_balance.py --weights` | medium | mitigate | `placed()` removed; `stage_copy()` uses mkdtemp (:220-224); self-test asserts the live file's bytes and mtime are unchanged; `git status test/` clean after the run | closed |
+| T-247-66 | Repudiation | degenerate assignment hidden by `ratio_of` | low | mitigate | `ratio_of` (min_balance.py:159-166) rejects no, empty and zero-cost partitions; three self-test cases pass | closed |
+| T-247-67 | Tampering | queue drops or repeats a file | high | mitigate | `verify_tail_queue` (:599-617) runs before compile; `verify_claims` (:620-635) sets fail=1 (:1417); tq-basic and tq-contention ×2 pass | closed |
+| T-247-68 | Denial of service | lock wedge or hang | high | mitigate | Owner-index mkdir lock (:650-694), stale break (:666-673), bounded LOCK_WAIT_S (:674-677), release in `stop_over_budget` (:1040) and `kill_all` (:1325); tq-hang and tq-lock-stale pass | closed |
+| T-247-69 | Repudiation | failing claim masked by a later pass | high | mitigate | First non-zero exit wins (:1376); tq-fail asserts exit 1 and `exit=1` on the claim line | closed |
+| T-247-70 | Tampering | test-only seams reaching CI | medium | mitigate | Seams documented as test-only (:179-209); none appear in .github/ or mix.exs; contract `tail-queue-seams` rule with mutants | closed |
+| T-247-71 | Information disclosure | step summary | low | mitigate | Tail queue rows (:806-829) come only from claim seq, path and integers; no log text in GITHUB_STEP_SUMMARY | closed |
+| T-247-72 | Tampering | queue disabled or resized | high | mitigate | K=4 mutant (contract :351-376), seam absence, single invocation site, doc parity for TAIL_QUEUE_K=12 with mutants | closed |
+| T-247-73 | Repudiation | dropped coverage claimed green | high | mitigate | 247-B6-LOCAL.md: whole suite 3387 equals each current-lane partitioned sum; 12/12 queued and claimed | closed |
+| T-247-74 | Denial of service | unnamed hang in a queued file | high | mitigate | `queued_hang_proof`: 90 s budget, 64 s elapsed, `test/zz_queued_hang_test.exs:4` named, claim exit 1, no leftover BEAM; repeated in B6-LOCAL-2 (65 s) | closed |
+| T-247-75 | Tampering | negative control weakened | medium | mitigate | Contract :265-292 keeps the `export fixture overlap` assertion with `CI_TEST_PARTITIONS_TAIL_K=0` and a comment giving the reason | closed |
+| T-247-76 | Tampering | B3/B4/B5 timing artifacts | high | mitigate | `verify_digest` (:404-409); `FROZEN_REPLAY_SHA256` matches the live file (5bbf55a8…a6f1); `PINNED_TSV_SHA256` check (:723-751); unavailable runs listed, not substituted | closed |
+| T-247-77 | Repudiation | post-hoc parameter choice | high | mitigate | TQ-PREREG at 6a1e8a16 is byte-equal to `pre_registered_rule`; it is an ancestor of e9bb16ca, b25c3c29, 59966463 and 1f1ede48 | closed |
+| T-247-78 | Spoofing | model fit shown as balance | medium | mitigate | 247-B6-PREDICTION.md:78-85 labels the replay an expectation; `ci03_expectation` is advisory | closed |
+| T-247-79 | Elevation of privilege | spend despite a failing gate | high | mitigate | Round-1 FAIL committed at 1f1ede48 (18:26Z); 0 hosted runs before the PR #99 run at 21:43Z | closed |
+| T-247-80 | Tampering | preflight judged by eye | medium | mitigate | P8 `cmd_preflight` (:1096) is committed code; its fail-closed self-tests cover 1.16 NO_GO, 8001 and a missing claim | closed |
+| T-247-81..85 | — | 247-33 land, spend, verdicts, scope | high/medium | mitigate | Not reached: 247-33 was superseded and never executed (`executed: false`, `hosted_runs_spent: 0`; no execution commit; 33-PLAN unchanged since 0c5903ab). Superseded by T-247-97..101. | closed (not reached) |
+| T-247-86 | Denial of service | self-test cost on CI-02 | medium | mitigate | 247-30-SUMMARY: env +14 s, /bin/bash +15 s, both within the +20 s cap; hosted CI-02 median 461 s | closed |
+
+Findings that limit these closures (not register gaps):
+- R4-WR-01..03 (247-REVIEW.md) are still open and untriaged, and they sit inside the T-247-67/68/74 claim-path controls now on main. They are: stale-break ABA leading to a double claim; an ownerless lock that is never broken; a spent-deadline partition that keeps claiming and prints false `HANG:` lines; and a claim row left by a TERM during `claim_next`. Every path fails closed, so L1 closure holds, but they corrupt diagnosis. Do not treat the stale-break sub-control as proven; triage them in a follow-up hardening plan.
+- D-34 changed the T-247-89 measurement method after the cap halted the round. The change is disclosed, the halted series is kept, and the hosted CI-02 median of 461 s backs the outcome.
+- After the T-247-102 check window, REVIEW-DISPOSITION.md lost its `open:`/`total:` frontmatter in 8a8e8357, and the verifier checked CI-01..04 in REQUIREMENTS (allowed by 37-PLAN).
+
+Inherited T-247-46 and T-247-47 are unchanged by plans 29–37. They stay open, medium and nonblocking, and closing them still needs an explicit maintainer AR entry citing D-26. `threats_open` keeps this file's convention of counting all open controls; `threats_blocking` is 0.
+
+Current counts: 100/102 closed, 2 open (T-247-46/47, medium, nonblocking), 0 high blocking.
+
+## Security Audit 2026-10-28
+
+| Metric | Count |
+|---|---|
+| Threats found | 102 |
+| Closed | 100 |
 | Open | 2 |

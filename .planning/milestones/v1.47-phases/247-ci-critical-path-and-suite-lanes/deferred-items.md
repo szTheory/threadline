@@ -14,6 +14,7 @@
 
   **Resolved in 247-13** (`d1261dfd`): the script feature-detects the flag from
   `gh api --help`, and the fake-gh contract covers both gh generations.
+  status: acknowledged
 
 ## From 247-13 (Task 1)
 
@@ -41,6 +42,7 @@
   five times. CI and normal shells have a normalized `TMPDIR`, so this is not a CI hazard;
   a `Path.expand/1` on the test side would remove it. Out of 247-27's scope (no test edit
   allowed by the plan's files list).
+  status: acknowledged
 
 ## From 247-31 (Task 3)
 
@@ -51,3 +53,4 @@
   and `:202`, and at `test/threadline/query/as_of_property_test.exs:295`. None of them failed in
   247-31's runs (one whole suite plus five partitioned lanes, all green). If one flakes, use the
   same `db_now/0` fix and mutation control. Out of 247-31's scope (files list).
+  status: acknowledged

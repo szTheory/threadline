@@ -98,3 +98,9 @@ This section is appended after the escalation above. No earlier byte of this fil
   "round1_prediction_sha256": "33fbbc3f4737e72929269e447a086ca99ef2444161a41d11137f5be804cefe09"
 }
 <!-- B6-ESCALATION-RESOLUTION-JSON-END -->
+
+## D-32 round outcome (append-only)
+
+This section is appended after the D-32 resolution above. No earlier byte of this file changed. Plan 247-37 derived the path mechanically from 247-LANDING.md, the absence of 247-B6-ESCALATION-2.md and the B6-GATE-JSON in 247-MEASUREMENT.md.
+
+- **Path S (success).** Record: none, because no `247-B6-ESCALATION-2.md` exists on this path. B6 squash SHA: 11234b01defc09d0c4cf269925a976b954910eab (PR #99). The preflight was GO, CI-02 PASS (median 461 s) and CI-03 PASS (first three: current 1.06/1.02/1.02, min 1.06/1.07/1.06, latest 1.09/1.05/1.09). The option-1 fallback was not taken, no SEED-009 was written, and there is no further round.
