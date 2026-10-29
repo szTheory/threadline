@@ -3,6 +3,10 @@ status: verifying
 trigger: "Local CI run 40452150109 minimum job 122017125177, P3 seed 675682, row_history_live_test.exs:361: support_txn and admin_txn inserted at 365–366, child support insert at 368 fails audit_changes_transaction_id_fkey because parent is missing."
 created: 2026-10-27
 updated: 2026-10-27
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
+  status: verifying
 ---
 
 ## Current Focus

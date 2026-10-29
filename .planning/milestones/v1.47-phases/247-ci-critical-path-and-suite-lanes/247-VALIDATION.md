@@ -516,3 +516,180 @@ Plans 26–27 added behavioral coverage (the RetentionHistoryLiveTest worker-own
 | Gaps found | 0 |
 | Resolved | 0 |
 | Escalated | 0 |
+
+## B6 bounded outcome — CI-02 PASS, CI-03 PASS
+
+B6 measurement: measured (five attempt-1 successes)
+
+PR #99's exact tested head `d7bff1ef5ef38eb73c0be7b4502e32594b073fac` landed as main `11234b01defc09d0c4cf269925a976b954910eab`. The PR's attempt-1 run 40774253622 passed the committed P8 preflight with verdict GO (`247-B6-PREFLIGHT.json`).
+
+The bounded cohort used 5/6 runs: the merge push plus four guarded serial dispatches. All five runs are attempt-1 successes at the squash, so sampling stopped with one slot unused. Nothing was retried or re-run, and the 540 s and 1.15 limits are unchanged. The unedited canonical reader payload is `247-B6-MEASUREMENT.json`.
+
+| Selected run | Event | Wall s | Slowest job |
+|---|---|---:|---|
+| 40775441502 | push | 455 | Example app browser E2E (mobile-chromium) (427 s) |
+| 40776626061 | workflow_dispatch | 461 | Build and test (current) (452 s) |
+| 40777747292 | workflow_dispatch | 478 | Example app browser E2E (desktop-chromium) (438 s) |
+| 40778862839 | workflow_dispatch | 479 | Build and test (current) (469 s) |
+| 40779961784 | workflow_dispatch | 443 | Build and test (current) (434 s) |
+
+CI-02 is **PASS**: the median wall over the five qualifying runs is **461 s**, at or under 540 s.
+
+CI-03 is **PASS** on the fixed first three successful runs:
+
+| Lane | First / second / third printed ratios | Max | Result |
+|---|---|---|---|
+| current | 1.06 / 1.02 / 1.02 | 1.06 | all at or under 1.15 |
+| min | 1.06 / 1.07 / 1.06 | 1.07 | all at or under 1.15 |
+| latest | 1.09 / 1.05 / 1.09 | 1.09 | all at or under 1.15 |
+
+Runs 4–5 fall outside the gate and are shown for information only: current 1.01 / 1.02, min 1.04 / 1.09, latest 1.05 / 1.04.
+
+Exclusions: none. No cohort run failed, so there is nothing to triage, and no failure was tail-queue-specific (no lock timeout, claim-coverage error or merge error).
+
+### Prediction versus measurement (round 2, `247-B6-PREDICTION-2.md`)
+
+| Lane | Predicted | Measured first-three max | Role |
+|---|---|---|---|
+| current | `worst_8000` 1.063714 | 1.06 | gated (component a) |
+| min | `worst_static` 1.277516 | 1.07 | information only |
+| latest | `worst_static` 1.321384 | 1.09 | information only |
+
+- **CI-03.** `ci03_expectation` was EXPECTED_PASS; the measured CI-03 verdict is PASS. On current, the measured first three (1.06 / 1.02 / 1.02) sit at or below the gated queue replay, against B5's 1.17 / 1.17 / 1.09 on the static split. The min and latest static replays stayed pessimistic, as 247-35 disclosed: they predicted 1.28 and 1.32, while the measured maxima were 1.07 and 1.09.
+- **CI-02.** `ci02_prediction.predicted_ci02_median_s` was 493.8 s, and the measured cohort median is 461 s. The signed error (measured minus predicted) is -32.8 s. `ci02_expectation` was EXPECTED_PASS; the measured CI-02 verdict is PASS. The prediction added the slowest-partition delta (+19.837 s) and the self-test delta (+17 s) to B5's 457 s. The measured median moved only +4 s from B5.
+
+### Informational per-run preflight (not a gate)
+
+`python3 -I .planning/phases/247-ci-critical-path-and-suite-lanes/tools/tail_queue_replay.py preflight --run <id>` ran once per selected run. It is labelled informational and is not a gate; cohort acceptance is the reader verdict above.
+
+| Run | Verdict | Pooled mean claim overhead ms | Queue-line K current/min/latest | Ratio current/min/latest |
+|---|---|---:|---|---|
+| 40775441502 | GO | 1542.6 | 12/0/0 | 1.06/1.06/1.09 |
+| 40776626061 | GO | 2406.2 | 12/0/0 | 1.02/1.07/1.05 |
+| 40777747292 | GO | 2379.2 | 12/0/0 | 1.02/1.06/1.09 |
+| 40778862839 | GO | 2654.9 | 12/0/0 | 1.01/1.04/1.05 |
+| 40779961784 | GO | 2418.2 | 12/0/0 | 1.02/1.09/1.04 |
+
+### CI-01 and CI-04 continuity
+
+- **CI-01 and partition timings.** Every selected run has unexpired `browser-timings-desktop-chromium-<run>`, `browser-timings-mobile-chromium-<run>` and `partition-timings-{current,min,latest}-<run>` artifacts.
+- **Self-test hang cases.** In every selected run, each of the three `Build and test (<lane>)` job logs (ANSI and timestamps stripped) carries a `ci-test-partitions self-test: ok (` line. That line contains `hang,`, `hang_ignore_term`, `hang_quit`, `tq-hang` and `tq-lane-k`.
+- **Monitor.** `git diff --quiet 02d115a32e4479f353d284c04fc838ba58938d16 11234b01defc09d0c4cf269925a976b954910eab -- test/support/partition_monitor.ex` exits 0, so the monitor is byte-identical to the B4 squash, where CI-04 was verified.
+- **Local hang proof.** `247-B6-LOCAL-2.md` holds the real-BEAM queued-hang proof, with `hang_marker` true.
+- **Lane K.** Every selected run's queue lines show K 12/0/0, and the current lane has 12 claim lines.
+
+<!-- B6-GATE-JSON-BEGIN -->
+{
+  "schema": "threadline.phase247-b6-gate/1",
+  "squash_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+  "state": "measured",
+  "runs": [
+    {
+      "id": 40775441502,
+      "event": "push",
+      "head_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+      "wall_s": 455
+    },
+    {
+      "id": 40776626061,
+      "event": "workflow_dispatch",
+      "head_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+      "wall_s": 461
+    },
+    {
+      "id": 40777747292,
+      "event": "workflow_dispatch",
+      "head_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+      "wall_s": 478
+    },
+    {
+      "id": 40778862839,
+      "event": "workflow_dispatch",
+      "head_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+      "wall_s": 479
+    },
+    {
+      "id": 40779961784,
+      "event": "workflow_dispatch",
+      "head_sha": "11234b01defc09d0c4cf269925a976b954910eab",
+      "wall_s": 443
+    }
+  ],
+  "median_wall_s": 461,
+  "first_three_ratios": {
+    "current": [
+      1.06,
+      1.02,
+      1.02
+    ],
+    "min": [
+      1.06,
+      1.07,
+      1.06
+    ],
+    "latest": [
+      1.09,
+      1.05,
+      1.09
+    ]
+  },
+  "excluded": [],
+  "ci02_verdict": "PASS",
+  "ci03_verdict": "PASS",
+  "continuity": {
+    "ci01_browser_timings_all_runs": true,
+    "partition_timings_all_runs": true,
+    "ci04_selftest_hang_cases_all_runs": true,
+    "ci04_monitor_unchanged_since_b4": true,
+    "ci04_local_queued_hang_proof": true,
+    "tail_queue_lane_k_all_runs": true
+  },
+  "prediction": {
+    "worst_8000": {
+      "current": 1.063714,
+      "latest": 1.321384,
+      "min": 1.277516
+    },
+    "worst_static": {
+      "latest": 1.321384,
+      "min": 1.277516
+    },
+    "k_by_lane": {
+      "current": 12,
+      "latest": 0,
+      "min": 0
+    },
+    "ci03_expectation": "EXPECTED_PASS",
+    "gate": "PASS",
+    "gate_components": {
+      "ci02_predicted_le_510": true,
+      "replay_current_worst_le_1_08": true
+    },
+    "ci02_prediction": {
+      "b5_median_s": 457,
+      "ci02_expectation": "EXPECTED_PASS",
+      "predicted_ci02_median_s": 493.8,
+      "self_test_delta_s": 17,
+      "slowest_partition_delta_s": 19.837
+    }
+  },
+  "prediction_record": "247-B6-PREDICTION-2.md",
+  "preflight_verdict": "GO",
+  "follow_up": "B6 closes CI-02 (median 461 s <= 540 s over five attempt-1 successes at main 11234b01) and CI-03 (all nine first-three ratios <= 1.15) on fresh same-head main evidence, so no D-32 fallback, 247-B6-ESCALATION-2.md or SEED-009 is written; 247-37 closes the round."
+}
+<!-- B6-GATE-JSON-END -->
+
+## D-32 round (Plans 34–37)
+
+Outcome path: **S (success)**. 247-LANDING.md records `B6 preflight: GO`, no `247-B6-ESCALATION-2.md` exists, and the B6-GATE-JSON has `ci02_verdict` PASS and `ci03_verdict` PASS at main 11234b01.
+
+| Check | Command | Plan | Recorded result |
+|---|---|---|---|
+| Per-lane tail-K self-test (`tq-lane-k`) | `bin/ci-test-partitions --self-test` and `/bin/bash bin/ci-test-partitions --self-test` | 247-34 | The ok line holds `tq-lane-k` under both bashes at the exact land head, and on all 15 B6 lane logs. The D-31 cap passes under D-34: env 30 → 45 s, /bin/bash 30 → 47 s. |
+| `lane_tail_k` contract test | `mix test test/threadline/ci_topology_contract_test.exs` (test "lane_tail_k queues TAIL_QUEUE_K on the current lane and nothing on min or latest, and a min mutant is caught", plus the CONTRIBUTING doc-parity and ok-token pins) | 247-34 | Green. 114 tests, 0 failures across the five listed files. Green inside the exact-head `ci.all` root suite (3388 tests, 0 failures). |
+| Replay tool self-test | `python3 -I .planning/phases/247-ci-critical-path-and-suite-lanes/tools/tail_queue_replay.py --self-test` | 247-35 | 68 checks pass, including the 14 named round-2 checks. The prediction-2 gate is PASS. |
+| P8 preflight evaluator (D-33) | `python3 -I .planning/phases/247-ci-critical-path-and-suite-lanes/tools/tail_queue_replay.py preflight --run 40774253622` | 247-36 | GO with no reasons. It checks the uniform 1.15 bound on every lane, the current-lane claim lines (12/12) and the pooled overhead (1775 ms ≤ 8000). The unedited stdout is `247-B6-PREFLIGHT.json`. |
+| B6-GATE-JSON reconciliation | 247-36 Task 3 `<automated>`: a fresh `bin/measure-main-ci --since 11234b01… --count 5 --ratios --format json` read against `247-B6-MEASUREMENT.json`, plus the verdicts recomputed from both projections | 247-36 | `B6 reconciliation: PASS PASS PASS`. CI-02 is PASS at a 461 s median, and CI-03 is PASS with every first-three ratio ≤ 1.15. |
+| Round closure | 247-37 Task 1 and Task 2 `<automated>`: mechanical path derivation, zero deleted lines since a6bd555c, the escalation prefix check, and the REQUIREMENTS/STATE regexes | 247-37 | Task 1 prints `D-32 closure records: success`. Task 2's result is recorded in 247-37-SUMMARY.md. |
+
+Nothing in Plan 37 re-sampled or re-ran a hosted check, and the 540 s and 1.15 thresholds are unchanged. CI-0x completion is left to the phase 247 verifier.

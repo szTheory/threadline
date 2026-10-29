@@ -1,7 +1,7 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-10-24 (rolling quality roadmap adopted after the 1.1.0 release)
-**Active milestone:** none yet. Next: v1.47 Release on autopilot.
+**Updated:** 2026-10-29 (v1.47 closed; rolling quality roadmap adopted 2026-10-24 after the 1.1.0 release)
+**Active milestone:** none. Next: v1.48 Safe by default (re-derive the baseline first).
 **Posture:** rolling background quality. The maintainer's attention is elsewhere, so operator-UI feedback is parked until they bring it. Meanwhile, work through evidence-backed foundation milestones. Each milestone is short and ends in a release, and the ranking is re-derived at each close. The maintainer will dogfood Threadline in their own projects, so the standing goal is "no bitrot": main green, PRs triaged, specs honest, deps lean, performance measured, intent remembered.
 
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
@@ -12,8 +12,8 @@ Evidence, file references, the rejected list, and the verified carried-debt regi
 
 | Rank | Version | Theme | Release | Status |
 |------|---------|-------|---------|--------|
-| 1 | v1.47 | Release on autopilot: CHANGELOG auto-dating, stale release-PR refresh, Dependabot security-only + SHA pins, tiered deps-audit, fetch retries, browser-lane timing then per-project split, contract tests on one lane, debt-register closeout, critic retired to a tag | patch | next |
-| 2 | v1.48 | Safe by default: operator surface fail-closed (bug fix), txid-reuse detection then trigger fix, CSV/header hardening, search_path pin + single SQL quoting, PgBouncer lock check, honest bypass/least-privilege/sandbox guides, floor to Elixir 1.17 / OTP 27 | 1.2.0 | queued |
+| 1 | v1.47 | Release on autopilot: CHANGELOG auto-dating, stale release-PR refresh, Dependabot security-only + SHA pins, tiered deps-audit, fetch retries, browser-lane timing then per-project split, contract tests on one lane, debt-register closeout, critic retired to a tag | none (no shipped change; REL-01 tail deferred to the next natural release) | shipped 2026-10-29 |
+| 2 | v1.48 | Safe by default: operator surface fail-closed (bug fix), txid-reuse detection then trigger fix, CSV/header hardening, search_path pin + single SQL quoting, PgBouncer lock check, honest bypass/least-privilege/sandbox guides, floor to Elixir 1.17 / OTP 27 | 1.2.0 | next |
 | 3 | v1.49 | Honest specs: dependency-free mutation replay, time-boxed contract-test keep/merge/delete, one-shot coverage probe, dependency-floor lane, twin probes | patch | queued |
 | 4 | v1.50 | Measured performance: in-server capture bench vs untriggered control with weekly ratchet, retention orphan-drain fix, adopter index generator, `timeline/2` `:limit`, honest performance guide | minor | queued |
 | 5 | v1.51 | Lean dependency tree: vendor CSV writer, Plug optional (required tree 11 to 7), drop unused optional deps, de-duplicate encoders/helpers, runtime-cycle gate, tooling out of `lib/` | minor | queued |
@@ -25,6 +25,10 @@ Maintainer decisions, 2026-10-24 (in-session, after a research fan-out):
 - D-4: retire the parked UI-critic loop to a git tag.
 - Operating grants: a standing merge grant for agent quality PRs (all required CI green and automated review clean; public API, defaults, scope, and spend still escalate); release when releasable (the maintainer approves `production-hex`); standard agent spend.
 - Maintainer action outstanding: move `HEX_API_KEY` to a `production-hex` environment secret.
+
+## Current position after v1.47 (2026-10-29)
+
+v1.47 closed with 5 phases (including gap phase 247.1), 66 plans, and 13/14 requirements. The audit is `tech_debt`, closed as `override_closeout`. It shipped no Hex release: no merge changed the package, and the CI-only `fix(ci):` #100 opened release PR #101, which was closed unmerged once the `exclude-paths` guard landed. REL-01 is deferred-with-trigger: the first natural release PR, likely v1.48's 1.2.0, must reach green CI with no CHANGELOG-dating PR, with its own Unreleased prose (W-3). Carried items to weigh at the v1.48 baseline: Dependabot #92 (needs a `ci(deps):` PR), deps-health #61, CI-02 drift (main wall 486 s, no regression guard), T-247-46/47 accepted-risk entries, and W-1/W-2 (root-file and `deps:` lock-only release-type gaps). Took 6 calendar days (2026-10-24 to 2026-10-29); phase 247 was the long pole at 37 plans.
 
 ## Current position after v1.46 (2026-10-11)
 

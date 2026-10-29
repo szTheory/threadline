@@ -10,15 +10,14 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline **1.0.1** is published on Hex.pm with ExDoc. v1.45 closed on 2026-10-07 after shipping 1.0.0; the malformed-actor-reference patch, protected publication and distribution sync completed on 2026-10-08. The approved **v1.46 — Operator UI Refinement** planning milestone is now complete. It delivered all six phases, 27 plans, 49 tasks, and 26/26 requirements within the public 1.x contracts. The milestone audit is `tech_debt`: no unmet requirements or broken flows, with bounded visual-evidence limits and disclosed polish findings. v1.46 is a planning milestone tag, not a new Hex release; the published package remains 1.0.1.
+Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, before v1.47 opened). The **v1.47 — Release on autopilot** quality milestone closed on 2026-10-29: five phases (244–247 plus gap phase 247.1), 66 plans, 68 tasks, and 13/14 requirements. REL-01 is deferred-with-trigger and was accepted at close. The milestone audit is `tech_debt`. No v1.47 merge changed the shipped package (all `ci:`/`chore:`/`docs:`, except the CI-only `fix(ci):` #100 that opened the now-closed #101), so v1.47 is a planning milestone tag, not a Hex release; the published package remains 1.1.0.
 
-**Shipped state (updated 2026-10-11, America/New_York):**
-- PR #79 merged as `f815e589c954a8e3983bc6f73b21c9e3304d6aa4`; tag/release `v1.0.0`, post-merge CI, protected Hex publication, smoke test, and distribution sync identify the same release.
-- Distribution-docs PR [#80](https://github.com/szTheory/threadline/pull/80) merged after all 16 checks passed. Merge commit: `edb5138f350f7719778b01a9a85fba49391df32f`.
-- v1.45: 7/7 phases, 47/47 plans, 25/25 requirements; milestone integration 25/25, eight E2E flows, and zero open audit items. The milestone audit records disclosed code-review/security debt with no blockers.
-- v1.46: 6/6 phases, 27/27 plans, 49 tasks, and 26/26 requirements. Integration is 24/26 because two visual-evidence requirements are satisfied with disclosed limits; all five expected flows pass. Exact-candidate required CI passed 16 jobs and 31 browser identities.
+**Shipped state (updated 2026-10-29, America/New_York):**
+- origin/main is at `ba0d80aa` (PR #103). v1.47 landed through squash PRs #91 and #93–#103 (except #101, the closed release PR). Release PR #101 ("release 1.1.1", opened by the CI-only `fix(ci):` PR #100) was closed unmerged after the releasable-type guard landed; there is no 1.1.1 tag.
+- v1.47: CI-02 browser split median 461 s over five main runs (limit 540 s); CI-03 slowest/fastest partition ratio at or below 1.15 on every lane; release-please ignores unshipped-only commits.
+- v1.46: 6/6 phases, 27/27 plans, 49 tasks, and 26/26 requirements (planning milestone; operator UI refinement).
 
-## Latest Milestone Shipped: v1.46 Operator UI Refinement
+## Prior shipped milestone: v1.46 Operator UI Refinement (2026-10-11)
 
 **Delivered:** Readable investigation and operations workflows across the existing operator routes, with candidate-bound evidence, exact-query recovery, truthful operation states, responsive and zoom checks, and a guarded review preview.
 
@@ -50,18 +49,13 @@ Threadline **1.0.1** is published on Hex.pm with ExDoc. v1.45 closed on 2026-10-
 
 </details>
 
-## Current Milestone: v1.47 Release on autopilot
+## Latest Milestone Shipped: v1.47 Release on autopilot (2026-10-29)
 
 **Goal:** A release needs only the maintainer's prose and the Hex publish approval, and CI is faster and never red for reasons unrelated to the change.
 
-**Target features:**
-- The release workflow dates the CHANGELOG `## Unreleased` section and refreshes stale release PRs, so the separate dating PR goes away.
-- Network fetches retry on transient errors (tests never do); Hex version pinned against lock churn.
-- Dependabot security-only updates, SHA-pinned actions, a tiered deps-audit gate, and a self-closing deps-health issue.
-- Browser-spec timing visibility, a per-project browser E2E split (CI median ≤ 9 min), contract tests on one lane, rebalanced partitions, and hang-proof test partitions.
-- Carried-debt register closed out; parked UI-critic loop retired to a tag (D-4).
+**Delivered:** The release workflow dates `## Unreleased` and refreshes stale release PRs; release-please ignores unshipped-only commits, and CONTRIBUTING plus the PR template state the release type rule. CI fetches retry, Hex is pinned, actions are SHA-pinned, Dependabot sends one grouped monthly actions PR, the `hex.audit` gate is tiered, and deps-health classifies its findings. Browser E2E is split per Playwright project, repo-contract tests run on the current lane only, partitions are lane-weighted with a current-lane tail queue, and a hung test fails fast with its name. The carried-debt register is closed out and the UI critic loop is retired to the local tag `archive/ui-critic-loop`.
 
-Scope and evidence: `.planning/MILESTONE-ARC.md` rank 1 and `.planning/research/QUALITY-ROADMAP-2026-10-24.md`.
+**Closeout:** `override_closeout`, audit `tech_debt`. REL-01's next-release clause is deferred-with-trigger: the first natural release PR must reach green CI with no CHANGELOG-dating PR (archived `247.1-REL01-EVIDENCE.md`). Carried debt includes W-1 (directory-only `exclude-paths`), W-2 (`deps:` lock-only bumps), W-4 (no alert on a red Release@main), F4 (Dependabot #92 red by design), F6 (stale deps-health #61), F7 (no CI-02 regression guard; main wall drifted to 486 s), and T-247-46/47 (accepted-risk entries needed). Full list: `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
 
 ## Prior shipped milestone: v1.45 1.0 API Contract
 
@@ -643,6 +637,7 @@ Scope and evidence: `.planning/MILESTONE-ARC.md` rank 1 and `.planning/research/
 
 ### Validated
 
+- [x] **REL-02..04, SUP-01..04, CI-01..04, DEBT-01/02 (v1.47)** — Release-PR refresh, fetch retries and Hex pin; SHA-pinned actions, grouped Dependabot, tiered audit gate and deps-health classification; browser timing, per-project browser split (median 461 s), lane-scoped contract tests, partition ratio ≤ 1.15 and hang-proof partitions; debt register closeout and critic retirement. Verified across Phases 244–247.1. REL-01 is deferred-with-trigger. See `.planning/milestones/v1.47-REQUIREMENTS.md` and `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
 - [x] **UIB/UIS/UII/UIO/UIA/UIV (v1.46)** — All 26 approved operator-refinement requirements across source-bound preview, readable investigation, continuity/recovery, authorized operations, accessibility, browser verification, and candidate review evidence. Verified across Phases 238–243; UIV-02/03 are satisfied with explicit visual-evidence limits. See `.planning/milestones/v1.46-REQUIREMENTS.md` and `.planning/milestones/v1.46-MILESTONE-AUDIT.md`.
 - [x] **API-04 and API-07 (Phase 231)** — `Threadline` is the one documented read API (`Threadline.Query`/`Threadline.Investigation` hidden, `Threadline.Query.timeline_query/1` the single escape hatch, facade-only doc-contract scanner); the capture schemas no longer declare an Ecto association to the semantics schema, with `transaction.action` hydrated by a hidden batched helper so every reader keeps the same shape.
 - [x] **API-01, API-02, API-03, API-05 and API-08 (Phase 232)** — `Threadline.row_history/3` is the one row-history read: keyword opts, a 200-row default (newest first) with `limit:`/`limit: :infinity` overrides, `cursor:` paging to `%Threadline.Page{}`, and `[:threadline, :row_history, :truncated]` telemetry fired only on real truncation; export, `as_of` and the operator drawer stay unbounded. `%Threadline.Page{entries, cursor, has_more}` (exact `has_more`) is the only paged shape — `TimelinePage`/`ActorHistoryPage` deleted. Every retired read (`history/3`, `row_history/4`, the `*_page` families on all three modules) is a one-line `@deprecated` delegate with a spec and a parity test; `emit_*` and raw `*_query` builders (except `timeline_query/1`) are hidden, and a scanner keeps hidden/retired names out of guides, the README and the example app.
@@ -754,7 +749,9 @@ Scope and evidence: `.planning/MILESTONE-ARC.md` rank 1 and `.planning/research/
 
 ### Active
 
-No active milestone requirements. All v1.46 requirements are validated and archived. Select the next scope only after a fresh evidence-based baseline; no successor is selected.
+- [ ] **REL-01 next-release clause (carried from v1.47)** — the first natural release PR's first CI run is green with no separate CHANGELOG-dating PR, and its landing PR adds its own Unreleased prose (W-3). Trigger and pass conditions: archived `247.1-REL01-EVIDENCE.md`.
+
+No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0) is queued; re-derive the baseline at `/gsd-new-milestone` before selecting it.
 
 ### Out of Scope
 
@@ -788,9 +785,11 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
-**Hex distribution (2026-10-08):** **threadline 1.0.1** is the published package with ExDoc; release PR #82 and distribution-sync PR #84 are merged. v1.45 introduced the 1.0.0 API contract. The 1.0 upgrade procedure is `guides/upgrading-to-1.0.md`; 0.10.x adopters follow `guides/upgrading-to-0.11.md`. The default `storage_schema` has been `"public"` since 0.10.0.
+**Hex distribution (2026-10-29):** **threadline 1.1.0** is the published package with ExDoc (1.0.1 was the 2026-10-08 patch; release PR #82 and distribution-sync PR #84). v1.45 introduced the 1.0.0 API contract. The 1.0 upgrade procedure is `guides/upgrading-to-1.0.md`; 0.10.x adopters follow `guides/upgrading-to-0.11.md`. The default `storage_schema` has been `"public"` since 0.10.0.
 
 **Operator UI refinement (v1.46, 2026-10-11):** Existing workflows preserve query identity during pending replacement, retain scope through row/actor/correlation pivots, and report operation outcomes truthfully through disconnect/reconnect. The candidate-bound review preview is indexed in the archived v1.46 evidence. Two visual-evidence requirements remain bounded rather than claiming pixel equivalence or unsupported browser/device coverage. No successor is selected.
+
+**Release on autopilot (v1.47, 2026-10-29):** Releases are prose-plus-approval by design: maintainers write `## Unreleased` prose in the landing PR, and the release workflow dates it. Ship-nothing work merges as `ci:`/`test:`/`chore:`/`docs:`, never `fix(ci):`, because a releasable type on an unshipped path opened release PR #101 for nothing. CI is split per Playwright project and lane-scoped, at a 461 s median. The first natural release still has to prove REL-01 end to end.
 
 **Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** the v1.42–v1.45 base-library ladder is complete, marked by the **1.0.0** release. Re-derive the baseline before choosing sustainment, another outcome, or stopping. Maintainer feedback subsequently selected v1.46 Operator UI Refinement on 2026-10-08; its approved scope refines existing capabilities. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
 
@@ -909,6 +908,13 @@ No active milestone requirements. All v1.46 requirements are validated and archi
 | Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
 | Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
+| Release prose lives under `## Unreleased` in the landing PR; the release workflow dates it (v1.47) | Removes the separate CHANGELOG-dating PR; a stale release PR is refreshed with a CI-triggering token | ✓ Mechanism observed live (#101, REL-02); ⚠️ REL-01 next-release clause pending |
+| release-please `exclude-paths` covers the unshipped directories, and ship-nothing work never uses a releasable type (v1.47, 247.1) | A CI-only `fix(ci):` PR opened release PR #101 for a package with no change | ✓ Good (0 release PRs on main since #103); ⚠️ Revisit: root files are guarded only by the type rule (W-1, W-2) |
+| Tiered dependency audit: runtime advisories fail required CI, dev/test/example-only advisories file an issue (v1.47, SUP-03) | Keeps the release lane green on advisories that cannot reach adopters | ✓ Good |
+| SHA-pinned actions with one grouped monthly Dependabot PR; Hex security comes from `hex.audit`, not Dependabot (v1.47, SUP-01/02) | Dependabot serves no Hex advisories or SHA-pin alerts | ✓ Good; ⚠️ #92 needs its own `ci(deps):` PR |
+| Repo-file contract tests run on the current lane only; min/latest run toolchain-sensitive tests (v1.47, CI-03) | Contract tests are toolchain-independent, so running them three times is waste; local `mix test` stays whole | ✓ Good |
+| CI landings decided by pre-registered, hash-pinned replays and capped hosted cohorts (v1.47, 247) | Prevents tuning to noise and retrying until a run passes; INVALID canaries are recorded as INVALID | ✓ Good (CI-02 461 s, CI-03 ≤ 1.15) |
+| Accept a requirement as deferred-with-trigger when only a future natural event can prove it (v1.47, REL-01) | No releasable change was pending, so forcing a release to prove it would have been cosmetic | — Pending (first natural release) |
 
 ## Evolution
 
@@ -930,4 +936,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-24 at v1.47 start (rolling quality roadmap rank 1)*
+*Last updated: 2026-10-29 after v1.47 milestone (Release on autopilot; next: ARC rank 2, v1.48 Safe by default)*

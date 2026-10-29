@@ -9,6 +9,9 @@ files:
   - test/threadline/operator_surface/operator_evidence_contract_test.exs
   - CONTRIBUTING.md
   - guides/local-docker-dx.md
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
 ---
 
 ## Why

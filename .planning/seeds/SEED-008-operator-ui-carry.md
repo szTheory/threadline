@@ -9,6 +9,10 @@ register: .planning/phases/246-debt-closeout-and-critic-retirement/246-DEBT-REGI
 reopen_when: >-
   the maintainer brings UI feedback, or the 1.0.0 UI work opens
   (operator-UI design work is parked until 1.0.0)
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
+  status: dormant
 ---
 
 # SEED-008: Operator-UI carry (parked with the UI)

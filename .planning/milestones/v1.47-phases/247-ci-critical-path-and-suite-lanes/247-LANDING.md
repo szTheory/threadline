@@ -699,3 +699,137 @@ Used 5/6 total runs and 4/5 extra serial dispatches. Sampling stopped at five at
 The last run's 589 s wall includes runner pickup delay: its Build and test jobs were created at 13:30:07Z but started between 13:30:47Z and 13:32:03Z. The full attempt-1 wall is counted as measured, as for every run.
 
 `bin/measure-main-ci --since 824c28517820c1cd6595f2e0e60b34ec3ce64d14 --count 5 --ratios --format json` returned `state: measured`, `found: 5`. Its unedited stdout is `247-B5-MEASUREMENT.json`. No `247-B5-INCOMPLETE.json` exists.
+
+
+## Land B6 — current-lane runtime tail queue (D-27..D-32)
+
+B6 tested land HEAD: d7bff1ef5ef38eb73c0be7b4502e32594b073fac
+
+**Supersession.** 247-33 never ran. It was wired to the round-1 prediction, whose gate failed, and it is closed by its `status: superseded` SUMMARY. This is the D-32 landing, executed by 247-36 against the round-2 prediction `247-B6-PREDICTION-2.md`.
+
+The candidate `land/v1.47-ci03-tail-queue` is isolated in the scratch worktree `threadline-247-b6-land`. It is based on main 824c28517820c1cd6595f2e0e60b34ec3ce64d14, the B5 squash; `origin/main` had not moved.
+
+The precondition passed before any push:
+- `247-B6-PREDICTION-2.md` holds exactly one B6-PREDICTION-JSON block with schema `threadline.phase247-b6-prediction/2`, gate PASS, and `gate_components` {`replay_current_worst_le_1_08`: true, `ci02_predicted_le_510`: true};
+- its `k_by_lane` is {current 12, min 0, latest 0};
+- its `runner_sha256` and `tool_sha256` equal the bytes at HEAD;
+- the sha256 of `247-B6-PREDICTION.md` is still 33fbbc3f…cefe09;
+- `247-B6-LOCAL-2.md` exists, and `247-B6-ESCALATION-2.md` does not;
+- the remote land branch did not exist, and `gh auth status` succeeded.
+
+Pick map, from `git log --reverse 8ef4b801..milestone/v1.47 -- . ':!.planning'`. Every pick is a `git cherry-pick -x` with no conflict:
+
+| Source | Land | Subject |
+|---|---|---|
+| e9bb16ca | 26910e91 | ci(247-29): put the per-lane ingest rule in the runner (lane_rule, --rule) |
+| f27d11b9 | a4149ecc | test(247-29): pin per-lane ingest rules with a mutant and document them |
+| 5b3e5ab8 | cf6d2025 | test(247-29): clean RetentionRun rows on exit and harden min_balance predict (R3-WR-01..03) |
+| cbcda76b | 3be90801 | ci(247-30): add the runtime tail queue to the partition runner (D-27) |
+| c23401cd | 20d458ef | ci(247-30): merge tail-queue timings and print the claim map |
+| f1bffd76 | f6557179 | ci(247-30): keep one deadline, exit status and lock across tail-queue claims |
+| 0de4c4e5 | 7fef917c | test(247-31): contract-pin the partition tail queue |
+| f2dbe251 | 6dbbbd34 | docs(247-31): document the partition tail queue |
+| 29636579 | 8b7d9f18 | test(247-31): read the as_of instant from the database clock in row_key_read |
+| eae71898 | df111760 | test(247-31): state only the observed clock mechanism in row_key_read |
+| 8caf2295 | 5fec44cf | ci(247-34): queue the tail only on the current lane (lane_tail_k, D-32) |
+| 99f0a595 | 9bdb53e5 | test(247-34): pin the per-lane tail queue and document it (D-32) |
+| 462a6063 | d820dda4 | ci(247-34): trim tq-lane-k lifts for the self-test cap |
+| 4f872f5e | 2aed07ef | test(247-34): pin the tq-lane-k self-test ok token |
+
+The planning snapshot commit d7bff1ef (`docs(planning): sync v1.47 planning for the 247 D-32 landing`) syncs `.planning` from milestone/v1.47 at 3d6abd2d. No tracked planning file on the land branch was absent on milestone/v1.47, so nothing was removed.
+
+Tree proofs, inside the land worktree on the tested head: `git diff --quiet milestone/v1.47 HEAD -- . ':!.planning'` exits 0, and `git diff --quiet milestone/v1.47 HEAD -- .planning` exits 0.
+
+Scope proof (D-03, D-28): `git diff --name-only origin/main HEAD -- . ':!.planning'` lists exactly the six allowed paths:
+- `CONTRIBUTING.md`
+- `bin/ci-test-partitions`
+- `test/threadline/ci_topology_contract_test.exs`
+- `test/threadline/operator_surface/live/retention_history_live_test.exs`
+- `test/threadline/query/row_key_read_test.exs`
+- `test/threadline/retention/pruner_test.exs`
+
+`git diff --quiet origin/main HEAD -- lib/ .github/ mix.exs mix.lock CHANGELOG.md test/partition_weights.txt test/partition_weights_min.txt test/partition_weights_latest.txt test/partition_colocate.txt test/support/` exits 0.
+
+### B6 exact-head local gate
+
+The gate ran inside the land worktree on the pinned Elixir 1.17.3 / OTP 27 toolchain, with asdf shims first on PATH and Bash 5.2 plus /bin/bash 3.2 available.
+
+- **Database.** An ephemeral postgres:16 (16.14) with default settings, labelled `dev.threadline.plan=247-36` and bound to a loopback ephemeral port. Every mix command spelled `DB_HOST=127.0.0.1 DB_PORT=<that port>`.
+- **Caches.** `deps`, `_build`, `.dialyzer` and the example app's `deps`/`_build` were copied from the source root, not linked.
+- **Browser dependencies.** The locked example E2E dependencies were installed first with `npm ci`, into a scratch cache.
+- **Run.** `CI=true mix ci.all` ran 21:22:22Z–21:36:58Z and exited 0 on the first attempt. Tracked status stayed clean.
+
+| Gate | Command | Result | Exit |
+|---|---|---|---|
+| ci_all | `CI=true DB_HOST=127.0.0.1 DB_PORT=<port> mix ci.all` | Format and Credo: 5704 mods/funs, no issues. Dependency audit: 3 lockfiles clean; 12 non-blocking findings, all example-only `bandit` advisories. Hygiene: 4661 tracked text files clean. Root suite: 32 properties, 3388 tests, 0 failures, 3 configured exclusions. Phoenix example: 132 tests, 0 failures. Dialyzer: passed. Live slice: 17 tests, 0 failures, 16 exclusions. Desktop + mobile browsers: 418 passed, 56 configured skips, 0 failures (5.8 min) | 0 |
+| self_test_env | `bin/ci-test-partitions --self-test` (Bash 5.2) | ok line holds `hang,`, `hang_ignore_term`, `hang_quit`, `tq-hang` and `tq-lane-k` | 0 |
+| self_test_bin_bash | `/bin/bash bin/ci-test-partitions --self-test` (Bash 3.2) | the same tokens | 0 |
+| static_identity | 247-34 Task 1 static-identity check against the land head, `MIX_BIN=false`, env bash and /bin/bash | min and latest `partition-1..4.files` byte-identical to 824c2851's, no queue, `tail queue: 0 files lifted (K=0)`; the current `assignment.tsv` is identical, with 12 queued | 0 |
+| current_partitioned | `DB_HOST=127.0.0.1 DB_PORT=<port> THREADLINE_CI_LANE=current mix verify.test_partitioned` | `tail queue: 12 files lifted (K=12)`; `Tail queue (K=12): 12 queued, 12 claimed, mean overhead 1267 ms`; partitions 1087/899/675/727 tests, 0 failures | 0 |
+| repo_hygiene | `bin/verify-repo-hygiene` | 4661 tracked text files clean; 8 allowlist entries used, 0 inert | 0 |
+| branch_protection | `bin/verify-branch-protection` (read-only) | exactly `CI required@15368`, emitted on main 824c2851, no stacked classic protection | 0 |
+
+B6 local gate exits: {"ci_all": 0, "self_test_env": 0, "self_test_bin_bash": 0, "static_identity": 0, "current_partitioned": 0, "repo_hygiene": 0, "branch_protection": 0}
+
+The min and latest lane-run evidence is `247-B6-LOCAL-2.md`'s. It holds here through the tree-equality proof above.
+
+The dependency audit reported 12 non-blocking findings, against B5's 11. All 12 are `bandit` advisories in the example app's lockfile. That lockfile is unchanged since 824c2851, as the scope proof shows, so the extra finding comes from the advisory database and not from this diff. It is non-blocking.
+
+This proves local readiness on the exact head, not main numeric acceptance. Thresholds stay 540 s and 1.15.
+
+### B6 hosted landing
+
+B6 PR number: 99
+B6 PR head SHA: d7bff1ef5ef38eb73c0be7b4502e32594b073fac
+B6 PR run ID: 40774253622
+B6 preflight: GO
+B6 squash SHA: 11234b01defc09d0c4cf269925a976b954910eab
+B6 automatic main push run: 40775441502
+
+The land branch was pushed once with a plain `git push -u`. PR https://github.com/szTheory/threadline/pull/99 was then opened under the D-29/D-32 standing grant. Its body states:
+- the round-2 gate PASS on both components;
+- `worst_8000.current` 1.063714;
+- the informational static replays: min 1.277516 and latest 1.321384;
+- `ci03_expectation` EXPECTED_PASS;
+- `ci02_prediction`: 493.8 s, against 510/540 s;
+- the D-32 disclosure, the D-33 P8 criteria, the D-32 stop rule and the local gate.
+
+Only one PR head ever ran ci.yml.
+
+PR run 40774253622 ran 21:43:10Z–21:50:55Z. Its attempt 1, at the exact tested head, concluded success with all 17 jobs green, including all three Build and test lanes, both browser projects and CI required.
+
+`python3 -I .planning/phases/247-ci-critical-path-and-suite-lanes/tools/tail_queue_replay.py preflight --run 40774253622` ran once, from the source root. Its unedited stdout is `247-B6-PREFLIGHT.json`, with verdict **GO** and no reasons:
+
+| Lane | K (queue line) | Ratio | Claims | Mean claim overhead |
+|---|---|---|---|---|
+| current | 12 | 1.06 | 12 lines; 12 queued, 12 claimed | 1775 ms (pooled 1775 ms ≤ 8000) |
+| min | 0 | 1.08 | 0 (K=0, not checked) | n/a |
+| latest | 0 | 1.08 | 0 (K=0, not checked) | n/a |
+
+`gh pr merge 99 --squash --match-head-commit d7bff1ef…` merged the PR as the non-releasable `ci:` squash 11234b01. GitHub reported no head mismatch. After fetch, `origin/main` equals the PR mergeCommit 11234b01, and `git diff --quiet origin/main d7bff1ef -- . ':!.planning'` exits 0. The remote land branch was deleted.
+
+Automatic main push run 40775441502 was created 2026-10-28T21:52:00Z at the squash. Its attempt 1 concluded success at 21:59:35Z with 17/17 jobs green. No dispatch happened before that terminal state. The post-merge `bin/verify-branch-protection` readback then exited 0: exactly `CI required@15368`, emitted on main head 11234b01, and no stacked classic protection.
+
+The land worktree, its local branch and the `dev.threadline.plan=247-36` container were removed after this readback.
+
+
+## B6 bounded main chronology
+
+| Run | Event | Exact head | Created at UTC | Dispatch time / automatic | Attempt-1 updated at UTC | Conclusion |
+|---|---|---|---|---|---|---|
+| 40775441502 | push | 11234b01defc09d0c4cf269925a976b954910eab | 2026-10-28T21:52:00Z | automatic merge push | 2026-10-28T21:59:35Z | success |
+| 40776626061 | workflow_dispatch | 11234b01defc09d0c4cf269925a976b954910eab | 2026-10-28T22:01:02Z | dispatched after 22:01:00Z | 2026-10-28T22:08:43Z | success |
+| 40777747292 | workflow_dispatch | 11234b01defc09d0c4cf269925a976b954910eab | 2026-10-28T22:09:24Z | dispatched after 22:09:23Z | 2026-10-28T22:17:22Z | success |
+| 40778862839 | workflow_dispatch | 11234b01defc09d0c4cf269925a976b954910eab | 2026-10-28T22:17:51Z | dispatched after 22:17:50Z | 2026-10-28T22:25:50Z | success |
+| 40779961784 | workflow_dispatch | 11234b01defc09d0c4cf269925a976b954910eab | 2026-10-28T22:26:17Z | dispatched after 22:26:16Z | 2026-10-28T22:33:40Z | success |
+
+Used 5/6 total runs and 4/5 extra serial dispatches. Sampling stopped at five attempt-1 successes, so the sixth slot was not used.
+
+Before each dispatch, a guard confirmed three things:
+- `origin/main` (read with `git ls-remote`) still equalled the B6 squash;
+- no ci.yml main run was queued or in progress;
+- fewer than six push/dispatch runs, and fewer than five attempt-1 successes, existed at the squash.
+
+Each dispatched run was created after the previous run's attempt-1 terminal time. There were no failed runs, no exclusions, no retries and no job re-runs. GitHub lists exactly five ci.yml runs at the squash.
+
+`bin/measure-main-ci --since 11234b01defc09d0c4cf269925a976b954910eab --count 5 --ratios --format json` returned `state: measured`, `found: 5`, with a median wall of 461 s. Its unedited stdout is `247-B6-MEASUREMENT.json`. No `247-B6-INCOMPLETE.json` exists.

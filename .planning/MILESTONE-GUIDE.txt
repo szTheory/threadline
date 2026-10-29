@@ -2,7 +2,7 @@ THREADLINE MILESTONE GUIDE
 Reusable intent for choosing, delivering, and closing future milestones
 
 Adopted: 2026-09-25 (after v1.41 close and the 0.10.2 release)
-Revised: 2026-10-11 (after v1.46 closeout). Folded in the maintainer's new
+Revised: 2026-10-29 (after v1.47 closeout; earlier revision 2026-10-11 after v1.46). Folded in the maintainer's new
 boilerplate lines: no dependabot-only milestones, CI DX, tautological
 tests, a performance baseline and ratchet, circular dependencies,
 JTBD/GOV.UK docs voice, and scanning for blind spots.
@@ -218,6 +218,13 @@ package is 1.0.1; v1.46 is a planning-milestone archive/tag. No next milestone
 is selected. Re-derive the baseline using §6 before choosing sustainment, another
 outcome, or stopping.
 
+Actual at v1.47 close (2026-10-29): Release on autopilot completed in 5
+phases (gap phase 247.1 included), 66 plans, and 68 tasks over 6 calendar
+days, with 13/14 requirements. REL-01 is deferred-with-trigger to the next
+natural release. No package release: Hex stays at 1.1.0. Lesson folded into
+section 11: a releasable commit type on a ship-nothing path opens an empty
+release PR, so ship-nothing work merges as ci:/test:/chore:/docs:.
+
 Prior estimate, 2026-10-02 (v1.44 close): one rung remained. v1.43 took 4
 days and v1.44 took 3 (7 phases). v1.45 was budgeted at about 1-2 weeks.
 
@@ -413,6 +420,11 @@ decisions, batched once at the end of a step.
 - Land milestone branches as a squash with a clean conventional title (no
   planning IDs), so the changelog stays honest and the version bump is
   right.
+- Ship-nothing work (CI, tests, planning, tooling) merges as ci:, test:,
+  chore: or docs:, never fix(ci):. A releasable type opens a release PR
+  for an unchanged package (v1.47: #100 opened #101). release-please
+  exclude-paths guards the unshipped directories; root files rely on the
+  type rule.
 - Closeout checklist:
   - main CI green on the exact released SHA
   - release-please and distribution-sync PRs merged

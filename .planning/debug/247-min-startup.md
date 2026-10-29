@@ -1,3 +1,10 @@
+---
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
+  status: unknown
+---
+
 # 247 min P3 pre-first-module delay
 
 **Scope:** Read-only root-cause investigation of recurring min-lane partition 3 `boot_ms` before the first ExUnit `:module_started` event. No tracked source/config or fixtures were changed.

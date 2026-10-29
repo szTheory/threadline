@@ -1,0 +1,63 @@
+{
+  "attempt": 1,
+  "claim_lines": 12,
+  "conclusion": "success",
+  "criteria": {
+    "lane_k": {
+      "current": 12,
+      "latest": 0,
+      "min": 0
+    },
+    "max_lane_ratio": 1.15,
+    "max_pooled_mean_overhead_ms": 8000
+  },
+  "head_sha": "d7bff1ef5ef38eb73c0be7b4502e32594b073fac",
+  "lanes": {
+    "current": {
+      "claim_checks": true,
+      "claim_lines": 12,
+      "lane_k": 12,
+      "mean_overhead_ms": 1775.0,
+      "queue": {
+        "claimed": 12,
+        "k": 12,
+        "overhead_mean_ms": "1775",
+        "queued": 12
+      },
+      "ratio": "1.06",
+      "reasons": []
+    },
+    "latest": {
+      "claim_checks": false,
+      "claim_lines": 0,
+      "lane_k": 0,
+      "mean_overhead_ms": null,
+      "queue": {
+        "claimed": 0,
+        "k": 0,
+        "overhead_mean_ms": "n/a",
+        "queued": 0
+      },
+      "ratio": "1.08",
+      "reasons": []
+    },
+    "min": {
+      "claim_checks": false,
+      "claim_lines": 0,
+      "lane_k": 0,
+      "mean_overhead_ms": null,
+      "queue": {
+        "claimed": 0,
+        "k": 0,
+        "overhead_mean_ms": "n/a",
+        "queued": 0
+      },
+      "ratio": "1.08",
+      "reasons": []
+    }
+  },
+  "pooled_mean_overhead_ms": 1775.0,
+  "reasons": [],
+  "run": 40774253622,
+  "verdict": "GO"
+}

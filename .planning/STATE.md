@@ -1,18 +1,17 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.47
-current_phase: "247.1"
-status: Gap phase inserted after milestone audit
-stopped_at: "Phase 247 complete (verified 4/4 at main 11234b01: CI-02 461 s, CI-03 current 1.06/1.02/1.02); all v1.47 phases complete; follow-ups: /gsd-secure-phase 247, R4-WR-01..03"
-last_updated: "2026-10-29T01:38:59.608Z"
+status: Awaiting next milestone
+stopped_at: "v1.47 Release on autopilot closed 2026-10-29 (override_closeout; REL-01 deferred-with-trigger; tag v1.47 local)"
+last_updated: "2026-10-29T09:46:51.795Z"
 last_activity: 2026-10-29
-last_activity_desc: v1.47 audit gaps_found; Phase 247.1 inserted
-state_head: 869d02c86003124891cc18ce952b572da52776f5
+last_activity_desc: Milestone v1.47 completed and archived
+state_head: 6bd012a3716905099e2fdbf5f8a16a1b5262ea89
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 62
-  completed_plans: 62
+  completed_phases: 5
+  total_plans: 66
+  completed_plans: 66
 milestone_name: Release on autopilot
 ---
 
@@ -20,22 +19,17 @@ milestone_name: Release on autopilot
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-24 at v1.47 start)
+See: `.planning/PROJECT.md` (updated 2026-10-29 at v1.47 close)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 247 — CI critical path and suite lanes
+**Current focus:** Planning next milestone (MILESTONE-ARC rank 2: v1.48 Safe by default)
 
 ## Current Position
 
-Phase: 247.1
-Plan: 0 of 0 (not planned)
-Status: Gap phase inserted after milestone audit
-Last activity: 2026-10-29 — v1.47 audit gaps_found; Phase 247.1 inserted
-Progress: [██████████] 4 of 4 v1.47 phases complete (100%); 60/62 milestone plans complete (Phase 247: 36/37 executed incl. halted Plan 19; 247-33 superseded, never run)
-
-Verification: Fresh 37 Python tests, synthetic round-trip, old Plan 22/25 receipt verification and warning-free host compile-only (Elixir 1.17.3 / OTP 27.3.4.15, no ExUnit events) pass. All 14 historical raw JSON/report files retain pre-repair hashes. Both preflight statuses and INVALID series reasons are derived from raw evidence; new /2 receipts carry monotonic timing with shared absolute preflight/child deadlines. Read-only legacy verification binds to historical producer commits while execution still requires committed current bytes. WR-05/T-247-48 is closed; security is 51/53 closed, two inherited medium open, zero high blocking. WR-06 is repaired for future /2 evidence; Plan 25's legacy /1 missing timing remains disclosed. Raw clock consistency does not authenticate coherently rewritten observations. No Docker/pinned semantic/hosted CI run was performed in this repair. Main acceptance remains 2/4: CI-01/04 historical passes, CI-02 four successes/two exclusions and median_wall_s=null, CI-03 min ratios 1.24/1.28/1.27. Nyquist remains partial. Superseded on main by B5 (247-28, 2026-10-28): at squash 824c2851, CI-02 measured PASS (median 457 s over five attempt-1 successes) and CI-03 measured MISS (current 1.17/1.17/1.09; min and latest pass). CI-01/CI-04 continuity holds. Phase verification is pending.
-
-Next: /gsd-discuss-phase 247.1 (gap closure for REL-01/REL-02; see .planning/v1.47-MILESTONE-AUDIT.md)
+Phase: Milestone v1.47 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-10-29 — Milestone v1.47 completed and archived (override_closeout; REL-01 deferred-with-trigger; tag v1.47 local)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -343,6 +337,19 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 | Category | Item | Status |
 |----------|------|--------|
+| requirements (v1.47 close, 2026-10-29) | REL-01: next natural release PR first CI green with no dating PR | Accepted by maintainer as deferred-with-trigger; bound in milestones/v1.47-phases/247.1-*/247.1-REL01-EVIDENCE.md |
+| debug_sessions (v1.47 close, 2026-10-29) | 247-export-fixture-isolation | Acknowledged; verified_locally (fix 136bb932 landed via #98) |
+| debug_sessions (v1.47 close, 2026-10-29) | 247-local-fix-review | Acknowledged; status unknown (247 B4 local recovery review) |
+| debug_sessions (v1.47 close, 2026-10-29) | 247-min-startup | Acknowledged; status unknown (247 min-lane startup diagnosis) |
+| debug_sessions (v1.47 close, 2026-10-29) | 247-row-history-fk | Acknowledged; verifying (fix 714b4dbb landed via #98) |
+| todos (v1.47 close, 2026-10-29) | 2026-10-25-local-gate-ephemeral-postgres-wrapper.md | Acknowledged; pending |
+| seeds (v1.47 close, 2026-10-29) | SEED-008 Operator-UI carry | Acknowledged; dormant, parked with the operator UI until 1.0.0+ feedback |
+| deferred_items (v1.47 close, 2026-10-29) | 244/deferred-items.md: 244-01 repo-hygiene HITs in 244-RESEARCH.md | Acknowledged; resolved (e89efba5) |
+| deferred_items (v1.47 close, 2026-10-29) | 245/deferred-items.md: TriggerRerunPropertyTest intermittent flake | Acknowledged; not reproducible, candidate for mix verify.flake |
+| deferred_items (v1.47 close, 2026-10-29) | 246/deferred-items.md: operator-screenshot-regression.spec.ts:101 fails standalone | Acknowledged; routed to SEED-008 (UI-HOME-SHOT-101) |
+| deferred_items (v1.47 close, 2026-10-29) | 247/deferred-items.md: 247-08 measure-main-ci on gh 2.101 | Acknowledged; resolved (d1261dfd) |
+| deferred_items (v1.47 close, 2026-10-29) | 247/deferred-items.md: 247-13 as_of flake, motion focus race, B4 fixtures, TMPDIR path equality | Acknowledged; motion race fixed 832bfe5e, B4 fixtures fixed via #98, TMPDIR test-side Path.expand open |
+| deferred_items (v1.47 close, 2026-10-29) | 247/deferred-items.md: 247-31 sibling as_of/4 DB-vs-BEAM clock sites | Acknowledged; open, apply db_now/0 if one flakes |
 | deferred_items (v1.44 close, 2026-10-02) | 226/deferred-items.md: 226-02, redaction_policy_generators.ex mix format drift | Acknowledged; resolved (b24ee66a) |
 | todos (v1.43 close, 2026-09-30) | 2026-09-28-ci-suite-sync-bound-parallelism | Resolved in v1.44 (phase 225 partitioned CI); no longer pending |
 | deferred_items (v1.43 close, 2026-09-30) | 214/deferred-items.md: from 214-02, vacuous :live_dialyzer without a PLT; runner cache path in the local-path regex | Acknowledged; resolved (verifier fails closed since 218-03; the guard shipped in 217) |
@@ -1216,10 +1223,11 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-28T16:25:00.000Z
-**Stopped at:** Phase 247 complete — all phases complete
+**Last session:** 2026-10-29
+**Stopped at:** v1.47 closed and archived; next is /gsd-new-milestone (re-derive baseline; ARC rank 2 is v1.48 Safe by default)
 **Resume file:** None
 
+- **Milestone closeout (2026-10-29):** v1.47 Release on autopilot archived (ROADMAP + REQUIREMENTS + AUDIT + phases under `milestones/v1.47-*`), PROJECT.md evolved, local tag `v1.47`, REQUIREMENTS.md removed. override_closeout: 12 newly acknowledged, 66 carried forward; REL-01 deferred-with-trigger (maintainer-accepted). No Hex release (no merge changed the shipped package; Hex stays 1.1.0).
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
 - **Milestone closeout (2026-06-14):** v1.36 Operator Surface Light Mode archived (ROADMAP + REQUIREMENTS + AUDIT under `milestones/v1.36-*`), PROJECT.md evolved, tag `v1.36`, REQUIREMENTS.md removed for fresh next milestone. Finding F1 resolved — entangled `style.ex` light source committed (`b9f8fc1`); suite green at 912 tests. 6 items acknowledged-deferred (see Deferred Items).
@@ -1246,7 +1254,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Operator Next Steps
 
-- Next: `/gsd-discuss-phase 244` (Release flow), then `/gsd-plan-phase 244`
+
+- Start the next milestone with /gsd-new-milestone
+
 
 ## Restart Recovery (2026-10-10)
 

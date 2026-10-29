@@ -1261,8 +1261,56 @@ First-class light mode for the operator surface without disturbing the dark defa
 - Model mix: opus for planning and orchestration. From 2026-09-28 the light-tier agents were pinned to sonnet through `model_overrides`.
 - Notable: about 7 paid runner-hours were approved for measurement top-ups in phase 219. Phase 222 avoided building a classifier by re-measuring first.
 
+## Milestone: v1.47 — Release on autopilot
+
+**Shipped:** 2026-10-29 (no package release; Hex stays at 1.1.0)  
+**Phases:** 5 (244–247, plus inserted gap phase 247.1) | **Plans:** 66
+
+### What was built
+
+- Release flow: the workflow dates `## Unreleased` and refreshes a stale release PR with a CI-triggering token (REL-02 observed live on #101). Network fetches retry, Hex is pinned, and release-please `exclude-paths` drops commits that touch only unshipped directories.
+- Supply chain: SHA-pinned actions with a contract test, one grouped monthly Dependabot actions PR, a tiered `hex.audit` gate, and a classified deps-health report.
+- Debt closeout: every carried-debt row has a disposition, and the UI critic loop (about 14k lines plus 2.3 MB of fixtures) is removed from main and restorable from a tag.
+- CI critical path:
+  - per-project browser E2E split (median 461 s over five main runs)
+  - slow-spec timings in the job summary
+  - repo-contract tests on the current lane only
+  - lane-weighted partitions with a current-lane tail queue (ratio ≤ 1.15)
+  - hung tests named within their partition timeout
+
+### What worked
+
+- Pre-registered gates. Hash-pinned replays and capped hosted cohorts decided each CI landing before any push. When a replay said FAIL (247-32), B6 stopped with zero hosted spend instead of trying its luck on CI.
+- Recording INVALID as INVALID. Three local canaries stopped on their first invalid warmup and were reported that way, not retried until they passed.
+- The re-audit after 247.1 caught that REL-01's last clause can only be proven by a natural release. Deferring it with a written trigger was more honest than cutting a cosmetic release to tick a box.
+
+### What was inefficient
+
+- Phase 247 grew to 37 plans. CI-03's ratio gate missed repeatedly (B2 to B5) until the per-lane tail queue, and each round paid for measurement windows. A replay model of the runner earlier would have saved several rounds.
+- A CI-only `fix(ci):` merge (#100) opened an empty release PR (#101), which then went red at the dating step. That needed a whole gap phase (247.1), including a prose PR (#102) whose only job was to unblock it.
+- The open-artifact audit parser splits markdown tables inside deferred items into fake items that the acknowledge writer cannot match. The 246 table had to be flattened at close.
+- The `init.manager` projection reported every phase `stale` despite `passed` VERIFICATION files, so readiness had to be hand-checked.
+
+### Patterns established
+
+- Ship-nothing work merges as `ci:`/`test:`/`chore:`/`docs:`, never `fix(ci):`, and `exclude-paths` guards the unshipped directories (CONTRIBUTING, PR template, contract test).
+- Deferred-with-trigger: when only a future natural event can prove a requirement, write the trigger, assumptions and pass condition into an evidence file and accept it at close.
+- Lane-scoped test selection by `@moduletag :repo_contract`, with an `@exempt` map that gives every untagged contract file a reason.
+
+### Key lessons
+
+1. A commit type is release metadata. Check what the diff ships, not only what it fixes.
+2. Model the gate before paying for the run: a stdlib replay over recorded timings predicted CI-03 correctly and cost nothing.
+3. Keep deferred-item prose free of markdown tables; the audit scanner reads table rows as separate items.
+
+### Cost observations
+
+- Model mix: adaptive profile (opus tier on Opus 5.5 for planning and orchestration; sonnet and haiku tiers for lighter agents).
+- Notable: hosted CI spend was capped per cohort (B6: 6 runs, 5 successes). Every INVALID local canary stopped at its first invalid warmup.
+
 ## Cross-Milestone Trends
 
+- v1.47 shows that release automation needs the commit-type discipline to hold up: a correct pipeline still opened an empty, red release PR because a CI-only change used a releasable type. It also shows pre-registered replays can replace paid measurement rounds.
 - v1.43 shows that measure-first also works as a way to decline work: the SEED-006 classifier was closed on data, and a phase that did not move the critical path took no credit for it. It also showed that release hygiene is part of shipping: a correct fix under a non-releasable squash subject never reaches adopters.
 - v1.42 shows the value of landing a milestone within days of finishing it: the release came out exactly as proposed, and PR CI (fresh database) caught what local gates could not.
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.

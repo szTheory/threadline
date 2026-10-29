@@ -3,6 +3,10 @@ status: verified_locally
 trigger: "Main run 40452833440, min partition 1, seed 856063: Orchestrator setup failed removing priv/threadline_exports with file already exists."
 created: 2026-10-27
 updated: 2026-10-27
+audit_acknowledged:
+  milestone: v1.47
+  at: 2026-10-29
+  status: verified_locally
 ---
 
 ## Finding
