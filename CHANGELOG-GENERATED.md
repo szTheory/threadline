@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/szTheory/threadline/compare/v1.1.0...v1.1.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **ci:** harden tail-queue claim lock and stop handling ([#100](https://github.com/szTheory/threadline/issues/100)) ([04169af](https://github.com/szTheory/threadline/commit/04169af7fc5f6644efc96f615f0f2de1e57f70af))
+
 ## [1.1.0](https://github.com/szTheory/threadline/compare/v1.0.1...v1.1.0) (2026-10-23)
 
 
