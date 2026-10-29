@@ -16,7 +16,7 @@ How did you verify the behavior?
 
 ## Release impact
 
-The PR title becomes the squash subject, and its type decides whether merging cuts a release. Check one:
+The squash subject's type decides whether merging cuts a release. The squash subject is the PR title, or the commit subject when the PR has a single commit, so set both. Check one:
 
 - [ ] Ships nothing to adopters (CI, tests, tooling, docs): the title uses `ci:`, `test:`, `chore:` or `docs:`, never `fix(ci):`.
 - [ ] Changes the published package: the title uses `feat:`, `fix:`, `perf:` or `deps:`, and this PR adds prose under `## Unreleased — highlights` in `CHANGELOG.md`.

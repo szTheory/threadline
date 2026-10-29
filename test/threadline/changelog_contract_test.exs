@@ -332,7 +332,10 @@ defmodule Threadline.ChangelogContractTest do
       for {file, text, needles} <- [
             {"CONTRIBUTING.md `### Ongoing releases`", contributing_section,
              type_needles ++ [@unreleased_heading_text, "exclude-paths", "package()[:files]"]},
-            {@pr_template, pr_template, type_needles ++ [@unreleased_heading_text]}
+            # A single-commit PR squashes under its commit subject, not the PR
+            # title (`squash_merge_commit_title=COMMIT_OR_PR_TITLE`).
+            {@pr_template, pr_template,
+             type_needles ++ [@unreleased_heading_text, "single commit"]}
           ],
           needle <- needles,
           not String.contains?(text, needle),
