@@ -21,6 +21,10 @@
 
 ## Unreleased — highlights
 
+_Nothing yet for the next release._
+
+## [1.1.1] - 2026-10-29
+
 The documentation that ships with the package is updated, and the
 maintainer-only Mix aliases changed. Neither change touches the library
 code or its dependency requirements.
