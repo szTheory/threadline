@@ -1,0 +1,21 @@
+{
+  "verified_at": "2026-11-10T22:40:15+00:00",
+  "result": "passed",
+  "checks": [
+    "Research reports exist and local links resolve",
+    "New research has portable paths and no trailing whitespace",
+    "Accrue handoff documents and supplied brand files match recorded fingerprints",
+    "Accrue inspected revision remains unchanged; concurrent session-continuity edit recorded separately",
+    "Paused Threadline UI source/test/doc diff remains unchanged",
+    "Accrue WIP correction and whole-task-first guidance persist in both instruction files",
+    "Scoped git diff --check passes and resume pointers reach the synthesis"
+  ],
+  "ui_source_diff_sha256": "7bb1328b375ed9c9b656d22785e089831122b002b6892554e8ce476d2b7c9074",
+  "limits": [
+    "Source/report verification only",
+    "No application tests, builds, runtime or browser checks",
+    "No asset migration, product implementation, commit, push or publication",
+    "Accrue refresh remains WIP; findings are comparison evidence, not Threadline authority",
+    "No implementation milestone or roadmap reorder selected"
+  ]
+}

@@ -49,6 +49,9 @@ Before deciding anything nontrivial, fan out across the §4 lenses, weigh
 options and ecosystem precedent, and synthesize ONE recommendation (§6).
 Stop at the point of diminishing returns.
 
+Standing discussion, verification, dependency and CI/CD policy:
+.planning/conventions/research-verification-and-efficiency.md (2026-11-10).
+
 
 3. PRODUCT BOUNDARIES
 
@@ -199,6 +202,16 @@ done earlier, stop earlier.
 
 
 7. ROADMAP HORIZONS (provisional; refresh at every close)
+
+Current at v1.48 setup (2026-11-10): the maintainer approved Threadline Admin:
+brand and complete journeys, Phases 248-253, using PhoenixStorybook with Phoenix
+LiveView/HEEx now. Fablebook is a later readiness/adoption decision, not a new
+milestone dependency. The signed-off brand source is brand/BRAND.md and brand.json.
+The approved mount correction and current #61/#90 proof/security gates belong to
+the baseline phase; the broader foundation queue stays separate and unwaived.
+Published package remains 1.1.0. ROADMAP.md is the current execution structure;
+older future-version forecasts below are historical, not a competing active plan.
+
 
 This section is the canonical scope sketch per rung. MILESTONE-ARC.md holds
 only the live rank order and status and points back here.

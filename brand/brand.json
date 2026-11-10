@@ -1,0 +1,993 @@
+{
+  "about": "Threadline brand data, version 1.0. Every rule in the brand book as structured data; American English. This edition defines no logo animation and no sound.",
+  "name": "Threadline",
+  "version": "1.0",
+  "date": "November 3, 2026",
+  "revisions": [
+    {
+      "version": "1.0",
+      "date": "November 3, 2026",
+      "changes": "First edition of this brand book. The mark is a spool of thread, drawn from the name; the arch mark that came before it is retired. Adds a complete light theme, code colors, contrast pairs and the applications."
+    }
+  ],
+  "idea": {
+    "line": "An audit trail is one thread. You pull it to follow what happened.",
+    "explanation": [
+      "By default, a database keeps only a record’s current values. It doesn’t remember what a value was before, or who changed it. Threadline puts every change on one timeline, in order, each tied to its actor: a person, or a part of your system such as a background job.",
+      "The mark is a spool with its loose end running free. The wound thread is the history already recorded; the loose end is where you start pulling. The name is the instruction: follow the line.",
+      "The spool is built from a few plain parts: a round disc at each end (the flanges) in Ink, a barrel between them, and the Stitch Blue thread wound on it. Nothing in it is a lock, a shield or an eye. Threadline helps people find what happened; it does not guard or watch."
+    ]
+  },
+  "tagline": "Follow what happened.",
+  "positioning": "An audit trail library for Phoenix apps. Threadline records every insert, update and delete in your PostgreSQL database, so you can open any record’s history and see what changed, who changed it and when.",
+  "job": "Help me see what happened to a record in my database, in the words I already use.",
+  "audience": [
+    {
+      "who": "Elixir and Phoenix developers",
+      "job": "Add an audit trail to my Phoenix app without rewriting it.",
+      "need": "A setup that fits a normal Phoenix app: add `{:threadline, \"~> 1.1.0\"}`, run one migration that adds audit triggers to the tables they choose, and check which tables are audited."
+    },
+    {
+      "who": "Support and admin staff",
+      "job": "See who changed a record, what they changed and when.",
+      "need": "One place, Threadline Admin, to filter changes by database table, person or job, and date, open a record’s full history and copy its id into a support ticket."
+    },
+    {
+      "who": "Security and compliance reviewers",
+      "job": "Find out whether Threadline records the changes we need to audit, and how we can review and export them.",
+      "need": "A plain account of what is recorded, which personal data is redacted or left out, how long audit history is kept and how to export it, and no claim Threadline can’t back up."
+    }
+  ],
+  "values": [
+    {
+      "value": "Plain",
+      "meaning": "Name what people look for: the database table, the record, what changed, who changed it and when. Not “evidence plane” or “posture”."
+    },
+    {
+      "value": "Exact",
+      "meaning": "Show the real id, the real timestamp and the real value. An audit trail that rounds a number up or down, or sums up a change, is not a true record."
+    },
+    {
+      "value": "Honest",
+      "meaning": "Say what Threadline records and what it does not. Never “tamper-proof”, “immutable” or “compliant”."
+    },
+    {
+      "value": "Calm",
+      "meaning": "People open Threadline Admin when something has gone wrong. Be steady and brief."
+    },
+    {
+      "value": "Yours",
+      "meaning": "Audit history lives in the host app’s own database, and the host app decides who can open Threadline Admin. Threadline’s name and logo are never shown to the host app’s customers."
+    }
+  ],
+  "rules": [
+    "The name is Threadline: one word, capital T. In code it is `threadline`.",
+    "Never run the thread through the word, and never put a shape behind the spool.",
+    "Insert, Update, Delete and Redacted are always written out. Their semantic colors back up the word; they never replace it."
+  ],
+  "presence": {
+    "head": "Full brand on Threadline’s own sites and packages. A quiet guest in your app.",
+    "tiers": [
+      [
+        "Threadline’s own",
+        "README, Hex page, docs site, social card",
+        "Everyone who is deciding whether to use it.",
+        "The full lockup, Stitch Blue thread, both themes, code colors."
+      ],
+      [
+        "Inside the host app",
+        "Threadline Admin, at a path or subdomain the host app chooses",
+        "Support and admin staff, inside the host app.",
+        "The lockup in the top bar, the semantic colors of Insert, Update, Delete and Redacted, and the type. A host app may replace the lockup with its own name and logo."
+      ],
+      [
+        "In other people’s writing",
+        "Blog posts, talks, newsletters, other READMEs",
+        "People writing about Threadline.",
+        "The lockup, unchanged, with the rules in this book. Nothing added."
+      ]
+    ],
+    "note": "The host app’s customers never see Threadline: it is for the host app’s own team. The host app chooses where Threadline Admin runs and who can open it, and may put its own name and logo in the top bar in place of Threadline’s."
+  },
+  "logo": {
+    "mark": "A spool seen from slightly above: two round end discs (flanges) with an axle hole, thread in Stitch Blue wound as a spiral that sits on the lower disc, and the loose end peeling off the last turn toward the word. Every end disc and turn uses the same ellipse, and every overlap has the same gap.",
+    "wordmark": "Threadline, one word, capital T, in Familjen Grotesk SemiBold, outlined from the font so no live text is needed, with Th, re and ea kerned tighter. The spool sits to the left, sized so its thread band matches the letters’ stem; the gap is the n’s stem pitch, about half the capital height, and the spool is centered on the capitals.",
+    "together": "The spool and the word are one lockup. Do not rearrange them, resize one against the other or place the spool anywhere but at the left of the word.",
+    "mono": "One color is the same drawing in a single color: the gaps between the end discs, the turns and the loose thread carry the form, so nothing is redrawn. Ink on light, Fog on dark.",
+    "small": "Below 64 px the spool has its own simpler drawing: fewer turns of thread and wider gaps, so it still reads at small sizes, such as in a browser tab. The 16 and 32 px favicons use that simpler drawing, placed so its main edges land on whole pixels and its curves stay smooth. Below 16 px, do not use the mark.",
+    "clear": "Keep clear space on every side equal to a quarter of the lockup’s height, measured from the outermost edge of the lockup. Nothing enters it: no text, edge or other logo.",
+    "minNote": "On screen, the lockup is never narrower than 96 px and the mark never smaller than 16 px. In print, never narrower than 25 mm.",
+    "theme": "The logo has a version for each theme. On light, the spool’s end discs and the word are Ink; on dark, they are Fog. The thread is Stitch Blue on both. Use the version made for the background; do not make one by inverting the colors of the other.",
+    "background": "No shape behind it: the lockup sits directly on the page background. A photograph or screenshot behind the logo needs a calm area at least as wide as the lockup plus its clear space.",
+    "retired": "The arch mark is retired. It was an earlier attempt at a Threadline logo: an arc over a bar, and an arc between the d and the l in the wordmark. This edition replaces it with the spool, so do not use it. It read as a padlock shackle, a magnet or a staple, which is the wrong promise for an audit trail library.",
+    "minimumSizes": [
+      {
+        "version": "Lockup",
+        "screen": "96 px wide",
+        "print": "25 mm wide"
+      },
+      {
+        "version": "Mark, drawn for its size",
+        "screen": "16 px",
+        "print": "Not specified"
+      }
+    ],
+    "misuse": [
+      "Don’t stretch, squeeze or rotate the lockup.",
+      "Don’t recolor the thread or the word, or use Thread Blue for the thread.",
+      "Don’t put a tile, badge or any other shape behind the spool.",
+      "Don’t add the tagline, the descriptor or any text to the lockup.",
+      "Don’t run a line through the word, or draw the thread through the letters.",
+      "Don’t use the dark drawing on a light page, or the light drawing on a dark one."
+    ],
+    "onPhotography": {
+      "head": "On screenshots and photographs",
+      "rules": [
+        "Place the lockup on a calm area at least as wide as the lockup and its clear space.",
+        "Use the light drawing on a light area and the dark drawing on a dark one. If neither reads well, move the logo.",
+        "Do not put a shape or a shadow behind it to make it read."
+      ]
+    },
+    "useByOthers": [
+      "Hex packages, blogs, newsletters and conference sites may use the lockup unchanged to refer to Threadline.",
+      "Do not use it to suggest that Threadline endorses, certifies or audits another product.",
+      "Do not alter the logo, or build a new logo that uses the spool."
+    ],
+    "clearSpace": "one quarter of the lockup height on every side, measured from the outermost ink"
+  },
+  "color": {
+    "defaultTheme": "dark",
+    "dark": [
+      {
+        "name": "Threadline Black",
+        "hex": "#0B1020",
+        "role": "The default background. Dark is the default theme.",
+        "sharePercent": 62
+      },
+      {
+        "name": "Graphite",
+        "hex": "#141B2D",
+        "role": "Rows, cards and panels on Threadline Black.",
+        "sharePercent": 24
+      },
+      {
+        "name": "Fog",
+        "hex": "#D7DEEA",
+        "role": "Text on dark, and the lockup on dark.",
+        "sharePercent": 8
+      },
+      {
+        "name": "Thread Blue",
+        "hex": "#4F8CFF",
+        "role": "Links, focus rings, selection and the main button on dark.",
+        "sharePercent": 3
+      },
+      {
+        "name": "Slate Line",
+        "hex": "#23304A",
+        "role": "Dividing lines on dark.",
+        "sharePercent": 3
+      }
+    ],
+    "light": [
+      {
+        "name": "Paper",
+        "hex": "#F7F9FC",
+        "role": "The light background.",
+        "sharePercent": 64
+      },
+      {
+        "name": "Card White",
+        "hex": "#FFFFFF",
+        "role": "Rows, cards and panels on Paper.",
+        "sharePercent": 22
+      },
+      {
+        "name": "Ink",
+        "hex": "#0F1728",
+        "role": "Text on light, and the lockup on light.",
+        "sharePercent": 8
+      },
+      {
+        "name": "Thread Blue Deep",
+        "hex": "#1557C0",
+        "role": "Links, focus rings, selection and the main button on light.",
+        "sharePercent": 3
+      },
+      {
+        "name": "Hairline",
+        "hex": "#C9D3E2",
+        "role": "Dividing lines on light.",
+        "sharePercent": 3
+      }
+    ],
+    "logo": {
+      "name": "Stitch Blue",
+      "hex": "#4781E6",
+      "role": "The thread in the logo, on light and on dark. Never for text, links or controls: Thread Blue and Thread Blue Deep do that work."
+    },
+    "secondary": [
+      {
+        "name": "Slate Text",
+        "hex": "#56647E",
+        "role": "Secondary text on Paper and Card White."
+      },
+      {
+        "name": "Steel Lift",
+        "hex": "#A3AFC2",
+        "role": "Secondary text on Threadline Black and Graphite."
+      },
+      {
+        "name": "Control Edge",
+        "hex": "#76849F",
+        "role": "Input and button borders on light (3.6:1 on Paper). Dark uses Steel at #73819C."
+      },
+      {
+        "name": "Steel",
+        "hex": "#73819C",
+        "role": "Input and button borders on dark (4.4:1 on Graphite)."
+      }
+    ],
+    "accents": [
+      {
+        "name": "Signal Cyan",
+        "light": "#0B6F67",
+        "dark": "#4EDFD1",
+        "role": "The correlation id: one id shared by every change made in the same request or background job."
+      },
+      {
+        "name": "Iris",
+        "light": "#5B49D6",
+        "dark": "#8A7CFF",
+        "role": "Keywords in code and the selected saved view in a list of changes. Never a status."
+      }
+    ],
+    "operations": [
+      {
+        "name": "Insert",
+        "textLight": "#136C47",
+        "chipLight": "#DDF2E8",
+        "textDark": "#5AE0A2",
+        "chipDark": "#10332B",
+        "meaning": "A record was added."
+      },
+      {
+        "name": "Update",
+        "textLight": "#1557C0",
+        "chipLight": "#DDE9FB",
+        "textDark": "#8DB4FF",
+        "chipDark": "#14284F",
+        "meaning": "A record was changed."
+      },
+      {
+        "name": "Delete",
+        "textLight": "#A33434",
+        "chipLight": "#F9E1E1",
+        "textDark": "#FF8585",
+        "chipDark": "#3A1B23",
+        "meaning": "A record was deleted."
+      },
+      {
+        "name": "Redacted",
+        "textLight": "#8A5512",
+        "chipLight": "#FBEFD2",
+        "textDark": "#F6C86B",
+        "chipDark": "#3A2A0A",
+        "meaning": "The value was replaced with [REDACTED] before it was stored, such as an email address."
+      }
+    ],
+    "operationRule": "Insert, Update, Delete and Redacted are always written out. Their semantic colors back up the word; they never replace it.",
+    "contrastPairs": [
+      {
+        "id": "body",
+        "role": "Body text",
+        "use": "README, docs, Threadline Admin and this book.",
+        "minimum": 4.5,
+        "light": {
+          "text": "#0F1728",
+          "ground": "#F7F9FC",
+          "contrast": 16.97,
+          "use": "Any text size (AAA)"
+        },
+        "dark": {
+          "text": "#D7DEEA",
+          "ground": "#0B1020",
+          "contrast": 14,
+          "use": "Any text size (AAA)"
+        }
+      },
+      {
+        "id": "descriptor",
+        "role": "Descriptor and secondary text",
+        "use": "The words “audit trail library” beside the logo, and metadata under a title.",
+        "minimum": 4.5,
+        "light": {
+          "text": "#56647E",
+          "ground": "#F7F9FC",
+          "contrast": 5.66,
+          "use": "Any text size (AA)"
+        },
+        "dark": {
+          "text": "#A3AFC2",
+          "ground": "#0B1020",
+          "contrast": 8.54,
+          "use": "Any text size (AAA)"
+        }
+      },
+      {
+        "id": "caption",
+        "role": "Caption and table metadata",
+        "use": "Captions, timestamps and column labels on a card or row.",
+        "minimum": 4.5,
+        "light": {
+          "text": "#56647E",
+          "ground": "#FFFFFF",
+          "contrast": 5.97,
+          "use": "Any text size (AA)"
+        },
+        "dark": {
+          "text": "#A3AFC2",
+          "ground": "#141B2D",
+          "contrast": 7.73,
+          "use": "Any text size (AAA)"
+        }
+      },
+      {
+        "id": "application-copy",
+        "role": "Copy inside an application",
+        "use": "Text on a card in Threadline Admin, the README or a slide.",
+        "minimum": 4.5,
+        "light": {
+          "text": "#0F1728",
+          "ground": "#FFFFFF",
+          "contrast": 17.9,
+          "use": "Any text size (AAA)"
+        },
+        "dark": {
+          "text": "#D7DEEA",
+          "ground": "#141B2D",
+          "contrast": 12.68,
+          "use": "Any text size (AAA)"
+        }
+      },
+      {
+        "id": "hero",
+        "role": "Display accent",
+        "use": "A large headline word or figure in the accent. 24 px and up.",
+        "minimum": 3,
+        "light": {
+          "text": "#1557C0",
+          "ground": "#F7F9FC",
+          "contrast": 6.31,
+          "use": "Any text size (AA)"
+        },
+        "dark": {
+          "text": "#4F8CFF",
+          "ground": "#0B1020",
+          "contrast": 5.89,
+          "use": "Any text size (AA)"
+        }
+      },
+      {
+        "id": "link",
+        "role": "Link",
+        "use": "Links in running text and the main button’s edge.",
+        "minimum": 4.5,
+        "light": {
+          "text": "#1557C0",
+          "ground": "#FFFFFF",
+          "contrast": 6.65,
+          "use": "Any text size (AA)"
+        },
+        "dark": {
+          "text": "#4F8CFF",
+          "ground": "#141B2D",
+          "contrast": 5.33,
+          "use": "Any text size (AA)"
+        }
+      },
+      {
+        "id": "focus",
+        "role": "Focus ring",
+        "use": "The 2 px ring on a focused control.",
+        "minimum": 3,
+        "light": {
+          "text": "#1557C0",
+          "ground": "#F7F9FC",
+          "contrast": 6.31,
+          "use": "Any text size (AA)"
+        },
+        "dark": {
+          "text": "#4F8CFF",
+          "ground": "#0B1020",
+          "contrast": 5.89,
+          "use": "Any text size (AA)"
+        }
+      },
+      {
+        "id": "artwork",
+        "role": "Logo thread",
+        "use": "Stitch Blue against the page, read as a shape, not as text.",
+        "minimum": 3,
+        "light": {
+          "text": "#4781E6",
+          "ground": "#F7F9FC",
+          "contrast": 3.59,
+          "use": "Large text and graphics only"
+        },
+        "dark": {
+          "text": "#4781E6",
+          "ground": "#0B1020",
+          "contrast": 5,
+          "use": "Any text size (AA)"
+        }
+      }
+    ],
+    "never": [
+      {
+        "color": "Stitch Blue",
+        "notFor": "text of any size on Paper or Card White"
+      },
+      {
+        "color": "Slate Line",
+        "notFor": "the only boundary of a control"
+      },
+      {
+        "color": "Thread Blue",
+        "notFor": "text on Paper or Card White (use Thread Blue Deep)"
+      },
+      {
+        "color": "Thread Blue Deep",
+        "notFor": "text on Threadline Black (use Thread Blue)"
+      }
+    ],
+    "notes": "Ratios are WCAG 2.2 contrast, computed from the hex values. A pair that passes here says nothing about a whole product built with it. Stitch Blue on Paper is 3.6:1: enough for a shape, not for text. Hairline and Slate Line only divide space and are never used for text.",
+    "print": "Not specified: proof against a physical swatch; no CMYK or Pantone values are given."
+  },
+  "type": {
+    "display": {
+      "family": "Familjen Grotesk",
+      "weights": "SemiBold (600) for the name and headlines; Regular (400) never for display.",
+      "css": "'Familjen Grotesk', 'Arial Narrow', system-ui, sans-serif",
+      "use": "The wordmark, headlines in books, slides and social cards, and page titles in docs.",
+      "why": "The wordmark is outlined using this typeface, and headlines set in it match the logo. Narrow and plain, with flat shoulders, it reads as an engineering tool."
+    },
+    "text": {
+      "family": "Geist",
+      "weights": "Regular (400), Medium (500) and SemiBold (600).",
+      "css": "Geist, system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "use": "Body text, Threadline Admin, tables, buttons and labels.",
+      "why": "Chosen for dense audit tables: tabular numerals so timestamps and counts align, and plain letterforms that hold at 13 px. Threadline Admin already uses it."
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "weights": "Regular (400) and Medium (500).",
+      "css": "'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace",
+      "use": "Anything copied or compared: ids, database table and field names, commands and code.",
+      "why": "Every character is distinct (0 and O, 1 and l), narrow enough to fit a UUID in a table column. It is the monospace face Threadline Admin already uses."
+    },
+    "license": "All three families are SIL Open Font License 1.1, from Google Fonts. The license texts are in the assets fonts folder.",
+    "hierarchy": [
+      {
+        "role": "Display",
+        "face": "Familjen Grotesk",
+        "weight": 600,
+        "sizePx": 56,
+        "lineHeight": 1.05,
+        "tracking": "-0.015em",
+        "sample": "Follow what happened.",
+        "use": "Covers, slides and social cards. One line, two at most."
+      },
+      {
+        "role": "Heading",
+        "face": "Familjen Grotesk",
+        "weight": 600,
+        "sizePx": 28,
+        "lineHeight": 1.2,
+        "tracking": "-0.01em",
+        "sample": "Open a record’s history",
+        "use": "Page titles and section heads in docs and Threadline Admin."
+      },
+      {
+        "role": "Body",
+        "face": "Geist",
+        "weight": 400,
+        "sizePx": 16,
+        "lineHeight": 1.55,
+        "tracking": "0",
+        "sample": "Every insert, update and delete is recorded with who made it and when.",
+        "use": "README, docs and paragraphs in Threadline Admin. 62 to 72 characters a line."
+      },
+      {
+        "role": "Dense text",
+        "face": "Geist",
+        "weight": 400,
+        "sizePx": 13,
+        "lineHeight": 1.4,
+        "tracking": "0",
+        "sample": "Today, 7:08 PM UTC",
+        "use": "Lists of changes in Threadline Admin. Always with tabular numerals."
+      },
+      {
+        "role": "Label",
+        "face": "Geist",
+        "weight": 600,
+        "sizePx": 12,
+        "lineHeight": 1.2,
+        "tracking": "0.12em, capitals",
+        "sample": "Investigate",
+        "use": "Navigation groups and column heads. Capitals only at this size and weight."
+      },
+      {
+        "role": "Code and ids",
+        "face": "IBM Plex Mono",
+        "weight": 400,
+        "sizePx": 13,
+        "lineHeight": 1.5,
+        "tracking": "0",
+        "sample": "user/cb1b4a0f-9d3e-4c7a-8f21-5c5a6895ee5b",
+        "use": "Ids, table and field names, commands. Don’t wrap an id: shorten it in the middle. Clicking it copies the whole id."
+      }
+    ],
+    "rules": [
+      "Figures in a column use tabular numerals (`font-variant-numeric: tabular-nums`) so digits stack.",
+      "Every id, table name and field name is set in IBM Plex Mono, so it can be compared by eye.",
+      "Shorten a long id in the middle, never at the end. Clicking an id copies the whole id and shows a short “Copied to clipboard” message; the id itself never moves or changes.",
+      "Headlines are sentence case. Capitals appear only in 12 px labels.",
+      "No type is lighter than 400 or smaller than 12 px."
+    ]
+  },
+  "voice": {
+    "summary": "A calm senior engineer walking you through what changed in your database, who changed it and when.",
+    "tone": [
+      {
+        "channel": "Threadline Admin: errors and empty states",
+        "plainToLively0to4": 0,
+        "example": "No changes match these filters. Try a wider date range or clear a filter."
+      },
+      {
+        "channel": "Docs and README",
+        "plainToLively0to4": 1,
+        "example": "Add audit triggers to the tables you choose, run the migration, then check which tables are audited."
+      },
+      {
+        "channel": "Release notes",
+        "plainToLively0to4": 1,
+        "example": "A record’s history can now show the record as it was at any point in the past."
+      },
+      {
+        "channel": "Talks and social posts",
+        "plainToLively0to4": 2,
+        "example": "Somebody changed that record on Tuesday. Here is how to find out who."
+      }
+    ],
+    "toneNote": "The voice never changes; the tone shifts with where the words appear. Threadline stays plain everywhere and gets only a little looser in a talk or a post. It is never loose where something has gone wrong, because people open Threadline Admin when they need an answer.",
+    "thisNotThat": [
+      {
+        "say": "Open a record’s history.",
+        "notThis": "Leverage our powerful audit platform."
+      },
+      {
+        "say": "See who changed this record, and when.",
+        "notThis": "Gain visibility into user activity."
+      },
+      {
+        "say": "Threadline records every change to the tables you choose.",
+        "notThis": "Threadline makes your data tamper-proof."
+      },
+      {
+        "say": "Redacted: the value was replaced with [REDACTED].",
+        "notThis": "The value is obfuscated for compliance."
+      },
+      {
+        "say": "Check which tables are audited.",
+        "notThis": "Verify your audit posture."
+      },
+      {
+        "say": "Delete history older than your retention period.",
+        "notThis": "Purge your audit log."
+      },
+      {
+        "say": "No changes match these filters. Try a wider date range.",
+        "notThis": "Oops! We couldn’t find anything."
+      },
+      {
+        "say": "Export this record’s history as JSON.",
+        "notThis": "Generate your compliance evidence pack."
+      }
+    ],
+    "inclusive": [
+      "Write for support staff who don’t read code. Name the database table, who made the change and when, before any id.",
+      "Say what they can do next. Every empty and error state ends with a next step.",
+      "Spell out the time zone. Write “7:08 PM UTC”, never a bare time."
+    ],
+    "name": {
+      "rule": "Threadline, one word with a capital T, in running text. In code, packages and commands it is `threadline`, `:threadline` and `mix threadline.install`.",
+      "never": [
+        {
+          "form": "ThreadLine, Thread Line",
+          "why": "one word, one capital"
+        },
+        {
+          "form": "THREADLINE",
+          "why": "except as a 12 px label in capitals"
+        },
+        {
+          "form": "threadline",
+          "why": "in running text (code only)"
+        },
+        {
+          "form": "the Threadline platform",
+          "why": "Threadline is a library"
+        }
+      ],
+      "descriptor": "Call it an “audit trail library”. Call what people read “history”."
+    },
+    "terms": [
+      {
+        "term": "Audit trail",
+        "meaning": "The category: the recorded history of changes. “Log” suggests text logs.",
+        "say": "audit log"
+      },
+      {
+        "term": "History",
+        "meaning": "What you read in Threadline Admin: every change to a record, in order.",
+        "say": "evidence, proof"
+      },
+      {
+        "term": "Record",
+        "meaning": "One row in a database table, such as one support ticket. Say “row” only in SQL terms.",
+        "say": "entity, object"
+      },
+      {
+        "term": "Change",
+        "meaning": "One insert, update or delete of one record.",
+        "say": "event, activity"
+      },
+      {
+        "term": "Transaction",
+        "meaning": "The changes your app saved together, in one database transaction.",
+        "say": "audit transaction"
+      },
+      {
+        "term": "Action",
+        "meaning": "What your app says it did, such as `ticket_replied_and_closed`.",
+        "say": "intent"
+      },
+      {
+        "term": "Actor",
+        "meaning": "Who made the change: a person, a service account or a job.",
+        "say": "principal, actor ref"
+      },
+      {
+        "term": "Redacted",
+        "meaning": "A value replaced with `[REDACTED]` before it is stored. A field left out is not recorded at all.",
+        "say": "masked, obfuscated, scrubbed"
+      },
+      {
+        "term": "Audited table",
+        "meaning": "A database table with a Threadline trigger, so its changes are recorded.",
+        "say": "covered, coverage, posture, drift"
+      },
+      {
+        "term": "Retention period",
+        "meaning": "How long audit history is kept before it is deleted.",
+        "say": "purge, prune"
+      },
+      {
+        "term": "Host app",
+        "meaning": "The Phoenix app that uses Threadline. Its database holds the audit history.",
+        "say": "reader, consumer, parent app"
+      },
+      {
+        "term": "Threadline Admin",
+        "meaning": "The admin UI Threadline adds to the host app, at a path it chooses.",
+        "say": "operator surface, the /audit pages"
+      }
+    ],
+    "termsNote": "These are only the words the brand depends on; the product docs define the rest."
+  },
+  "messaging": {
+    "pitch": "Threadline is an audit trail library for Phoenix apps. It records every insert, update and delete in your PostgreSQL database, with who made each change and when, and adds Threadline Admin, where your team can follow what happened.",
+    "pillars": [
+      [
+        "Every change, in order.",
+        "A PostgreSQL trigger on each audited table records every insert, update and delete in the same transaction that saves it."
+      ],
+      [
+        "Any record’s history.",
+        "Open any record to see every change ever made to it, or see the record as it was at any point in the past."
+      ],
+      [
+        "Your database, your access.",
+        "Audit history is stored in your own PostgreSQL database. Threadline Admin runs inside your app, and you decide who can open it and how they sign in."
+      ]
+    ],
+    "tagline": "Sentence case, with the period. It sits beside the logo, never in it.",
+    "boilerplate": [
+      [
+        "One line: Hex, GitHub and package listings",
+        "An audit trail library for Phoenix that records every row change in PostgreSQL, so you can follow what happened."
+      ],
+      [
+        "Short: README opening, talk bios",
+        "Threadline is an open-source audit trail library for Elixir and Phoenix apps. It records each insert, update and delete in PostgreSQL, with who made it and when, and includes Threadline Admin, where your team can look up a record and see every change made to it, who made it and when."
+      ],
+      [
+        "Do not say",
+        "Tamper-proof, immutable, compliant, certified, “audit log”, “powerful”, “seamless”, “next-generation”. Threadline records changes; whether that meets a regulation is for your team to decide."
+      ]
+    ]
+  },
+  "imagery": {
+    "guidance": "Threadline’s pictures show the product at work, with its real labels: a timeline of changes, one record’s history and a command. They need no stock photography.",
+    "show": [
+      {
+        "subject": "A timeline of changes",
+        "detail": "Each change shows the operation word, the database table, the time, who made it and the record id."
+      },
+      {
+        "subject": "One record’s history",
+        "detail": "The new value beside the old one, field by field."
+      },
+      {
+        "subject": "A redacted value",
+        "detail": "The `[REDACTED]` chip where a value was replaced before it was stored."
+      },
+      {
+        "subject": "A command",
+        "detail": "A real command with its flags, in IBM Plex Mono on the code background."
+      }
+    ],
+    "never": [
+      "Shields and padlocks",
+      "Keys and chains",
+      "Fingerprints",
+      "Eyes and magnifiers",
+      "Gavels and courtrooms",
+      "Seals, stamps and “verified” badges",
+      "A checkmark as proof of compliance",
+      "Police tape",
+      "Server racks and node clouds",
+      "Stock people at screens",
+      "Neon grids and glowing data"
+    ],
+    "why": "Threadline helps people find what happened. These pictures say it guards, watches or certifies, and Threadline does none of those.",
+    "note": "The product pictures in this book are illustrations drawn from the product’s real labels and structure. They show the layout this book recommends, not screenshots of the current product, and the data in them is invented."
+  },
+  "code": {
+    "ground": {
+      "light": "#EEF3FA",
+      "dark": "#080D1B"
+    },
+    "roles": [
+      {
+        "role": "Text",
+        "light": "#0F1728",
+        "dark": "#D7DEEA",
+        "colors": "Names and punctuation. Module names in weight 600."
+      },
+      {
+        "role": "Comment",
+        "light": "#56647E",
+        "dark": "#8F9DB5",
+        "colors": "Comments, in a quiet slate."
+      },
+      {
+        "role": "Keyword",
+        "light": "#5B49D6",
+        "dark": "#8A7CFF",
+        "colors": "def, do, end, fn, SELECT. Iris."
+      },
+      {
+        "role": "String",
+        "light": "#9C2F6B",
+        "dark": "#F0A6C8",
+        "colors": "A muted rose, kept apart from the status colors."
+      },
+      {
+        "role": "Atom, key and number",
+        "light": "#1D4FA8",
+        "dark": "#8DB4FF",
+        "colors": "Atoms, keys, numbers and SQL names."
+      },
+      {
+        "role": "Command and flag",
+        "light": "#0B6F67",
+        "dark": "#4EDFD1",
+        "colors": "The prompt, commands and flags, in Signal Cyan."
+      }
+    ],
+    "rules": [
+      "No status colors in code: no green, amber or red, so nothing in code looks like an insert, a delete, a redacted value or a changed field.",
+      "Module names and function heads stand out by weight (600), not by another color.",
+      "Syntax colors are for code blocks only. Inline code in a sentence is plain IBM Plex Mono on a chip, in every medium.",
+      "Use these colors where Threadline styles code: slides, social cards, blog posts and screenshots. GitHub and ExDoc color their own code; leave that alone.",
+      "Show code that matches the current release, not pseudo-code."
+    ]
+  },
+  "graphicElements": {
+    "head": "One line that connects things: the thread.",
+    "intro": "The thread is the brand’s only graphic device. It is a thin Stitch Blue line that links items in order, the way a history links changes. It is used sparingly, and only where it links one item to the next.",
+    "items": [
+      [
+        "The thread line",
+        "A 2 px Stitch Blue vertical line with a small knot at each item, and no curl at the end. It joins the changes in one record’s history, or the steps on a docs page. Entries start on one grid, so the words beside each operation line up."
+      ],
+      [
+        "The loose end",
+        "The thread’s last stretch: the line lifts slightly and ends in a flat cut, as the logo’s thread does leaving the spool. It closes the divider under a page header or a banner, once."
+      ]
+    ],
+    "never": "The thread never runs through text, never loops decoratively, never fills a background and never replaces the logo. One thread line per view."
+  },
+  "legal": [
+    "Threadline is released under the MIT license. The logo and this brand book are covered by the same license unless the repository says otherwise.",
+    "No trademark registration is claimed in this book, and none was searched. Use ™, not ®, only if the maintainers decide to claim the name.",
+    "Fonts are SIL Open Font License 1.1; their license texts ship in the assets folder."
+  ],
+  "contact": [
+    "Questions about the brand and requests to use it: the Threadline maintainers, through the project’s issue tracker.",
+    "Approval: the maintainers approve any use that changes the logo or colors; unchanged use under these rules needs no approval."
+  ],
+  "notNeeded": [
+    {
+      "item": "Mascot",
+      "why": "Considered, not proposed. An audit trail library is trusted for being exact and calm, and a character pulls the other way."
+    },
+    {
+      "item": "Patterns and textures",
+      "why": "The thread is the only graphic device. A pattern would compete with dense tables, where the data is the picture."
+    },
+    {
+      "item": "Stock photography",
+      "why": "There is no honest photograph of “what happened in a database”. Real product pictures say it better."
+    },
+    {
+      "item": "A second typeface for the logo",
+      "why": "The wordmark and the headlines are both set in Familjen Grotesk, so no other display face is needed."
+    },
+    {
+      "item": "Brand-colored tables",
+      "why": "In a dense table the data should carry the color. Rows stay on Graphite or Card White; color marks only the operation word."
+    },
+    {
+      "item": "Logo animation and sound",
+      "why": "Not defined in this edition. The brand has no motion or sound rules yet; see To review."
+    }
+  ],
+  "toReview": [
+    {
+      "choice": "Terms are a working vocabulary.",
+      "detail": "Key terms (record, redacted, audited table, host app, Threadline Admin) are recommendations for the product’s own words too. Tell the maintainers which to change."
+    },
+    {
+      "choice": "The logo blue is Stitch Blue everywhere.",
+      "detail": "The product draws its logo with the accent color. This book states the rule; the product’s logo component would need to change."
+    },
+    {
+      "choice": "Light-theme values come from the product’s light mode.",
+      "detail": "Thread Blue Deep, Card White and Hairline were read from the product at the time of writing. Slate Text is new in this book and was never in the product."
+    },
+    {
+      "choice": "No motion and no sound yet.",
+      "detail": "The logo has no animation and the brand has no sound. Both are possible next editions; neither is required to use this identity."
+    },
+    {
+      "choice": "An opaque square icon is not made.",
+      "detail": "GitHub organization avatars and some platform icons need an opaque square. The logo files have no background shape, so the choice is left open."
+    },
+    {
+      "choice": "How people sign in, and the Admin logo.",
+      "detail": "This book says the host app decides who can open Threadline Admin and how they sign in (its own login, single sign-on or a set username and password), and that a host app may replace the lockup with its own name and logo. The product lets the host app authorize access; it documents no logo setting, so that would need to be built."
+    },
+    {
+      "choice": "Threadline Admin is a new name.",
+      "detail": "The product calls its UI the operator surface and mounts it at `/audit` in its examples. This book names it Threadline Admin; the product would need to follow."
+    }
+  ],
+  "notChecked": "Name and trademark clearance were not searched; the name was kept. Code samples follow the README and were not run. Logo legibility was checked on one test sheet, not with people. Contrast is computed for the pairs listed here, not for a whole product. Print color was not proofed.",
+  "retired": [
+    "The earlier arch mark and the arc between the d and the l, replaced by the spool.",
+    "The Thread Blue logo in the product: the logo thread is Stitch Blue.",
+    "The tagline inside a lockup.",
+    "The words “audit platform”, “evidence plane”, “operator surface”, “audit log”, “masked” and “Find, Verify, Prove”."
+  ],
+  "fonts": {
+    "source": {
+      "repo": "https://github.com/google/fonts",
+      "commit": "b68b528a75da7d9b73f3928899c07a23083a6633"
+    },
+    "files": [
+      {
+        "path": "ofl/familjengrotesk/FamiljenGrotesk[wght].ttf",
+        "sha256": "2d25fc41321a04561fab20a90fc8bc9ed4d1c0743fe8ba76cc51cd3632138b80",
+        "file": "FamiljenGrotesk[wght].ttf"
+      },
+      {
+        "path": "ofl/familjengrotesk/OFL.txt",
+        "sha256": "9708dd560d1f8aa1f006461aa447a31fda7b9aff662d152837654a388e0eb2ee",
+        "file": "OFL-FamiljenGrotesk.txt"
+      },
+      {
+        "path": "ofl/geist/Geist[wght].ttf",
+        "sha256": "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659",
+        "file": "Geist[wght].ttf"
+      },
+      {
+        "path": "ofl/geist/OFL.txt",
+        "sha256": "1781d2806a07d91c4edf4740b88449fab7d0eadad53f7c351b94cd4d4eb8c00f",
+        "file": "OFL-Geist.txt"
+      },
+      {
+        "path": "ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+        "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+        "file": "IBMPlexMono-Regular.ttf"
+      },
+      {
+        "path": "ofl/ibmplexmono/IBMPlexMono-Medium.ttf",
+        "sha256": "a9b4c49bb299e05b5f6c481e7fb5e78943d2793249a0c8874ab574a2d1ea6755",
+        "file": "IBMPlexMono-Medium.ttf"
+      },
+      {
+        "path": "ofl/ibmplexmono/OFL.txt",
+        "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+        "file": "OFL-IBMPlexMono.txt"
+      }
+    ]
+  },
+  "files": [
+    {
+      "need": "Logo on a light background",
+      "files": [
+        "assets/logo/threadline-lockup-light.svg",
+        "assets/logo/threadline-mark-light.svg",
+        "assets/logo/threadline-lockup-light-2048.png"
+      ]
+    },
+    {
+      "need": "Logo on a dark background",
+      "files": [
+        "assets/logo/threadline-lockup-dark.svg",
+        "assets/logo/threadline-mark-dark.svg",
+        "assets/logo/threadline-lockup-dark-2048.png"
+      ]
+    },
+    {
+      "need": "One color: print and single-color jobs",
+      "files": [
+        "assets/logo/threadline-lockup-mono-ink.svg",
+        "assets/logo/threadline-lockup-mono-fog.svg",
+        "assets/logo/threadline-mark-mono-ink.svg",
+        "assets/logo/threadline-mark-mono-fog.svg"
+      ]
+    },
+    {
+      "need": "Favicon and small sizes",
+      "files": [
+        "assets/icon/favicon.svg",
+        "assets/icon/favicon-light.svg",
+        "assets/icon/favicon-dark.svg",
+        "assets/icon/favicon.ico",
+        "assets/icon/favicon-32-light.png",
+        "assets/icon/favicon-16-light.png"
+      ]
+    },
+    {
+      "need": "Link preview and social card",
+      "files": [
+        "assets/social/threadline-social-card-1280x640.png"
+      ]
+    },
+    {
+      "need": "Fonts",
+      "files": [
+        "assets/fonts/web/fonts.css",
+        "assets/fonts/variable/FamiljenGrotesk[wght].ttf",
+        "assets/fonts/variable/Geist[wght].ttf",
+        "assets/fonts/static/IBMPlexMono-Regular.ttf",
+        "assets/fonts/OFL-FamiljenGrotesk.txt"
+      ]
+    }
+  ]
+}

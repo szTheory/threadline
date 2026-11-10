@@ -1,0 +1,47 @@
+{
+  "verified_at": "2026-11-10T23:02:40+00:00",
+  "result": "passed",
+  "checks": [
+    "Scope proposal and research inputs exist; local links resolve",
+    "Independent adversarial initial findings preserved and targeted closure PASS recorded",
+    "Six named phases; UI begins now with narrow non-waiver safety gates and separate broader foundation backlog",
+    "Before/after proof uses matched conditions and distinct source identities",
+    "Standing boilerplate discoverable from agent instructions, project constraints and milestone guide in both checkouts",
+    "Paused UI diff and supplied brand fingerprints unchanged",
+    "Scoped git diff whitespace checks pass",
+    "Official requirements remain uninitialized pending one scope confirmation"
+  ],
+  "ui_source_diff_sha256": "7bb1328b375ed9c9b656d22785e089831122b002b6892554e8ce476d2b7c9074",
+  "limits": [
+    "No application build/test/browser execution",
+    "No source implementation, dependency upgrade or CI dispatch",
+    "No new milestone/phase initialized; proposal only",
+    "No new risk acceptance or publish/merge authorization"
+  ],
+  "artifacts": [
+    {
+      "path": "milestone-proposal.md",
+      "sha256": "fdd7ef641d2da66f059dbf80041cf0c070148057141871d9ace69e437bd8a564"
+    },
+    {
+      "path": "milestone-product-scope.md",
+      "sha256": "e6a86a4af8a36d998987f955c8c42683d0088cebaf319b5623def9345cd186fd"
+    },
+    {
+      "path": "milestone-compatibility-sequence.md",
+      "sha256": "7eced1cd692d0ed3ba394307fffe7c0b74723701fe88b82b24ef850b80412653"
+    },
+    {
+      "path": "milestone-verification-dx.md",
+      "sha256": "72b69d1c93d059c130aadabd15da1d37017768ec9bcacdca2fa984762344c438"
+    },
+    {
+      "path": "milestone-adversarial-review.md",
+      "sha256": "155f72ebc16f47aeaeeaea74953f44c82dbf0b7e3f6a3cfc0c748743a806e371"
+    },
+    {
+      "path": "milestone-live-baseline.json",
+      "sha256": "595bf231869a83dc082e2f40722459876a93b90103eb2144b0b03ff550df93db"
+    }
+  ]
+}

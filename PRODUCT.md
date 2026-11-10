@@ -25,7 +25,7 @@ application. These roles are product audiences, not a new built-in role model.
 
 ## Product Purpose
 
-Threadline is an open-source audit platform for Elixir teams using Ecto and
+Threadline is an open-source audit trail library for Elixir teams using Ecto and
 PostgreSQL, with optional Phoenix/LiveView integration. It captures row changes
 through PostgreSQL triggers and connects them to application-level actions,
 actors, reasons and execution context when supplied.
@@ -113,24 +113,20 @@ new backend capabilities need a deliberate scope decision.
 
 ## Brand Commitments
 
-The existing Threadline identity and `prompts/Threadline Brand Book.txt` provide
-the brand authority. The current request is refinement of that established
-identity and supported operator experience.
+The maintainer approved `brand/BRAND.md`, `brand/brand.json` and the supplied assets as identity edition 1.0 on 2026-11-10 (edition date 2026-11-03). These supersede the old arch identity and older prompt book. The approved milestone replaces the visual identity while retaining supported product behavior and exact audit semantics. Runtime migration is not yet implemented.
 
-The voice is a calm, precise, helpful senior engineer. Use plain, task-oriented
-language, sentence-case labels and specific, actionable errors. Avoid marketing
-filler, invented assurance and unnecessary internal terminology. Distinguish
-actions, changes and transactions even when simplifying their presentation.
+Use the spool lockup and supplied theme variants, dark default with full light/System support, the separate artwork/control color roles, Familjen Grotesk headings, Geist body/Admin and IBM Plex Mono identifiers/code. Use Threadline Admin and plain task-oriented language without renaming public API/config/schema/route/telemetry identifiers. Keep action/change/transaction and replaced/left-out/missing/unavailable distinctions exact. Never promise capture, actor context, retained history, compliance or reconstruction beyond current supported evidence.
 
-Visual recipes, token values and surface compositions belong in the inspected
-design record and their owning source files, not in this product record.
+The current workbench is PhoenixStorybook with Phoenix LiveView/HEEx in the example dev/test boundary. No React migration is planned. Revisit Fablebook adoption only when it is ready and deliberately selected; no speculative adapter or new dependency is needed now. Accrue's unfinished refresh remains comparison evidence, not authority or a blueprint.
+
+Visual recipes and role mappings belong in the current brand/owning design contracts and runtime sources. Apply the new direction first through one complete investigation, then all remaining existing jobs.
 
 ## Evidence on Hand
 
 - `prompts/audit-lib-domain-model-reference.md`: domain language, boundaries,
   personas and intent; distinguish its aspirations from implemented capability.
 - `prompts/threadline-elixir-oss-dna.md`: engineering and verification conventions.
-- `prompts/Threadline Brand Book.txt`: established identity and editorial guidance.
+- `brand/BRAND.md` and `brand/brand.json`: current approved identity; older prompt book is historical.
 - `lib/threadline/operator_surface/`: current operator components, presentation,
   routes, styles and behavior.
 - `examples/threadline_phoenix/`: runnable host, deterministic demonstration data,

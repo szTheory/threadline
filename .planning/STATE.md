@@ -1,35 +1,43 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.47
-status: Awaiting next milestone
-stopped_at: "v1.47 Release on autopilot closed 2026-10-29 (override_closeout; REL-01 deferred-with-trigger; tag v1.47 local)"
-last_updated: "2026-10-29T09:46:51.795Z"
-last_activity: 2026-10-29
-last_activity_desc: Milestone v1.47 completed and archived
-state_head: 6bd012a3716905099e2fdbf5f8a16a1b5262ea89
+milestone: v1.48
+milestone_name: "Threadline Admin: brand and complete journeys"
+status: planning
+current_phase: 248
+current_phase_name: "Reconcile the base and safety/proof ownership"
+stopped_at: "v1.48 initialized and reviewed; Phase 248 discussion/planning next"
+last_updated: "2026-11-10T23:08:51.749Z"
+last_activity: 2026-11-10
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 66
-  completed_plans: 66
-milestone_name: Release on autopilot
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-29 at v1.47 close)
+See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initialization)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone (MILESTONE-ARC rank 2: v1.48 Safe by default)
+**Current focus:** v1.48 Threadline Admin: brand and complete journeys — Phase 248 baseline discussion/planning; six approved phases, all Pending.
 
 ## Current Position
 
-Phase: Milestone v1.47 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-10-29 — Milestone v1.47 completed and archived (override_closeout; REL-01 deferred-with-trigger; tag v1.47 local)
+Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
+Plan: 0 of 0 in current phase (not planned)
+Status: Ready for Phase 248 discussion and planning
+Last activity: 2026-11-10 — Approved v1.48 roadmap initialized; 34/34 ADM requirements mapped exactly once, all Pending; zero execution plans.
+
+Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 0 of 0 plans complete.
+
+**Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
+
+**Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
+
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -58,17 +66,21 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.46 — Operator UI Refinement; all 6 phases and 27/27 plans complete, all 26 requirements complete; Phase 243 verification passed 16/16 must-haves.
-- **Last Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 0 plans, 0/34 requirements complete, 0% progress. No execution metrics exist yet.
+- **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
+- **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
+- **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
 - **Prior Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
 - **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
 - **Scope completion**: the prior ~92–95% assessment predates the v1.42–v1.45 ladder; derive a fresh baseline before making another completion estimate
-- **Hex distribution**: **1.0.1** published 2026-10-08 with ExDoc; release PR #82 and distribution-sync PR #84 complete. v1.45 shipped 1.0.0 on 2026-10-07.
+- **Hex distribution**: **1.1.0** published 2026-10-24 with ExDoc; v1.47 shipped no package change. The planning milestone version does not choose the next package version.
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
 - **Posture thread**: `.planning/threads/2026-05-29-post-v1.29-posture.md`
 - **v1.28 pilot readiness**: `.planning/threads/2026-05-29-v1.28-pilot-readiness.md`
 
 **Per-Plan Metrics:**
+
+The rows below are preserved historical metrics; v1.48 currently has no plans or execution durations.
 
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
@@ -1223,9 +1235,16 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-29
-**Stopped at:** v1.47 closed and archived; next is /gsd-new-milestone (re-derive baseline; ARC rank 2 is v1.48 Safe by default)
-**Resume file:** None
+**Last session:** 2026-11-10T23:23:21Z
+**Stopped at:** Approved v1.48 initialized and independently reviewed on the current-main planning base. Phase 248 discussion/planning is next; no execution plans or product implementation have started. Preserve the non-waiver safety/proof gates and resolve negotiated executor isolation before dispatch.
+**Resume file:** `.planning/ROADMAP.md`; `.planning/REQUIREMENTS.md`; `.planning/research/v1.48-SUMMARY.md`
+
+- **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
+- **Current gates and next actor:** The orchestrator continues preparation. Before executor dispatch it must re-resolve supported isolation in the active checkout and stop dispatch if unavailable; no silent opt-out from configured worktrees. Phase 248 owns #61/#90 and fail-closed mount remedies; unresolved affected acceptance/release gates remain stopped without risk acceptance. No user action is needed for routine initialization or preparation.
+- **Evidence freshness:** `brand/` is the deliberately imported approved source; old `brandbook/` runtime consumers remain until migration. The retained 31-edit candidate and dated main/CI/advisory/browser receipts are comparison inputs; Phase 248 re-establishes current applicable evidence. `research/SUMMARY.md` is historical; use the v1.48 synthesis above.
+- **Carried release clause:** REL-01 retains its original first-natural-release proof and remains pending if live publication is not performed under actual authority; local release readiness cannot satisfy it. See `.planning/REQUIREMENTS.md` → Carried release gate.
+
+The following entries preserve historical session activity and do not override the current position above.
 
 - **Milestone closeout (2026-10-29):** v1.47 Release on autopilot archived (ROADMAP + REQUIREMENTS + AUDIT + phases under `milestones/v1.47-*`), PROJECT.md evolved, local tag `v1.47`, REQUIREMENTS.md removed. override_closeout: 12 newly acknowledged, 66 carried forward; REL-01 deferred-with-trigger (maintainer-accepted). No Hex release (no merge changed the shipped package; Hex stays 1.1.0).
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1249,13 +1268,13 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
 - **235-01 (2026-10-06):** Generated migration redaction-column guard and evidence-linked threat guide; focused tests 41/0, format and warning-free ExDoc passed. Commits `57dc67f2`, `5cb3b592`, `7638817a`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-01-SUMMARY.md`.
 - **235-02 (2026-10-06):** Published the 1.x stability and supported-table guides, added deletion/eligibility contracts, and registered both in the Adopt guide graph; focused combined contracts 14/0, format and warning-free ExDoc passed. Commits `922758ef`, `686afe14`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-02-SUMMARY.md`.
-- **Next Step**: `$gsd-discuss-phase 239` using the retained implementation worktree and Phase 238 handoff; all Phase 238 plans are complete.
-- **Resume file**: `.planning/ROADMAP.md` (approved); `.planning/REQUIREMENTS.md` (26 approved requirements and one-to-one mappings); `.planning/research/SUMMARY.md` identifies the current UI research inputs.
+- **Historical next step (v1.46 startup)**: `$gsd-discuss-phase 239` using the retained implementation worktree and Phase 238 handoff; superseded by the current v1.48 position above.
+- **Historical resume inputs (v1.46)**: the then-approved roadmap, 26 requirements and `.planning/research/SUMMARY.md`; use `.planning/research/v1.48-SUMMARY.md` for the active milestone.
 
 ## Operator Next Steps
 
 
-- Start the next milestone with /gsd-new-milestone
+- Continue `$gsd-discuss-phase 248` with the approved v1.48 roadmap and settled research. Re-resolve negotiated isolation before executor dispatch; an unavailable binding stops dispatch, not independent safe planning. Preserve all carried blockers and actual publication authority.
 
 
 ## Restart Recovery (2026-10-10)

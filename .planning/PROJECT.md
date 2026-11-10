@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, first-class application action semantics (actor, intent, request/job context), and operator-grade exploration tools. It is built for teams who need audit trails that are hard to bypass, SQL-queryable without blobs, and genuinely useful for support and ops — not just compliance.
+Threadline is an open-source audit trail library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, first-class application action semantics (actor, intent, request/job context), and operator-grade exploration tools. It is built for teams who need audit trails that are hard to bypass, SQL-queryable without blobs, and genuinely useful for support and ops — not just compliance.
 
 ## Core Value
 
@@ -16,6 +16,23 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 - origin/main is at `ba0d80aa` (PR #103). v1.47 landed through squash PRs #91 and #93–#103 (except #101, the closed release PR). Release PR #101 ("release 1.1.1", opened by the CI-only `fix(ci):` PR #100) was closed unmerged after the releasable-type guard landed; there is no 1.1.1 tag.
 - v1.47: CI-02 browser split median 461 s over five main runs (limit 540 s); CI-03 slowest/fastest partition ratio at or below 1.15 on every lane; release-please ignores unshipped-only commits.
 - v1.46: 6/6 phases, 27/27 plans, 49 tasks, and 26/26 requirements (planning milestone; operator UI refinement).
+
+## Current Milestone: v1.48 Threadline Admin: brand and complete journeys
+
+**Goal:** Engineers and support staff complete every existing investigation and permitted operations job in a coherent brand-aligned Phoenix LiveView Admin while host access, scope, audit truth and public 1.x integrations remain intact.
+
+**Approved:** 2026-11-10. The maintainer accepted the revised six-phase proposal after independent adversarial closure, then explicitly confirmed PhoenixStorybook and Phoenix LiveView/HEEx now, Fablebook only once ready. Reuse that scope approval; routine implementation details do not require another confirmation.
+
+**Target features:**
+- Current-main reconciliation and named ownership/remediation for the fail-closed mount and current advisory/test blockers; no implied risk waiver.
+- Complete job/route/state map and coherent fictional help-desk scenarios, with normal data separate from stress cases.
+- The approved spool identity, role-based themes, fonts and plain domain language through one whole investigation, then every remaining existing Admin job.
+- PhoenixStorybook components/compositions/screens linked to real mounted-route and domain proofs; no React, Fablebook dependency, duplicate catalog engine or new runtime dependency by default.
+- Useful automated acceptance, current matched visual evidence, docs/package consistency and honest release readiness. Publication remains separately authorized.
+
+**Canonical inputs:** `brand/BRAND.md`, `brand/brand.json`, `brand/assets/README.md`, `.planning/research/2026-11-10-brand-admin/milestone-proposal.md`, its independent review, `.planning/conventions/research-verification-and-efficiency.md`, and `.planning/REQUIREMENTS.md`.
+
+**Baseline:** this planning checkout starts at current main `d35b9422`, package 1.1.0 and v1.47 complete. The retained 31-file candidate is preserved and not yet ported; the new `brand/` source is deliberately imported without changing old `brandbook/` consumers. Phase numbering continues at 248 after 247.1.
 
 ## Prior shipped milestone: v1.46 Operator UI Refinement (2026-10-11)
 
@@ -749,9 +766,8 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 ### Active
 
-- [ ] **REL-01 next-release clause (carried from v1.47)** — the first natural release PR's first CI run is green with no separate CHANGELOG-dating PR, and its landing PR adds its own Unreleased prose (W-3). Trigger and pass conditions: archived `247.1-REL01-EVIDENCE.md`.
-
-No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0) is queued; re-derive the baseline at `/gsd-new-milestone` before selecting it.
+- All **ADM-01–ADM-34** requirements in `.planning/REQUIREMENTS.md` are approved v1.48 scope and start pending.
+- **REL-01** is carried unchanged from v1.47 to the first natural release; it remains separately observable and cannot be closed by local readiness.
 
 ### Out of Scope
 
@@ -800,6 +816,8 @@ No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0
 **CI/CD posture (2026-07-01):** The current CI topology is broad and valuable, but setup/cache/version-policy efficiency is not yet measured enough to optimize confidently. v1.39 should baseline first, then make boring low-risk improvements: precise BEAM caches, pinned service images, release serialization, branch-protection docs, and compatibility lanes only where they protect stated support.
 
 ## Constraints
+
+Standing research, verification, dependency and CI/CD policy: [Research and delivery defaults](conventions/research-verification-and-efficiency.md).
 
 - **Tech stack**: Elixir ≥ 1.15 / OTP ≥ 26 / PostgreSQL ≥ 15 / Ecto 3.x — align with active Phoenix LTS baseline
 - **SQL-native**: no Erlang binary or opaque blob storage; all audit data must be introspectable with plain SQL
@@ -936,4 +954,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-29 after v1.47 milestone (Release on autopilot; next: ARC rank 2, v1.48 Safe by default)*
+*Last updated: 2026-11-10 after approved v1.48 Threadline Admin milestone initialization; package remains 1.1.0 pending a separately authorized release.*

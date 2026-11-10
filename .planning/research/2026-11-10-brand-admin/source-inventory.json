@@ -1,0 +1,269 @@
+{
+  "observed_on": "2026-11-10",
+  "edition": "1.0",
+  "edition_date": "November 3, 2026",
+  "maintainer_signoff": "2026-11-10 (conversation)",
+  "brand_location": "original checkout only; not imported into retained source worktree",
+  "active_source_head": "0f9347f207d9395565faa4a3b0280804c4c14e1b",
+  "cached_main_head": "d35b9422fb2a83897902c2276cb94ecf5129a5e3",
+  "remote_refreshed": false,
+  "files": [
+    {
+      "path": "brand/BRAND.md",
+      "sha256": "55fa1785748fa5aa17017cd5bc816d49924dd02e05dcd63a14971c6b3ca854c0",
+      "bytes": 34319
+    },
+    {
+      "path": "brand/assets/README.md",
+      "sha256": "dd723593c17596f37d99318bac36d9f014ab1624f31ec9ab4c50fc3b7442a9a0",
+      "bytes": 1494
+    },
+    {
+      "path": "brand/assets/fonts/OFL-FamiljenGrotesk.txt",
+      "sha256": "9708dd560d1f8aa1f006461aa447a31fda7b9aff662d152837654a388e0eb2ee",
+      "bytes": 4408
+    },
+    {
+      "path": "brand/assets/fonts/static/IBMPlexMono-Regular.ttf",
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+      "bytes": 135580
+    },
+    {
+      "path": "brand/assets/fonts/variable/FamiljenGrotesk[wght].ttf",
+      "sha256": "2d25fc41321a04561fab20a90fc8bc9ed4d1c0743fe8ba76cc51cd3632138b80",
+      "bytes": 90048
+    },
+    {
+      "path": "brand/assets/fonts/variable/Geist[wght].ttf",
+      "sha256": "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659",
+      "bytes": 169056
+    },
+    {
+      "path": "brand/assets/fonts/web/fonts.css",
+      "sha256": "8d170957d2dc1d9d9524a5e5507e5a55281589fe215507da2edb4ba9a3324b4b",
+      "bytes": 670
+    },
+    {
+      "path": "brand/assets/icon/favicon-16-light.png",
+      "sha256": "dc9f41de1dc7cf2a5bf7cfa64cf9989ce58629f76a73f7482d765cde7d1b9315",
+      "bytes": 360
+    },
+    {
+      "path": "brand/assets/icon/favicon-32-light.png",
+      "sha256": "007e4d52fa75446d9d7e00bd35ad0a06cd0d553e7b618db47960a5e7d3c29453",
+      "bytes": 590
+    },
+    {
+      "path": "brand/assets/icon/favicon-dark.svg",
+      "sha256": "bb0d1aee2705ffa7c76a98043f46f3f81c1e10b604989c8681296079c15fca55",
+      "bytes": 1267
+    },
+    {
+      "path": "brand/assets/icon/favicon-light.svg",
+      "sha256": "5ddcc44c2ab8d8b885f5e3e5dfc77f5ecfd5aad097eceb41fa207d17edcc0886",
+      "bytes": 1271
+    },
+    {
+      "path": "brand/assets/icon/favicon.ico",
+      "sha256": "ac3cceb261eba819ec06f0c8f4557dffbf70cd49cf4e5ddaa1311a01ceb5bc33",
+      "bytes": 1826
+    },
+    {
+      "path": "brand/assets/icon/favicon.svg",
+      "sha256": "dc1959e94fa400fc0fc166a2f2979277be6064b15a406e1e6e1c5244a3fd2481",
+      "bytes": 1360
+    },
+    {
+      "path": "brand/assets/index.html",
+      "sha256": "856c1621a0586dde2ce45ff4bc3766cf06093a3f48e9d6cc631a18a9ee483519",
+      "bytes": 5907
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-dark-2048.png",
+      "sha256": "1779d3c0a7f252b2e034d51604c834dc8f6a8ed41c08224b595bd5f4c1288201",
+      "bytes": 63136
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-dark.svg",
+      "sha256": "83dc3ec35cb4091ba71163ffe5fc3720345fe2cb93e07e27eb42203d1c93a0d5",
+      "bytes": 5001
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-light-2048.png",
+      "sha256": "07901859d5d8310ade3ddf92783c6f6f65ae8e887a11b9d788f151d735663133",
+      "bytes": 62999
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-light.svg",
+      "sha256": "c539332ce218d9eff9b6fc8611bf34febe15b4f72a532c61ff9486c18d8f52bf",
+      "bytes": 5006
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-mono-fog.svg",
+      "sha256": "6c87f3319821af20c5beaf7e7a27a6a42fcba4e5c51ee36e88429c30ffae26b7",
+      "bytes": 4974
+    },
+    {
+      "path": "brand/assets/logo/threadline-lockup-mono-ink.svg",
+      "sha256": "fc99fe6eb868b5e4471c749467b52737907ff01636d26babf18a784ae41562f1",
+      "bytes": 4979
+    },
+    {
+      "path": "brand/assets/logo/threadline-mark-dark.svg",
+      "sha256": "f3f9b0e422612798eec44155a4dfe91473238eff73696c71362401db1fae50c3",
+      "bytes": 1548
+    },
+    {
+      "path": "brand/assets/logo/threadline-mark-light.svg",
+      "sha256": "89c61b257f5f3e01e32e4333eef20a85529edb8bfecb33c2f35af43fc618d44b",
+      "bytes": 1541
+    },
+    {
+      "path": "brand/assets/logo/threadline-mark-mono-fog.svg",
+      "sha256": "f84621928aca3d127f57cdbc8baa4066d690de5abf321c8e32e36ede938373ee",
+      "bytes": 1532
+    },
+    {
+      "path": "brand/assets/logo/threadline-mark-mono-ink.svg",
+      "sha256": "1ee25541605de4fae8b88497312c7b1fd01a7da6fcfffa4e693b81ae706d3e49",
+      "bytes": 1525
+    },
+    {
+      "path": "brand/assets/social/threadline-social-card-1280x640.png",
+      "sha256": "6a6222cf8b4651edb86b800d02032f77354df57e2a464b37bdcec5a6d47512ad",
+      "bytes": 32782
+    },
+    {
+      "path": "brand/brand.json",
+      "sha256": "69cf81cbb3732e5b24973321b920fbd3113e642a4f13c0279fb038f5536e31e2",
+      "bytes": 41238
+    },
+    {
+      "path": "brand/tokens.json",
+      "sha256": "9aa901195f3d2938cad05349a1b48e8b7b3d625bd79a54170c7c37ed087aea9a",
+      "bytes": 18811
+    }
+  ],
+  "contrast_pairs": [
+    {
+      "id": "body",
+      "theme": "light",
+      "computed": 16.97,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "body",
+      "theme": "dark",
+      "computed": 14.0,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "descriptor",
+      "theme": "light",
+      "computed": 5.66,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "descriptor",
+      "theme": "dark",
+      "computed": 8.54,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "caption",
+      "theme": "light",
+      "computed": 5.97,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "caption",
+      "theme": "dark",
+      "computed": 7.73,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "application-copy",
+      "theme": "light",
+      "computed": 17.9,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "application-copy",
+      "theme": "dark",
+      "computed": 12.68,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "hero",
+      "theme": "light",
+      "computed": 6.31,
+      "minimum": 3,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "hero",
+      "theme": "dark",
+      "computed": 5.89,
+      "minimum": 3,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "link",
+      "theme": "light",
+      "computed": 6.65,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "link",
+      "theme": "dark",
+      "computed": 5.33,
+      "minimum": 4.5,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "focus",
+      "theme": "light",
+      "computed": 6.31,
+      "minimum": 3,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "focus",
+      "theme": "dark",
+      "computed": 5.89,
+      "minimum": 3,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "artwork",
+      "theme": "light",
+      "computed": 3.59,
+      "minimum": 3,
+      "passes_listed_pair": true
+    },
+    {
+      "id": "artwork",
+      "theme": "dark",
+      "computed": 5.0,
+      "minimum": 3,
+      "passes_listed_pair": true
+    }
+  ],
+  "limits": "File existence and listed-pair arithmetic only; no rendered UI, browser, package or code-sample validation.",
+  "live_documents_read": [
+    "https://github.com/szTheory/threadline/blob/main/.planning/STATE.md",
+    "https://github.com/szTheory/threadline-brand/blob/main/BRAND.md"
+  ],
+  "git_fetch_performed": false,
+  "application_tests_run": false,
+  "browser_verification_run": false
+}

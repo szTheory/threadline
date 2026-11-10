@@ -1,0 +1,48 @@
+{
+  "observed_at": "2026-11-10T22:33:50+00:00",
+  "source_project": "accrue",
+  "head": "c45c5f6b3faf435d1e14e151d9ff875e3e5a7f72",
+  "git_status_short": [],
+  "authority": "Comparison evidence from an unfinished UI/brand refresh; not Threadline authority or a completed UAT claim",
+  "maintainer_correction": "Treat Accrue lessons as things to consider and validate against Threadline, not as a blueprint.",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "5bcd7d5054e4e4d6245deb1a62e1c60727c62616525431b8c74f4c7854724983"
+    },
+    {
+      "path": ".planning/notes/2026-11-10-threadline-ui-refresh-handoff.md",
+      "sha256": "b2314c6af545ca188716904cc2e65625d46364f6019f8f5b52e76acaf94353cc"
+    },
+    {
+      "path": ".planning/phases/256.1-comprehensive-jtbd-led-admin-inventory-and-phoenix-storybook/256.1-LEARNINGS.md",
+      "sha256": "ac29cc23fcb7787012ae03d8dca768aa21628025d6e160c09988dfda19b87d7b"
+    },
+    {
+      "path": ".planning/notes/2026-11-04-brand-language-ui-direction.md",
+      "sha256": "c7f81eb9382795f870745e3fdd87ed016734650f9edafa9563a1a914f3475aab"
+    },
+    {
+      "path": ".planning/notes/brand-and-language-review.md",
+      "sha256": "ec44eb4226b46bb346680d46d837da36b2eecb400758363ca1573567f9c73b0f"
+    },
+    {
+      "path": ".planning/notes/2026-11-09-admin-storybook-systematic-review.md",
+      "sha256": "3a25594280f7485334ae684c573c93c834a498ec2903fc8663537881fdb87e1c"
+    },
+    {
+      "path": ".planning/notes/2026-11-10-customer-list-review-and-sample-data.md",
+      "sha256": "9b5ef5b273618d19e8d266908a241ee002bcde477f128dc5d405d1df03c4efb6"
+    },
+    {
+      "path": ".planning/notes/2026-11-10-storybook-session-recovery.md",
+      "sha256": "c6f1c56485c70af2b4dbec0a517f05e2dbd2cc9ee96b295526bcc961acc8d639"
+    }
+  ],
+  "source_tests_run": false,
+  "source_modified": false,
+  "git_status_short_at_final_check": [
+    " M .planning/STATE.md"
+  ],
+  "concurrent_planning_note": "Accrue Session Continuity was updated during this read-only scan. HEAD and all inspected handoff document fingerprints remained unchanged; this task did not edit Accrue."
+}
