@@ -68,3 +68,24 @@ verify-deps-audit: 3 lockfile(s) audit clean (Hex 2.6.0; 15 non-blocking finding
 
 These bench/example findings were owned by Task 2 and kept pending here. The bench Ecto finding is non-blocking for the library package; the example findings block this phase's example-host acceptance until cleared. The audit exit code alone does not clear these reports.
 
+## Task 2 — bench and example locks; final all-lock proof
+
+### Resolutions and collateral review
+
+- Bench command sequence, from `bench/`: `mix deps.unlock ecto` (exit 0), then `mix deps.get` (exit 0). Mix generated Ecto 3.14.2 → 3.14.3 with its Hex checksums and `[:mix]` manager. The existing `ecto_sql` 3.14.0 lock entry accepts Ecto `~> 3.14.0`. No other bench tuple changed. Final `bench/mix.lock` SHA-256: `70392fba94a8798e746db0c7b8b2861b267c6922758fd5dc27240e4dcec3427a`.
+- Example command sequence, from `examples/threadline_phoenix/`: `mix deps.unlock ecto` (exit 0), then `mix deps.update ecto_sql phoenix_html bandit` (exit 0). Mix generated Ecto 3.14.2 → 3.14.3, Phoenix.HTML 4.3.0 → 4.4.0 and Bandit 1.13.1 → 1.14.1 with Hex checksums. The declared constraints remain `ecto_sql ~> 3.13`, `phoenix_html ~> 4.0` and `bandit ~> 1.5`; Ecto SQL's locked Ecto requirement remains `~> 3.14.0`. The full example lock diff contains only those three target tuples; no transitive or unrelated drift was accepted. Final `examples/threadline_phoenix/mix.lock` SHA-256: `d3f34675157bd1d18e38d026aa0d89279dd2e46a4e55a5c82e0827f1ed5b3bff`.
+- Root was unchanged after Task 1; its final `mix.lock` SHA-256 is `00e6393a22730830470a8253a3cbbd49ca4adc8fd8768573516f58e592502e00`. Comparing the three final locks with the captured baseline confirms only the five intended tuples changed: Ecto in all three, Phoenix.HTML in root/example, and Bandit in example. No dependency declarations or package contents changed.
+- Fetched package metadata declares Ecto 3.14.3 `elixir: "~> 1.14"`, Phoenix.HTML 4.4.0 `elixir: "~> 1.7"`, and Bandit 1.14.1 `elixir: "~> 1.13"`. None declares an OTP floor in its Mix project metadata. These Elixir declarations are compatible with the project's Elixir 1.15.8 / OTP 26.2.5.21 floor. Root compilation was performed on the current Elixir 1.17.3 / OTP 27.3.4.15 toolchain as recorded above; no minimum Elixir/OTP compile or test run is claimed.
+
+### Final current checks
+
+- `mix verify.deps_audit` ran against all three final locks, exited **0**, and printed exactly: `verify-deps-audit: 3 lockfile(s) audit clean (Hex 2.6.0; 0 non-blocking finding(s))`. The full report had no root, bench or example findings; this is not inferred from exit status alone.
+- `mix test test/threadline/deps_audit_contract_test.exs test/threadline/deps_audit_gate_test.exs` ran with `MIX_ENV=test`, exited **0**, and reported `86 tests, 0 failures`. Existing policy and tier visibility contracts passed. Test compilation printed the same two warnings from unchanged Phoenix 1.8.13 `phoenix/code_reloader/server.ex` lines 301 and 414; they did not fail the command and are not attributed to the patched packages.
+- Full bench/example suites, browser checks and `ci.all` are owned by Plan 248-04 and were not duplicated here. The root current-toolchain compile and final audit policy contract checks above are this plan's compile/contract evidence.
+
+### Live receipt boundary
+
+- The dated read-only observation of issue #61 remains the only live issue receipt recorded here: it was open at the observation time and has not been updated by this plan. The local clean audit does not close it or replace the next scheduled clean dependency-health receipt. Issue updates, hosted CI and release actions were not performed.
+
+---
+
