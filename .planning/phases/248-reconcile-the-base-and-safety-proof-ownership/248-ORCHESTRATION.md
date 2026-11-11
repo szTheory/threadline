@@ -24,3 +24,11 @@ This is an execution log, not a product acceptance receipt. Phase 248 remains in
 No product tests, dependency updates, workflow changes, hosted CI, issue mutations, version bump, merge or publication have been performed at this point. The first plan owns preservation/provenance only. Advisory and suite findings remain open until their actual remedies and proof run.
 
 PostgreSQL accepts connections on the existing local test endpoint. That is prerequisite availability, not database or test acceptance evidence.
+
+## Baseline plan reconciled
+
+The worker completed and verified both artifact tasks but could not stage shared Git metadata. It returned an explicit checkpoint with no SUMMARY or commits. The orchestrator verified a tracer snapshot and committed it, restored and verified the complete inventory with all negative controls, committed the second task, and wrote/committed the summary. GSD manifest cleanup merged the exact branch and removed only the completed executor worktree. Post-merge inventory-only verification passed; the retained candidate remains unchanged.
+
+For later executors, keep existing automatic approval review available for narrowly scoped authorized local Git operations. If that capability is unavailable or rejects the operation, preserve verified files and provide the precise commit handoff; the orchestrator can perform it without a new human permission step. Preserve per-task snapshots/verification evidence if metadata writes must be handed off. This addresses observed Git-permission friction without broadening sandbox access or disabling hooks.
+
+The maintainer restated that automated apps/tests run in the background by default. Global instructions already contain it, and project AGENTS.md now records it for future runs. No app or browser focus was taken.

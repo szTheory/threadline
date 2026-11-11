@@ -66,8 +66,8 @@ status: complete
 
 ## Task Commits
 
-1. Trace isolated candidate and approved brand provenance — `05a340074daef5b183d1a88ee594fb5ad78d28c1`.
-2. Reconcile retained edits and proof owners — `b5a96713e453fb8d048ac16a32cdd69b885a4002`.
+1. **Task 1: Trace isolated candidate and approved brand provenance** - `05a340074daef5b183d1a88ee594fb5ad78d28c1`.
+2. **Task 2: Reconcile retained edits and proof owners** - `b5a96713e453fb8d048ac16a32cdd69b885a4002`.
 
 ## Verification
 
