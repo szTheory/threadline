@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: executing
-stopped_at: Mount correction merged and independently reviewed; compatible advisory remedies next
-last_updated: "2026-11-11T02:23:27.934830Z"
+stopped_at: Compatible advisory remedies merged and verified; flake setup repair and bounded integrated proof next
+last_updated: "2026-11-11T03:01:22.255516Z"
 last_activity: 2026-11-10
-last_activity_desc: Mount correction and targeted review fixes merged; advisory remediation next
-state_head: 781d0e6c5d8856a20a50ea6b321562fb435b8ea9
+last_activity_desc: Patched lock graphs merged with clean all-lock audit and post-merge checks; flake repair next
+state_head: 61180e33c3b533565d16669657f68712782a0580
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -30,15 +30,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 ## Current Position
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Executing Phase 248
-Last activity: 2026-11-10 — Mount correction and callback review fixes merged with current affected checks; dependency advisories remain pending.
+Last activity: 2026-11-10 — Compatible advisory remedies merged; all-lock audit and merged-checkout build/policy checks passed. Flake setup repair and integrated proof remain.
 
-Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 2 of 4 plans complete.
+Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has in-range fixes for Ecto, Phoenix.HTML and example Bandit; current findings remain blocking until tested remediation. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
+**Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -1278,7 +1278,7 @@ The following entries preserve historical session activity and do not override t
 ## Operator Next Steps
 
 
-- Continue `$gsd-discuss-phase 248` with the approved v1.48 roadmap and settled research. Re-resolve negotiated isolation before executor dispatch; an unavailable binding stops dispatch, not independent safe planning. Preserve all carried blockers and actual publication authority.
+- Continue the authorized `$gsd-autonomous --from 248` run with isolated Plan 248-04. Re-resolve negotiated isolation and actual fork/cwd before dispatch; preserve the one-repeat limit, carried blockers and actual publication authority.
 
 
 ## Restart Recovery (2026-10-10)
