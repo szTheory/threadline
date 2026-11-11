@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan is reconciling the formatter fix and clipboard proof after the approved repeat. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has reviewed corrective proof and is waiting for a new one-run grant for the required full repeat. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Executing: clipboard proof | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Blocked: new repeat grant | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-Continue authorized local verification within Phase248. The approved full repeat classified `flaky` after six clean runs and a formatter timeout; its test-only efficiency fix is committed and reviewed. Isolated supported-floor PostgreSQL15 verification avoids shared connection pressure. The canonical alias exited0 but records one retry-passed clipboard-focus case, so a narrow readiness correction and first-attempt affected checks are in progress. Preserve the nine-run acceptance criterion and consumed one-repeat limit; no further full repeat is authorized. Finish the concrete repair/review before presenting the next actual repeat decision. Phase249 has private read-only preparation only and remains unstarted.
+Wait for the user's decision on one additional full nine-run, scale5 repeat under the unchanged55-minute cap and60-second termination grace. The previous one-invocation grant is consumed. Formatter and clipboard-readiness test fixes, affected automated checks, independent reviews, source identity checks and stopped task-owned PostgreSQL15 setup are concrete and ready; preflight passed without launching the repeat. Do not infer authorization, advance Phase249, or merge/remove the retained worktree while that required receipt is missing. Phase249's private read-only route, scenario and brand preparation remains available for continuation after Phase248 passes.

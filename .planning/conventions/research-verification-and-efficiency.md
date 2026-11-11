@@ -80,3 +80,12 @@ concurrency, dependencies or retries by default. Runtime alone is not another
 approval gate. Do not dispatch extra CI merely to satisfy this policy when no
 useful measurement or regression proof is expected. Keep release/secret/spend
 authority and explicit resource/no-retry limits intact.
+
+
+## Local verification preflight and one-shot limits
+
+Record the actual Elixir, OTP and PostgreSQL versions against the declared support policy before long local gates. A passing run on an older local database remains diagnostic evidence; it does not establish the supported database floor or a complete CI toolchain tuple. Check task-owned database capacity before combined root/example/browser gates. Prefer an already installed supported PostgreSQL instance in a unique temporary loopback directory, routed through existing host/port controls, to changing shared limits or terminating another project's clients. Bound it, record its identity and stop it before a user pause after owned clients finish.
+
+Inspect first-attempt browser outcomes as well as the command exit: configured retries can return zero while a case remains flaky. Preserve failure context before another runner invocation overwrites it. Fix the actual proof boundary, retain assertions and attribution limits, and use retries-disabled affected checks where they establish the claim. Source-identical unaffected stages may be reused honestly; a scoped rerun is not a fresh full canonical result.
+
+A one-invocation grant is consumed by the invocation even if it stops before all planned iterations finish. Corrections and routine bounded local checks remain in the approved phase scope, but an explicit no-further-full-repeat stop requires a new actual user grant. Do not reuse a consumed grant, silently reset a token or treat elapsed time as permission. Preserve the stop without asking for confirmation merely to keep it stopped.

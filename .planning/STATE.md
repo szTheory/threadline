@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: executing
-stopped_at: Clipboard proof readiness correction after isolated canonical verification
-last_updated: "2026-11-11T15:50:57.109584Z"
+status: blocked
+stopped_at: Passing nine-run repeat needs a new explicit one-invocation user grant
+last_updated: "2026-11-11T16:20:50.300629Z"
 last_activity: 2026-11-11
-last_activity_desc: Formatter fix reviewed; isolated PostgreSQL15 canonical exited0 with one retry-passed clipboard case; targeted proof correction active
-state_head: a79f3258cb0d0a664465d78f5a94684360c58f69
+last_activity_desc: Formatter and clipboard test corrections committed, checked and reviewed; owned PostgreSQL stopped; guarded repeat ready but not authorized
+state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
 progress:
   total_phases: 6
   completed_phases: 0
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Executing clipboard-proof correction
-Last activity: 2026-11-11 — The approved repeat classified flaky after six clean runs and a formatter timeout. The formatter fix passes focused/full-root proof and review. Isolated PostgreSQL15 canonical exited0 with one retry-passed clipboard focus case; a test-only readiness correction and bounded first-attempt checks are active.
+Status: Blocked on a new full-repeat grant
+Last activity: 2026-11-11 — The approved repeat failed after six clean runs. Formatter and clipboard-test corrections are committed, checked and independently reviewed. Task-owned PostgreSQL15 is stopped. One further nine-run invocation is prepared but requires a new user grant.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The user's one additional full repeat is consumed: suite exit2,2611 seconds,six clean runs then iteration7 formatter timeout,classifier `flaky`,capture0 and unchanged source. The formatter contract now computes ordered owner sets once per call; all representatives, exact negative controls, the original overlap glob, async mode and timeout remain unchanged. Independent review found no source defect. A current canonical attempt passed the full root suite but failed example startup on shared PostgreSQL connection exhaustion. Task-owned PostgreSQL15.17 now isolates tests on loopback with the same100-connection limit and no shared-service change; this supported database component also corrects the old localPG14 evidence limit. The isolated canonical alias exited0: root/example/type gates passed, browser417 first-attempt passes,one clipboard focus retry-pass and56 established skips. Its clipboard evidence is not clean. A narrow connected-state test precondition and retries-disabled affected checks are active, preserving production assets and focus/error assertions. No further full repeat is authorized. Retain the GSD worktree and hold Phase249 implementation until required nine-run proof is satisfied. Stop the task-owned database before any user pause after all owned clients finish.
+**Active proof boundary:** The user's one full-repeat grant is consumed: six clean runs then an iteration7 formatter timeout, suite exit2/capture0 after2611 seconds, classifier `flaky`. The formatter correction retains every assertion, control, glob, concurrency and timeout; focused and full-root proof pass. A test-only clipboard readiness wait retains all focus/error assertions and passes6 first-attempt cases plus41 passes/11 configured skips across52 combined affected-file instances, with retries disabled; discovery9/0 and inventory15 checks pass. Both corrections have independent reviews with no source findings. The actual isolated PostgreSQL15 canonical alias0 remains source-bound to the earlier test:417 first-attempt browser passes,one retry-pass,56 configured skips. No fresh full alias or pre-connect clipboard claim is inferred. Task-owned PostgreSQL15 is stopped with zero remaining clients; shared services were untouched. The current corrected code and19 protected identities are committed in the retained GSD worktree. The new one-shot preflight passed with authorization false. Wait for NEW explicit user approval of one unchanged nine-run scale5 invocation,55-minute cap and60-second grace; no automatic retry or indirect substitute. Phase249 implementation and worktree removal remain held. No routine human verification or cleanup is required.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
