@@ -583,13 +583,14 @@ defmodule Threadline.RepoContractScopeContractTest do
 
   defp untagged_source(body), do: "defmodule Fake do\n  use ExUnit.Case\n\n" <> body <> "\nend\n"
 
-  defp flagged?(body) do
-    dodging_offenders([{fake("x"), tagged_source(body)}], lib_modules()) != []
+  defp flagged?(source, modules \\ lib_modules()) do
+    dodging_offenders([{fake("x"), source}], modules) != []
   end
 
   test "mutation controls no-dodging: invocation-shaped markers are flagged" do
     cmd = "System" <> ".cmd("
     lib = "Threadline" <> ".Query"
+    modules = lib_modules()
 
     for body <- [
           cmd <> ~s("mix", ["test"]\)),
@@ -606,13 +607,14 @@ defmodule Threadline.RepoContractScopeContractTest do
           cmd <> ~s("bash", [") <> "bin/" <> "demo-up" <> ~s("]\)),
           "Threadline" <> ".row_history(repo, schema, id)"
         ] do
-      assert flagged?(body), "expected a dodging offender for: #{body}"
+      assert flagged?(tagged_source(body), modules), "expected a dodging offender for: #{body}"
     end
   end
 
   test "mutation controls no-dodging: text and test-support references are not flagged" do
     cmd = "System" <> ".cmd("
     heredoc = String.duplicate(~s("), 3)
+    modules = lib_modules()
 
     for body <- [
           "Threadline" <> ".Test.OperatorSurfaceFixtures.x()",
@@ -628,16 +630,16 @@ defmodule Threadline.RepoContractScopeContractTest do
             ~s("git", ["status"]\)\n  assert ci =~ ") <>
             "bin/" <> "verify-dialyzer-slice" <> ~s(")
         ] do
-      refute flagged?(body), "expected no dodging offender for: #{body}"
+      refute flagged?(body, modules), "expected no dodging offender for: #{body}"
     end
 
     # An untagged file may do anything: it runs on every lane.
     untagged = untagged_source(cmd <> ~s("mix", ["test"]\)))
-    assert dodging_offenders([{fake("x"), untagged}], lib_modules()) == []
+    refute flagged?(untagged)
 
     # A near-miss tag is not the tag.
     near = String.replace(tagged_source("Re" <> "po.all(X)"), ":repo_contract", ":repo_contracts")
-    assert dodging_offenders([{fake("x"), near}], lib_modules()) == []
+    refute flagged?(near)
   end
 
   test "mutation controls no-unclassified: an untagged contract missing from @exempt is flagged" do
