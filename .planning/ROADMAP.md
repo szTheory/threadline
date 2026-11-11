@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has reviewed corrective proof and is waiting for a new one-run grant for the required full repeat. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan is repairing a public-document inventory timeout exposed by the latest approved repeat; the required nine-run proof remains incomplete. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Blocked: new repeat grant | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Repairing repeat failure | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-Wait for the user's decision on one additional full nine-run, scale5 repeat under the unchanged55-minute cap and60-second termination grace. The previous one-invocation grant is consumed. Formatter and clipboard-readiness test fixes, affected automated checks, independent reviews, source identity checks and stopped task-owned PostgreSQL15 setup are concrete and ready; preflight passed without launching the repeat. Do not infer authorization, advance Phase249, or merge/remove the retained worktree while that required receipt is missing. Phase249's private read-only route, scenario and brand preparation remains available for continuation after Phase248 passes.
+Continue the concrete public-document ownership-test repair and reviewed router-guide correction in the retained isolated executor, then affected checks, one bounded root retest and independent review. The latest actual user grant was consumed: five clean runs then a timeout on iteration6, classifier `flaky`. No further full repeat is authorized. Preserve its receipt and all earlier source-bound proof. Do not advance Phase249 or merge/remove the retained worktree while required proof is missing. Stop task-owned PostgreSQL15 before a user pause after owned checks finish; leave shared services untouched. Phase249's private read-only route, scenario, chronology and brand preparation remains available after Phase248 passes.
