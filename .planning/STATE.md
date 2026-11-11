@@ -4,10 +4,10 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: executing
-stopped_at: Plan248-04 repeat failed; no further full repeat authorized; in-scope repairs and independent checks continue
-last_updated: "2026-11-11T03:30:46.483506Z"
-last_activity: 2026-11-10
-last_activity_desc: Isolated flake repair passed seeded discovery; repeat failed its first iteration; verification repairs continue
+stopped_at: Prepared candidate passed canonical checks; one reviewed bounded repeat revalidation authorized
+last_updated: "2026-11-11T05:01:43.426117Z"
+last_activity: 2026-11-11
+last_activity_desc: Canonical integration and review passed; diagnosed bounded repeat revalidation proceeds under existing phase authority
 state_head: 0b36bfc0baff94e27dc0a4f40ca189c982901409
 progress:
   total_phases: 6
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof stop:** The local repeat first exited before ExUnit because MIX_ENV was dev; a corrected invocation then reached one suite iteration and failed. Both invocations are retained. No complete nine-run receipt exists and no further entire repeat is authorized. Finish diagnosed in-scope fixes and independent safe checks before presenting any concrete new-run decision. Phase 248 remains incomplete; Phase 249 has read-only preparation only.
+**Active proof boundary:** Both historical repeat invocations remain failed evidence. Source/environment causes were repaired and prepared canonical integration passed. The standing phase context explicitly includes bounded retests, so the orchestrator has authorized exactly one further local revalidation with unchanged55-minute/60-second-grace/nine-run/scale5 limits. No automatic additional entire repeat is authorized. Phase248 remains incomplete while this actual receipt is pending; use the retained GSD worktree rather than redispatching a fresh executor. Phase249 has read-only preparation only.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
