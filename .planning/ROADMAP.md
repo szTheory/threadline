@@ -59,7 +59,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 2. A host mount missing the required authorization contract fails closed with actionable migration guidance; allowed and denied paths demonstrate the approved policy without exposing scoped history.
 3. Maintainers can inspect current root/example advisory diagnoses and compatible remedies for issue #61; any unresolved reachable runtime risk names the affected acceptance and release paths it blocks.
 4. Maintainers can reproduce and attribute issue #90's current-candidate failure, verify its repair through the affected checks, and distinguish unresolved proof from passing evidence without weakened gates or speculative retries.
-**Plans**: 0 (not planned)
+**Plans**: 4 (reviewed; four ordered waves)
 **UI hint**: yes
 **Canonical references**: [Compatibility research input](research/2026-11-10-brand-admin/milestone-compatibility-sequence.md), [dated baseline](research/2026-11-10-brand-admin/milestone-live-baseline.json), [proposal and non-waiver gates](research/2026-11-10-brand-admin/milestone-proposal.md), [host router](../lib/threadline/operator_surface/router.ex), [authorization](../lib/threadline/operator_surface/auth.ex), [mount contracts](../test/threadline/operator_surface/router_test.exs), [advisory gate](../test/threadline/deps_audit_gate_test.exs). Fresh diagnosis belongs to this phase; the dated reports are not a passing receipt.
 
@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. All phases and requirements are Pending. No execution plans exist yet; totals are six phases, zero complete, zero plans, zero percent.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has four reviewed plans ready for isolated execution; later phases remain Pending. Totals: six phases, zero complete, four plans, zero complete plans, zero percent.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 0/0 | Pending | - |
+| 248. Reconcile the base and safety/proof ownership | 0/4 | Planned | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. All phases and req
 
 ## Next
 
-Continue with `$gsd-discuss-phase 248` using the approved scope and settled research. Before any executor dispatch, re-resolve negotiated isolation and enforce its stop if unavailable. No repeat milestone/framework approval is needed; preserve real phase boundaries and material scope/security/compatibility decisions.
+Continue the authorized autonomous run with Phase 248 isolated execution. Context, focused research, pattern map, UI contract and four plans are reviewed; the repeat-proof check was corrected to assert actual classification and completed iterations. Re-resolve negotiated isolation and verify the actual fork/cwd before dispatch; preserve its stop if unavailable. No repeat milestone/framework approval is needed. Current product safety and proof remain unverified until execution.

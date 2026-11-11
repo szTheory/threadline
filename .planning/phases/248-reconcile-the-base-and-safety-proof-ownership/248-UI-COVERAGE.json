@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "requirement_id": "E1",
+      "category": "loading",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Router compilation either succeeds or raises CompileError synchronously; Phase 248 introduces no browser loading state or asynchronous UI. Verify the compile matrix and no changed rendered templates.",
+      "reason": null,
+      "probe": "What is shown while data or content is still loading (skeleton, spinner, progressive reveal)?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "error",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Invalid mount raises CompileError at the mount call with authorize_fn and exact acknowledgement remedies, says pipe_through alone is insufficient, and includes no scoped audit values. Verify compile-error assertions.",
+      "reason": null,
+      "probe": "What is shown when the load or submit fails (message, retry affordance, partial fallback)?"
+    },
+    {
+      "requirement_id": "E1",
+      "category": "long-text",
+      "status": "resolved",
+      "verification": "explicit",
+      "resolution": "Migration diagnostics retain the full authorize_fn and adopter_acknowledges_unauthenticated option names and call-site location without truncation; test those exact substrings. No changed rendered text requires a new reflow assertion.",
+      "reason": null,
+      "probe": "What happens with unusually long text \u2014 truncation, wrapping, ellipsis, or reflow?"
+    }
+  ],
+  "coverage": {
+    "applicable": 3,
+    "resolved": 3,
+    "unresolved": 0,
+    "unclassified": 0,
+    "byVerification": {
+      "explicit": 3,
+      "backstop": 0
+    }
+  }
+}

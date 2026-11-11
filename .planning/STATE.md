@@ -5,13 +5,13 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 status: planning
 current_phase: 248
 current_phase_name: "Reconcile the base and safety/proof ownership"
-stopped_at: "v1.48 initialized and reviewed; Phase 248 discussion/planning next"
+stopped_at: "Phase 248 plans reviewed; isolated execution next"
 last_updated: "2026-11-10T23:08:51.749Z"
 last_activity: 2026-11-10
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -23,18 +23,20 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initialization)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.48 Threadline Admin: brand and complete journeys — Phase 248 baseline discussion/planning; six approved phases, all Pending.
+**Current focus:** v1.48 Threadline Admin: brand and complete journeys — Phase 248 plans reviewed; isolated execution next. Four plans across four ordered waves; no requirement is complete.
 
 ## Current Position
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
-Plan: 0 of 0 in current phase (not planned)
-Status: Ready for Phase 248 discussion and planning
-Last activity: 2026-11-10 — Approved v1.48 roadmap initialized; 34/34 ADM requirements mapped exactly once, all Pending; zero execution plans.
+Plan: 0 of 4 in current phase (reviewed)
+Status: Phase 248 ready for isolated execution
+Last activity: 2026-11-10 — Autonomous resume from 248: three focused research reports, context, UI contract, pattern map and four plans reviewed. One repeat-proof plan blocker corrected and independently rechecked. No product changes or test results yet.
 
-Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 0 of 0 plans complete.
+Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 0 of 4 plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
+
+**Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has in-range fixes for Ecto, Phoenix.HTML and example Bandit; current findings remain blocking until tested remediation. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
