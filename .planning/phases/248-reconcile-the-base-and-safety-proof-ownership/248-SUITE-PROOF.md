@@ -141,7 +141,7 @@ PASS: inventory verification (15 checks)
 
 It confirms the 31 preserved path/blob identities, brand-source identities, isolation provenance, and all six negative inventory controls. The accepted router helper and release exclusion do not change the preserved candidate inventory, brand source identities, or lock inputs.
 
-## Review and outstanding limits
+## Review snapshot before the formatter, clipboard and public-surface follow-ups (historical)
 
 The independent review report is copied to [248-WORKFLOW-REVIEW.md](248-WORKFLOW-REVIEW.md) and matches its recorded SHA-256 `3f52c5b352ebb42fd843afef9c11cea404ac192705173cfb6272d1fbb48294a4`. It found no remaining workflow/router/release source defect and retains one blocker: the required nine-run corrected repeat has no passing receipt, and the no-retry stop remains active. The final canonical integration and inventory checks pass, but they cannot replace that repeat criterion.
 
@@ -161,7 +161,7 @@ A read-only post-run snapshot reported `max_connections=100`, 30 idle connection
 
 After the canonical command, `python3 .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py --check-inventory --self-test` passed all 15 checks. Current lock hashes still match the prior ledger: root `00e6393a22730830470a8253a3cbbd49ca4adc8fd8768573516f58e592502e00`, bench `70392fba94a8798e746db0c7b8b2861b267c6922758fd5dc27240e4dcec3427a`, example `d3f34675157bd1d18e38d026aa0d89279dd2e46a4e55a5c82e0827f1ed5b3bff`, and E2E `b6a4ce7846424aa819a7b6e74aad244442cfdb5b7ad10d2d84916bf15babbcdd`. Package version remains `1.1.0`; the commit modifies no product or lockfile source.
 
-**Current acceptance remains blocked.** The prior successful canonical result on `2495891863f5a0fbaab8800a787d668daeb67625` is retained as historical evidence for that source identity. The current formatter-fix candidate's canonical command did not finish all stages, and there is still no passing nine-run receipt. Plan 248-04 remains halted and ADM-04 incomplete. No additional repeat or canonical run was launched.
+At this historical checkpoint, the canonical result on `2495891863f5a0fbaab8800a787d668daeb67625` was retained for that source identity, the formatter-fix candidate's canonical command had not finished all stages, and there was no passing nine-run receipt. Later formatter, clipboard and public-surface follow-ups are recorded below; the latest status is in the final follow-up section.
 
 ## Corrective clipboard-proof follow-up — 2026-11-11
 
@@ -174,3 +174,13 @@ The one-line change in `operator-route-states.spec.ts` waits for `[data-phx-main
 The target case passed six bounded invocations (three desktop and three mobile, `--retries=0`, `--repeat-each=3`). One run of the complete affected spec passed 41 tests and had 11 configured skips total across both projects (`--retries=0`). The root discovery contract passed 9 tests / 0 failures, and the candidate inventory validator passed all 15 checks. Exact command, elapsed time, and individual log hashes are in [248-CLIPBOARD-PROOF.md](248-CLIPBOARD-PROOF.md). The local browser runs used task-owned PostgreSQL 15.17, the supported DB floor; this does not establish the full minimum/current/latest CI matrix. The task-owned service remains running for the parent to stop; the shared service was unchanged.
 
 The assertion establishes the contract only after LiveView reports `phx-connected`; it does not cover a pre-connect copy attempt or prove why the original focus assertion failed. No fresh canonical run, full-root repeat, or broad browser run followed this change. The nine-run acceptance remains failed and no further repeat is authorized. Plan 248-04 stays halted and ADM-04 incomplete; the bounded clipboard proof does not replace the missing nine-run receipt. See [248-CLIPBOARD-PROOF.md](248-CLIPBOARD-PROOF.md) for the full evidence record.
+
+## Latest public-surface follow-up — 2026-11-11
+
+The latest user-approved repeat is recorded in [248-POSTFIX-REPEAT-RECEIPT.json](248-POSTFIX-REPEAT-RECEIPT.json), bound to source `baa3a27d56bf6047d791f709aa78d1692d8294c9`. It finished wrapper exit 1 / suite exit 2 / capture exit 0 in 1,932 seconds: five clean runs, then the public-reference aggregate test timed out in run 6 at seed `587264`; classifier `flaky`. The failure stack entered `source_env_reads/0` from `reference_inventory/0` within the 80-subject loop. Raw log SHA-256: `ab90c462e3df5c95a43f026e152f45c8d7aaa21eaee8c8847fbef6d425071478`. This is the latest failed receipt; prior formatter and clipboard records remain intact history.
+
+The current test optimization reuses one source-derived inventory across all subjects and one discovered Mix task list within each inventory invocation. The scoped traversal count is 32,294 source AST parses before and 402 after, based on 80 subjects and 134 source files. The selected test passed before and after the edit (15.3s then 0.6s ExUnit in the single observations); the complete affected file passed 47/0. The walkthrough and operator-surface doc contracts passed 14/0, the temporary router probe verified all 16 corrected routes inherit both host pipelines and rejected the ignored-option control, `mix verify.format` exited 0, and the inventory validator passed all 15 checks. See [248-PUBLIC-SURFACE-FIX.md](248-PUBLIC-SURFACE-FIX.md) for commands and hashes.
+
+The one root-suite invocation exited 2 after 421 seconds with 3,400 tests, 1 failure, and 3 existing exclusions. Its only failure was `CleanCheckoutContractTest`: the sandbox denied its temporary linked-worktree registration under shared Git metadata. The same test passed in a narrow diagnostic with the needed metadata access (9/0, 8 excluded). The root invocation remains failed, and no root rerun or fresh canonical alias was performed. The old `/admin` example has been corrected to put `pipe_through` on the enclosing router scope; no product/router implementation changed.
+
+Plan 248-04 remains halted, ADM-04 remains incomplete, and the repeat grant is consumed. There is no passing nine-run receipt. Independent review of these two follow-up changes is pending; the parent owns the task PostgreSQL service lifecycle.

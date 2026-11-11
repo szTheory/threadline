@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "phase": "248",
+  "plan": "248-04",
+  "receipt_kind": "postfix_full_repeat",
+  "source_revision": "baa3a27d56bf6047d791f709aa78d1692d8294c9",
+  "source_unchanged_during_run": true,
+  "source_hashes": {
+    "test/threadline/public_surface_contract_test.exs": "d6d2e3f77f0f615f77f61aa32ab20d1f670d770b56578bae5d35068c13acba8b",
+    "guides/code-walkthrough.md": "6dcda3d9119165902f349ac4894cd7f96dcf356acc46db0850444dedbdb13d6d",
+    "mix.exs": "3dd4a7b33bc91c3eb746d4d98930993f9ecbc7dfe4bb494d216f58859e26bf2f",
+    "mix.lock": "00e6393a22730830470a8253a3cbbd49ca4adc8fd8768573516f58e592502e00",
+    "examples/threadline_phoenix/e2e/package-lock.json": "b6a4ce7846424aa819a7b6e74aad244442cfdb5b7ad10d2d84916bf15babbcdd"
+  },
+  "command": "MIX_ENV=test THREADLINE_PROPERTY_SCALE=5 mix verify.flake",
+  "run_config": {
+    "expected_suite_runs": 9,
+    "property_scale": 5,
+    "max_cases": 36,
+    "budget_seconds": 3300,
+    "termination_grace_seconds": 60,
+    "seed_on_failing_iteration": 587264
+  },
+  "outcome": {
+    "wrapper_exit_code": 1,
+    "suite_exit_code": 2,
+    "capture_exit_code": 0,
+    "elapsed_seconds": 1932,
+    "classifier": "flaky",
+    "classifier_reason": "passed 5 time(s) then failed on iteration 6",
+    "suite_start_headers": 6,
+    "completed_clean_summaries": 5
+  },
+  "failure": {
+    "test": "all local, external, and module-doc subjects have one exact owner",
+    "module": "Threadline.PublicSurfaceContractTest",
+    "source": "test/threadline/public_surface_contract_test.exs",
+    "line": 511,
+    "timeout_seconds": 60,
+    "stack": [
+      "source_env_reads/0 at test/threadline/public_surface_contract_test.exs:540",
+      "reference_inventory/0 at test/threadline/public_surface_contract_test.exs:738",
+      "aggregate subject loop at test/threadline/public_surface_contract_test.exs:531"
+    ],
+    "attribution": "Repeated source AST inventory work is visible in the call path; this evidence does not claim it alone explains every millisecond of the timeout or infer an environment/load cause."
+  },
+  "raw_log_sha256": "ab90c462e3df5c95a43f026e152f45c8d7aaa21eaee8c8847fbef6d425071478",
+  "producer_receipt_id": "threadline-248-postfix-repeat.fcnylasc",
+  "authority": {
+    "single_user_grant_consumed": true,
+    "passing_nine_run_receipt": false,
+    "further_full_repeat_authorized": false
+  }
+}

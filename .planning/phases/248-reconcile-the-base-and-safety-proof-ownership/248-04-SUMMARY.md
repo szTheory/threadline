@@ -27,6 +27,8 @@ key-files:
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-WORKFLOW-REVIEW.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CLIPBOARD-PROOF.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-PUBLIC-SURFACE-FIX.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-POSTFIX-REPEAT-RECEIPT.json
   modified:
     - .github/workflows/flake-detection.yml
     - test/threadline/browser_journey_evidence_contract_test.exs
@@ -37,6 +39,7 @@ key-files:
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
     - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
+    - test/threadline/public_surface_contract_test.exs
 key-decisions:
   - "Keep the failed one-iteration repeat receipt and active no-retry stop; do not infer nine-run acceptance."
   - "Use task-local npm/browser caches and the authorized Git metadata context for local verification."
@@ -79,11 +82,11 @@ status: halted
 
 ## Current reconciliation — 2026-11-11
 
-Plan 248-04 remains halted. The user's one additional full-repeat grant is consumed: six clean runs followed by a formatter timeout in iteration 7, classifier `flaky`. The formatter test now removes repeated owner-file enumeration, retaining all assertions and execution settings; independent review found no source defects.
+Plan 248-04 remains halted. The latest user-approved full repeat is terminal: source `baa3a27d56bf6047d791f709aa78d1692d8294c9`, wrapper exit 1, suite exit 2, capture exit 0, 1,932 seconds, five clean runs then the public-surface subject-ownership timeout in iteration 6 at seed `587264`, classifier `flaky`. Its portable receipt is [248-POSTFIX-REPEAT-RECEIPT.json](248-POSTFIX-REPEAT-RECEIPT.json). The earlier formatter timeout at iteration 7 remains historical evidence and is superseded as the latest failure.
 
-The isolated PostgreSQL15 canonical alias exited0 on source `ab65c014`, with root/example/type checks passing and browser417 first-attempt passes,one retry-passed clipboard case and56 configured skips. That browser run remains non-clean. Current test-only clipboard readiness source `ac260b47` passed six first-attempt target invocations and the complete affected file (52 combined instances:41passed,11 configured skips), all with retries disabled; discovery passed9/0 and the inventory validator passed15 checks. Independent source reviews are [248-FORMATTER-REVIEW.md](248-FORMATTER-REVIEW.md) and [248-CLIPBOARD-REVIEW.md](248-CLIPBOARD-REVIEW.md). These scoped results do not claim a fresh full canonical run or pre-connect clipboard behavior.
+The isolated PostgreSQL 15 canonical alias on `ab65c014` remains source-bound history: its browser result was 417 first-attempt passes, one retry-passed clipboard case and 56 configured skips, not a clean browser run. The clipboard readiness fix at `ac260b47` retains its bounded proof. The latest public-surface and heading 15 follow-up is separately recorded in [248-PUBLIC-SURFACE-FIX.md](248-PUBLIC-SURFACE-FIX.md): current affected contracts, formatting, inventory validation and the compiled route probe pass, but the single root-suite invocation has one shared-Git-metadata permission failure. The same failing test passed in a narrow diagnostic with that metadata permission; the root result remains failed.
 
-The task-owned PostgreSQL15 instance is stopped after verification and zero remaining clients; its private data is retained for a possible authorized continuation. The shared service and other projects were untouched. No passing nine-run receipt exists. A NEW explicit one-invocation grant is required before another unchanged nine-run, scale 5, 55-minute repeat with 60-second termination grace. No automatic retry, phase advance, worktree removal, issue closure, hosted dispatch, push, version change or publication is authorized. Local PostgreSQL15 component coverage does not establish the full min/current/latest CI matrix or REL-01.
+The task-owned PostgreSQL 15.17 service was used for this continuation and left untouched; the parent owns its status and cleanup. The shared service and other projects were not modified. No passing nine-run receipt exists. The repeat grant is consumed; any later repeat requires a new explicit one-invocation grant and must preserve nine runs, scale 5, a 55-minute cap and 60-second termination grace. No automatic retry, phase advance, worktree removal, issue closure, hosted dispatch, push, version change or publication is authorized. Local PostgreSQL 15 evidence does not establish the full min/current/latest CI matrix or REL-01.
 
 Historical source-specific records below remain evidence; this section supersedes their old present-tense dispatch/readiness statements. See [248-POSTFIX-READINESS.md](248-POSTFIX-READINESS.md).
 
@@ -209,3 +212,13 @@ This proof is scoped to the connected LiveView state and does not claim behavior
 ## Pre-approval automatic-review snapshot (historical)
 
 The author-return halt and failed original repeat remain historical evidence. The orchestrator proposed one bounded local revalidation after prepared canonical exit0 and independent review. Automatic approval review rejected the launch because the existing no-further-repeat stop requires trusted explicit user approval; an assistant-only authorization was insufficient. No new repeat started. ADM04 remains incomplete and the actual worktree stays retained until this concrete approval decision and any subsequently authorized proof are reconciled. No indirect retry is permitted.
+
+## Corrective public-surface follow-up — 2026-11-11
+
+The latest one-invocation user grant was consumed by the terminal repeat on source `baa3a27d56bf6047d791f709aa78d1692d8294c9`: wrapper 1, suite 2, capture 0, 1,932 seconds; five clean runs then a 60-second public-surface reference timeout in iteration 6 at seed `587264`, classifier `flaky`. It is preserved in [248-POSTFIX-REPEAT-RECEIPT.json](248-POSTFIX-REPEAT-RECEIPT.json); earlier formatter/clipboard receipts remain history. No new full repeat or canonical run was performed.
+
+The public surface contract now builds one reference inventory for the aggregate subject set and reuses a single discovered Mix task list within each helper invocation. The source-derived traversal is 80 subjects over 134 source files: AST parse passes go from 241 to 3, or 32,294 source parses to 402. The selected seed test passed before and after (15.3s then 0.6s ExUnit in these individual runs); the affected file passed 47/0. The doc contracts passed 14/0, the compiled route probe verified all 16 routes inherit both host pipelines and the ignored-option control fails, formatting passed, and the inventory validator passed 15 checks. Changes are isolated in source commits `6843856f` and `2c6c6152`; details and hashes are in [248-PUBLIC-SURFACE-FIX.md](248-PUBLIC-SURFACE-FIX.md).
+
+The one bounded root invocation exited 2 after 421 seconds with 3,400 tests, 1 failure and 3 existing exclusions. The failure was `CleanCheckoutContractTest` denied permission to create a temporary worktree under shared Git metadata. Its exact test passed in a narrow diagnostic with scoped metadata access (9 tests, 0 failures, 8 excluded); the root run remains failed. No second root run followed.
+
+Plan 248-04 remains **halted**, and ADM-04 remains incomplete because there is no passing nine-run receipt. The consumed repeat grant does not renew. The latest worktree source reviews are pending. The task-owned PostgreSQL service was left untouched for the parent to manage; no shared database, state, roadmap, requirements, phase boundary or external system was changed.
