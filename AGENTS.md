@@ -61,6 +61,12 @@ exit status. Use foreground only when a specific check requires it; explain the
 need before activation and bound that interval. Diagnose background
 failures within existing limits. A timeout alone does not justify taking focus.
 
+Before a run with explicit attempt or retry limits, verify its required environment,
+locked tools/cache access and formatting. Record every invocation, including
+failures before a suite starts, and consume the current orchestration stop/handoff
+before retrying. Zero completed iterations do not by themselves renew an attempt
+or window. This adds no approval gate to routine authorized checks.
+
 These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 - **Named entrypoints**: prefer `mix verify.*` / `mix ci.*` aliases over ad-hoc commands. Contributors and CI cite these verbatim.

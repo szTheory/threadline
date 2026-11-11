@@ -4,11 +4,11 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: executing
-stopped_at: Compatible advisory remedies merged and verified; flake setup repair and bounded integrated proof next
-last_updated: "2026-11-11T03:01:22.255516Z"
+stopped_at: Plan248-04 repeat failed; no further full repeat authorized; in-scope repairs and independent checks continue
+last_updated: "2026-11-11T03:30:46.483506Z"
 last_activity: 2026-11-10
-last_activity_desc: Patched lock graphs merged with clean all-lock audit and post-merge checks; flake repair next
-state_head: 61180e33c3b533565d16669657f68712782a0580
+last_activity_desc: Isolated flake repair passed seeded discovery; repeat failed its first iteration; verification repairs continue
+state_head: 0b36bfc0baff94e27dc0a4f40ca189c982901409
 progress:
   total_phases: 6
   completed_phases: 0
@@ -32,13 +32,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
 Status: Executing Phase 248
-Last activity: 2026-11-10 — Compatible advisory remedies merged; all-lock audit and merged-checkout build/policy checks passed. Flake setup repair and integrated proof remain.
+Last activity: 2026-11-10 — Isolated Plan 248-04 repair passed the seeded discovery and focused workflow contracts. Its repeat failed the first actual iteration; in-scope repairs and independent checks continue with no further full repeat authorized.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
+
+**Active proof stop:** The local repeat first exited before ExUnit because MIX_ENV was dev; a corrected invocation then reached one suite iteration and failed. Both invocations are retained. No complete nine-run receipt exists and no further entire repeat is authorized. Finish diagnosed in-scope fixes and independent safe checks before presenting any concrete new-run decision. Phase 248 remains incomplete; Phase 249 has read-only preparation only.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
