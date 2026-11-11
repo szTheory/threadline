@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: in_progress
-stopped_at: Latest repeat failed; concrete public-document test repair and bounded checks active
-last_updated: "2026-11-11T17:20:57.050078+00:00"
+status: blocked
+stopped_at: Corrective proof reviewed; new explicit one-invocation grant needed for required nine-run repeat
+last_updated: "2026-11-11T17:55:02.641056+00:00"
 last_activity: 2026-11-11
-last_activity_desc: New user-approved repeat consumed; five clean runs then public-document inventory timeout; narrow repair active
+last_activity_desc: Public-reference inventory and guide corrections committed, scoped checks and review complete; owned PostgreSQL stopped; new one-shot authorization false
 state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
 progress:
   total_phases: 6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Repairing the latest repeat failure
-Last activity: 2026-11-11 — The latest explicitly approved repeat completed five clean runs and failed on the sixth with a public-document ownership test timeout. The retained isolated executor is removing repeated inventory parsing and correcting the reviewed router example, with bounded local checks. No further full repeat is authorized.
+Status: Blocked on a new full-repeat grant
+Last activity: 2026-11-11 — The latest approved repeat completed five clean runs, then timed out in the public-document ownership test. The repeated parsing is corrected and the guide's ignored pipeline option is fixed. Affected checks and independent source review pass. The one ordinary root retest retains a sandbox Git-fixture failure, separately passing with scoped access. Task-owned PostgreSQL is stopped. A new unchanged one-shot proposal is prepared with authorization false.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The latest actual user grant (`Approve one repeat`) was consumed by one invocation at the unchanged scale5, nine-run target, 55-minute cap and 60-second grace. It completed five clean runs, then timed out in `PublicSurfaceContractTest` on iteration6; suite exit2, capture0, elapsed1932 seconds, classifier `flaky`, tested source unchanged. This supersedes the previous six-clean/formatter failure as the latest attempt; both receipts remain preserved. Removing repeated source inventory work and correcting the guide's ignored pipeline option are routine repairs now active in the retained GSD worktree, followed by affected checks and one bounded root retest. No new full repeat, phase249 implementation, merge or worktree removal is authorized while required proof is missing. Task-owned PostgreSQL15 is active only for these owned checks; stop it before a user pause after clients finish. Shared services remain untouched. Earlier source-bound canonical proof still includes one retry-passed browser case; the separate connected-state clipboard checks passed with retries disabled. Detailed current source, receipts, checks and limitations belong in the Phase248 proof artifacts.
+**Active proof boundary:** The latest actual user grant (`Approve one repeat`) was consumed: five clean runs, then a 60-second public-reference ownership timeout on iteration 6; suite exit 2/capture 0 after 1932 seconds, classifier `flaky`, tested source unchanged. The corrective source builds one inventory per aggregate invocation and reuses one task set locally; assertions, controls, timeouts, scale, concurrency and classifier remain intact. The guide declares host pipelines in its enclosing router scope. Affected checks and direct actual-snippet compiler controls pass; independent review has no remaining source findings. One ordinary root retest had a sandbox-denied Git worktree fixture and remains a failed invocation; the exact fixture separately passes with scoped local metadata access. The earlier canonical alias retains its one retry-passed browser case and is not relabeled fresh or clean. All current source identities and portable receipts reconcile. The owned PostgreSQL 15 instance is stopped with zero remaining clients and all owned workers terminal; shared services were untouched. A new proposal passes preflight with authorization false under the unchanged nine-run, scale 5, 55-minute cap and 60-second grace. No further full repeat, indirect substitute, Phase 249 implementation, merge or worktree removal is authorized while required proof is missing. Current readiness: `.claude/worktrees/agent-p248-04-1794366095/.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-INVENTORY-READINESS.md`. The user acts next on a new one-invocation grant; no routine human UAT or cleanup is requested.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -1279,8 +1279,8 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-- The agent continues the attributable test/documentation repair, bounded checks and independent review in the retained GSD worktree. No user action is needed while that work runs.
-- Preserve the explicit no-further-full-repeat stop. Once the concrete remedy is verified, present the remaining proof decision; do not infer renewed authority from the original or latest consumed grant. The original autonomous objective remains phases248–253, with later phases held behind Phase248 acceptance.
+- Waiting for the user's decision on one additional full nine-run repeat at property scale5 under the unchanged55-minute cap and60-second termination grace. The latest grant is consumed; current preflight does not authorize a launch.
+- The corrected and reviewed candidate remains in the retained GSD worktree, with owned PostgreSQL stopped. If a new grant is given, consume it exactly once, reconcile the actual result and finish the required Phase248 gates before continuing the original autonomous objective through phases248–253. Do not redispatch the completed corrective executor, reset consumed tokens, remove/merge the worktree, or publish internal history.
 
 ## Restart Recovery (2026-10-10)
 
