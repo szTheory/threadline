@@ -47,7 +47,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
       has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated) === true
       exports_enabled? = Keyword.get(opts, :exports, true)
-      {opts, authorize_fn_defs} = normalize_inline_authorize_fn(opts, has_auth_fn?)
+      {opts, authorize_fn_defs} = normalize_authorize_fn(opts, has_auth_fn?)
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line
 
@@ -171,22 +171,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp usable_authorize_fn_ast?(ast), do: not literal_non_function_ast?(ast)
 
     # Plug.Builder can only escape remote function captures in router options,
-    # so normalize an inline callback into a unique helper on the host router.
-    defp normalize_inline_authorize_fn(opts, true) do
+    # so normalize supported local callbacks into a unique helper on the host router.
+    defp normalize_authorize_fn(opts, true) do
       case Keyword.fetch(opts, :authorize_fn) do
         {:ok, {:fn, _meta, clauses}} ->
-          name = String.to_atom("__threadline_authorize_fn_#{System.unique_integer([:positive])}")
+          generate_authorize_fn(opts, clauses)
 
-          definitions = Enum.map(clauses, &authorize_fn_clause(name, &1))
-          capture = quote(do: &(__MODULE__.unquote(name) / 1))
-          {Keyword.put(opts, :authorize_fn, capture), definitions}
+        {:ok, {:&, _meta, [{:/, _arity_meta, [{function, function_meta, nil}, 1]}]}}
+        when is_atom(function) ->
+          socket = Macro.var(:authorize_socket, nil)
+          body = {function, function_meta, [socket]}
+          generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
+
+        {:ok, {:&, _meta, [expression]}} ->
+          case capture_placeholder_arity(expression) do
+            {:ok, 1} ->
+              socket = Macro.var(:authorize_socket, nil)
+
+              body =
+                Macro.prewalk(expression, fn
+                  {:&, _placeholder_meta, [1]} -> socket
+                  node -> node
+                end)
+
+              generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
+
+            _ ->
+              {opts, []}
+          end
 
         _ ->
           {opts, []}
       end
     end
 
-    defp normalize_inline_authorize_fn(opts, _not_usable), do: {opts, []}
+    defp normalize_authorize_fn(opts, _not_usable), do: {opts, []}
+
+    defp generate_authorize_fn(opts, clauses) do
+      name = String.to_atom("__threadline_authorize_fn_#{System.unique_integer([:positive])}")
+
+      definitions = Enum.map(clauses, &authorize_fn_clause(name, &1))
+      capture = quote(do: &(__MODULE__.unquote(name) / 1))
+      {Keyword.put(opts, :authorize_fn, capture), definitions}
+    end
 
     defp authorize_fn_clause(name, {:->, meta, [arguments, body]}) do
       head =

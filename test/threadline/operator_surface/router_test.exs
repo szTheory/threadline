@@ -386,6 +386,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         purge_modules(modules)
       end
 
+      test "local unary short captures survive Phoenix route compilation and run at mount time" do
+        assert_local_authorizer_runtime!("&authorize(&1)", :short_capture)
+      end
+
+      test "local unary named captures survive Phoenix route compilation and run at mount time" do
+        assert_local_authorizer_runtime!("&authorize/1", :named_capture)
+      end
+
       test "exports option suppresses only the HTTP export controller routes" do
         modules =
           Code.compile_quoted(
@@ -450,6 +458,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert error.description == @mount_error
       assert error.file == "invalid_operator_surface_mount.ex"
       assert error.line == 4
+    end
+
+    defp assert_local_authorizer_runtime!(capture, callback_tag) do
+      module = Module.concat(__MODULE__, "LocalCaptureMount#{System.unique_integer([:positive])}")
+
+      source = """
+      defmodule #{inspect(module)} do
+        use Phoenix.Router
+        require Threadline.OperatorSurface.Router
+
+        def authorize(_socket) do
+          send(self(), {:authorize_fn_called, #{inspect(callback_tag)}})
+          :ok
+        end
+
+        Threadline.OperatorSurface.Router.threadline_operator_surface("/local-capture",
+          authorize_fn: #{capture},
+          exports: false
+        )
+      end
+      """
+
+      modules = Code.compile_string(source, "local_authorizer_mount_fixture.ex")
+
+      try do
+        refute_received {:authorize_fn_called, ^callback_tag}
+
+        route =
+          Phoenix.Router.routes(module)
+          |> Enum.find(&(&1.path == "/local-capture"))
+
+        assert %{metadata: %{phoenix_live_view: {_view, _action, _opts, live_session}}} = route
+
+        hooks = live_session.extra.on_mount
+        auth_hook = Enum.find(hooks, &match?({Threadline.OperatorSurface.Auth, _}, &1.id))
+        assert auth_hook
+
+        {_auth_module, authorize_opts} = auth_hook.id
+
+        socket = %Phoenix.LiveView.Socket{
+          endpoint: MyApp.Endpoint,
+          router: module,
+          assigns: %{__changed__: %{}}
+        }
+
+        assert {:cont, _socket} = auth_hook.function.(authorize_opts, %{}, %{}, socket)
+        assert_receive {:authorize_fn_called, ^callback_tag}
+      after
+        purge_modules(modules)
+      end
     end
 
     defp assert_before(source, first, second) do
