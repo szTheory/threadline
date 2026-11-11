@@ -1,5 +1,15 @@
 # Phase 248 candidate baseline
 
+## Current diagnostic outcome and narrow correction — 2026-11-11
+
+Plan 248-04 remains halted and ADM-04 incomplete. The approved instrumented nine-run alias failed its first suite on `8bdb4ac0`: 32 properties, 3,400 tests, one formatter timeout, three exclusions; 727.45 seconds wall, suite exit 2 / capture 0 / wrapper 1, classifier `broken`. No later suites ran. The one-invocation grant is consumed. [Exact diagnostic receipt](248-INSTRUMENTED-DIAGNOSTIC-RECEIPT.json).
+
+Current source `ce0c2e30d0b7401b3b35df21dcd986ad9ed8cafb` changes only the synthetic overlap input to the exact existing representative, preserving production formatter configs/globs, all 12 representatives, exact overlap/uncovered assertions, async settings and timeouts. A post-run check showed the old recursive fixture glob returned 107 files, including 97 under dependencies/build output, while the literal returned the one required representative. This is scope evidence, not a latency or exclusive-cause claim. Focused test, format and strict Credo pass; two private control mutants fail as intended; independent 33-file recheck has no active findings (32 exact reads reused, one changed file fully read). [Correction and bounded proof](248-OVERLAP-PROOF.md), [review](248-OVERLAP-REVIEW.md).
+
+No current full-root or plain nine-run pass is claimed. During the timeout, sampled file-server counters kept advancing with changing operations and queued requests; the observer had material variable overhead, so no single continuous stall, sole cause or reliable speedup is established. PostgreSQL is stopped after zero clients; shared services untouched. The next concrete decision is one plain acceptance invocation with the same nine-run / scale 5 / max-cases 36 / 55-minute plus 60-second limits; authorization is false. [Current readiness](248-OVERLAP-READINESS.md). Formal post-gates, acceptance and phases 249–253 remain pending; no external authority inferred.
+
+## Prior source-specific evidence (current status superseded)
+
 ## Current correction and proof boundary — 2026-11-11
 
 Plan 248-04 remains halted; ADM-04 and phase acceptance remain incomplete. Current reviewed source is `9b695ca25b41be882902ddfb06716141e5a462db`. The latest plain repeat completed three clean suites, then five file-operation timeouts in iteration 4; its one-invocation user grant is consumed. No further full repeat is authorized.

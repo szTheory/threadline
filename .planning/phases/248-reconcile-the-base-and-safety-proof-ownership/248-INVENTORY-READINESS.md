@@ -1,3 +1,5 @@
+> Historical readiness only. The instrumented diagnostic grant is consumed by a first-suite formatter timeout. Current correction, stopped resources and the unapproved plain acceptance proposal are in [248-OVERLAP-READINESS.md](248-OVERLAP-READINESS.md). No old snapshot grants another run.
+
 > Superseded readiness snapshot. Its repeat grant is consumed; current corrected evidence, stopped resources and the unapproved diagnostic proposal are in [248-PRESSURE-READINESS.md](248-PRESSURE-READINESS.md). This snapshot grants no new run.
 
 # Current Phase 248 repeat readiness

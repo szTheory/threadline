@@ -1,3 +1,5 @@
+> Historical readiness only. The instrumented diagnostic grant is consumed by a first-suite formatter timeout. Current correction, stopped resources and the unapproved plain acceptance proposal are in [248-OVERLAP-READINESS.md](248-OVERLAP-READINESS.md). No old snapshot grants another run.
+
 # Phase 248: Diagnostic repeat readiness
 
 The latest approved plain repeat failed after three clean suites: five file-operation timeouts in iteration 4. Its grant was consumed. Current corrected ordinary-root checks pass, but the cause and a reliable speedup remain unestablished; Plan 248-04 and ADM-04 remain incomplete. [Current proof](248-FILE-PRESSURE-PROOF.md), [review](248-NEGATIVE-PREMISE-REVIEW.md), [failed repeat](248-INVENTORY-REPEAT-RECEIPT.json).
