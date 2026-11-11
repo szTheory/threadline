@@ -184,3 +184,8 @@ The current test optimization reuses one source-derived inventory across all sub
 The one root-suite invocation exited 2 after 421 seconds with 3,400 tests, 1 failure, and 3 existing exclusions. Its only failure was `CleanCheckoutContractTest`: the sandbox denied its temporary linked-worktree registration under shared Git metadata. The same test passed in a narrow diagnostic with the needed metadata access (9/0, 8 excluded). The root invocation remains failed, and no root rerun or fresh canonical alias was performed. The old `/admin` example has been corrected to put `pipe_through` on the enclosing router scope; no product/router implementation changed.
 
 Plan 248-04 remains halted, ADM-04 remains incomplete, and the repeat grant is consumed. There is no passing nine-run receipt. Independent review of these two follow-up changes is pending; the parent owns the task PostgreSQL service lifecycle.
+
+
+## Current source-review reconciliation
+
+The public-reference optimization and heading 15 guide correction have independent review with no remaining source findings. See [248-PUBLIC-SURFACE-REVIEW.md](248-PUBLIC-SURFACE-REVIEW.md). The actual-snippet extraction compiler check passes for the corrected scope and rejects the old form. The full-repeat failure, ordinary root sandbox failure and separately passing permission-scoped fixture remain distinct; Plan 04 is halted and ADM-04 incomplete until required current-source nine-run proof exists.

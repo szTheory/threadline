@@ -222,3 +222,8 @@ The public surface contract now builds one reference inventory for the aggregate
 The one bounded root invocation exited 2 after 421 seconds with 3,400 tests, 1 failure and 3 existing exclusions. The failure was `CleanCheckoutContractTest` denied permission to create a temporary worktree under shared Git metadata. Its exact test passed in a narrow diagnostic with scoped metadata access (9 tests, 0 failures, 8 excluded); the root run remains failed. No second root run followed.
 
 Plan 248-04 remains **halted**, and ADM-04 remains incomplete because there is no passing nine-run receipt. The consumed repeat grant does not renew. The latest worktree source reviews are pending. The task-owned PostgreSQL service was left untouched for the parent to manage; no shared database, state, roadmap, requirements, phase boundary or external system was changed.
+
+
+## Current source-review reconciliation
+
+The public-reference optimization and heading 15 guide correction have independent review with no remaining source findings. See [248-PUBLIC-SURFACE-REVIEW.md](248-PUBLIC-SURFACE-REVIEW.md). The actual-snippet extraction compiler check passes for the corrected scope and rejects the old form. The full-repeat failure, ordinary root sandbox failure and separately passing permission-scoped fixture remain distinct; Plan 04 is halted and ADM-04 incomplete until required current-source nine-run proof exists.

@@ -1,3 +1,5 @@
+> Historical readiness snapshot: its one-invocation grant was consumed by five clean runs and an iteration6 public-reference timeout. The corrected current candidate and remaining decision are recorded in [248-INVENTORY-READINESS.md](248-INVENTORY-READINESS.md); this older snapshot is not fresh authority or proof.
+
 # Phase 248 postfix readiness
 
 The approved full repeat failed after six clean runs: iteration 7 timed out in the formatter ownership contract. Its classifier is `flaky`; the one-invocation grant is consumed. Plan 248-04 and ADM-04 remain incomplete.
