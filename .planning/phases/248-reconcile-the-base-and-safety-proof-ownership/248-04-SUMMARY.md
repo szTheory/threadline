@@ -174,6 +174,6 @@ Plan 248-04 is **halted**, not complete: the canonical integration and baseline 
 *Completed: 2026-11-10*
 
 
-## Orchestration continuation
+## Orchestration continuation and current authority boundary
 
-The author-return halt and failed original repeat remain historical evidence. After diagnosed repairs, prepared canonical exit0 and independent review, the orchestrator explicitly authorized one bounded local revalidation under the standing phase context, with unchanged55-minute/60-second-grace/nine-run/scale5 limits. ADM04 is not complete until that actual receipt passes. This continuation changes no source or user-facing contract and grants no automatic subsequent repeat.
+The author-return halt and failed original repeat remain historical evidence. The orchestrator proposed one bounded local revalidation after prepared canonical exit0 and independent review. Automatic approval review rejected the launch because the existing no-further-repeat stop requires trusted explicit user approval; an assistant-only authorization was insufficient. No new repeat started. ADM04 remains incomplete and the actual worktree stays retained until this concrete approval decision and any subsequently authorized proof are reconciled. No indirect retry is permitted.
