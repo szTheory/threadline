@@ -1,7 +1,7 @@
 ---
 phase: 248-reconcile-the-base-and-safety-proof-ownership
-verified: 2026-11-11T23:11:15Z
-status: gaps_found
+verified: 2026-11-11T23:15:21Z
+status: passed
 score: 15/15 must-haves verified
 covered_files:
   - .github/workflows/flake-detection.yml
@@ -67,17 +67,17 @@ covered_files:
   - test/threadline/public_surface_contract_test.exs
   - test/threadline/repo_contract_scope_contract_test.exs
   - test/threadline/storage_schema_call_site_contract_test.exs
-covered_digest: "v4:sha256:c2c8ed77c06d7bb79025e7598ad25c760cb83cdc4b62c30140dc235214653bbb"
+covered_digest: "v4:sha256:faacd7c8c09dc042848c7881a280410e4498c40764279b433ab05c41b9422d7a"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
   previous_status: gaps_found
-  previous_score: 14/15
+  previous_score: 15/15
   gaps_closed:
     - "Current ADM-04 baseline ledger and latest evidence update now match the accepted nine-run receipt; superseded failures are labeled historical."
     - "The ADM-04 prohibition now has an explicit judgment-tier disposition and review criteria, with no human or remote attestation claimed."
-  gaps_remaining:
-    - "The plan frontmatter says verification: judgment, but the same plan's prohibition_probe still instructs retaining the prohibition descriptor-less."
+    - "The plan's initial descriptor-less fallback is now explicitly labeled historical and points to the current judgment-tier disposition and transparency review."
+  gaps_remaining: []
   regressions: []
 decision_coverage:
   honored: 0
@@ -93,23 +93,14 @@ prohibitions:
     human_review_recommended: true
     evidence: ".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md"
 advisory: []
-gaps:
-  - truth: "The ADM-04 prohibition has one consistent explicit verification-tier disposition across its plan record."
-    status: partial
-    reason: "The current must_haves frontmatter resolves the prohibition as verification: judgment, but the same plan's prohibition_probe still says to retain it descriptor-less and flagged-unverified. That text is not marked historical, so the phase plan gives conflicting current instructions about the tier."
-    artifacts:
-      - path: .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-PLAN.md
-        issue: "Frontmatter at lines 54-61 declares status: resolved / verification: judgment; the prose prohibition_probe at line 184 says to retain the same prohibition descriptor-less."
-    missing:
-      - "Reconcile the prohibition_probe text with the resolved judgment-tier disposition, or label the fallback text as historical and non-operative."
 ---
 
 # Phase 248: Reconcile the base and safety/proof ownership — Verification Report
 
 **Phase Goal:** Maintainers can develop against a preserved current-main candidate whose host mount fails closed and whose advisory and affected-suite evidence is trustworthy.
-**Verified:** 2026-11-11T23:11:15Z
-**Status:** gaps_found
-**Re-verification:** Yes — after the baseline and prohibition-tier corrections
+**Verified:** 2026-11-11T23:15:21Z
+**Status:** passed
+**Re-verification:** Yes — after the baseline, prohibition-tier and historical-probe-text corrections
 
 ## Goal Achievement
 
@@ -133,11 +124,11 @@ gaps:
 | 14 | One corrected affected repeat retains all nine suite runs, scale, budgets, classifier and true failure visibility. | ✓ VERIFIED | Independently checked the retained raw run against the receipt: raw log and classifier SHA-256s match; the wrapper record matches exit/time/source; the log has nine start headers and nine `32 properties, 3400 tests, 0 failures, 3 excluded` summaries. Suite/capture/wrapper exits are 0, classifier is `pass`, scale 5, max-cases 36, elapsed 3,045s within 3,300s. No repeat was launched for this verification. |
 | 15 | Current canonical local checks and independent review support the assembled candidate without weakening existing gates. | ✓ VERIFIED | A prior source-bound `mix ci.all` completed with exit 0 and root 3,400/0, example 132/0, Dialyzer 0, live slice 17/0; browser history is reported accurately as 417 first-attempt passes, one retry-passed case and 56 configured skips. The changed formatter contract is covered by the final nine-run repeat; the updated clipboard case has separate retries-disabled focused proof (41 passed, 11 configured skips). Formal review matches all 36 current files and reports clean. No fresh full canonical/browser run or complete toolchain matrix is claimed. |
 
-**Score:** 15/15 truths verified (0 present, behavior-unverified). The separate blocker below is a contradictory plan annotation, not a newly failed runtime truth.
+**Score:** 15/15 truths verified (0 present, behavior-unverified).
 
 ### Re-verification
 
-The two gaps from the initial report are closed: the baseline's current ADM-04 status agrees with the passing receipt, and the prohibition now has an explicit judgment-tier descriptor plus documented criteria. During the focused recheck, I found a remaining contradiction in the plan's explanatory `<prohibition_probe>` text; it still says the item should remain descriptor-less, without marking that wording historical. No runtime, test, lock, or source identity changed. The 36-file code-review identity set remains current.
+The prior baseline and plan-tier gaps are closed. The final focused correction labels the descriptor-less language as historical planning disposition and points to the current judgment lifecycle in `must_haves` and `248-TRANSPARENCY-REVIEW.md`. The wording preserves the non-authoritative automated-judgment limit and does not claim mechanical enforcement, human attestation or manual UAT. No runtime, test, lock or source identity changed; the 36-file code-review identity set remains current.
 
 ### Autonomous transparency judgment (non-authoritative)
 
@@ -155,7 +146,7 @@ None. Later milestone phases do not specifically address the remaining inconsist
 | `248-ISOLATION.json` | Actual executor fork/cwd and candidate identity | ✓ VERIFIED | Inventory validator confirmed recorded worktree provenance and current-main ancestry. |
 | `verify-candidate-baseline.py` | Read-only inventory validator and negative controls | ✓ VERIFIED (scoped) | Its progress text now explicitly limits the proof-ledger check to row presence; semantic/current status is reviewed separately. The phase validation record reports 15 checks passing after this text correction; no rerun was needed for this focused re-verification. |
 | `248-TRANSPARENCY-REVIEW.md` | Criteria for automated review of local claims and external limits | ✓ VERIFIED | Criteria map to current receipts and records; limitations explicitly say automated judgment only, with no human or remote attestation. |
-| `248-04-PLAN.md` | Phase04 must-haves and prohibition disposition | ⚠️ CONTRADICTORY | Frontmatter explicitly resolves the prohibition as judgment-tier; unchanged `<prohibition_probe>` text still instructs keeping it descriptor-less and flagged-unverified, without labeling that instruction historical. |
+| `248-04-PLAN.md` | Phase04 must-haves and prohibition disposition | ✓ VERIFIED | Frontmatter resolves the prohibition as judgment-tier; the probe text now labels the earlier descriptor-less fallback historical and points to the current lifecycle and review criteria. The automated-judgment limitation remains explicit. |
 | `lib/threadline/operator_surface/router.ex` | Explicit fail-closed mount predicate and diagnostic | ✓ VERIFIED | Substantive compile-time guard is called by the public mount macro. |
 | `test/threadline/operator_surface/router_test.exs` | Compile matrix and call-site error assertions | ✓ VERIFIED | Covers negative and allowed callback shapes; current source is included in the passing repeated root suites. |
 | `test/threadline/operator_surface_doc_contract_test.exs` | Executable migration guidance alignment | ✓ VERIFIED | Current guide-contract sources are included in the passing repeated root suites. |
@@ -241,11 +232,11 @@ The 36 files in the current formal review scope were scanned. Independent review
 
 ### Human Verification Required
 
-No human verification item is required under the autonomous, zero-human-verification policy for this infrastructure and preservation phase. The judgment-tier limitation remains visible as a non-authoritative `unverified-prohibition — human review recommended` flag. The outstanding gap is a concrete contradictory plan sentence; it does not request human approval or waive runtime/external evidence.
+No human verification item is required under the autonomous, zero-human-verification policy for this infrastructure and preservation phase. The judgment-tier limitation remains visible as a non-authoritative `unverified-prohibition — human review recommended` flag; it does not imply human approval or waive runtime/external evidence.
 
 ### Gaps Summary
 
-The current baseline ledger, genuine nine-run repeat, mount policy, advisory evidence, preservation proof, and reviewed source identities support all 15 observable truths and satisfy ADM-01 through ADM-04 within their documented local scope. The initial stale-ledger gap is closed, and the validator no longer implies that inventory row presence proves semantic status. The remaining `gaps_found` item is limited to the plan itself: frontmatter resolves the prohibition as judgment-tier, while the `<prohibition_probe>` prose still says to keep it descriptor-less. The autonomous judgment is recorded, with its non-authoritative flag visible; no human or remote attestation is claimed. No later roadmap phase specifically resolves this plan inconsistency.
+The current baseline ledger, genuine nine-run repeat, mount policy, advisory evidence, preservation proof and reviewed source identities support all 15 observable truths and satisfy ADM-01 through ADM-04 within their documented local scope. The validator distinguishes row presence from semantic proof status. The final plan correction clearly separates the historical fallback from the current judgment-tier disposition. The autonomous judgment is recorded with its non-authoritative flag visible; no human or remote attestation is claimed. No gaps remain for this phase's local goal.
 
 ### Advisory (New Scope, Unevidenced)
 
@@ -253,5 +244,5 @@ None.
 
 ---
 
-_Verified: 2026-11-11T23:11:15Z_
+_Verified: 2026-11-11T23:15:21Z_
 _Verifier: the agent (gsd-verifier)_
