@@ -26,6 +26,7 @@ key-files:
   created:
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-WORKFLOW-REVIEW.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CLIPBOARD-PROOF.md
   modified:
     - .github/workflows/flake-detection.yml
     - test/threadline/browser_journey_evidence_contract_test.exs
@@ -35,6 +36,7 @@ key-files:
     - release-please-config.json
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
+    - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
 key-decisions:
   - "Keep the failed one-iteration repeat receipt and active no-retry stop; do not infer nine-run acceptance."
   - "Use task-local npm/browser caches and the authorized Git metadata context for local verification."
@@ -184,6 +186,14 @@ The permitted seed-500886 standalone baseline passed (1 test, 0 failures; 0.8s E
 The one canonical `mix ci.all` on that commit exited 1 after 438s. Credo, dependency audit, hygiene, xref, and the root suite passed; the root suite reported 3,400 tests, 0 failures, 3 excluded. `verify.example` then failed to establish its test database because PostgreSQL returned `too_many_connections`. The remaining Dialyzer and browser stages were not reached. A read-only snapshot taken after exit showed 100 configured connections, 30 idle sessions across other databases, and five sessions without a database; this does not prove the count or client owners at failure time. No process/client cleanup was performed. The candidate baseline validator passed all 15 checks. All four lockfile hashes remain unchanged and package version remains `1.1.0`.
 
 **Status remains halted/incomplete.** ADM-04 is incomplete because the renewed repeat failed and no passing nine-run receipt exists. The canonical command also did not complete. No full-repeat retry, additional canonical run, acceptance waiver, phase advance, or worktree removal is authorized. The next decision belongs to the orchestrator/maintainer: whether to authorize a separate canonical run after verified task-local PostgreSQL headroom is available, while preserving the no-repeat stop.
+
+## Corrective clipboard-proof follow-up — 2026-11-11
+
+The later isolated `mix ci.all` on source `ab65c0147ad7bf58e7d3b2394c55514868c2bec5` exited 0 in 1,427 seconds using task-owned PostgreSQL 15.17. It passed the root suite (3,400 tests, 0 failures), example suite (132 tests, 0 failures), Dialyzer (0 errors), and live slice (17 tests, 0 failures). Its browser summary was **417 first-attempt passes, one retry-passed desktop clipboard flake, and 56 configured skips**. The original canonical source remains a flaky browser result, not a clean 418-pass proof. Its exact first-attempt error context, canonical log, and receipt were preserved privately with hashes before later Playwright runs. Trace and screenshots were disabled, so the cause of the lost focus is not proven.
+
+The single test-file change waits for `[data-phx-main]` to have `phx-connected` after navigation in the clipboard-failure case. The six bounded target invocations passed (three desktop and three mobile, `--retries=0`, `--repeat-each=3`). One run of the full affected spec passed 41 tests with 11 configured skips total across both projects (`--retries=0`). The focused discovery contract passed 9 tests, and the inventory validator passed all 15 checks. The source test hash during these runs was `ac640f7ba157c04976cfa917805e50bc5cd1a4c6843b51065ea749af69e9b5a7`; it was committed unchanged as `ac260b47cc642d0a62cdca30e07ea6bfc863e1db`. The code commit changes only `examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts`; no product/browser fallback code, asset, journey inventory, lockfile, or global retry setting changed.
+
+This proof is scoped to the connected LiveView state and does not claim behavior for pre-connect copy attempts or identify the original focus-loss cause. No fresh canonical run or full repeat was run after the edit. The nine-run acceptance remains failed and unauthorized for another attempt. Plan 248-04 remains halted; ADM-04 remains incomplete. The task-owned PostgreSQL instance is still running for the parent to stop; the shared database service was left unchanged. Full source bindings and log/context hashes are in [248-CLIPBOARD-PROOF.md](248-CLIPBOARD-PROOF.md).
 
 
 ## Orchestration continuation and current authority boundary
