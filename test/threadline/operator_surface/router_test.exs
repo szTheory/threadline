@@ -88,6 +88,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end
 
+      test "guarded multi-argument callback fails with the mount authorization diagnostic" do
+        assert_invalid_mount!("authorize_fn: fn socket, _conn when is_map(socket) -> :ok end")
+      end
+
       test "Case 3: compiles successfully without pipe_through but with authorize_fn" do
         modules =
           Code.compile_quoted(
@@ -383,6 +387,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         refute_received :authorize_fn_called
+        purge_modules(modules)
+      end
+
+      test "guarded unary authorization callback compiles" do
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.GuardedUnaryMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/guarded-unary",
+                  authorize_fn: fn socket when is_map(socket) -> :ok end,
+                  exports: false
+                )
+              end
+            end
+          )
+
         purge_modules(modules)
       end
 

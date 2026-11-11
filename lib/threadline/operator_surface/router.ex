@@ -150,10 +150,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp usable_authorize_fn_ast?({:fn, _meta, clauses}) when is_list(clauses) do
       clauses != [] and
-        Enum.all?(clauses, fn
-          {:->, _meta, [arguments, _body]} when is_list(arguments) -> length(arguments) == 1
-          _ -> false
-        end)
+        Enum.all?(clauses, &(authorize_fn_clause_arity(&1) == 1))
     end
 
     defp usable_authorize_fn_ast?({:&, _meta, [{:/, _arity_meta, [_function, arity]}]})
@@ -218,8 +215,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp authorize_fn_clause(name, {:->, meta, [arguments, body]}) do
       head =
         case arguments do
-          [{:when, when_meta, [pattern, guard]}] ->
-            {:when, when_meta, [{name, meta, [pattern]}, guard]}
+          [{:when, when_meta, guarded_arguments}] when length(guarded_arguments) >= 2 ->
+            {patterns, [guard]} = Enum.split(guarded_arguments, -1)
+            {:when, when_meta, [{name, meta, patterns}, guard]}
 
           arguments ->
             {name, meta, arguments}
@@ -227,6 +225,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:def, Keyword.put(meta, :generated, true), [head, [do: body]]}
     end
+
+    defp authorize_fn_clause_arity({:->, _meta, [arguments, _body]}) when is_list(arguments) do
+      case arguments do
+        [{:when, _when_meta, guarded_arguments}] when length(guarded_arguments) >= 2 ->
+          length(guarded_arguments) - 1
+
+        arguments ->
+          length(arguments)
+      end
+    end
+
+    defp authorize_fn_clause_arity(_clause), do: nil
 
     defp capture_placeholder_arity(ast) do
       {_ast, arities} =
