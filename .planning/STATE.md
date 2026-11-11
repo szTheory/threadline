@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: blocked
-stopped_at: Automatic approval review requires explicit user approval for one additional bounded repeat
-last_updated: "2026-11-11T05:10:32.038300Z"
+status: executing
+stopped_at: Formatter-contract remediation after the approved repeat classified flaky
+last_updated: "2026-11-11T14:42:52.845198Z"
 last_activity: 2026-11-11
-last_activity_desc: Canonical and review passed; repeat launch rejected by automatic approval review; waiting for explicit user authority
+last_activity_desc: User-approved repeat passed six runs then timed out in formatter ownership; isolated test repair and canonical verification running
 state_head: a79f3258cb0d0a664465d78f5a94684360c58f69
 progress:
   total_phases: 6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Blocked on explicit repeat authority
-Last activity: 2026-11-11 — Prepared canonical integration and independent review passed. Automatic approval review rejected an additional repeat; waiting for explicit user authority.
+Status: Executing formatter-contract repair
+Last activity: 2026-11-11 — The user approved one repeat. It classified flaky after six clean runs and a formatter-contract timeout in run seven. A bounded isolated test-only repair and required local verification are running; no further full repeat is authorized.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The prepared candidate passes canonical integration and independent review, but the required nine-run scale5 repeat is still missing. Automatic approval review rejected the assistant-authorized launch because the existing no-further-repeat stop requires actual explicit user approval. No new repeat started. The proposed one invocation retains55 minutes and60-second kill grace. Wait for the user; do not retry indirectly, merge/remove the retained GSD worktree or advance Phase249 implementation. Private proposal/runner and committed halted summary are preserved for continuation.
+**Active proof boundary:** The one additional repeat explicitly approved by the user is consumed. It exited2 after2611 seconds with six clean runs and a formatter-contract timeout in iteration7; the unchanged classifier returned `flaky`, capture exited0, and the source stayed unchanged. The timeout stack is inside repeated recursive input-glob expansion. An independently reviewed test-only remedy computes owner sets once per ownership check and narrows the synthetic overlap fixture while retaining all assertions, async mode and timeout. A GSD-bound corrective worker is verifying that remedy in the retained worktree. Do not launch another full repeat, merge/remove the worktree or start Phase249 implementation before the required proof is satisfied. Prepare a concrete reviewed result before any next repeat decision. Prior source-bound canonical evidence remains historical; current-source verification is in progress.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -72,7 +72,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 0 plans, 0/34 requirements complete, 0% progress. No execution metrics exist yet.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 3 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 proof and corrective work are active.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -86,7 +86,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 **Per-Plan Metrics:**
 
-The rows below are preserved historical metrics; v1.48 currently has no plans or execution durations.
+The rows below are preserved historical metrics; current v1.48 execution evidence is recorded in Phase248 artifacts.
 
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
