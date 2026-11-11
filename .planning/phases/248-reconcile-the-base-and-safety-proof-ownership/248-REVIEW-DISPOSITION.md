@@ -22,3 +22,7 @@ Current critical/warning/info/necessity findings:0. Open findings:0. Accepted ri
 | WR-02 — benign detector fixtures lost their tagged-source premise | fixed | All nine benign fixtures are wrapped and assert the premise; a private untagged mutant fails there, current root suites pass, and formal review reuses corrected exact source. Intermediate vacuous coverage stays invalidated. |
 
 No new runtime source, retry grant or risk waiver is introduced by this disposition. Phase-goal verification follows.
+
+## Goal-verifier record correction
+
+The initial independent verdict accepted the raw nine-run proof but found a stale ADM-04 baseline row/current-update and an unspecified transparency-review tier. The ledger now matches the passing receipt; the inventory validator's progress text honestly limits its check to row presence. The transparency rule has an explicit automated judgment criterion with prominent no-human/no-remote-attestation limits. This is a documentation/validator-message correction, with no runtime/test/lock change or new full run. Final goal re-verification is pending; no parent-written pass or hand-made fingerprint replaces it.

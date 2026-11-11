@@ -127,3 +127,15 @@ receipts or repeat the parent's cross-source hash work. This continuation spent
 about 298 seconds before a focused check that itself took about one second; narrow
 handoff inputs and single ownership reduce that avoidable critical path without
 adding caches, concurrency or dependencies. Preserve required independent review.
+
+## Keep current proof records internally consistent
+
+When a new accepted receipt changes status, update the existing authoritative
+ledger row and current/latest status text in place. Label superseded checkpoints
+as historical; prepending a correct success paragraph does not repair a stale
+blocked row below it. Inventory validators that check only row presence must say
+so explicitly and must not imply that they validated semantic acceptance status.
+Use the independent goal verifier to judge receipt/claim consistency and retain
+local-versus-hosted, visual-capture and automation limits. Documentation-judgment
+criteria should be explicit before verification; do not invent human attestation
+or a new routine approval checkpoint for an automated prose review.

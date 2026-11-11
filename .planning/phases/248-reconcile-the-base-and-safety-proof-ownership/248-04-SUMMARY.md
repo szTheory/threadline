@@ -137,3 +137,7 @@ The GSD-owned worktree was locally merged and removed. The 22 protected identiti
 ## Required post-gate results
 
 Automated coverage is validated with no missing test boundary. The authored18-row ASVS1 security register has zero open threats and no newly accepted runtime risk. UI-preservation audit scored20/24 with no Phase248 source fix; its code-only/no-fresh-screenshot limits remain explicit. Formal standard code review covers36 source files with no active findings, including the retained instruction-only delta and all three lockfiles; historical resolved defects are recorded in the disposition. The independent phase-goal verdict is still pending.
+
+## Goal-verifier record correction
+
+The initial independent verdict accepted the raw nine-run proof but found a stale ADM-04 baseline row/current-update and an unspecified transparency-review tier. The ledger now matches the passing receipt; the inventory validator's progress text honestly limits its check to row presence. The transparency rule has an explicit automated judgment criterion with prominent no-human/no-remote-attestation limits. This is a documentation/validator-message correction, with no runtime/test/lock change or new full run. Final goal re-verification is pending; no parent-written pass or hand-made fingerprint replaces it.

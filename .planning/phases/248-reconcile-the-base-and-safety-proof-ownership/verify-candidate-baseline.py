@@ -396,7 +396,7 @@ def check_inventory() -> tuple[list[str], list[dict[str, str | int]], list[tuple
         "matrix path set equals all retained tracked product/docs/test paths",
         "all 31 blob identities and preserved patch/status fingerprints match",
         "four current-main overlaps and required replay safeguards are recorded",
-        "proof ledger names ADM-01 through ADM-04 and keeps unfinished proof pending",
+        "proof ledger contains ADM-01 through ADM-04 rows (presence only; proof status reviewed separately)",
         *brand_checks,
     ])
     return checks, rows, source_rows, actual_dirty

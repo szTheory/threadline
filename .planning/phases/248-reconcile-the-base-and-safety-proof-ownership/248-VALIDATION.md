@@ -39,7 +39,7 @@ The earlier canonical alias exit0 is source-bound history: root3400/0, example13
 
 All failed repeats remain failures. Intermediate `eaedaf5e` negative-fixture coverage was vacuous and is invalid as complete coverage or speedup evidence; the explicit premise correction and current nine-run result supersede it. No sole cause or permanent flake-elimination claim is made.
 
-The three resolved inventory edges map to248-01-02; three resolved diagnostic considerations map to248-02-01. Unclassified ADM02/03/04 edge rows remain flagged research assumptions alongside substantive tests. The descriptor-less transparency prohibition remains flagged-unverified as a policy limitation; actual recorded executor binding is verified. Local proof does not close live issues, scheduled hosted receipts or REL-01, and grants no external action authority.
+The three resolved inventory edges map to248-01-02; three resolved diagnostic considerations map to248-02-01. Unclassified ADM02/03/04 edge rows remain flagged research assumptions alongside substantive tests. The transparency prohibition now has an explicit automated documentation-judgment criterion in248-TRANSPARENCY-REVIEW.md; any applicable non-authoritative flag remains visible. This descriptor is distinct from the independently verified GSD executor binding. Local proof does not close live issues, scheduled hosted receipts or REL-01, and grants no external action authority.
 
 ## Wave0 Requirements
 
