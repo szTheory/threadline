@@ -39,7 +39,7 @@ key-decisions:
   - "Keep the failed one-iteration repeat receipt and active no-retry stop; do not infer nine-run acceptance."
   - "Use task-local npm/browser caches and the authorized Git metadata context for local verification."
   - "Keep hosted CI, issue closure, scheduled dependency-health evidence, and REL-01 separate from local results."
-requirements-completed: [ADM-04, ADM-01, ADM-02, ADM-03]
+requirements-completed: [ADM-01, ADM-02, ADM-03]
 coverage:
   - id: D1
     description: "The existing verify-flake job installs its pinned Node runtime and locked E2E packages before repeats, guarded by the existing run decision."
@@ -173,3 +173,7 @@ Plan 248-04 is **halted**, not complete: the canonical integration and baseline 
 *Phase: 248-reconcile-the-base-and-safety-proof-ownership*
 *Completed: 2026-11-10*
 
+
+## Orchestration continuation
+
+The author-return halt and failed original repeat remain historical evidence. After diagnosed repairs, prepared canonical exit0 and independent review, the orchestrator explicitly authorized one bounded local revalidation under the standing phase context, with unchanged55-minute/60-second-grace/nine-run/scale5 limits. ADM04 is not complete until that actual receipt passes. This continuation changes no source or user-facing contract and grants no automatic subsequent repeat.
