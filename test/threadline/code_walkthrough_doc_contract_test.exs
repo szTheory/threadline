@@ -25,7 +25,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
       "Threadline.change_diff(linked_change.audit_change)"
     ],
     "lib/threadline/operator_surface/router.ex" => [
-      "has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)"
+      "adopter_acknowledges_unauthenticated: true"
     ],
     "lib/threadline/export/orchestrator.ex" => [
       "storage.put(csv_content)"
@@ -36,7 +36,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     blocks = elixir_blocks(File.read!(@walkthrough_path))
 
     assert length(blocks) in 12..18
-    assert length(blocks) == 14
+    assert length(blocks) == 15
 
     Enum.with_index(blocks, 1)
     |> Enum.each(fn {block, index} ->

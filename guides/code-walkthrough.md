@@ -153,6 +153,7 @@ Source: the public Plug callback in `Threadline.Plug`.
 The Plug builds transient context and assigns it to the connection. There is intentionally no repository call here.
 
 ```elixir
+# ...
 def call(conn, %{actor_fn: actor_fn, context_overrides_fn: context_overrides_fn}) do
   context =
     %AuditContext{

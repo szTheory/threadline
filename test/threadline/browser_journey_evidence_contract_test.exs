@@ -250,7 +250,8 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     assert repeat["if"] == "steps.gate.outputs.decision == 'run'"
     assert repeat["run"] =~ "mix verify.flake"
 
-    node_index = Enum.find_index(steps, &(&1["name"] == "Set up Node for browser journey contract"))
+    node_index =
+      Enum.find_index(steps, &(&1["name"] == "Set up Node for browser journey contract"))
 
     install_index =
       Enum.find_index(
