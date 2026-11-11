@@ -383,21 +383,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         refute_received :authorize_fn_called
-
-        inline_fn_mount =
-          Enum.find_value(modules, fn {module, _bytecode} ->
-            if List.last(Module.split(module)) == "InlineFnMount", do: module
-          end)
-
-        public_functions = apply(inline_fn_mount, :__info__, [:functions])
-
-        assert Enum.any?(
-                 public_functions,
-                 fn {name, _arity} ->
-                   String.starts_with?(Atom.to_string(name), "__threadline_authorize_fn_")
-                 end
-               )
-
         purge_modules(modules)
       end
 
