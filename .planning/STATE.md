@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: executing
-stopped_at: Prepared candidate passed canonical checks; one reviewed bounded repeat revalidation authorized
-last_updated: "2026-11-11T05:01:43.426117Z"
+status: blocked
+stopped_at: Automatic approval review requires explicit user approval for one additional bounded repeat
+last_updated: "2026-11-11T05:10:32.038300Z"
 last_activity: 2026-11-11
-last_activity_desc: Canonical integration and review passed; diagnosed bounded repeat revalidation proceeds under existing phase authority
-state_head: 0b36bfc0baff94e27dc0a4f40ca189c982901409
+last_activity_desc: Canonical and review passed; repeat launch rejected by automatic approval review; waiting for explicit user authority
+state_head: a79f3258cb0d0a664465d78f5a94684360c58f69
 progress:
   total_phases: 6
   completed_phases: 0
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Executing Phase 248
-Last activity: 2026-11-10 — Isolated Plan 248-04 repair passed the seeded discovery and focused workflow contracts. Its repeat failed the first actual iteration; in-scope repairs and independent checks continue with no further full repeat authorized.
+Status: Blocked on explicit repeat authority
+Last activity: 2026-11-11 — Prepared canonical integration and independent review passed. Automatic approval review rejected an additional repeat; waiting for explicit user authority.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** Both historical repeat invocations remain failed evidence. Source/environment causes were repaired and prepared canonical integration passed. The standing phase context explicitly includes bounded retests, so the orchestrator has authorized exactly one further local revalidation with unchanged55-minute/60-second-grace/nine-run/scale5 limits. No automatic additional entire repeat is authorized. Phase248 remains incomplete while this actual receipt is pending; use the retained GSD worktree rather than redispatching a fresh executor. Phase249 has read-only preparation only.
+**Active proof boundary:** The prepared candidate passes canonical integration and independent review, but the required nine-run scale5 repeat is still missing. Automatic approval review rejected the assistant-authorized launch because the existing no-further-repeat stop requires actual explicit user approval. No new repeat started. The proposed one invocation retains55 minutes and60-second kill grace. Wait for the user; do not retry indirectly, merge/remove the retained GSD worktree or advance Phase249 implementation. Private proposal/runner and committed halted summary are preserved for continuation.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -1279,8 +1279,8 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-
-- Continue the authorized `$gsd-autonomous --from 248` run with isolated Plan 248-04. Re-resolve negotiated isolation and actual fork/cwd before dispatch; preserve the one-repeat limit, carried blockers and actual publication authority.
+- Wait for explicit user approval for exactly one additional local nine-run repeat at property scale5, capped at55 minutes with60-second termination grace. Automatic approval review rejected assistant-only authority; do not bypass the rejection. The user acts next.
+- If approved, continue from retained GSD worktree `.claude/worktrees/agent-p248-04-1794366095` and the prepared one-shot proposal; do not redispatch or merge/remove the worktree before its required proof is reconciled. The original autonomous objective remains phases248–253.
 
 
 ## Restart Recovery (2026-10-10)

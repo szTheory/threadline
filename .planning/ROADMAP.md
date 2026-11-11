@@ -140,7 +140,7 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has four
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Executing | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Blocked: repeat authority | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
