@@ -72,13 +72,15 @@ defmodule Threadline.FormatterTopologyContractTest do
   end
 
   defp ownership_errors(paths, owners) do
+    owned_files_by_owner = Enum.map(owners, &{&1, owned_files(&1)})
+
     Enum.flat_map(paths, fn relative_path ->
       absolute_path = Path.join(@root, relative_path)
 
       matching_roots =
-        owners
-        |> Enum.filter(&(absolute_path in owned_files(&1)))
-        |> Enum.map(& &1.root)
+        owned_files_by_owner
+        |> Enum.filter(fn {_owner, files} -> MapSet.member?(files, absolute_path) end)
+        |> Enum.map(fn {owner, _files} -> owner.root end)
         |> Enum.sort()
 
       case matching_roots do
