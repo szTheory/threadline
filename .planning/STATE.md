@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: executing
-stopped_at: Phase 248 baseline plan merged; mount correction next
-last_updated: "2026-11-11T00:27:22.866Z"
+stopped_at: Mount correction merged and independently reviewed; compatible advisory remedies next
+last_updated: "2026-11-11T02:23:27.934830Z"
 last_activity: 2026-11-10
-last_activity_desc: Phase 248 execution started
-state_head: 2af6a80892ab90191092f335fd28d4e940323949
+last_activity_desc: Mount correction and targeted review fixes merged; advisory remediation next
+state_head: 781d0e6c5d8856a20a50ea6b321562fb435b8ea9
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 ## Current Position
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Executing Phase 248
-Last activity: 2026-11-10 — Baseline plan merged after real executor binding, preserved inventory and negative-control verification; mount correction next
+Last activity: 2026-11-10 — Mount correction and callback review fixes merged with current affected checks; dependency advisories remain pending.
 
-Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 1 of 4 plans complete.
+Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 2 of 4 plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 

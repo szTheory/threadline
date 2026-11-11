@@ -27,7 +27,7 @@ status: clean
 
 ### CR-01: Accepted local short captures failed during Phoenix router expansion — RESOLVED
 
-**Original classification:** BLOCKER (Critical)  
+**Original classification:** BLOCKER (Critical)
 **Fix commit:** `e4694ebbb88a8315f78b1a468bcc41f171de3fc4`
 
 **Original finding:** The mount accepted unary short captures such as `&authorize(&1)` and local named captures such as `&authorize/1`, but left them as local callbacks in the router options.
@@ -38,7 +38,7 @@ status: clean
 
 ### WR-01: Guarded multi-argument callbacks were miscounted as unary — RESOLVED
 
-**Original classification:** WARNING  
+**Original classification:** WARNING
 **Fix commit:** `f00b2b5e3a2929a63fdac26fc435e1139bf711a3`
 
 **Original finding:** Guarded callback parameters are grouped inside the `:when` AST node, so counting the outer argument list treated a multi-argument callback as unary.
@@ -47,6 +47,6 @@ status: clean
 
 ## Recorded Verification
 
-The committed [248-MOUNT-FIXES.md](/Users/jon/projects/threadline/.claude/worktrees/v148-admin-orchestrator/.claude/worktrees/agent-p248-02-1794358771/.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-MOUNT-FIXES.md) records exit 0 for the focused router/auth/export/theme/scope set (85 tests), the operator-surface suite (843 tests), and `mix verify.format`. These results are carried forward from that report; this recheck did not run product tests or Mix commands.
+The committed [248-MOUNT-FIXES.md](248-MOUNT-FIXES.md) records exit 0 for the focused router/auth/export/theme/scope set (85 tests), the operator-surface suite (843 tests), and `mix verify.format`. These results are carried forward from that report; this recheck did not run product tests or Mix commands.
 
 No open findings remain in this targeted mount review. This report does not certify unrelated Phase 248 requirements.

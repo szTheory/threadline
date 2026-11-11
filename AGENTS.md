@@ -81,6 +81,9 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 ## GSD / local planning
 
+Tracked planning artifacts use repository-relative links. Machine-local file links
+belong in chat, not in committed documents.
+
 **Zero human verification by default.** Automate UAT and verification (tests, CI
 gates where they keep paying off, and agent review for judgment calls such as prose
 clarity). Hand the maintainer only secrets, spend, push/publish, and scope decisions.

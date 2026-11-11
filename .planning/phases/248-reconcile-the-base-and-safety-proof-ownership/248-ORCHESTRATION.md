@@ -40,3 +40,15 @@ The author committed the macro, explicit fixture intent and migration guidance, 
 A concurrent read-only callback review is recorded in `248-MOUNT-REVIEW.md`. Its reviewed router hash matches the author's final router source. It found two concrete compatibility/diagnostic gaps: accepted unary local/short captures still fail Phoenix option serialization; guarded multi-parameter fn clauses are counted as unary and miss the intended mount diagnostic. These are within the approved mount contract. The generated remote helper is an internal implementation detail, not a new adopter-facing API. The author worktree remains retained and unmerged until a targeted fix pass and recheck establish these properties. No phase or additional requirement is marked complete.
 
 The author worker exited with a committed SUMMARY and a clean worktree. Its lifecycle record is retained separately; the fix continuation reuses the same actual GSD-created worktree only after that terminal reconciliation. No simultaneous source writers or shared-DB test suites are allowed. The fix pass owns only the router, its compile tests, a SUMMARY appendix and a separate fix report.
+
+## Mount slice merged and bookkeeping correction
+
+Both mount review findings were fixed in the retained executor worktree with real Phoenix route/lifecycle regressions. Focused auth/scope, the complete affected operator-surface suite and formatting passed after both fixes. Independent recheck recorded a clean verdict; the merged router and test file hashes exactly match that reviewed source. GSD manifest cleanup merged the branch and removed only this completed executor worktree. Its advisory scope warning names only the additional `248-MOUNT-FIXES.md` review artifact, not an unexpected product change.
+
+An absolute local link entered the reviewer's rechecked Markdown. The parent's privacy check caught it, but the surrounding orchestration sequence failed to branch on the nonzero tool result and proceeded to commit and merge. No remote write occurred. The link was forward-corrected to a relative sibling link, whitespace was normalized, and all phase artifacts were checked again for machine-local home paths. Preserve the repository's forward-scrub policy rather than rewriting history.
+
+Dependent mutations must stop on a nonzero exec result, missing/active completion or an unsuccessful structured payload. Printing a tool result does not propagate its failure. The corrected orchestration explicitly checks exit status before commit/merge/bookkeeping and checks GSD payload flags; this is an execution guard, not a new user confirmation step.
+
+## Publication boundary for the corrected report link
+
+The current planning tree is scrubbed, but the accidental local-link revision exists in unpublished orchestration history. Keep that history local. Before any authorized push, prepare a clean landing branch through the repository's PR workflow so this new local-link revision is not published. Do not infer permission to push this orchestration branch or accept that exposure. No published history is rewritten and no external risk acceptance is needed to continue local development.
