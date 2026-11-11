@@ -282,6 +282,7 @@ test("Clipboard failure shows manual recovery without claiming success", async (
 
   await login(page);
   await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const copy = page.locator("button[data-tl-copy]").first();
   await expect(copy).toBeVisible();
   const expected = await copy.getAttribute("data-tl-copy");
