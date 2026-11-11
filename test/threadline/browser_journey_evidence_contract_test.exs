@@ -7,6 +7,7 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
   @inventory_path Path.join(@e2e_root, "support/operator-journey-inventory.json")
   @config_path Path.join(@e2e_root, "playwright.config.ts")
   @workflow_path Path.join(@repo_root, ".github/workflows/ci.yml")
+  @flake_workflow_path Path.join(@repo_root, ".github/workflows/flake-detection.yml")
   @browser_full_workflow Path.join(@repo_root, ".github/workflows/browser-full.yml")
   @browser_full_projects Path.join(@repo_root, "bin/browser-full-projects")
   @playwright Path.join(@e2e_root, "node_modules/.bin/playwright")
@@ -16,6 +17,13 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
 
   defp inventory! do
     @inventory_path |> read!() |> Jason.decode!()
+  end
+
+  defp flake_job! do
+    @flake_workflow_path
+    |> read!()
+    |> YamlElixir.read_from_string!()
+    |> get_in(["jobs", "verify-flake"])
   end
 
   defp identity_pattern(identity) do
@@ -210,6 +218,50 @@ defmodule Threadline.BrowserJourneyEvidenceContractTest do
     assert required_job =~ "      - verify-example-browser-receipt\n"
     assert required_job =~ "jobs: ${{ toJSON(needs) }}"
     assert workflow =~ "\n  ci-required:\n", "stable required job ID changed"
+  end
+
+  test "Flake Detection installs pinned Node and locked E2E dependencies before repeats" do
+    assert %{} = job = flake_job!()
+    steps = job["steps"]
+
+    assert [node_setup] =
+             Enum.filter(steps, &(&1["name"] == "Set up Node for browser journey contract"))
+
+    assert node_setup["if"] == "steps.gate.outputs.decision == 'run'"
+    assert node_setup["uses"] == "actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444"
+
+    assert node_setup["with"] == %{
+             "node-version-file" => ".tool-versions",
+             "cache" => "npm",
+             "cache-dependency-path" => "examples/threadline_phoenix/e2e/package-lock.json"
+           }
+
+    assert [install] =
+             Enum.filter(
+               steps,
+               &(&1["name"] == "Install locked E2E dependencies for browser journey contract")
+             )
+
+    assert install["if"] == "steps.gate.outputs.decision == 'run'"
+    assert install["working-directory"] == "examples/threadline_phoenix/e2e"
+    assert install["run"] == "npm ci"
+
+    assert [repeat] = Enum.filter(steps, &(&1["name"] == "Repeat the suite until failure"))
+    assert repeat["if"] == "steps.gate.outputs.decision == 'run'"
+    assert repeat["run"] =~ "mix verify.flake"
+
+    node_index = Enum.find_index(steps, &(&1["name"] == "Set up Node for browser journey contract"))
+
+    install_index =
+      Enum.find_index(
+        steps,
+        &(&1["name"] == "Install locked E2E dependencies for browser journey contract")
+      )
+
+    repeat_index = Enum.find_index(steps, &(&1["name"] == "Repeat the suite until failure"))
+
+    assert node_index < install_index and install_index < repeat_index,
+           "pinned Node and locked dependencies must be ready before suite repeats"
   end
 
   describe "CI-01 slowest browser specs (247 D-04..D-06)" do
