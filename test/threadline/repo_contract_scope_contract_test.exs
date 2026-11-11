@@ -630,7 +630,9 @@ defmodule Threadline.RepoContractScopeContractTest do
             ~s("git", ["status"]\)\n  assert ci =~ ") <>
             "bin/" <> "verify-dialyzer-slice" <> ~s(")
         ] do
-      refute flagged?(body, modules), "expected no dodging offender for: #{body}"
+      source = tagged_source(body)
+      assert tagged?(source), "expected tagged source for benign fixture: #{body}"
+      refute flagged?(source, modules), "expected no dodging offender for: #{body}"
     end
 
     # An untagged file may do anything: it runs on every lane.
