@@ -30,11 +30,11 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     ]
 
     Enum.each(guides, fn path ->
-      guide = File.read!(path)
+      guide = path |> File.read!() |> String.replace(~r/\s+/, " ")
 
       assert String.contains?(guide, ":authorize_fn"), path
       assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true"), path
-      assert String.contains?(guide, "pipe_through alone does not authorize"), path
+      assert String.contains?(guide, "`pipe_through` alone does not authorize"), path
       assert String.contains?(guide, "intentionally public"), path
     end)
 
