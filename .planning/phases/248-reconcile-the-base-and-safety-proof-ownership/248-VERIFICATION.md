@@ -1,8 +1,8 @@
 ---
 phase: 248-reconcile-the-base-and-safety-proof-ownership
-verified: 2026-11-11T22:49:10Z
+verified: 2026-11-11T23:11:15Z
 status: gaps_found
-score: 14/15 must-haves verified
+score: 15/15 must-haves verified
 covered_files:
   - .github/workflows/flake-detection.yml
   - .planning/conventions/research-verification-and-efficiency.md
@@ -26,6 +26,7 @@ covered_files:
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-REVIEW.md
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SECURITY.md
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md
+  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-REVIEW.md
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-SPEC.md
   - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
@@ -66,49 +67,49 @@ covered_files:
   - test/threadline/public_surface_contract_test.exs
   - test/threadline/repo_contract_scope_contract_test.exs
   - test/threadline/storage_schema_call_site_contract_test.exs
-covered_digest: "v4:sha256:37d7d768e1fd89ec63bb1f77fe300bb7f696da53037011df1dccbc6e3649cf47"
+covered_digest: "v4:sha256:c2c8ed77c06d7bb79025e7598ad25c760cb83cdc4b62c30140dc235214653bbb"
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 14/15
+  gaps_closed:
+    - "Current ADM-04 baseline ledger and latest evidence update now match the accepted nine-run receipt; superseded failures are labeled historical."
+    - "The ADM-04 prohibition now has an explicit judgment-tier disposition and review criteria, with no human or remote attestation claimed."
+  gaps_remaining:
+    - "The plan frontmatter says verification: judgment, but the same plan's prohibition_probe still instructs retaining the prohibition descriptor-less."
+  regressions: []
 decision_coverage:
   honored: 0
   total: 0
   not_honored: []
 prohibitions:
   - statement: "Must not present local checks as hosted CI, live issue closure or a publication receipt."
-    plan_status: unresolved
-    verification: null
-    disposition: unverified
-    flagged: true
+    plan_status: resolved
+    verification: judgment
+    automated_judgment: "The current local proof and transparency review preserve hosted, live-issue, scheduled-receipt, REL-01 and publication boundaries; no external outcome is inferred."
+    authoritative: false
+    flag: "unverified-prohibition — human review recommended"
     human_review_recommended: true
-    evidence: "Phase proof artifacts explicitly distinguish local results from hosted CI, live issues, scheduled receipts and publication; the plan does not define a verification tier or wired enforcement."
+    evidence: ".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md"
+advisory: []
 gaps:
-  - truth: "Maintainers can distinguish issue #90's passing current repeat from unresolved proof and trust the phase acceptance ledger."
-    status: failed
-    reason: "The latest accepted repeat receipt is a verified nine-run pass, but the candidate baseline's proof ownership ledger and its final 'Latest Plan04 evidence update' still say no nine-run pass exists and ADM-04 remains blocked. This leaves contradictory current-status claims in a central phase artifact."
-    artifacts:
-      - path: .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md
-        issue: "Lines 119 and 127 identify an older failed repeat as latest and say ADM-04 is blocked, contradicting the current passing receipt at lines 3-7 and 248-PLAIN-REPEAT-RECEIPT.json."
-      - path: .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py
-        issue: "The validator checks only that each ADM row exists (lines 391-400); its passing inventory result does not validate that proof status is current or consistent."
-    missing:
-      - "Reconcile the ADM-04 ledger and latest-update text against the passing receipt; retain hosted/live/release items as separate pending limits and label superseded checkpoints as historical."
-      - "Make the validator distinguish inventory proof from current proof-status consistency, or remove any wording that implies it verifies the latter."
-  - truth: "The ADM-04 transparency prohibition has an explicit verification disposition."
+  - truth: "The ADM-04 prohibition has one consistent explicit verification-tier disposition across its plan record."
     status: partial
-    reason: "The prohibition is intentionally retained as unresolved with verification: null. The evidence is transparent, but no verification tier or enforcement is specified; this report flags it instead of treating it as passed."
+    reason: "The current must_haves frontmatter resolves the prohibition as verification: judgment, but the same plan's prohibition_probe still says to retain it descriptor-less and flagged-unverified. That text is not marked historical, so the phase plan gives conflicting current instructions about the tier."
     artifacts:
       - path: .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-PLAN.md
-        issue: "The prohibition remains status: unresolved with verification: null and no resolution."
+        issue: "Frontmatter at lines 54-61 declares status: resolved / verification: judgment; the prose prohibition_probe at line 184 says to retain the same prohibition descriptor-less."
     missing:
-      - "Record an explicit judgment or test-tier disposition during gap closure; keep the unverified flag visible until that disposition exists."
+      - "Reconcile the prohibition_probe text with the resolved judgment-tier disposition, or label the fallback text as historical and non-operative."
 ---
 
 # Phase 248: Reconcile the base and safety/proof ownership — Verification Report
 
 **Phase Goal:** Maintainers can develop against a preserved current-main candidate whose host mount fails closed and whose advisory and affected-suite evidence is trustworthy.
-**Verified:** 2026-11-11T22:49:10Z
+**Verified:** 2026-11-11T23:11:15Z
 **Status:** gaps_found
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after the baseline and prohibition-tier corrections
 
 ## Goal Achievement
 
@@ -126,25 +127,35 @@ gaps:
 | 8 | Current root/example advisory diagnoses and compatible remedies are available; any reachable unresolved risk blocks its affected path. | ✓ VERIFIED | All three locks contain the compatible patched versions, and `248-ADVISORY-PROOF.md` records full audit findings and risk-path boundaries. The final local all-lock audit reports zero findings; the scheduled receipt and issue #61 closure remain explicitly separate. |
 | 9 | Root, bench and example lock changes are Mix-generated, within existing constraints, and limited to the approved packages. | ✓ VERIFIED | Root: Ecto 3.14.3/Phoenix.HTML 4.4.0; bench: Ecto 3.14.3; example: Ecto 3.14.3/Phoenix.HTML 4.4.0/Bandit 1.14.1. The proof records only six intended tuple changes, unchanged support floors and no collateral lock changes. All three lock hashes match the passing repeat receipt. |
 | 10 | Existing audit tiers, runtime dependency policy and public contracts remain intact; local evidence is not represented as closure of live issues or hosted receipts. | ✓ VERIFIED | Audit policy contracts and the source-bound clean all-lock result are recorded. The proof explicitly leaves issue #61/#90, scheduled clean receipt, hosted CI and REL-01 open; no version, publish, push or risk waiver is claimed. |
-| 11 | Maintainers can reproduce and attribute issue #90's failure, verify the repair, and distinguish passing affected evidence from unresolved proof without weakened gates or speculative retries. | ✗ FAILED | The latest raw repeat is genuinely passing, but the central candidate-baseline proof ledger still calls the older failure the latest result and says no nine-run pass exists. See the blocking gap below. The raw repeat itself is not invalidated. |
+| 11 | Maintainers can reproduce and attribute issue #90's failure, verify the repair, and distinguish passing affected evidence from unresolved proof without weakened gates or speculative retries. | ✓ VERIFIED | The current ADM-04 row and latest-update section identify the accepted plain receipt (source `7fa5d51d`, reviewed code `ce0c2e30`, nine clean runs, genuine zero exits, classifier pass, 3,045s within 3,300s); earlier failed checkpoints are labeled historical. Receipt and retained raw evidence were independently checked in the initial verification; no repeat was launched. |
 | 12 | The missing Playwright CLI failure was reproduced once and the same real discovery boundary passed after locked setup. | ✓ VERIFIED | `248-SUITE-PROOF.md` records the seeded failure as the two real `--list` assertions, then the same seeded discovery test passing after pinned Node and locked `npm ci`; no file-presence substitute was used. |
 | 13 | The existing flake job runs pinned Node and locked E2E dependency setup before repeats under the existing run gate. | ✓ VERIFIED | `.github/workflows/flake-detection.yml:109-120` gates `setup-node` and `npm ci` on the existing decision before the repeat step; `browser_journey_evidence_contract_test.exs` scopes assertions to the parsed flake job. Existing repeat count, scale, timeout, classifier and failure reporting remain. |
 | 14 | One corrected affected repeat retains all nine suite runs, scale, budgets, classifier and true failure visibility. | ✓ VERIFIED | Independently checked the retained raw run against the receipt: raw log and classifier SHA-256s match; the wrapper record matches exit/time/source; the log has nine start headers and nine `32 properties, 3400 tests, 0 failures, 3 excluded` summaries. Suite/capture/wrapper exits are 0, classifier is `pass`, scale 5, max-cases 36, elapsed 3,045s within 3,300s. No repeat was launched for this verification. |
 | 15 | Current canonical local checks and independent review support the assembled candidate without weakening existing gates. | ✓ VERIFIED | A prior source-bound `mix ci.all` completed with exit 0 and root 3,400/0, example 132/0, Dialyzer 0, live slice 17/0; browser history is reported accurately as 417 first-attempt passes, one retry-passed case and 56 configured skips. The changed formatter contract is covered by the final nine-run repeat; the updated clipboard case has separate retries-disabled focused proof (41 passed, 11 configured skips). Formal review matches all 36 current files and reports clean. No fresh full canonical/browser run or complete toolchain matrix is claimed. |
 
-**Score:** 14/15 truths verified (0 present, behavior-unverified)
+**Score:** 15/15 truths verified (0 present, behavior-unverified). The separate blocker below is a contradictory plan annotation, not a newly failed runtime truth.
+
+### Re-verification
+
+The two gaps from the initial report are closed: the baseline's current ADM-04 status agrees with the passing receipt, and the prohibition now has an explicit judgment-tier descriptor plus documented criteria. During the focused recheck, I found a remaining contradiction in the plan's explanatory `<prohibition_probe>` text; it still says the item should remain descriptor-less, without marking that wording historical. No runtime, test, lock, or source identity changed. The 36-file code-review identity set remains current.
+
+### Autonomous transparency judgment (non-authoritative)
+
+Compared the criteria in `248-TRANSPARENCY-REVIEW.md` with the current baseline, suite proof, summaries and retained source-bound receipts. The current local repeat claim matches the accepted receipt and retained raw evidence; earlier canonical/browser and clipboard claims retain their source/retry limits; hosted CI, scheduled dependency-health evidence, live issues #61/#90, REL-01 and publication remain explicitly unclaimed. Code review and UI review are not presented as human or fresh visual observations. The stated criteria are met. This is automated documentation judgment only, not human or remote attestation. **Visible flag:** `unverified-prohibition — human review recommended` (non-authoritative; retained as required for autonomous judgment-tier items).
 
 ### Deferred Items
 
-None. Later milestone phases do not specifically resolve the stale Phase 248 proof ledger or its unresolved prohibition.
+None. Later milestone phases do not specifically address the remaining inconsistency within the Phase 248 prohibition record.
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |---|---|---|---|
-| `248-CANDIDATE-BASELINE.md` | Candidate identities, retained-edit matrix and proof ownership | ✗ CONTRADICTORY | Inventory and provenance are substantive, but its ADM-04 row and final “latest” update contradict the passing plain-repeat receipt. |
+| `248-CANDIDATE-BASELINE.md` | Candidate identities, retained-edit matrix and proof ownership | ✓ VERIFIED | Current ADM-04 row and latest-update text match the passing plain-repeat receipt, label prior failures historical, and preserve hosted/live/release limits. |
 | `248-ISOLATION.json` | Actual executor fork/cwd and candidate identity | ✓ VERIFIED | Inventory validator confirmed recorded worktree provenance and current-main ancestry. |
-| `verify-candidate-baseline.py` | Read-only inventory validator and negative controls | ⚠️ PARTIAL | Inventory behavior passes all 15 checks. It checks only for an ADM-04 ledger row, not consistency with the latest proof receipt. |
+| `verify-candidate-baseline.py` | Read-only inventory validator and negative controls | ✓ VERIFIED (scoped) | Its progress text now explicitly limits the proof-ledger check to row presence; semantic/current status is reviewed separately. The phase validation record reports 15 checks passing after this text correction; no rerun was needed for this focused re-verification. |
+| `248-TRANSPARENCY-REVIEW.md` | Criteria for automated review of local claims and external limits | ✓ VERIFIED | Criteria map to current receipts and records; limitations explicitly say automated judgment only, with no human or remote attestation. |
+| `248-04-PLAN.md` | Phase04 must-haves and prohibition disposition | ⚠️ CONTRADICTORY | Frontmatter explicitly resolves the prohibition as judgment-tier; unchanged `<prohibition_probe>` text still instructs keeping it descriptor-less and flagged-unverified, without labeling that instruction historical. |
 | `lib/threadline/operator_surface/router.ex` | Explicit fail-closed mount predicate and diagnostic | ✓ VERIFIED | Substantive compile-time guard is called by the public mount macro. |
 | `test/threadline/operator_surface/router_test.exs` | Compile matrix and call-site error assertions | ✓ VERIFIED | Covers negative and allowed callback shapes; current source is included in the passing repeated root suites. |
 | `test/threadline/operator_surface_doc_contract_test.exs` | Executable migration guidance alignment | ✓ VERIFIED | Current guide-contract sources are included in the passing repeated root suites. |
@@ -169,7 +180,7 @@ The plan's `from` values are descriptive labels rather than repository paths, so
 | `mix verify.deps_audit` | Root/bench/example findings | Existing tiered audit | ✓ WIRED | Full final findings are recorded; all three locks have zero final findings. |
 | Flake-job Node/npm setup | Real Playwright discovery | `.tool-versions`, lockfile, `npm ci` before repeat | ✓ WIRED | Workflow and parsed job test preserve the real CLI listing checks; the same seeded test was run before/after setup. |
 | Repeat command outputs | `bin/classify-flake-run` | True suite exit, elapsed time and captured log | ✓ WIRED | Retained raw output and classifier digest match the receipt and terminal wrapper record. |
-| Passing receipt | Candidate baseline ADM-04 proof-ownership row | Current source/status update | ✗ NOT WIRED | The receipt passes but the ledger still states there is no passing nine-run result. This is the blocking gap. |
+| Passing receipt | Candidate baseline ADM-04 proof-ownership row | Current source/status update | ✓ WIRED | The receipt and ledger now agree on the accepted nine-run pass and retain the historical failures and external limits. |
 | Candidate source/lock identities | Local acceptance evidence | Canonical stages and independent review | ⚠️ PARTIAL | Current root repeat, unchanged runtime/lock identities, focused clipboard proof and 36-file clean review compose the evidence; no fresh full canonical/browser run is claimed. |
 
 ### Data-Flow Trace (Level 4)
@@ -179,7 +190,7 @@ The plan's `from` values are descriptive labels rather than repository paths, so
 | Operator LiveView history | `threadline_scope`, `threadline_scope_query_fn` | Host `authorize_fn` in `Auth`; timeline/row-history query calls | Yes; scope and query callback reach query APIs, and denial/scope contracts run in the current root repeat | ✓ FLOWING |
 | Export responses | `threadline_scope`, `threadline_scope_query_fn` | Auth plugs through controller into `Threadline.Query.ExportReads` | Yes; query layer receives scope options and reads real repository data | ✓ FLOWING |
 | Advisory finding report | Package tuples in three lockfiles | Existing all-lock audit output | Yes; final result records zero findings for all three locks | ✓ FLOWING |
-| Candidate baseline ADM-04 result | “Latest” repeat status | `248-PLAIN-REPEAT-RECEIPT.json` | No; its ledger still says blocked/no pass | ✗ DISCONNECTED |
+| Candidate baseline ADM-04 result | “Latest” repeat status | `248-PLAIN-REPEAT-RECEIPT.json` | Yes; the current ledger reports the accepted passing receipt | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
@@ -201,7 +212,7 @@ No declared phase probe or conventional `scripts/**/probe-*.sh` file was found.
 | ADM-01 | 248-01, 248-04 | Isolated current-main baseline, per-edit disposition, preserved checkout and brand provenance | ✓ SATISFIED | Validator 15 checks, isolation record and baseline inventory. |
 | ADM-02 | 248-02, 248-04 | Fail-closed host mount with approved authorization policy and negative-path proof | ✓ SATISFIED | Current router/tests in repeated root suites; existing allowed/denied scoped routes retained. |
 | ADM-03 | 248-03, 248-04 | Current advisory diagnoses and compatible fixes; risk paths remain explicit | ✓ SATISFIED | Three patched locks and all-lock audit evidence; issue/scheduled receipt remains pending. |
-| ADM-04 | 248-04 | Attributable issue #90 repair and trustworthy affected verification | ✗ BLOCKED | The current nine-run receipt passes, but a central proof-ownership ledger still reports no passing repeat. Reconcile that artifact before relying on phase acceptance. |
+| ADM-04 | 248-04 | Attributable issue #90 repair and trustworthy affected verification | ✓ SATISFIED (local scope) | Passing nine-run receipt and current baseline ledger agree. No fresh full canonical/browser run, complete toolchain matrix, hosted CI, live issue closure or publication is claimed. |
 
 All requirement IDs declared in the four plans are ADM-01 through ADM-04, and all four are mapped to Phase 248 in `REQUIREMENTS.md`; there are no orphaned IDs. The `REQUIREMENTS.md` lifecycle rows remain pending until the phase is formally closed.
 
@@ -230,13 +241,17 @@ The 36 files in the current formal review scope were scanned. Independent review
 
 ### Human Verification Required
 
-No manual UX/UAT is required for this infrastructure and preservation phase. The unresolved transparency prohibition is kept visibly flagged in frontmatter; it has no explicit verification tier, so it must not be silently absorbed into a later passing result.
+No human verification item is required under the autonomous, zero-human-verification policy for this infrastructure and preservation phase. The judgment-tier limitation remains visible as a non-authoritative `unverified-prohibition — human review recommended` flag. The outstanding gap is a concrete contradictory plan sentence; it does not request human approval or waive runtime/external evidence.
 
 ### Gaps Summary
 
-The code, preserved inventory, mount policy, compatible locks, current affected test sources, and genuine nine-run repeat all have supporting evidence. The phase cannot pass yet because the central baseline proof ledger contradicts the latest accepted repeat and the inventory validator does not detect that inconsistency. The report also preserves the plan's unresolved, descriptor-less transparency prohibition as a partial gap. No later roadmap phase specifically closes either item, and neither is deferred.
+The current baseline ledger, genuine nine-run repeat, mount policy, advisory evidence, preservation proof, and reviewed source identities support all 15 observable truths and satisfy ADM-01 through ADM-04 within their documented local scope. The initial stale-ledger gap is closed, and the validator no longer implies that inventory row presence proves semantic status. The remaining `gaps_found` item is limited to the plan itself: frontmatter resolves the prohibition as judgment-tier, while the `<prohibition_probe>` prose still says to keep it descriptor-less. The autonomous judgment is recorded, with its non-authoritative flag visible; no human or remote attestation is claimed. No later roadmap phase specifically resolves this plan inconsistency.
+
+### Advisory (New Scope, Unevidenced)
+
+None.
 
 ---
 
-_Verified: 2026-11-11T22:49:10Z_  
+_Verified: 2026-11-11T23:11:15Z_
 _Verifier: the agent (gsd-verifier)_
