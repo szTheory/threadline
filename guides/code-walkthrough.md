@@ -450,12 +450,15 @@ capabilities default to false. Once authorization returns a scope, Threadline
 treats it as opaque and invokes the host's query transformer.
 
 ```elixir
-threadline_operator_surface "/audit",
-  pipe_through: [:browser, :require_admin],
-  repo: MyApp.Repo,
-  authorize_fn: &MyApp.AuditAccess.authorize/1,
-  scope_query_fn: &MyApp.AuditAccess.scope_query/3,
-  coverage_authorize_fn: &MyApp.AuditAccess.authorize_coverage/1
+scope "/admin" do
+  pipe_through [:browser, :require_admin]
+
+  threadline_operator_surface "/audit",
+    repo: MyApp.Repo,
+    authorize_fn: &MyApp.AuditAccess.authorize/1,
+    scope_query_fn: &MyApp.AuditAccess.scope_query/3,
+    coverage_authorize_fn: &MyApp.AuditAccess.authorize_coverage/1
+end
 ```
 
 Threadline cannot infer a tenant predicate from arbitrary host data. The host must provide both the authorized scope and the function that applies it.
