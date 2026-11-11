@@ -81,7 +81,7 @@ status: complete
 
 ## Accomplishments
 
-- Updated only the five approved lock tuples across the three existing locks using Mix resolution; all collateral lock entries were reviewed and none changed.
+- Updated only the six approved lock tuples across the three existing locks using Mix resolution; all collateral lock entries were reviewed and none changed.
 - Cleared all findings from root, bench and example in the final tiered audit, and passed the existing audit contracts.
 - Recorded source identities, generated lock identities, compatibility evidence, full interim findings, final checks and the live issue receipt boundary in [248-ADVISORY-PROOF.md](./248-ADVISORY-PROOF.md).
 
