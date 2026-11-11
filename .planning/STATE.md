@@ -4,10 +4,10 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: executing
-stopped_at: Formatter-contract remediation after the approved repeat classified flaky
-last_updated: "2026-11-11T14:42:52.845198Z"
+stopped_at: Clipboard proof readiness correction after isolated canonical verification
+last_updated: "2026-11-11T15:50:57.109584Z"
 last_activity: 2026-11-11
-last_activity_desc: User-approved repeat passed six runs then timed out in formatter ownership; isolated test repair and canonical verification running
+last_activity_desc: Formatter fix reviewed; isolated PostgreSQL15 canonical exited0 with one retry-passed clipboard case; targeted proof correction active
 state_head: a79f3258cb0d0a664465d78f5a94684360c58f69
 progress:
   total_phases: 6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Executing formatter-contract repair
-Last activity: 2026-11-11 — The user approved one repeat. It classified flaky after six clean runs and a formatter-contract timeout in run seven. A bounded isolated test-only repair and required local verification are running; no further full repeat is authorized.
+Status: Executing clipboard-proof correction
+Last activity: 2026-11-11 — The approved repeat classified flaky after six clean runs and a formatter timeout. The formatter fix passes focused/full-root proof and review. Isolated PostgreSQL15 canonical exited0 with one retry-passed clipboard focus case; a test-only readiness correction and bounded first-attempt checks are active.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The one additional repeat explicitly approved by the user is consumed. It exited2 after2611 seconds with six clean runs and a formatter-contract timeout in iteration7; the unchanged classifier returned `flaky`, capture exited0, and the source stayed unchanged. The timeout stack is inside repeated recursive input-glob expansion. An independently reviewed test-only remedy computes owner sets once per ownership check and narrows the synthetic overlap fixture while retaining all assertions, async mode and timeout. A GSD-bound corrective worker is verifying that remedy in the retained worktree. Do not launch another full repeat, merge/remove the worktree or start Phase249 implementation before the required proof is satisfied. Prepare a concrete reviewed result before any next repeat decision. Prior source-bound canonical evidence remains historical; current-source verification is in progress.
+**Active proof boundary:** The user's one additional full repeat is consumed: suite exit2,2611 seconds,six clean runs then iteration7 formatter timeout,classifier `flaky`,capture0 and unchanged source. The formatter contract now computes ordered owner sets once per call; all representatives, exact negative controls, the original overlap glob, async mode and timeout remain unchanged. Independent review found no source defect. A current canonical attempt passed the full root suite but failed example startup on shared PostgreSQL connection exhaustion. Task-owned PostgreSQL15.17 now isolates tests on loopback with the same100-connection limit and no shared-service change; this supported database component also corrects the old localPG14 evidence limit. The isolated canonical alias exited0: root/example/type gates passed, browser417 first-attempt passes,one clipboard focus retry-pass and56 established skips. Its clipboard evidence is not clean. A narrow connected-state test precondition and retries-disabled affected checks are active, preserving production assets and focus/error assertions. No further full repeat is authorized. Retain the GSD worktree and hold Phase249 implementation until required nine-run proof is satisfied. Stop the task-owned database before any user pause after all owned clients finish.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 

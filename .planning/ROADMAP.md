@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan is repairing the formatter timeout found by the approved repeat. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan is reconciling the formatter fix and clipboard proof after the approved repeat. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Executing: formatter repair | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Executing: clipboard proof | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-Continue the authorized autonomous work within Phase248. The user-approved repeat passed six runs then timed out in the formatter ownership contract on iteration7; its classifier is `flaky`. A GSD-isolated test-only remedy and required local verification are running. Preserve all nine-run acceptance criteria and the consumed one-repeat limit; no further full repeat is authorized. Finish the concrete repair/review before presenting any required repeat decision. Phase249 has private read-only preparation only and remains unstarted.
+Continue authorized local verification within Phase248. The approved full repeat classified `flaky` after six clean runs and a formatter timeout; its test-only efficiency fix is committed and reviewed. Isolated supported-floor PostgreSQL15 verification avoids shared connection pressure. The canonical alias exited0 but records one retry-passed clipboard-focus case, so a narrow readiness correction and first-attempt affected checks are in progress. Preserve the nine-run acceptance criterion and consumed one-repeat limit; no further full repeat is authorized. Finish the concrete repair/review before presenting the next actual repeat decision. Phase249 has private read-only preparation only and remains unstarted.
