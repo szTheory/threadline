@@ -133,3 +133,7 @@ Verified nine clean suites, true suite/capture/wrapper exits0, classifierpass, u
 ## Reconciled candidate identity
 
 The GSD-owned worktree was locally merged and removed. The 22 protected identities and 32 of the 33 reviewed files match the passing worktree; the parent retains one instruction-only `AGENTS.md` safeguard, queued for final source review. No runtime/test identity changed. [Reconciliation evidence](248-WORKTREE-RECONCILIATION.md).
+
+## Required post-gate results
+
+Automated coverage is validated with no missing test boundary. The authored18-row ASVS1 security register has zero open threats and no newly accepted runtime risk. UI-preservation audit scored20/24 with no Phase248 source fix; its code-only/no-fresh-screenshot limits remain explicit. Formal standard code review covers36 source files with no active findings, including the retained instruction-only delta and all three lockfiles; historical resolved defects are recorded in the disposition. The independent phase-goal verdict is still pending.
