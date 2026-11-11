@@ -94,3 +94,19 @@ A one-invocation grant is consumed by the invocation even if it stops before all
 ## Avoid repeated inventory work inside contract checks
 
 When a contract checks many subjects against one source or ownership inventory, build that inventory once per check invocation and reuse it inside the subject loop. Recompute for a new test invocation or deliberately changed input; preserve negative controls and duplicate-owner semantics. Measure the attributable before/after work before broadening an optimization. Phase248 exposed repeated whole-source AST parsing and recursive ownership expansion; both were corrected without caches, concurrency, dependency additions, assertion cuts or longer timeouts. Smaller unmeasured duplication is not a reason to expand scope. Run tests that create temporary Git worktrees with narrowly scoped local Git metadata access; a sandbox-denied fixture remains a failed invocation until separately diagnosed, and its focused pass does not become a fresh full-suite pass.
+
+## Fixture helper refactors and diagnostic repeats
+
+When moving setup from a fixture helper to its callers, account for every positive,
+negative and deliberately untagged control. Preserve the premises required to reach
+the detector branch; assert that premise in benign controls when its absence would
+make a passing result vacuous. A helper refactor can pass the suite while weakening
+coverage. If review misses that defect, explicitly supersede the clean review and
+label the affected run's coverage and timing limitations before comparing results.
+
+Static request reductions do not establish latency improvement. Compare only valid,
+source-bound observations and keep an unknown cause unknown. A private formatter can
+capture file-server state during a bounded repeat, but may affect scheduling; its
+pass is diagnostic and does not silently replace an uninstrumented acceptance gate.
+QA the actual installed CLI flags, alias lifecycle and output/exit preservation in
+a tiny offline fixture first. Preserve fresh seed policy; a pinned seed changes it.

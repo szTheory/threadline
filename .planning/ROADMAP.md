@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases 248–253; approved 2026-11-10, pending implementation. All 34 ADM requirements pending; zero plans created. This planning version does not prescribe the package release version.
+- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases 248–253; approved 2026-11-10, pending implementation. All 34 ADM requirements formally pending; four Phase248 plans created, three complete. This planning version does not prescribe the package release version.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; the latest approved repeat failed after three clean runs and a measured contract file-pressure remedy is active. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; the latest approved repeat failed after three clean runs. A fixture-premise regression in the pressure refactor was corrected, reviewed and checked; the corrected single root pass does not establish a speedup or timeout cause. One checked instrumented diagnostic proposal awaits a new grant; it cannot replace plain acceptance. Task-owned PostgreSQL is stopped. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Repairing contract file pressure | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Waiting for diagnostic grant; plain repeat pending | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-The agent completes the reviewed local inventory/CWD/formatter request reductions, bounded checks and independent review. The latest actual user grant is consumed: three clean runs then five async file-operation timeouts on iteration4, classifier `flaky`. Focused and ordinary full-root observer diagnostics pass separately and show whole-suite timing amplification; neither becomes a nine-run pass. No further fullrepeat, indirect substitute, phase advance or publication is authorized. Task-owned PostgreSQL remains active only for owned checks and is stopped before a user pause. No user action is needed during this routine authorized remedy.
+The user decides whether to grant one background instrumented diagnostic of the existing nine-run alias at scale 5 / max-cases 36, capped at 55 minutes plus 60 seconds. Its silent file-server observer is checked; instrumentation can affect timing, so a green result is diagnostic only and the required plain repeat remains outstanding. Current corrected checks/review pass; cause unresolved, previous grant consumed, owned PostgreSQL stopped. The agent is waiting. Concrete proposal and evidence remain in the retained Plan04 worktree's `248-PRESSURE-READINESS.md`. After a grant the agent runs only that diagnostic, investigates, preserves all gates and continues the original autonomous objective when acceptance is satisfied. No push/publication/version authority inferred.

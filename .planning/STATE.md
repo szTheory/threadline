@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: in_progress
-stopped_at: Latest repeat failed; reviewed contract I/O reductions and bounded checks active
-last_updated: "2026-11-11T19:13:24.328294+00:00"
+status: blocked
+stopped_at: Required plain repeat remains failed; one instrumented diagnostic proposal awaits a new run grant
+last_updated: "2026-11-11T20:28:17.203559+00:00"
 last_activity: 2026-11-11
-last_activity_desc: Three clean repeats then five file-operation timeouts; observer diagnosis completed and narrow pressure remedy active
+last_activity_desc: Corrected fixture premise reviewed and checked; cause unresolved; diagnostic runner prepared; PostgreSQL stopped
 state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
 progress:
   total_phases: 6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Repairing measured contract file pressure
-Last activity: 2026-11-11 — The approved repeat is terminal: three clean runs, then five async file-operation timeouts on iteration 4. A focused observer group and one ordinary root diagnostic pass; matched timings show large whole-suite amplification and a live file-server queue. A reviewed three-test request-volume reduction and bounded local checks are active. No further full repeat is authorized.
+Status: Waiting for a new bounded diagnostic grant
+Last activity: 2026-11-11 — Latest plain repeat failed after three clean suites. Current fixture-premise correction passes bounded checks and independent review; no reliable speedup established. A checked observer diagnostic is prepared, not authorized. Task-owned PostgreSQL stopped; waiting for the user decision.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The latest actual yes was consumed by one nine-run-target invocation: three clean runs, then five 60-second async contract timeouts in iteration 4 at seed 579775. The suite exited 2, capture 0, classifier `flaky`, after 1583 seconds under the unchanged 3300-second budget; source 10442d31 stayed unchanged. All waits passed through the shared OTP file server. A focused 46-check observer group passed in 1.9s; one ordinary full-root diagnostic at the same seed/scale/concurrency passed 3400 tests with 0 failures, with a peak server queue 47 and much slower matched checks. It does not establish nine-run acceptance or an exclusive cause. A single retained-worktree executor is applying reviewed local inventory/CWD/formatter-set reuse while preserving every assertion, input, timeout and concurrency setting. No other source edits or DB suite runs in parallel. The agent continues concrete repairs, bounded checks and independent review; no user action is needed during that work. Any future fullrepeat needs a new actual grant. The owned PostgreSQL 15 instance is active for these checks and must be stopped before a user pause after clients finish; shared services remain untouched.
+**Active proof boundary:** Latest yes consumed by three clean suites then five file-operation timeouts in iteration 4 (suite 2, capture 0, 1583s, classifier flaky). Current source 9b695ca2 restores tagged negative fixtures and explicit premises missed in the intermediate pressure refactor and prior clean review. Focused15/0, format, strict Credo and one ordinary root3400/0 pass; controlled wrapper-removal mutant fails as expected, 33-file independent recheck clean. The corrected root took332.17s; the intermediate234.24s result had vacuous negative controls and cannot support a speedup claim. No sole cause or nine-run acceptance established. The recommended next action is one instrumented diagnostic of the unchanged nine-run alias at scale5/max36/55m+60s, with scheduling overhead disclosed and no gate substitution. Its runner passed offline lifecycle QA; authorization false. Task-owned PG15.17 stopped after zero clients; shared services untouched. The user acts next to decide the new grant; the agent is waiting. Phase artifacts remain in the retained Plan04 worktree; see its 248-PRESSURE-READINESS.md. No external actions authorized.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -72,7 +72,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 3 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 proof and corrective work are active.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 3 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 awaits a new diagnostic grant; the required plain repeat and formal gates remain pending.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
