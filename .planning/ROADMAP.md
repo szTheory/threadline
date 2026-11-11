@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; the required nine-run proof remains incomplete and needs a new one-invocation user grant. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; one newly user-approved nine-run proof invocation is running. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Blocked: new repeat grant | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Approved repeat running | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-The user acts next on one additional unchanged nine-run repeat: property scale5, 55-minute cap and60-second termination grace. The latest one-invocation grant is consumed after five clean runs and a public-document ownership timeout on iteration6. The concrete inventory and router-guide corrections are committed, affected checks and independent source review pass, and the new one-shot preflight passes with authorization false. The ordinary root retest retains one sandbox Git-fixture failure, separately passing with scoped access; it is not a clean full-root result. Task-owned PostgreSQL15 is stopped and shared services were untouched. Keep the actual worktree retained and Phase249 held until required proof and remaining formal Phase248 gates pass. Current readiness and source-bound limitations live in the retained worktree's `248-INVENTORY-READINESS.md`. Phase249's private route, scenario, chronology and brand preparation remains available for continuation of the original phases248–253 objective. No automatic repeat, indirect substitute or publication authority is inferred.
+The agent monitors the single newly user-approved nine-run repeat at property scale5, under the unchanged 55-minute cap and60-second grace. The grant is consumed; no automatic next repeat is authorized. The tested retained GSD worktree stays frozen and no parallel DB suite runs. If passing, reconcile the exact receipt, finish required Phase248 gates and the GSD merge lifecycle, then continue the original autonomous objective through phases249–253. Shared services remain untouched. No user action is needed while this invocation runs.
