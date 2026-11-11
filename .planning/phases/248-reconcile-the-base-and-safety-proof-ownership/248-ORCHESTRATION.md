@@ -32,3 +32,11 @@ The worker completed and verified both artifact tasks but could not stage shared
 For later executors, keep existing automatic approval review available for narrowly scoped authorized local Git operations. If that capability is unavailable or rejects the operation, preserve verified files and provide the precise commit handoff; the orchestrator can perform it without a new human permission step. Preserve per-task snapshots/verification evidence if metadata writes must be handed off. This addresses observed Git-permission friction without broadening sandbox access or disabling hooks.
 
 The maintainer restated that automated apps/tests run in the background by default. Global instructions already contain it, and project AGENTS.md now records it for future runs. No app or browser focus was taken.
+
+## Mount implementation awaiting targeted review fixes
+
+The author committed the macro, explicit fixture intent and migration guidance, with successful focused auth/scope, operator-surface and documentation checks. The sandbox's automatic review handled subsequent authorized local Git operations, avoiding another manual Git handoff. No lockfile or dependency declaration changed.
+
+A concurrent read-only callback review is recorded in `248-MOUNT-REVIEW.md`. Its reviewed router hash matches the author's final router source. It found two concrete compatibility/diagnostic gaps: accepted unary local/short captures still fail Phoenix option serialization; guarded multi-parameter fn clauses are counted as unary and miss the intended mount diagnostic. These are within the approved mount contract. The generated remote helper is an internal implementation detail, not a new adopter-facing API. The author worktree remains retained and unmerged until a targeted fix pass and recheck establish these properties. No phase or additional requirement is marked complete.
+
+The author worker exited with a committed SUMMARY and a clean worktree. Its lifecycle record is retained separately; the fix continuation reuses the same actual GSD-created worktree only after that terminal reconciliation. No simultaneous source writers or shared-DB test suites are allowed. The fix pass owns only the router, its compile tests, a SUMMARY appendix and a separate fix report.
