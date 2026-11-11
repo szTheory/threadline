@@ -56,8 +56,9 @@ mix ci.all                  # runs all verification steps
 ## CI & Verification Conventions
 
 Launch automated apps and tests in the background by default so the maintainer can
-keep using the shared computer. Use foreground only when a specific check requires
-it; explain the need before activation and bound that interval. Diagnose background
+keep using the shared computer. Use managed sessions that retain logs and the real
+exit status. Use foreground only when a specific check requires it; explain the
+need before activation and bound that interval. Diagnose background
 failures within existing limits. A timeout alone does not justify taking focus.
 
 These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
