@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases 248–253; approved 2026-11-10, pending implementation. All 34 ADM requirements formally pending; four Phase248 plans created, three complete. This planning version does not prescribe the package release version.
+- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases 248–253; approved 2026-11-10, pending implementation. Four of34ADM requirements are complete; Phase248 is verified complete, with four complete plans. This planning version does not prescribe the package release version.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -40,7 +40,7 @@ The approved identity is `brand/BRAND.md` (edition 2026-11-03, approved 2026-11-
 
 Granularity is `coarse`; the six approved delivery boundaries remain intact because each completes a distinct existing user workflow or prerequisite. Phase IDs are sequential, continuing after completed Phase 247.1.
 
-- [ ] **Phase 248: Reconcile the base and safety/proof ownership** - A preserved current-main candidate has fail-closed access and trustworthy affected verification.
+- [x] **Phase 248: Reconcile the base and safety/proof ownership** - A preserved current-main candidate has fail-closed access and trustworthy affected verification. (completed 2026-11-11)
 - [ ] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership.
 - [ ] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes.
 - [ ] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design.
@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. All four Phase248 plans are complete and GSD-reconciled. The plain nine-run proof passed, protected runtime/test identities match, owned PostgreSQL is stopped, and required phase post-gates are in progress. No phase or formal requirement is closed before the goal verifier. Totals:six phases,zero complete,four plans,four complete plans.
+Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,one complete,four currently planned plans,four complete plans. Phase249 discussion/planning now proceeds under the original autonomous scope.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 4/4 | Required phase post-gates in progress | - |
+| 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order:248→249→250→251→252→253. All four Phase248 plans are c
 
 ## Next
 
-The agent completes required validation, security, UI-preservation and code-review/disposition, then the exclusive foreground goal-verifier handoff. Read verification through its owner; only `passed` permits `phase.complete248`, after which the original autonomous phases249–253 scope continues. No user action is needed for these authorized steps. No new full-repeat grant or external/publication authority is inferred.
+Continue Phase249: reconcile actual jobs/routes/states and proof kinds, correct ordinary seed/calendar/reset chronology in the example boundary, and map authoritative brand roles without runtime migration. Reuse the prefetched research and adversarial synthesis, verify source assumptions, then carry discussion through plans and implementation. No new major product/API/compatibility decision is presently identified; no user acknowledgment is needed. Preserve existing full-repeat, external action and publication authority limits.

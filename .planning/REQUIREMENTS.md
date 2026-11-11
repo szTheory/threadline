@@ -9,10 +9,10 @@
 
 ### Baseline and safety
 
-- [ ] **ADM-01**: Maintainers can work from a current-main isolated candidate with a port/replace/defer disposition for every retained UI edit, preserving the old checkout and brand-source provenance.
-- [ ] **ADM-02**: A host mount without the required authorization contract fails closed under the previously approved mount policy, with actionable migration guidance and negative-path proof.
-- [ ] **ADM-03**: Maintainers have current root/example advisory diagnoses and compatible remediation for issue #61; unresolved reachable runtime risks block affected acceptance and release, with no implicit risk waiver.
-- [ ] **ADM-04**: Maintainers can reproduce and diagnose issue #90 against the current candidate, repair the attributable failure, and obtain trustworthy affected verification without weakened checks or speculative retries.
+- [x] **ADM-01**: Maintainers can work from a current-main isolated candidate with a port/replace/defer disposition for every retained UI edit, preserving the old checkout and brand-source provenance.
+- [x] **ADM-02**: A host mount without the required authorization contract fails closed under the previously approved mount policy, with actionable migration guidance and negative-path proof.
+- [x] **ADM-03**: Maintainers have current root/example advisory diagnoses and compatible remediation for issue #61; unresolved reachable runtime risks block affected acceptance and release, with no implicit risk waiver.
+- [x] **ADM-04**: Maintainers can reproduce and diagnose issue #90 against the current candidate, repair the attributable failure, and obtain trustworthy affected verification without weakened checks or speculative retries.
 
 ### Jobs and representative scenarios
 
@@ -81,10 +81,10 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
-| ADM-01 | Phase 248 | Pending |
-| ADM-02 | Phase 248 | Pending |
-| ADM-03 | Phase 248 | Pending |
-| ADM-04 | Phase 248 | Pending |
+| ADM-01 | Phase 248 | Complete |
+| ADM-02 | Phase 248 | Complete |
+| ADM-03 | Phase 248 | Complete |
+| ADM-04 | Phase 248 | Complete |
 | ADM-05 | Phase 249 | Pending |
 | ADM-06 | Phase 249 | Pending |
 | ADM-07 | Phase 249 | Pending |
@@ -116,4 +116,4 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-33 | Phase 253 | Pending |
 | ADM-34 | Phase 253 | Pending |
 
-**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253; zero complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.
+**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253;4complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.

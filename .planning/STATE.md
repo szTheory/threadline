@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.48
-current_phase: 248
-current_phase_name: Reconcile the base and safety/proof ownership
-status: in_progress
-stopped_at: Initial goal verdict found stale ledger and unspecified judgment tier; metadata corrected for focused re-verification
-last_updated: "2026-11-11T22:05:45.166784+00:00"
+current_phase: 249
+current_phase_name: Map jobs, scenarios and the brand contract
+status: planning
+stopped_at: Phase 248 complete, ready to plan Phase 249
+last_updated: "2026-11-11T23:16:48.449Z"
 last_activity: 2026-11-11
-last_activity_desc: Nine-run proof passed; GSD reconciliation, validated coverage, security, UI preservation and clean code-review disposition complete
-state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
+last_activity_desc: Phase 248 complete, transitioned to Phase 249
+state_head: d1444421277c284c69b20bb1c91814700ce6178a
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
   completed_plans: 4
-  percent: 0
+  percent: 17
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -25,24 +25,27 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initialization)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 248 — Reconcile the base and safety/proof ownership
+**Current focus:** Phase 249 — Map jobs, scenarios and the brand contract
 
 ## Current Position
 
-Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
-Plan: 4 of 4
-Status: Re-verifying corrected phase proof records
-Last activity: 2026-11-11 — The approved plain attempt passed all nine suites within55minutes at unchangedsource7fa5d51d, suite/capture/wrapper0 and classifierpass. Owned PostgreSQL stopped. Plan04 proof is ready for GSD reconciliation; validation/security/UI/code review and goal verification remain. No user action needed.
+Phase: 249 of 253 (Map jobs, scenarios and the brand contract)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-11 — Phase 248 complete, transitioned to Phase 249
 
-Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 4 of 4 plans complete.
+Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 4 of 4 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
+**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; required research is privately prefetched. New source execution still requires a newly verified GSD worktree binding. No user action is needed for routine authorized work.
 
-**Active proof boundary:** Plain nine-run pass at source7fa5d51d/reviewedcodece0c2e30: nineclean summaries of32properties3400tests0failures3exclusions, scale5/max36/freshseeds/normalformatter, true suite/capture/wrapper0, classifierpass,3045sshell within3300s. Sourceunchanged and33/22identities preserved. Prior failures and invalid intermediateeaedfixturecoverage remainhistorical, notrelabeled. The missingrepeatproof stop is resolved; no further repeatgrant inferred. Task-ownedPG15.17stopped afterterminal/zero clients, sharedservicesuntouched. The agent reconciles Plan04 throughGSD and finishes requiredpostgates/foregroundgoalverification before phase.complete248, then continues original249–253scope. No useractionneeded; externalwrites/publication/versionauthorityremainseparate.
+**Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. OwnedPG15.17stopped; sharedservicesuntouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
+
+
+**Phase248 completion warnings:** GSD's path heuristic reported four inline command/brace-list references in248-02-SUMMARY as missing files; all referenced test files exist and were exercised, so these are parser false positives, not source gaps. Its REL-01 traceability warning concerns a deliberately carried v1.47 live-release obligation, not a missing v1.48 ADM row;34/34ADM requirements remain mapped once. Keep REL-01 separate and pending without adding unapproved milestone scope.
 
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
@@ -72,7 +75,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 4 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 awaits a new plain acceptance grant after the failed diagnostic and verified narrow fixture remedy; formal gates remain pending.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 1 complete, 4 currently planned plans, 4 complete plans, 4/34 formally closed requirements, 17% phase progress. Phase248 passed; Phase249 discussion/planning is active.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -1242,7 +1245,7 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 ## Session Continuity
 
 **Last session:** 2026-11-10T23:23:21Z
-**Stopped at:** Approved v1.48 initialized and independently reviewed on the current-main planning base. Phase 248 discussion/planning is next; no execution plans or product implementation have started. Preserve the non-waiver safety/proof gates and resolve negotiated executor isolation before dispatch.
+**Stopped at:** Phase 248 complete, ready to plan Phase 249
 **Resume file:** `.planning/ROADMAP.md`; `.planning/REQUIREMENTS.md`; `.planning/research/v1.48-SUMMARY.md`
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
