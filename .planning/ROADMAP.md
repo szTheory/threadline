@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; one newly user-approved nine-run proof invocation is running. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; the latest approved repeat failed after three clean runs and a measured contract file-pressure remedy is active. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Approved repeat running | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Repairing contract file pressure | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-The agent monitors the single newly user-approved nine-run repeat at property scale5, under the unchanged 55-minute cap and60-second grace. The grant is consumed; no automatic next repeat is authorized. The tested retained GSD worktree stays frozen and no parallel DB suite runs. If passing, reconcile the exact receipt, finish required Phase248 gates and the GSD merge lifecycle, then continue the original autonomous objective through phases249–253. Shared services remain untouched. No user action is needed while this invocation runs.
+The agent completes the reviewed local inventory/CWD/formatter request reductions, bounded checks and independent review. The latest actual user grant is consumed: three clean runs then five async file-operation timeouts on iteration4, classifier `flaky`. Focused and ordinary full-root observer diagnostics pass separately and show whole-suite timing amplification; neither becomes a nine-run pass. No further fullrepeat, indirect substitute, phase advance or publication is authorized. Task-owned PostgreSQL remains active only for owned checks and is stopped before a user pause. No user action is needed during this routine authorized remedy.

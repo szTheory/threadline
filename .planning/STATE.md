@@ -4,10 +4,10 @@ milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
 status: in_progress
-stopped_at: User-approved one-shot repeat running; tested checkout frozen
-last_updated: "2026-11-11T18:31:25.120208+00:00"
+stopped_at: Latest repeat failed; reviewed contract I/O reductions and bounded checks active
+last_updated: "2026-11-11T19:13:24.328294+00:00"
 last_activity: 2026-11-11
-last_activity_desc: Actual user yes consumed for one unchanged nine-run repeat; owned PostgreSQL15 active; no parallel DB suites
+last_activity_desc: Three clean repeats then five file-operation timeouts; observer diagnosis completed and narrow pressure remedy active
 state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
 progress:
   total_phases: 6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Approved repeat running
-Last activity: 2026-11-11 — The user's actual yes authorized one unchanged nine-run repeat. It is running against the task-owned supported PostgreSQL instance; the reviewed checkout is frozen. Monitor this invocation, do not launch another, and reconcile its actual receipt before phase completion or further implementation.
+Status: Repairing measured contract file pressure
+Last activity: 2026-11-11 — The approved repeat is terminal: three clean runs, then five async file-operation timeouts on iteration 4. A focused observer group and one ordinary root diagnostic pass; matched timings show large whole-suite amplification and a live file-server queue. A reviewed three-test request-volume reduction and bounded local checks are active. No further full repeat is authorized.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** The actual user reply yes grants one new nine-run, scale5 invocation under the unchanged 55-minute cap and 60-second grace. The grant is consumed and the command is running in the retained GSD worktree at the reviewed candidate. No source, phase-file, HEAD or Git-status mutation is allowed in that tested checkout until the terminal receipt, and no parallel DB suites are allowed. The owned PostgreSQL15 instance is active only for owned checks; shared services are untouched. Earlier failed receipts and bounded proof remain historical evidence. A passing current receipt must still be reconciled with canonical limitations, validation/security/UI/code-review/verifier gates and the GSD merge lifecycle before phase completion. No automatic subsequent full repeat, publication or implicit risk acceptance is authorized. The agent acts next by monitoring the existing command; no user action is needed while it runs.
+**Active proof boundary:** The latest actual yes was consumed by one nine-run-target invocation: three clean runs, then five 60-second async contract timeouts in iteration 4 at seed 579775. The suite exited 2, capture 0, classifier `flaky`, after 1583 seconds under the unchanged 3300-second budget; source 10442d31 stayed unchanged. All waits passed through the shared OTP file server. A focused 46-check observer group passed in 1.9s; one ordinary full-root diagnostic at the same seed/scale/concurrency passed 3400 tests with 0 failures, with a peak server queue 47 and much slower matched checks. It does not establish nine-run acceptance or an exclusive cause. A single retained-worktree executor is applying reviewed local inventory/CWD/formatter-set reuse while preserving every assertion, input, timeout and concurrency setting. No other source edits or DB suite runs in parallel. The agent continues concrete repairs, bounded checks and independent review; no user action is needed during that work. Any future fullrepeat needs a new actual grant. The owned PostgreSQL 15 instance is active for these checks and must be stopped before a user pause after clients finish; shared services remain untouched.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
@@ -1279,8 +1279,8 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-- The agent monitors the existing user-approved invocation and reconciles its exact result. No user action is needed during the run.
-- Keep the tested GSD worktree frozen and all full-repeat tokens one-shot. If passing, finish required phase gates and continue the original autonomous phases248–253 objective. If failed, preserve the no-further-repeat stop, finish attributable diagnosis/repair/bounded checks, and present only a genuine remaining decision. Stop only the task-owned PostgreSQL instance before any user pause after owned checks finish.
+- The agent completes the reviewed three-test request-volume reduction, bounded affected/root proof and independent review in the retained GSD worktree. No user action is needed while this authorized work remains active.
+- Preserve the consumed full-repeat grant and every failed receipt. No automatic fullrepeat, indirect substitute, Phase249 implementation, merge/removal or publication is authorized while required proof is missing. Stop only task-owned PostgreSQL before any user pause after owned checks finish.
 
 ## Restart Recovery (2026-10-10)
 
