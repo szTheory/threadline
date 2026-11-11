@@ -1,3 +1,5 @@
+> Superseded readiness snapshot. Its repeat grant is consumed; current corrected evidence, stopped resources and the unapproved diagnostic proposal are in [248-PRESSURE-READINESS.md](248-PRESSURE-READINESS.md). This snapshot grants no new run.
+
 # Current Phase 248 repeat readiness
 
 ## Outcome and remaining decision

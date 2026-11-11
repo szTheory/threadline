@@ -1,0 +1,58 @@
+{
+  "source_commit": "9b695ca25b41be882902ddfb06716141e5a462db",
+  "phase": "248",
+  "plan": "248-04",
+  "phase_accepted": false,
+  "current_root": {
+    "true_exit_code": 0,
+    "properties": 32,
+    "tests": 3400,
+    "failures": 0,
+    "excluded": 3,
+    "elapsed_wall_s": 332.17,
+    "seed": 579775,
+    "property_scale": 5,
+    "max_cases": 36,
+    "source_unchanged": true,
+    "output_sha256": "435b602362e7dd903fc7814c98bcfa9dd55d10995e4c80507dbd9815ecee3682",
+    "events_sha256": "858430ec01f382a0ea03b73aaef314529a5b43ae32fb2e998261854907fcb3c6",
+    "samples_sha256": "5a74221d27f8468eba070e7aa73062b159a3c969ffee74f87d7607b82c31c85d",
+    "fixture_duration_us": 34598437,
+    "peak_queue": 51,
+    "max_observer_sample_cost_ms": 73,
+    "p95_observer_sample_cost_ms": 1,
+    "command_scope": "ordinary verify.test via existing private formatter/mix run --no-start; not a nine-run alias"
+  },
+  "focused": {
+    "tests": 15,
+    "failures": 0,
+    "exit_code": 0,
+    "log_sha256": "4fe40e1a5d7b673013b14db1f128827a5db36dde42d25fd60762555eefacd819"
+  },
+  "format_exit": 0,
+  "strict_credo_exit": 0,
+  "strict_credo_log_sha256": "249fca46cd9999b06da09e02b81fc85f371816e64d8136cbf00da846e613e28b",
+  "negative_premise_mutant": {
+    "expected_failure_observed": true,
+    "exit_code": 2,
+    "current_source_unchanged": true,
+    "assertion_line": 634,
+    "log_sha256": "5efe6b54bd3db005da3f81ad709966db664037769f7a143618f90e47e57e5f03",
+    "classification_note": "Initial classifier required an inner assert code excerpt; ExUnit displays the outer for expression. Actual custom premise message, exact assertion frame at634 and one failure validate the expected guard failure. No test rerun."
+  },
+  "review": {
+    "status": "clean",
+    "files": 33,
+    "exact_identity_reused": 32,
+    "fully_reread": 1,
+    "prior_clean_review_invalidated": true,
+    "resolved": "negative fixture tag premise",
+    "report": "248-NEGATIVE-PREMISE-REVIEW.md"
+  },
+  "limits": [
+    "No further full repeat authorized; latest plain repeat failed after three clean suites.",
+    "Intermediate eaed negative fixtures were vacuous; that timing is invalid as complete coverage.",
+    "Corrected single observation does not establish reliable speedup or exclusive cause.",
+    "Formal phase gates remain pending; no CI matrix or fresh canonical acceptance."
+  ]
+}

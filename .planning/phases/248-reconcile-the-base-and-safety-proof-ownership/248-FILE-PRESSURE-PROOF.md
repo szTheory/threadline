@@ -1,3 +1,45 @@
+# Phase 248: Current file-pressure and fixture-premise proof
+
+## Current correction and proof boundary — 2026-11-11
+
+Plan 248-04 remains halted; ADM-04 and phase acceptance remain incomplete. Current reviewed source is `9b695ca25b41be882902ddfb06716141e5a462db`. The latest plain repeat completed three clean suites, then five file-operation timeouts in iteration 4; its one-invocation user grant is consumed. No further full repeat is authorized.
+
+The intermediate pressure refactor accidentally passed nine benign fixture bodies without the required tagged-source wrapper. Those assertions bypassed the detector. That defect and the earlier clean review are explicitly superseded: current source restores the wrapper and asserts the premise for every fixture. The intentional raw direct controls retain fresh default inventories. Current focused checks, formatting, strict Credo and one ordinary full-root observation pass. A private mutant removing the wrapper fails at the new premise assertion as expected; it is not a current-source failure. The independent 33-file review has no active findings (32 exact-identity reads reused, one changed file fully read). See [current proof](248-FILE-PRESSURE-PROOF.md) and [superseding review](248-NEGATIVE-PREMISE-REVIEW.md).
+
+The corrected ordinary root run passed 32 properties / 3,400 tests / 0 failures / 3 exclusions in 332.17 seconds; its benign fixture loop took 34.60 seconds. The earlier 234.24-second intermediate run had vacuous negative controls and is invalid as complete coverage. The corrected observation does not establish a reliable speedup, an exclusive timeout cause or a passing nine-run gate. Assertions, fixture bodies, exclusions, scale, concurrency and timeouts are preserved.
+
+Task-owned PostgreSQL 15.17 is stopped after zero remaining clients; shared services were untouched. A checked private observer and one bounded diagnostic proposal are prepared, with authorization false. An instrumented pass would be diagnostic only; the required plain repeat remains outstanding. [Current readiness and next decision](248-PRESSURE-READINESS.md) supersedes older readiness snapshots. Formal post-gates and phases 249–253 remain pending. No push, merge, publication or package-version authority is inferred.
+
+## Current verified observations
+
+| Check | Actual result and scope |
+| --- | --- |
+| Corrected fixture file | `mix verify.test test/threadline/repo_contract_scope_contract_test.exs --seed 579775 --max-cases 36`: exit 0, 15 tests, 0 failures; scale 5, 2.00 seconds wall. |
+| Formatting | Changed-file format check and `mix verify.format`: exit 0. |
+| Strict Credo | `mix verify.credo`: exit 0, no issues. |
+| One ordinary root observation | Existing private formatter via `mix run --no-start`, equivalent `verify.test` suite arguments, seed 579775 / scale 5 / max-cases 36: exit 0, 32 properties, 3,400 tests, 0 failures, 3 exclusions, 332.17 seconds wall (330.5 seconds ExUnit). Source and all 33 reviewed files unchanged. This was not `verify.flake` or a canonical CI run. |
+| File-server observation | 1,283 samples, peak queue 51, maximum observer sampling cost 73 ms and p95 1 ms. Benign fixture loop: 34,598,437 µs. No exclusive cause established. |
+| Controlled private mutant | Removing only the tagged wrapper makes the selected negative test fail at its explicit premise assertion (exit 2; custom expected-tag message and exact assertion frame). Current tracked source unchanged. |
+| Independent source review | 33 source identities match; 32 exact reads reused, changed fixture file fully reread; prior clean intermediate review invalidated; premise defect resolved, no active findings. |
+
+## Timing limitation and transparent correction
+
+| Source | Ordinary root wall time | Benign fixture-loop time | Interpretation |
+| --- | --- | --- | --- |
+| Original `10442d31` | 273.86 s | 28.46 s | One passing diagnostic observation. |
+| Intermediate `eaedaf5e` | 234.24 s | 3.85 s | Invalid as complete negative-fixture coverage: required tagged premise missing. Preserve raw evidence; do not use as a valid speedup comparison. |
+| Corrected `9b695ca2` | 332.17 s | 34.60 s | One passing diagnostic observation with all premises restored; no reliable latency improvement established. |
+
+Static request counts still show fewer duplicate inventory builds, CWD requests and wildcard expansions. They do not establish that the flaky timeout is fixed. Current code retains all 13 positive and 9 benign fixture bodies, the two intentionally raw controls, 12 formatter representatives, exact overlap/uncovered assertions, original roots/globs/order and existing suite settings. No global cache or production change was added.
+
+## Portable current receipt
+
+[248-NEGATIVE-PREMISE-RECEIPT.json](248-NEGATIVE-PREMISE-RECEIPT.json) records current evidence hashes and scope. Private machine logs remain outside the repository. The failed full-repeat receipt remains [248-INVENTORY-REPEAT-RECEIPT.json](248-INVENTORY-REPEAT-RECEIPT.json). No new nine-run or full canonical pass is claimed.
+
+## Historical intermediate report — invalidated coverage claims
+
+The original text below is retained for audit chronology. Its claims that every fixture check was preserved and its complete-coverage/speed implications at `eaedaf5e` were incorrect. The current sections above supersede them; the raw intermediate run itself is not relabeled.
+
 # Phase 248 Plan 04: File-Pressure Follow-up
 
 **Status:** bounded local remediation complete; Plan 248-04 halted and ADM-04 incomplete.
