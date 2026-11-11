@@ -23,6 +23,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         evidence_authorize_fn: &Auth.authorize/1,
         export_authorize_fn: &Auth.authorize_exports/1,
         repo: Threadline.Test.Repo
@@ -45,6 +46,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit-unavailable",
+        adopter_acknowledges_unauthenticated: true,
         evidence_authorize_fn: &Auth.authorize/1,
         export_authorize_fn: &Auth.authorize_exports/1,
         repo: UnavailableRepo

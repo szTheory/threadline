@@ -30,6 +30,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         repo: Threadline.Test.Repo,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.CopyContractTest.FakeTicketReply,

@@ -22,6 +22,27 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")
   end
 
+  test "all mount guides require explicit authorization separate from host pipelines" do
+    guides = [
+      "guides/operator-surface.md",
+      "guides/integration-contracts.md",
+      "guides/code-walkthrough.md"
+    ]
+
+    Enum.each(guides, fn path ->
+      guide = path |> File.read!() |> String.replace(~r/\s+/, " ")
+
+      assert String.contains?(guide, ":authorize_fn"), path
+      assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true"), path
+      assert String.contains?(guide, "`pipe_through` alone does not authorize"), path
+      assert String.contains?(guide, "intentionally public"), path
+    end)
+
+    operator_surface_guide = File.read!("guides/operator-surface.md")
+    refute String.contains?(operator_surface_guide, "raises in test")
+    refute String.contains?(operator_surface_guide, "warning in prod")
+  end
+
   test "operator surface guide's mount recipe keeps its auth and export-auth gates" do
     guide = File.read!("guides/operator-surface.md")
 

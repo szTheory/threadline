@@ -158,12 +158,17 @@ threadline_operator_surface "/",
 
 ## Security and Authorization (Fail-Closed Default)
 
-Threadline adopts a **fail-closed security posture by default**. The `threadline_operator_surface/2` macro requires a secure mount. Multi-tenancy and authorization stay host-owned.
+Threadline adopts a **fail-closed security posture by default**. The
+`threadline_operator_surface/2` macro requires explicit mount authorization;
+multi-tenancy and authorization stay host-owned. Keep the host router's
+`pipe_through` middleware so your application's authentication and tenant
+policy still run, but `pipe_through` alone does not authorize this mount.
 
-Unless explicitly bypassed, the macro will fail at compile time unless one of the following is true:
-1. The route `scope` has at least one `pipe_through`.
-2. The `:authorize_fn` option is provided.
-3. The `:adopter_acknowledges_unauthenticated: true` option is explicitly supplied (this raises in test and loudly logs a warning in prod).
+At compile time, provide a usable unary `:authorize_fn`, or set the exact
+`:adopter_acknowledges_unauthenticated: true` option only for an intentionally
+public surface. The acknowledgement must be the literal `true`. It is accepted
+the same way in tests and production; it does not install authentication or
+authorization.
 
 ### `:authorize_fn`
 
@@ -180,7 +185,9 @@ callback should return:
   carries it into investigation queries where implemented today, but it does
   not define a roles DSL, page-level authorization model, or universal scope
   narrowing contract.
-- any other value - Denied.
+- Any other return value is denied. If the callback raises, the LiveView mount
+  halts and redirects to `/`, while an HTTP export request returns `403`.
+  These outcomes are reported as `:denied` or `:error` authorization telemetry.
 
 Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`). See [Telemetry](telemetry.md) for every event and its keys.
 

@@ -241,14 +241,13 @@ policy, or blanket permission vocabulary.
 
 ### Secure-by-default mount boundary
 
-`threadline_operator_surface/2` is the supported mount boundary. It requires one
-of these conditions at compile time:
-
-- mount inside a router scope that already has `pipe_through`
-- provide `:authorize_fn`
-- explicitly acknowledge unauthenticated mounting
-
-Anything outside that boundary is outside the supported surface story.
+`threadline_operator_surface/2` is the supported mount boundary. Retain the
+host's `pipe_through` middleware for its authentication and tenant policy, but
+`pipe_through` alone does not authorize this mount. At compile time, provide a
+usable unary `:authorize_fn` or the exact literal
+`:adopter_acknowledges_unauthenticated: true` for an intentionally public
+surface. The acknowledgement behaves the same way in tests and production and
+does not add an authentication mechanism.
 
 When that mount also receives `actor_fn`, the public router installs the
 actor-to-session bridge before the LiveView routes. That keeps actor-owned saved
