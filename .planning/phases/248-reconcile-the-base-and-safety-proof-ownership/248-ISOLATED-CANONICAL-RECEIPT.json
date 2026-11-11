@@ -1,0 +1,84 @@
+{
+  "command": "mix ci.all",
+  "source_head": "ab65c0147ad7bf58e7d3b2394c55514868c2bec5",
+  "formatter_code_commit": "2b00c6bea83e42fe8843b2b8d7767f7ffbe13df4",
+  "true_exit_code": 0,
+  "capture_exit_code": 0,
+  "elapsed_s": 1427,
+  "wrapper_elapsed_s": 1432.41,
+  "budget_s": 3300,
+  "grace_s": 60,
+  "property_scale": 1,
+  "source_unchanged": true,
+  "root": {
+    "properties": 32,
+    "tests": 3400,
+    "failures": 0,
+    "excluded": 3,
+    "seconds": 433.3,
+    "max_cases": 36
+  },
+  "example": {
+    "tests": 132,
+    "failures": 0,
+    "seconds": 49.5
+  },
+  "dialyzer": "zero errors;live slice17tests,zero failures,16establishedexclusions",
+  "browser": {
+    "first_attempt_passed": 417,
+    "retry_passed_flaky": 1,
+    "configured_platform_skips": 56,
+    "duration": "14.2m",
+    "projects": [
+      "desktop-chromium",
+      "mobile-chromium"
+    ],
+    "flaky_identity": {
+      "project": "desktop-chromium",
+      "file": "operator-route-states.spec.ts",
+      "title": "Clipboard failure shows manual recovery without claiming success",
+      "failed_assertion": "toBeFocused at line295 after15000ms",
+      "retry": "passed retry1"
+    },
+    "clean_browser_run": false,
+    "trace_limit": "Spec line9 disables trace/screenshot; firstattempt error-context retained but no trace chronology"
+  },
+  "database": {
+    "version": "15.17",
+    "scope": "task-owned loopback instance",
+    "max_connections": 100,
+    "collation": "C",
+    "ctype": "C",
+    "encoding": "UTF8",
+    "timezone": "America/New_York",
+    "shared_service_modified": false,
+    "sample_count": 282,
+    "sampled_client_peak": 77,
+    "sample_errors": 0
+  },
+  "log_sha256": "a6bffa528adf26a6a9e29020bc2d6483418b3eb833fdaaafc9be9013eed9d52b",
+  "connection_samples_sha256": "00323589dabed952587f04a7a886c72a7e561a95f1952f831ba4c22fd9a7b945",
+  "source_hashes": {
+    ".github/workflows/flake-detection.yml": "fb4bc5ee204547079811737f907a31dd3539377090f631bb398bf2b341868c3b",
+    "test/threadline/browser_journey_evidence_contract_test.exs": "d013b21c231a8f36b57b32ac51b8bd3f5f04b42fd85689a24210854e1576823d",
+    "test/threadline/code_walkthrough_doc_contract_test.exs": "771ef1e4ea30d8eb9bf6cb1fb3a477e17d8a157d7668e320a55a458996f12d04",
+    "guides/code-walkthrough.md": "6dcda3d9119165902f349ac4894cd7f96dcf356acc46db0850444dedbdb13d6d",
+    "release-please-config.json": "2a00615af477658b69f6db38ccf374ab8c56e8d53d61dfe01c4d62c0d62a9004",
+    "mix.exs": "3dd4a7b33bc91c3eb746d4d98930993f9ecbc7dfe4bb494d216f58859e26bf2f",
+    "test/threadline/release_artifact_contract_test.exs": "a5f5c029800ec11a19786daf7085fb81fc38060efa8ef34bb639fc4a2b94d588",
+    "test/threadline/clean_checkout_contract_test.exs": "dd17cbf84a81cd5f911d52419e1c66077ad4871262794c08d602323744f457d0",
+    "test/threadline/deps_health_report_test.exs": "41344a5f08bfac8609b303b9720566cf87f16cc778f52570fbe9e7abca57cab8",
+    "lib/threadline/operator_surface/router.ex": "6dad6c1939e6915b1f147a5bccf4cff60a20dd0b31b6eae7dfe106ca099bb2a9",
+    "mix.lock": "00e6393a22730830470a8253a3cbbd49ca4adc8fd8768573516f58e592502e00",
+    "bench/mix.lock": "70392fba94a8798e746db0c7b8b2861b267c6922758fd5dc27240e4dcec3427a",
+    "examples/threadline_phoenix/mix.lock": "d3f34675157bd1d18e38d026aa0d89279dd2e46a4e55a5c82e0827f1ed5b3bff",
+    "test/threadline/formatter_topology_contract_test.exs": "fa1ce02fa3494cb8bcad8126e06c80d20fedf4de949e67dcc358f012732f277a"
+  },
+  "limits": [
+    "Alias exit0doesnotmake the retry-passed clipboard proof clean; diagnosis/targetedverification stillpending",
+    "LocalElixir1.17.3/OTP27+supportedfloorPG15 isnotcomplete min/current/latestCI matrix",
+    "PriorPG14.17localruns arebelowdeclaredPGfloor andremain diagnostichistory",
+    "Currentpassingnine-runscale5repeatmissing; latestapprovedrepeatflaky",
+    "No hostedCI/liveissueclosure/scheduledcleanreceipt/REL01/publication"
+  ]
+}

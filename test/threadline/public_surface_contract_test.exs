@@ -527,8 +527,10 @@ defmodule Threadline.PublicSurfaceContractTest do
     assert all_subjects != []
     assert Enum.any?(all_subjects, fn {name, _} -> name == "README.md" end)
 
+    inventory = reference_inventory()
+
     for {subject, content} <- all_subjects do
-      unknown = validate_references(content, inventory_for(subject, reference_inventory()))
+      unknown = validate_references(content, inventory_for(subject, inventory))
 
       assert unknown == %{aliases: [], keys: [], modules: [], tasks: []},
              "#{subject} contains unknown public references: #{inspect(unknown)}"
@@ -728,12 +730,11 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   defp reference_inventory do
     application_modules = MapSet.to_list(application_modules())
+    tasks = MapSet.to_list(discovered_mix_tasks())
 
     %{
-      modules:
-        application_modules ++
-          module_namespaces(application_modules) ++ MapSet.to_list(discovered_mix_tasks()),
-      tasks: MapSet.to_list(discovered_mix_tasks()),
+      modules: application_modules ++ module_namespaces(application_modules) ++ tasks,
+      tasks: tasks,
       aliases: MapSet.to_list(discovered_aliases()),
       keys: MapSet.to_list(source_env_reads().literal)
     }

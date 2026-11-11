@@ -181,21 +181,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
 
         {:ok, {:&, _meta, [expression]}} ->
-          case capture_placeholder_arity(expression) do
-            {:ok, 1} ->
-              socket = Macro.var(:authorize_socket, nil)
-
-              body =
-                Macro.prewalk(expression, fn
-                  {:&, _placeholder_meta, [1]} -> socket
-                  node -> node
-                end)
-
-              generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
-
-            _ ->
-              {opts, []}
-          end
+          normalize_authorize_capture(opts, expression)
 
         _ ->
           {opts, []}
@@ -203,6 +189,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp normalize_authorize_fn(opts, _not_usable), do: {opts, []}
+
+    defp normalize_authorize_capture(opts, expression) do
+      case capture_placeholder_arity(expression) do
+        {:ok, 1} ->
+          socket = Macro.var(:authorize_socket, nil)
+
+          body =
+            Macro.prewalk(expression, fn
+              {:&, _placeholder_meta, [1]} -> socket
+              node -> node
+            end)
+
+          generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
+
+        _ ->
+          {opts, []}
+      end
+    end
 
     defp generate_authorize_fn(opts, clauses) do
       name = String.to_atom("__threadline_authorize_fn_#{System.unique_integer([:positive])}")
