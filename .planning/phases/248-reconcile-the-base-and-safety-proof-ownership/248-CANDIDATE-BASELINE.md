@@ -1,6 +1,16 @@
 # Phase 248 candidate baseline
 
-## Current diagnostic outcome and narrow correction — 2026-11-11
+## Current accepted plain-repeat proof — 2026-11-11
+
+The single approved **plain nine-run invocation passed** on source `7fa5d51de301c1a935c6ba71b7a7054ed3875f21` (reviewed code `ce0c2e30d0b7401b3b35df21dcd986ad9ed8cafb`), unchanged throughout: suite / capture / wrapper exits 0, classifier `pass`, nine headers and nine clean summaries. Each suite reports 32 properties, 3,400 tests, 0 failures and 3 configured exclusions. Shell elapsed 3,045 seconds; wrapper elapsed 3,044.85 seconds, within the 3,300-second limit. Scale 5, max-cases 36, fresh per-suite seeds, original timeouts/assertions and normal formatter/classifier were preserved; no private observer was loaded. [Exact passing receipt](248-PLAIN-REPEAT-RECEIPT.json).
+
+This resolves Plan248-04's missing plain-repeat proof; its implementation tasks are complete. The earlier failures, invalid intermediate fixture coverage and source-bound canonical/browser limits remain preserved. Passing this local repeat does not prove an exclusive cause or permanent absence of flakes, and does not establish a fresh canonical/browser run or the complete CI toolchain matrix. Task-owned PostgreSQL 15.17 is stopped after terminal and zero remaining clients; shared services were untouched.
+
+The orchestrator now reconciles the worktree through GSD and runs the required validation, security, UI-preservation, code-review/disposition and goal-verification sequence. Phase248 and formal requirement closure remain pending the goal verifier. No further full repeat, hosted write, push, publication, version change or risk waiver is inferred; no user action is needed for the remaining authorized checks.
+
+## Historical source-specific evidence
+
+## Historical diagnostic outcome and narrow correction — 2026-11-11
 
 Plan 248-04 remains halted and ADM-04 incomplete. The approved instrumented nine-run alias failed its first suite on `8bdb4ac0`: 32 properties, 3,400 tests, one formatter timeout, three exclusions; 727.45 seconds wall, suite exit 2 / capture 0 / wrapper 1, classifier `broken`. No later suites ran. The one-invocation grant is consumed. [Exact diagnostic receipt](248-INSTRUMENTED-DIAGNOSTIC-RECEIPT.json).
 
@@ -10,7 +20,7 @@ No current full-root or plain nine-run pass is claimed. During the timeout, samp
 
 ## Prior source-specific evidence (current status superseded)
 
-## Current correction and proof boundary — 2026-11-11
+## Historical correction and proof boundary — 2026-11-11
 
 Plan 248-04 remains halted; ADM-04 and phase acceptance remain incomplete. Current reviewed source is `9b695ca25b41be882902ddfb06716141e5a462db`. The latest plain repeat completed three clean suites, then five file-operation timeouts in iteration 4; its one-invocation user grant is consumed. No further full repeat is authorized.
 

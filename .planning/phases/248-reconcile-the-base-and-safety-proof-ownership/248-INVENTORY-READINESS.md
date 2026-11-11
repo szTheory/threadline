@@ -1,3 +1,5 @@
+> Historical readiness snapshot. The newly approved plain invocation passed all nine suites; its grant is consumed, not renewed. [Passing receipt](248-PLAIN-REPEAT-RECEIPT.json) and [current summary](248-04-SUMMARY.md) supersede earlier pending/failure status. Formal phase checks continue without a new user action.
+
 > Historical readiness only. The instrumented diagnostic grant is consumed by a first-suite formatter timeout. Current correction, stopped resources and the unapproved plain acceptance proposal are in [248-OVERLAP-READINESS.md](248-OVERLAP-READINESS.md). No old snapshot grants another run.
 
 > Superseded readiness snapshot. Its repeat grant is consumed; current corrected evidence, stopped resources and the unapproved diagnostic proposal are in [248-PRESSURE-READINESS.md](248-PRESSURE-READINESS.md). This snapshot grants no new run.

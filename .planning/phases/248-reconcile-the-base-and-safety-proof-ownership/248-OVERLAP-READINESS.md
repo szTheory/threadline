@@ -1,3 +1,5 @@
+> Historical readiness snapshot. The newly approved plain invocation passed all nine suites; its grant is consumed, not renewed. [Passing receipt](248-PLAIN-REPEAT-RECEIPT.json) and [current summary](248-04-SUMMARY.md) supersede earlier pending/failure status. Formal phase checks continue without a new user action.
+
 # Phase 248: Plain repeat readiness after the diagnostic
 
 The approved diagnostic failed in its first suite with one formatter timeout. Its grant is consumed. The observed file server continued processing queued work; no exclusive cause is established. The synthetic overlap control also traversed 106 files irrelevant to its one-file ownership assertion, including 97 dependency/build results. That fixture is now narrowed to the exact representative, and its existing focused check, formatting, lint and both private negative controls pass their intended expectations. Independent review has no active findings. [Proof and limits](248-OVERLAP-PROOF.md), [diagnostic receipt](248-INSTRUMENTED-DIAGNOSTIC-RECEIPT.json), [review](248-OVERLAP-REVIEW.md).
