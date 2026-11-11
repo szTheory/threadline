@@ -13,11 +13,11 @@ provides:
   - A scoped regression and source-bound local setup, repeat, canonical, and review evidence
 affects: [ADM-01, ADM-02, ADM-03, ADM-04, phase-249]
 actuals:
-  tokens: 15440.5
+  tokens: 47899.0
   tasks: 3
-  commits: 4
+  commits: 17
   plan_head_before: 0b36bfc0baff94e27dc0a4f40ca189c982901409
-  plan_head_after: 2495891863f5a0fbaab8800a787d668daeb67625
+  plan_head_after: eaedaf5e1a92c9fd797f37fefaffad14b5376e8e
 tech-stack:
   added: []
   patterns:
@@ -29,6 +29,8 @@ key-files:
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CLIPBOARD-PROOF.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-PUBLIC-SURFACE-FIX.md
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-POSTFIX-REPEAT-RECEIPT.json
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-FILE-PRESSURE-PROOF.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-INVENTORY-REPEAT-RECEIPT.json
   modified:
     - .github/workflows/flake-detection.yml
     - test/threadline/browser_journey_evidence_contract_test.exs
@@ -40,8 +42,16 @@ key-files:
     - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
     - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
     - test/threadline/public_surface_contract_test.exs
+    - test/threadline/repo_contract_scope_contract_test.exs
+    - test/threadline/storage_schema_call_site_contract_test.exs
+    - test/threadline/formatter_topology_contract_test.exs
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-PLAN.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md
+    - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
 key-decisions:
-  - "Keep the failed one-iteration repeat receipt and active no-retry stop; do not infer nine-run acceptance."
+  - "Keep all failed full-repeat receipts as failures; do not infer nine-run acceptance."
+  - "Reduce measured repeated file operations locally while preserving each contract's fixtures and checks."
   - "Use task-local npm/browser caches and the authorized Git metadata context for local verification."
   - "Keep hosted CI, issue closure, scheduled dependency-health evidence, and REL-01 separate from local results."
 requirements-completed: [ADM-01, ADM-02, ADM-03]
@@ -80,7 +90,15 @@ completed: 2026-11-10
 status: halted
 ---
 
-## Current reconciliation — 2026-11-11
+## Current file-pressure follow-up — 2026-11-11
+
+Plan 248-04 remains halted and ADM-04 remains incomplete. The latest user-approved full nine-run invocation is terminal and failed at the pre-fix source `10442d31a8c7df50111effe1614c99bf5e7e87ee`: three clean runs, then five 60-second file-server timeouts in iteration 4 at seed `579775`; suite exit 2, wrapper exit 1, capture exit 0, 1,582.26 seconds, classifier `flaky`. The portable record is [248-INVENTORY-REPEAT-RECEIPT.json](248-INVENTORY-REPEAT-RECEIPT.json). No further full repeat is authorized.
+
+The bounded source deviation is committed as `eaedaf5e1a92c9fd797f37fefaffad14b5376e8e`. The final focused run passed 38/0 at seed `579775`, scale 5 and max-cases 36 on working-tree content later committed unchanged; `mix verify.format` and strict Credo passed. An earlier focused run was also 38/0 but exposed an unused-default warning, and the first format check found formatting differences; both were corrected before the final checks. One ordinary root run on the clean commit passed 3,400 tests / 0 failures / 3 exclusions in 234.24 seconds. Its observer recorded 928 samples, a peak file-server queue of 37 and maximum sampling cost of 3 ms. The paired test timings and static before/after traversal counts are in [248-FILE-PRESSURE-PROOF.md](248-FILE-PRESSURE-PROOF.md). This single root result is not nine-run acceptance and does not prove an exclusive failure cause.
+
+The retained canonical alias remains source-bound history with one retry-passed browser case; the scoped clipboard proof remains separate. No fresh canonical/browser run was made here. Protected runtime, router, script, lock and browser-inventory identities stayed unchanged. Independent review and PostgreSQL lifecycle remain parent-owned. No state/roadmap/requirements update, phase advance, worktree removal or external action was performed.
+
+## Prior reconciliation before file-pressure follow-up — 2026-11-11
 
 Plan 248-04 remains halted. The latest user-approved full repeat is terminal: source `baa3a27d56bf6047d791f709aa78d1692d8294c9`, wrapper exit 1, suite exit 2, capture exit 0, 1,932 seconds, five clean runs then the public-surface subject-ownership timeout in iteration 6 at seed `587264`, classifier `flaky`. Its portable receipt is [248-POSTFIX-REPEAT-RECEIPT.json](248-POSTFIX-REPEAT-RECEIPT.json). The earlier formatter timeout at iteration 7 remains historical evidence and is superseded as the latest failure.
 
@@ -100,14 +118,14 @@ Historical source-specific records below remain evidence; this section supersede
 - **Started:** 2026-11-11T03:01:37Z
 - **Completed:** 2026-11-11T04:46:14Z
 - **Tasks:** 3
-- **Files modified:** 11
+- **Files modified:** 11 during the original plan execution; subsequent corrective follow-up files are itemized in the current reconciliation and `key-files` list.
 
 ## Accomplishments
 
 - Confirmed the actual executor worktree matched the launch pin before editing. With the Playwright CLI absent, the one pre-setup seeded test run produced the two expected real-discovery failures. The scoped setup regression failed on the original workflow and passed after repair.
 - Added only the existing pinned `actions/setup-node` action and `npm ci` step, under the existing run gate and before the unchanged repeat. The same seeded real-discovery test passed after setup; the four existing workflow contracts passed.
 - Resolved the accepted walkthrough, strict-Credo, and release-exclusion findings with focused checks. No lockfile, job ID, trigger, tag, repeat count, property scale, timeout, classifier, or real discovery assertion changed.
-- Ran the final prepared `mix ci.all` on the assembled source with exit 0. The root suite passed 3,400 tests, the example suite passed 132 tests, Dialyzer and its live slice passed, and the desktop/mobile browser gate passed 418 tests with 56 skips. The candidate inventory validator passed all 15 checks.
+- Ran the final prepared `mix ci.all` on the assembled source with exit 0. The root suite passed 3,400 tests, the example suite passed 132 tests, Dialyzer and its live slice passed, and the browser gate had 417 first-attempt passes, one retry-passed clipboard case and 56 configured skips. The candidate inventory validator passed all 15 checks.
 
 ## Task Commits
 
@@ -127,10 +145,12 @@ The plan evidence and this summary are committed together after self-check; the 
 - `release-please-config.json` — excluded the unshipped `brand/` source tree from release detection.
 - `248-CANDIDATE-BASELINE.md`, `248-VALIDATION.md`, and `248-SUITE-PROOF.md` — reconciled task evidence and blockers.
 - `248-WORKFLOW-REVIEW.md` — copied independent review report; its SHA-256 matches the orchestrator result.
+- `test/threadline/repo_contract_scope_contract_test.exs`, `test/threadline/storage_schema_call_site_contract_test.exs`, and `test/threadline/formatter_topology_contract_test.exs` — reduced repeated local file work while preserving contract coverage.
+- `248-FILE-PRESSURE-PROOF.md` and `248-INVENTORY-REPEAT-RECEIPT.json` — recorded the bounded source follow-up and latest failed repeat.
 
 ## Decisions Made
 
-- The repeat's real exit 2 and classifier result `broken` remain the acceptance result. No further whole repeat is authorized.
+- Full-repeat failures remain failures, with the latest terminal result recorded in the current file-pressure reconciliation. No further whole repeat is authorized.
 - The final canonical run uses private temporary npm/browser caches and the approved local Git metadata context. These were task-scoped prerequisites; no global package-manager, Hex, TLS, or shared `node_modules` state was changed.
 - Local results do not close issues #61 or #90, create hosted post-fix CI, satisfy the scheduled dependency-health receipt, establish minimum-toolchain execution, or resolve REL-01.
 
@@ -162,7 +182,15 @@ The plan evidence and this summary are committed together after self-check; the 
 - **Verification:** Release-artifact contract passed in the focused suite and final `mix ci.all`.
 - **Committed in:** `24958918`
 
-**Total deviations:** 3 auto-fixed (2 Rule 1 bugs, 1 Rule 3 blocker). **Impact:** These accepted findings were repaired within the reviewed in-scope paths; no new dependency, workflow job, public API, or risk waiver was introduced.
+**4. [Rule 3 - Blocking] Reduced repeated per-invocation file work in three contracts**
+- **Found during:** Corrective file-pressure follow-up after the latest full-repeat timeout cluster
+- **Issue:** The same library inventory and formatter owner sets were rebuilt within aggregate fixture/mutation checks, and the storage sweep called `getcwd` for every result. The timeout stacks support common file-server waits but do not establish that this repeated work was the sole cause.
+- **Fix:** Reuse the local inventory and unchanged owner sets within each invocation; recompute only the two formatter owners whose synthetic configs change; capture CWD once for the storage sweep.
+- **Files modified:** `test/threadline/repo_contract_scope_contract_test.exs`, `test/threadline/storage_schema_call_site_contract_test.exs`, `test/threadline/formatter_topology_contract_test.exs`
+- **Verification:** Focused suite 38/0, `mix verify.format`, `mix verify.credo`, one bounded root run 3,400/0/3, and candidate inventory validation 15/15.
+- **Committed in:** `eaedaf5e`
+
+**Total deviations:** 4 auto-fixed (2 Rule 1 bugs, 2 Rule 3 blockers). **Impact:** The accepted local fixes preserve test coverage and do not change runtime behavior, dependencies, CI scope or authorization limits.
 
 ## Issues Encountered
 
@@ -176,13 +204,13 @@ None — no external service configuration is required.
 
 ## Next Phase Readiness
 
-Plan 248-04 is **halted**, not complete: the canonical integration and baseline checks pass, but the required corrected repeat did not produce nine clean runs and no retry is authorized. ADM-04 must remain blocked. Do not start Phase 249, push, dispatch hosted CI, update issues, merge, publish, or change versions. A future repeat requires explicit owner authorization and must preserve the approved scale, nine-run count, 55-minute limit, and 60-second grace.
+Plan 248-04 is **halted**, not complete: the latest user-approved full repeat ended after three clean runs and five timeouts in iteration 4, so the required nine-run proof is missing and the grant is consumed. ADM-04 must remain incomplete. A future repeat requires a new explicit user grant and must preserve the approved scale, nine-run count, 55-minute limit and 60-second grace. Do not start Phase 249, push, dispatch hosted CI, update issues, merge, publish or change versions.
 
 ## Self-Check: PASSED
 
-- The four plan source commits resolve on this branch; the new phase summary/evidence files are present and their recorded review hash matches the independent result.
-- Final `mix ci.all` exited 0, and the required candidate validator passed all 15 inventory checks.
-- The repeat's failed classifier result, one-iteration count, and active no-retry blocker are preserved. This self-check verifies the evidence record; the plan's repeat acceptance remains unsatisfied and the summary status is `halted`.
+- The corrective source commit `eaedaf5e` is on this branch; the follow-up plan, proof and receipt files are present.
+- The candidate inventory validator passed all 15 checks. The historical full `mix ci.all` result remains separately source-bound; this follow-up did not run a fresh canonical alias.
+- The latest repeat's three clean runs, five timeouts, true suite exit 2, elapsed time and `flaky` classification are preserved. This self-check verifies the evidence record; nine-run acceptance remains unsatisfied and the summary status is `halted`.
 
 ---
 *Phase: 248-reconcile-the-base-and-safety-proof-ownership*
@@ -224,6 +252,10 @@ The one bounded root invocation exited 2 after 421 seconds with 3,400 tests, 1 f
 Plan 248-04 remains **halted**, and ADM-04 remains incomplete because there is no passing nine-run receipt. The consumed repeat grant does not renew. The latest worktree source reviews are pending. The task-owned PostgreSQL service was left untouched for the parent to manage; no shared database, state, roadmap, requirements, phase boundary or external system was changed.
 
 
-## Current source-review reconciliation
+## Source-review reconciliation before file-pressure follow-up
 
 The public-reference optimization and heading 15 guide correction have independent review with no remaining source findings. See [248-PUBLIC-SURFACE-REVIEW.md](248-PUBLIC-SURFACE-REVIEW.md). The actual-snippet extraction compiler check passes for the corrected scope and rejects the old form. The full-repeat failure, ordinary root sandbox failure and separately passing permission-scoped fixture remain distinct; Plan 04 is halted and ADM-04 incomplete until required current-source nine-run proof exists.
+
+## Current source-review reconciliation
+
+Independent review of the file-pressure source commit `eaedaf5e` is pending with the parent. The ordinary root result and paired timing limits are in [248-FILE-PRESSURE-PROOF.md](248-FILE-PRESSURE-PROOF.md). The latest nine-run receipt remains failed; Plan 248-04 is halted and ADM-04 incomplete until a passing nine-run proof exists.
