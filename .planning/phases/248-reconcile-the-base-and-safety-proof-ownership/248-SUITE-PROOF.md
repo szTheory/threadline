@@ -1,5 +1,15 @@
 # Phase 248-04 suite and integration proof
 
+## Current reconciliation — 2026-11-11
+
+Plan 248-04 remains halted. The user's one additional full-repeat grant is consumed: six clean runs followed by a formatter timeout in iteration 7, classifier `flaky`. The formatter test now removes repeated owner-file enumeration, retaining all assertions and execution settings; independent review found no source defects.
+
+The isolated PostgreSQL15 canonical alias exited0 on source `ab65c014`, with root/example/type checks passing and browser417 first-attempt passes,one retry-passed clipboard case and56 configured skips. That browser run remains non-clean. Current test-only clipboard readiness source `ac260b47` passed six first-attempt target invocations and the complete affected file (52 combined instances:41passed,11 configured skips), all with retries disabled; discovery passed9/0 and the inventory validator passed15 checks. Independent source reviews are [248-FORMATTER-REVIEW.md](248-FORMATTER-REVIEW.md) and [248-CLIPBOARD-REVIEW.md](248-CLIPBOARD-REVIEW.md). These scoped results do not claim a fresh full canonical run or pre-connect clipboard behavior.
+
+The task-owned PostgreSQL15 instance is stopped after verification and zero remaining clients; its private data is retained for a possible authorized continuation. The shared service and other projects were untouched. No passing nine-run receipt exists. A NEW explicit one-invocation grant is required before another unchanged nine-run, scale 5, 55-minute repeat with 60-second termination grace. No automatic retry, phase advance, worktree removal, issue closure, hosted dispatch, push, version change or publication is authorized. Local PostgreSQL15 component coverage does not establish the full min/current/latest CI matrix or REL-01.
+
+Historical source-specific records below remain evidence; this section supersedes their old present-tense dispatch/readiness statements. See [248-POSTFIX-READINESS.md](248-POSTFIX-READINESS.md).
+
 This ledger records the local setup repair and all bounded checks for Plan 248-04. It does not claim hosted CI, live issue closure, a scheduled dependency-health receipt, publication, or release readiness. Full machine logs remain in private execution metadata; this tracked artifact keeps the relevant command output and failure detail without machine-local paths.
 
 ## Source and dependency identities

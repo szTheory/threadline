@@ -77,6 +77,16 @@ completed: 2026-11-10
 status: halted
 ---
 
+## Current reconciliation — 2026-11-11
+
+Plan 248-04 remains halted. The user's one additional full-repeat grant is consumed: six clean runs followed by a formatter timeout in iteration 7, classifier `flaky`. The formatter test now removes repeated owner-file enumeration, retaining all assertions and execution settings; independent review found no source defects.
+
+The isolated PostgreSQL15 canonical alias exited0 on source `ab65c014`, with root/example/type checks passing and browser417 first-attempt passes,one retry-passed clipboard case and56 configured skips. That browser run remains non-clean. Current test-only clipboard readiness source `ac260b47` passed six first-attempt target invocations and the complete affected file (52 combined instances:41passed,11 configured skips), all with retries disabled; discovery passed9/0 and the inventory validator passed15 checks. Independent source reviews are [248-FORMATTER-REVIEW.md](248-FORMATTER-REVIEW.md) and [248-CLIPBOARD-REVIEW.md](248-CLIPBOARD-REVIEW.md). These scoped results do not claim a fresh full canonical run or pre-connect clipboard behavior.
+
+The task-owned PostgreSQL15 instance is stopped after verification and zero remaining clients; its private data is retained for a possible authorized continuation. The shared service and other projects were untouched. No passing nine-run receipt exists. A NEW explicit one-invocation grant is required before another unchanged nine-run, scale 5, 55-minute repeat with 60-second termination grace. No automatic retry, phase advance, worktree removal, issue closure, hosted dispatch, push, version change or publication is authorized. Local PostgreSQL15 component coverage does not establish the full min/current/latest CI matrix or REL-01.
+
+Historical source-specific records below remain evidence; this section supersedes their old present-tense dispatch/readiness statements. See [248-POSTFIX-READINESS.md](248-POSTFIX-READINESS.md).
+
 # Phase 248 Plan 04: Flake Setup Repair and Bounded Evidence Summary
 
 **Pinned E2E setup now precedes the unchanged flake gate, with a seeded missing-CLI repair trace and a blocked one-iteration repeat receipt.**
@@ -196,6 +206,6 @@ The single test-file change waits for `[data-phx-main]` to have `phx-connected` 
 This proof is scoped to the connected LiveView state and does not claim behavior for pre-connect copy attempts or identify the original focus-loss cause. No fresh canonical run or full repeat was run after the edit. The nine-run acceptance remains failed and unauthorized for another attempt. Plan 248-04 remains halted; ADM-04 remains incomplete. The task-owned PostgreSQL instance is still running for the parent to stop; the shared database service was left unchanged. Full source bindings and log/context hashes are in [248-CLIPBOARD-PROOF.md](248-CLIPBOARD-PROOF.md).
 
 
-## Orchestration continuation and current authority boundary
+## Pre-approval automatic-review snapshot (historical)
 
 The author-return halt and failed original repeat remain historical evidence. The orchestrator proposed one bounded local revalidation after prepared canonical exit0 and independent review. Automatic approval review rejected the launch because the existing no-further-repeat stop requires trusted explicit user approval; an assistant-only authorization was insufficient. No new repeat started. ADM04 remains incomplete and the actual worktree stays retained until this concrete approval decision and any subsequently authorized proof are reconciled. No indirect retry is permitted.
