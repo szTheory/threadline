@@ -1,100 +1,68 @@
 ---
 phase: "248"
 slug: "reconcile-the-base-and-safety-proof-ownership"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-10"
+validated: "2026-11-11"
 ---
 
-# Phase 248 — Validation Strategy
+# Phase248 — Validation Strategy
 
-## Current accepted plain-repeat proof — 2026-11-11
-
-The single approved **plain nine-run invocation passed** on source `7fa5d51de301c1a935c6ba71b7a7054ed3875f21` (reviewed code `ce0c2e30d0b7401b3b35df21dcd986ad9ed8cafb`), unchanged throughout: suite / capture / wrapper exits 0, classifier `pass`, nine headers and nine clean summaries. Each suite reports 32 properties, 3,400 tests, 0 failures and 3 configured exclusions. Shell elapsed 3,045 seconds; wrapper elapsed 3,044.85 seconds, within the 3,300-second limit. Scale 5, max-cases 36, fresh per-suite seeds, original timeouts/assertions and normal formatter/classifier were preserved; no private observer was loaded. [Exact passing receipt](248-PLAIN-REPEAT-RECEIPT.json).
-
-This resolves Plan248-04's missing plain-repeat proof; its implementation tasks are complete. The earlier failures, invalid intermediate fixture coverage and source-bound canonical/browser limits remain preserved. Passing this local repeat does not prove an exclusive cause or permanent absence of flakes, and does not establish a fresh canonical/browser run or the complete CI toolchain matrix. Task-owned PostgreSQL 15.17 is stopped after terminal and zero remaining clients; shared services were untouched.
-
-The orchestrator now reconciles the worktree through GSD and runs the required validation, security, UI-preservation, code-review/disposition and goal-verification sequence. Phase248 and formal requirement closure remain pending the goal verifier. No further full repeat, hosted write, push, publication, version change or risk waiver is inferred; no user action is needed for the remaining authorized checks.
-
-## Historical source-specific evidence
-
-## Historical diagnostic outcome and narrow correction — 2026-11-11
-
-Plan 248-04 remains halted and ADM-04 incomplete. The approved instrumented nine-run alias failed its first suite on `8bdb4ac0`: 32 properties, 3,400 tests, one formatter timeout, three exclusions; 727.45 seconds wall, suite exit 2 / capture 0 / wrapper 1, classifier `broken`. No later suites ran. The one-invocation grant is consumed. [Exact diagnostic receipt](248-INSTRUMENTED-DIAGNOSTIC-RECEIPT.json).
-
-Current source `ce0c2e30d0b7401b3b35df21dcd986ad9ed8cafb` changes only the synthetic overlap input to the exact existing representative, preserving production formatter configs/globs, all 12 representatives, exact overlap/uncovered assertions, async settings and timeouts. A post-run check showed the old recursive fixture glob returned 107 files, including 97 under dependencies/build output, while the literal returned the one required representative. This is scope evidence, not a latency or exclusive-cause claim. Focused test, format and strict Credo pass; two private control mutants fail as intended; independent 33-file recheck has no active findings (32 exact reads reused, one changed file fully read). [Correction and bounded proof](248-OVERLAP-PROOF.md), [review](248-OVERLAP-REVIEW.md).
-
-No current full-root or plain nine-run pass is claimed. During the timeout, sampled file-server counters kept advancing with changing operations and queued requests; the observer had material variable overhead, so no single continuous stall, sole cause or reliable speedup is established. PostgreSQL is stopped after zero clients; shared services untouched. The next concrete decision is one plain acceptance invocation with the same nine-run / scale 5 / max-cases 36 / 55-minute plus 60-second limits; authorization is false. [Current readiness](248-OVERLAP-READINESS.md). Formal post-gates, acceptance and phases 249–253 remain pending; no external authority inferred.
-
-## Prior source-specific evidence (current status superseded)
-
-## Historical correction and proof boundary — 2026-11-11
-
-Plan 248-04 remains halted; ADM-04 and phase acceptance remain incomplete. Current reviewed source is `9b695ca25b41be882902ddfb06716141e5a462db`. The latest plain repeat completed three clean suites, then five file-operation timeouts in iteration 4; its one-invocation user grant is consumed. No further full repeat is authorized.
-
-The intermediate pressure refactor accidentally passed nine benign fixture bodies without the required tagged-source wrapper. Those assertions bypassed the detector. That defect and the earlier clean review are explicitly superseded: current source restores the wrapper and asserts the premise for every fixture. The intentional raw direct controls retain fresh default inventories. Current focused checks, formatting, strict Credo and one ordinary full-root observation pass. A private mutant removing the wrapper fails at the new premise assertion as expected; it is not a current-source failure. The independent 33-file review has no active findings (32 exact-identity reads reused, one changed file fully read). See [current proof](248-FILE-PRESSURE-PROOF.md) and [superseding review](248-NEGATIVE-PREMISE-REVIEW.md).
-
-The corrected ordinary root run passed 32 properties / 3,400 tests / 0 failures / 3 exclusions in 332.17 seconds; its benign fixture loop took 34.60 seconds. The earlier 234.24-second intermediate run had vacuous negative controls and is invalid as complete coverage. The corrected observation does not establish a reliable speedup, an exclusive timeout cause or a passing nine-run gate. Assertions, fixture bodies, exclusions, scale, concurrency and timeouts are preserved.
-
-Task-owned PostgreSQL 15.17 is stopped after zero remaining clients; shared services were untouched. A checked private observer and one bounded diagnostic proposal are prepared, with authorization false. An instrumented pass would be diagnostic only; the required plain repeat remains outstanding. [Current readiness and next decision](248-PRESSURE-READINESS.md) supersedes older readiness snapshots. Formal post-gates and phases 249–253 remain pending. No push, merge, publication or package-version authority is inferred.
-
-## Earlier source-specific record (superseded as current status)
+Every requirement has automated coverage at its actual boundary. No missing test boundary was found, so the validate-phase no-gap branch updates this existing strategy without generating tests or spawning a gap-filling auditor. This is coverage validation, not the final phase-goal verdict.
 
 ## Test Infrastructure
 
-| Property | Value |
-| --- | --- |
-| Framework | Existing ExUnit, real Playwright discovery and shell workflow contracts |
-| Config | `mix.exs`, `test/test_helper.exs`, existing E2E package lock and workflows |
-| Quick mount check | `mix test test/threadline/operator_surface/router_test.exs` |
-| Quick reported-failure check | `mix test test/threadline/browser_journey_evidence_contract_test.exs --seed 876664` |
-| Advisory gate | `mix verify.deps_audit` (inspect all findings, not only exit) |
-| Integrated gate | `mix ci.all` |
-| Affected repeat proof | One `mix verify.flake` after the setup repair; no blind retries |
-| Runtime | Measure during execution; no invented duration or shortened required gate |
-
-## Sampling Rate
-
-Run the smallest directly affected check after each code task. Run integrated checks after fixes are assembled, reusing same-source evidence rather than repeating expensive suites for documentation-only bookkeeping. Diagnose a failure before any bounded retest. Do not run parallel suites against a shared test database. No watch commands.
+Existing ExUnit, real Playwright CLI discovery, workflow/lock/doc contracts, compiled host-router probes and the phase-local provenance validator. Use `mix verify.test`, `mix verify.format`, `mix verify.credo`, `mix verify.deps_audit`, and the original `mix verify.flake` / `mix ci.all` entrypoints as scoped in receipts. No new framework or dependency was introduced; no parallel database suites or manual UAT are required.
 
 ## Per-Task Verification Map
 
-| Task | Requirement | Secure behavior or proof | Automated command / assertion | Status |
+| Task | Requirement | Observable boundary | Automated evidence | Status |
 | --- | --- | --- | --- | --- |
-| 248-01-01 | ADM-01 | Actual GSD fork/descriptor/cwd, one retained edit and three brand identities | `python3 .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py --check-tracer` | PASS — Plan 248-01 summary records the tracer check before commit; final inventory validation reconfirmed provenance |
-| 248-01-02 | ADM-01 | Exactly 31 sorted unique dispositions, full path-set/hash equality, unchanged preserved patch; malformed inventory negative controls | `python3 .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py --check --self-test` | PASS — all six negative controls rejected; final `--check-inventory --self-test` passed 15 checks |
-| 248-02-01 | ADM-02 | Compile matrix, synchronous diagnostic/file/line/full option names, valid routes, runtime grant/deny/HTTP/scope | `mix test test/threadline/operator_surface/router_test.exs test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/export_auth_plug_test.exs test/threadline/operator_surface/theme_auth_plug_test.exs test/threadline/query/scope_fail_closed_test.exs` | PASS — Plan 248-02 and mount-fix summaries record 85-test focused coverage; assembled `mix ci.all` also passed |
-| 248-02-02 | ADM-02 | Explicit auth intent at all 17 affected fixture files; existing behavior retained | `mix test test/threadline/operator_surface` | PASS — Plan 248-02 mount-fix summary records 843 tests with 0 failures; assembled `mix ci.all` passed |
-| 248-02-03 | ADM-02 | Truthful migration guidance and exact deliberate public acknowledgement | `mix test test/threadline/operator_surface_doc_contract_test.exs` | PASS — Plan 248-02 records all three guide contracts passing; current walkthrough repair passed in the 16-test focused run |
-| 248-03-01 | ADM-03 | Compatible root fixes; inspect root findings and name remaining bench/example findings | `mix verify.deps_audit`; `mix compile --warnings-as-errors` | PASS — Plan 248-03 records root compile and complete audit; final `mix ci.all` audited all three lockfiles with 0 non-blocking findings |
-| 248-03-02 | ADM-03 | Patched bench/example; zero reported findings across all three locks and unchanged tier contracts | `mix verify.deps_audit`; `mix test test/threadline/deps_audit_contract_test.exs test/threadline/deps_audit_gate_test.exs` | PASS — Plan 248-03 records clean all-lock audit and 86 audit-policy tests with 0 failures; final `mix ci.all` audit also passed |
-| 248-04-01 | ADM-04 | Single actual pre-setup missing-CLI ExUnit reproduction, locked setup repair, same seeded real-discovery pass and job-scoped workflow regression | `mix test test/threadline/browser_journey_evidence_contract_test.exs --seed 876664` before/after setup; four existing workflow contracts; final focused browser and walkthrough contracts | PASS for setup repair and targeted contracts; first command invocation stopped before ExUnit until locked Mix deps were restored |
-| 248-04-02 | ADM-04 | Nine-run scale5 proof, true exit/elapsed/capture/classifier | `MIX_ENV=test THREADLINE_PROPERTY_SCALE=5 timeout --signal=TERM --kill-after=60s 55m mix verify.flake`; unchanged classifier and 9 clean summaries/headers | BLOCKED — latest user-approved invocation on `10442d31` consumed; wrapper 1, suite 2, capture 0, 1,582.26 seconds; three clean then five file-server timeouts in iteration 4 at seed `579775`, classifier `flaky`; no passing receipt or further repeat authority |
-| 248-04-03 | ADM-01–04 | Source-bound integration, affected proof, reviews and preservation | Historical `mix ci.all` plus focused file-pressure checks, one ordinary root invocation and inventory validator | PARTIAL — the prior isolated PG15 alias on `ab65c014` remains 417 first-pass / 1 retry-pass / 56 configured skips; clipboard evidence is separately scoped. The three file-pressure contracts pass 38/0, strict format/Credo pass, one root invocation on `eaedaf5e` passed 3,400/0/3 in 234.24 seconds, and the candidate inventory validator passed 15 checks. This is not a nine-run receipt; the independent source review is pending. |
+| 248-01-01 | ADM-01 | Actual executor/fork/cwd, retained tracer and approved brand provenance | Recorded isolation proof and baseline validator tracer; Plan01 summary | COVERED |
+| 248-01-02 | ADM-01 | 31-row exact retained inventory and six rejecting negative controls | `verify-candidate-baseline.py --check-inventory --self-test`:15 checks pass after assembly | COVERED |
+| 248-02-01 | ADM-02 | Compile-time explicit auth policy, actionable diagnostic, runtime deny and scope | Existing router/auth/export/theme/scoped-read contracts;85 focused checks and current nine root suites | COVERED |
+| 248-02-02 | ADM-02 | 17 fixture mounts preserve real capability and query-scope behavior | Existing operator-surface suite:843/0 recorded; same runtime/test sources included in current nine root suites | COVERED |
+| 248-02-03 | ADM-02 | Truthful migration guides, actual inherited host pipelines and intentional public opt-out | Guide contracts and corrected actual-snippet compiler probe; current root documentation contracts pass | COVERED |
+| 248-03-01 | ADM-03 | Compatible fixed root lock, complete advisory findings and compile boundary | Mix-generated lock/provenance proof, root compile and all-lock audit; unchanged locks in passing receipt | COVERED |
+| 248-03-02 | ADM-03 | Fixed bench/example locks and unchanged supported-tier policy | Three-lock audit0 with86 audit-policy tests; canonical bench/example source-bound stages and current root contracts | COVERED |
+| 248-04-01 | ADM-04 | Actual missing-CLI reproduction, locked setup and same real discovery boundary | Browser-journey discovery contract plus scoped workflow setup regressions; current root suites use prepared locked CLI | COVERED |
+| 248-04-02 | ADM-04 | Original nine-run/scale/timeout/classifier and genuine zero exits | 248-PLAIN-REPEAT-RECEIPT.json:9 headers/9 clean summaries, suite/capture/wrapper0,classifierpass,3045s within3300 | COVERED |
+| 248-04-03 | ADM-01–04 | Trustworthy assembled proof, regression review and preservation | Current plain root repeat; historical canonical stages with explicit browser retry limits, scoped clipboard/control proofs, reviewed diagnostics and15 inventory controls | COVERED |
 
-Each PASS above is backed by its plan summary, final assembled check, or this plan's detailed proof ledger. All failed full-repeat receipts remain failures; the latest is five clean runs followed by a public-reference test timeout in iteration 6, and no receipt is converted into acceptance. Four serial waves contain 2, 3, 2 and 3 tasks respectively. The 17-file fixture task is a justified mount-option-only fan-out within the requested four-plan structure.
+## Evidence Limits
 
-The three resolved inventory edges map to 248-01-02; the three resolved diagnostic considerations map to 248-02-01. The ADM-02/03/04 unclassified edge rows remain flagged assumptions alongside substantive compile/runtime, all-lock-audit and suite/setup tests. The descriptor-less transparency prohibition is flagged-unverified; local results never imply hosted CI, live issue closure or publication. Original probe artifacts are preserved.
+The [plain repeat](248-PLAIN-REPEAT-RECEIPT.json) passed nine suites on its exact source with unchanged assertions, scale5, max-cases36, configured exclusions and55m+60s bounds. The [reconciliation record](248-WORKTREE-RECONCILIATION.md) distinguishes the parent's later instruction-only safeguard from tested runtime/test identities.
 
-## Wave 0 Requirements
+The earlier canonical alias exit0 is source-bound history: root3400/0, example132/0, Dialyzer0 and live slice17/0; its browser lane retains417 first passes, one retry-passed clipboard case and56 configured skips. The later clipboard test fix has separate retries-disabled focused proof. No fresh full canonical/browser or complete min/current/latest toolchain matrix is claimed. Source-equivalent stages are reused with those bounds; the final goal verifier assesses acceptance.
 
-Existing test infrastructure covers the phase. Install existing locked Mix and E2E dependencies in isolated executor environments. Confirm PostgreSQL availability and avoid modifying unrelated services/processes. No new framework, CI job or dependency is required.
+All failed repeats remain failures. Intermediate `eaedaf5e` negative-fixture coverage was vacuous and is invalid as complete coverage or speedup evidence; the explicit premise correction and current nine-run result supersede it. No sole cause or permanent flake-elimination claim is made.
+
+The three resolved inventory edges map to248-01-02; three resolved diagnostic considerations map to248-02-01. Unclassified ADM02/03/04 edge rows remain flagged research assumptions alongside substantive tests. The descriptor-less transparency prohibition remains flagged-unverified as a policy limitation; actual recorded executor binding is verified. Local proof does not close live issues, scheduled hosted receipts or REL-01, and grants no external action authority.
+
+## Wave0 Requirements
+
+Existing infrastructure and locked tools were prepared before the bounded attempt. No new Wave0 tests are missing. PostgreSQL15.17 was task-owned, stopped after zero clients, and shared services were untouched.
 
 ## Manual-Only Verifications
 
-None for local acceptance. Actual push/hosted CI, live issue closure and publication retain their authority boundaries; disclose unavailable live receipts rather than asking for human retesting.
+None for local coverage. External push/hosted CI, live issue closure and publication retain their separate authority boundaries; no maintainer retesting is requested.
 
 ## Validation Sign-Off
 
-- [x] All tasks have runnable automated verification and stated failure signals.
-- [x] Required negative paths and dependency findings are observed at their real boundary.
-- [ ] Integrated checks and the affected repeat proof have current candidate evidence. The final canonical integration passed; the required nine-run repeat remains blocked.
-- [x] Independent review findings are resolved or explicitly blocking; see [248-WORKFLOW-REVIEW.md](248-WORKFLOW-REVIEW.md).
-- [x] No unverified item has been recorded as passing.
+- [x] All ten tasks map to runnable automated verification and observable failure signals.
+- [x] Required negative controls, actual discovery and explicit authorization/scoping behavior are exercised.
+- [x] The required plain nine-run proof is current and passing.
+- [x] Historical integration, browser and toolchain limits are preserved without relabeling.
+- [x] No test gap or manual-only local acceptance task is hidden.
 
-**Approval:** the focused file-pressure contracts, format, strict Credo and one ordinary root invocation pass on the current committed source. A prior root invocation's Git metadata permission failure remains historical; this scoped run used the required access. The historical canonical alias retains one browser retry. Nine-run acceptance remains blocked and the latest repeat grant is consumed.
+Approval: coverage validated2026-11-11; phase goal verification follows. Source-review recheck of the retained instruction-only delta is part of the required post-gates.
 
-## Historical proof reconciliation
+## Validation Audit 2026-11-11
 
-The bounded public-surface and file-pressure changes preserve their subjects, owners, exceptions, assertions and negative controls; the heading-15 guide probe also confirms inherited pipelines without product/router changes. Current file-pressure checks and limits are in [248-FILE-PRESSURE-PROOF.md](248-FILE-PRESSURE-PROOF.md). The parent owns PostgreSQL lifecycle and independent source review. Nyquist compliance and phase acceptance remain false until the required nine-run proof exists; no routine human verification is requested.
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |

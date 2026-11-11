@@ -129,3 +129,7 @@ Plan248-04 is complete at the implementation/proof level. Merge/reconcile only t
 ## Self-Check
 
 Verified nine clean suites, true suite/capture/wrapper exits0, classifierpass, unchanged source, preserved33/22 identities and stopped owned PostgreSQL. All prior failed receipts remain failures. Phase-level completion is still pending formal verification.
+
+## Reconciled candidate identity
+
+The GSD-owned worktree was locally merged and removed. The 22 protected identities and 32 of the 33 reviewed files match the passing worktree; the parent retains one instruction-only `AGENTS.md` safeguard, queued for final source review. No runtime/test identity changed. [Reconciliation evidence](248-WORKTREE-RECONCILIATION.md).

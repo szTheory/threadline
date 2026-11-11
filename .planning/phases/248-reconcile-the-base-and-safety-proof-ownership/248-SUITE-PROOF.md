@@ -221,3 +221,7 @@ Plan 248-04 remains halted, ADM-04 remains incomplete, and the repeat grant is c
 ## Historical source-review reconciliation
 
 The public-reference optimization and heading 15 guide correction have independent review with no remaining source findings. See [248-PUBLIC-SURFACE-REVIEW.md](248-PUBLIC-SURFACE-REVIEW.md). The actual-snippet extraction compiler check passes for the corrected scope and rejects the old form. The full-repeat failure, ordinary root sandbox failure and separately passing permission-scoped fixture remain distinct; Plan 04 is halted and ADM-04 incomplete until required current-source nine-run proof exists.
+
+## Reconciled candidate identity
+
+The GSD-owned worktree was locally merged and removed. The 22 protected identities and 32 of the 33 reviewed files match the passing worktree; the parent retains one instruction-only `AGENTS.md` safeguard, queued for final source review. No runtime/test identity changed. [Reconciliation evidence](248-WORKTREE-RECONCILIATION.md).

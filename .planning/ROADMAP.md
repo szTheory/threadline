@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans. Its latest approved instrumented diagnostic failed the first suite with one formatter timeout. The narrow synthetic overlap fixture correction is committed, focused checks and controlled negative tests pass, and independent source review has no active findings; no exclusive cause or current full-root/nine-run pass is claimed. One plain acceptance proposal awaits a new grant; owned PostgreSQL is stopped. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans.
+Execution order:248→249→250→251→252→253. All four Phase248 plans are complete and GSD-reconciled. The plain nine-run proof passed, protected runtime/test identities match, owned PostgreSQL is stopped, and required phase post-gates are in progress. No phase or formal requirement is closed before the goal verifier. Totals:six phases,zero complete,four plans,four complete plans.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Waiting for plain acceptance grant | - |
+| 248. Reconcile the base and safety/proof ownership | 4/4 | Required phase post-gates in progress | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-The user decides exactly one new plain nine-run acceptance invocation: background, scale 5 / max-cases 36, capped at 55 minutes plus 60 seconds, unchanged alias/classifier/fresh seeds and no observer. The diagnostic grant is consumed. Current focused fixture proof and review pass; shared pressure and the required repeated-suite gate remain unresolved. Task-owned PostgreSQL is stopped; no automatic subsequent run or external authority. The agent is waiting; concrete proposal is in the retained Plan04 worktree's `248-OVERLAP-READINESS.md`. After actual acceptance, finish mandatory post-gates before Phase249 and continue the original autonomous objective.
+The agent completes required validation, security, UI-preservation and code-review/disposition, then the exclusive foreground goal-verifier handoff. Read verification through its owner; only `passed` permits `phase.complete248`, after which the original autonomous phases249–253 scope continues. No user action is needed for these authorized steps. No new full-repeat grant or external/publication authority is inferred.

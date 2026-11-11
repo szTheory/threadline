@@ -13,7 +13,7 @@ progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -34,7 +34,7 @@ Plan: 4 of 4
 Status: Reconciling passing Plan04 proof and phase verification
 Last activity: 2026-11-11 — The approved plain attempt passed all nine suites within55minutes at unchangedsource7fa5d51d, suite/capture/wrapper0 and classifierpass. Owned PostgreSQL stopped. Plan04 proof is ready for GSD reconciliation; validation/security/UI/code review and goal verification remain. No user action needed.
 
-Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
+Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 4 of 4 plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
@@ -72,7 +72,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 3 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 awaits a new plain acceptance grant after the failed diagnostic and verified narrow fixture remedy; formal gates remain pending.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 0 complete, 4 plans, 4 complete plans, 0/34 formally closed requirements, 0% phase progress. Phase248 awaits a new plain acceptance grant after the failed diagnostic and verified narrow fixture remedy; formal gates remain pending.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
