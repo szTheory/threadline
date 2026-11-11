@@ -33,9 +33,11 @@ defmodule Threadline.FormatterTopologyContractTest do
     assert ownership_errors(@representative_paths, owner_files) == [],
            "every representative path must have exactly one formatter owner"
 
+    # The overlap control only needs to add a second owner to this representative path.
+    # Keep it literal to avoid traversing unrelated dependency and build trees.
     overlapping =
       update_owner(owners, @root, fn config ->
-        Keyword.update!(config, :inputs, &["bench/**/*.exs" | &1])
+        Keyword.update!(config, :inputs, &["bench/audit_capture_bench.exs" | &1])
       end)
 
     overlapping_owner = owner!(overlapping, @root)
