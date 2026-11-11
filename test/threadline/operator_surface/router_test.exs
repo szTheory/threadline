@@ -22,31 +22,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      end
       end
 
-      test "Case 2: compiles successfully with pipe_through" do
-        modules =
-          Code.compile_quoted(
-            quote do
-              defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
-                use Phoenix.Router
-                require Threadline.OperatorSurface.Router
+      test "pipeline-only host mount fails with the actionable call-site diagnostic" do
+        source = ~S"""
+        defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
+          use Phoenix.Router
+          require Threadline.OperatorSurface.Router
 
-                pipeline :browser do
-                  plug(:accepts, ["html"])
-                end
+          pipeline :browser do
+            plug(:accepts, ["html"])
+          end
 
-                scope "/" do
-                  pipe_through(:browser)
-                  Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
-                end
-              end
-            end
-          )
-
-        # Cleanup compiled modules
-        for {module, _} <- modules do
-          :code.delete(module)
-          :code.purge(module)
+          scope "/" do
+            pipe_through(:browser)
+            Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
+          end
         end
+        """
+
+        error =
+          assert_raise CompileError, fn ->
+            Code.compile_string(source, "operator_surface_mount_fixture.ex")
+          end
+
+        assert error.file == "operator_surface_mount_fixture.ex"
+        assert error.line == 11
+        assert error.description ==
+                 "Threadline.OperatorSurface.Router.threadline_operator_surface/2 requires either a one-argument `authorize_fn` or the exact `adopter_acknowledges_unauthenticated: true` opt-out. `pipe_through` alone does not authorize access. Add `authorize_fn: &MyApp.Audit.authorize_operator/1`, or use the exact opt-out only when this surface is intentionally unauthenticated."
       end
 
       test "Case 3: compiles successfully without pipe_through but with authorize_fn" do
