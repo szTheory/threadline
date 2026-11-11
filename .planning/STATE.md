@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 248
 current_phase_name: Reconcile the base and safety/proof ownership
-status: blocked
-stopped_at: Diagnostic failed and focused fixture remedy verified; new plain acceptance grant needed
-last_updated: "2026-11-11T21:09:55.282106+00:00"
+status: in_progress
+stopped_at: Plain nine-run proof passed; reconciling Plan04 and mandatory phase post-gates
+last_updated: "2026-11-11T22:05:45.166784+00:00"
 last_activity: 2026-11-11
 last_activity_desc: Diagnostic captured progressing file server under pressure; narrowed synthetic overlap fixture; focused controls and review pass; PostgreSQL stopped
 state_head: fed0c30eb8325c7c2257f841035d6c4274cedbb6
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 Phase: 248 of 253 (1 of 6 in v1.48) — Reconcile the base and safety/proof ownership
 Plan: 4 of 4
-Status: Waiting for one new plain acceptance grant
-Last activity: 2026-11-11 — The one approved instrumented diagnostic failed its first suite with one formatter timeout. The synthetic overlap fixture now uses the exact representative; focused test, format, strict Credo, private control mutants and source review pass. Shared pressure remains possible; no current root/nine-run pass. Owned PostgreSQL stopped; the user decides one new plain acceptance grant.
+Status: Reconciling passing Plan04 proof and phase verification
+Last activity: 2026-11-11 — The approved plain attempt passed all nine suites within55minutes at unchangedsource7fa5d51d, suite/capture/wrapper0 and classifierpass. Owned PostgreSQL stopped. Plan04 proof is ready for GSD reconciliation; validation/security/UI/code review and goal verification remain. No user action needed.
 
 Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4 plans complete.
 
@@ -40,7 +40,7 @@ Progress: [░░░░░░░░░░] 0% — 0 of 6 phases complete; 3 of 4
 
 **Current diagnosis and dispatch:** Issue #90's latest run failed two real journey-discovery tests because Flake Detection omitted locked Playwright setup; repair pinned Node/npm setup without reducing suite scope. Issue #61 has tested in-range Ecto, Phoenix.HTML and example Bandit remedies in all three locks; the current local audit has zero findings, while the scheduled clean receipt and live issue status remain pending. The active checkout resolves GSD-managed executor worktrees and a usable command descriptor. The supported local `worktree.baseRef: head` remedy clears the missing-fork-reference base check while keeping `workflow.use_worktrees: true`; actual executor fork/cwd still requires verification. Detailed evidence and plans: `.planning/phases/248-reconcile-the-base-and-safety-proof-ownership/`.
 
-**Active proof boundary:** Diagnostic grant consumed at unchanged8bdb4ac0: one suite,32properties3400tests1failure3excluded,727.45s,suite2/capture0/wrapper1,classifierbroken. During the formatter timeout184samples showed progressing counters/changingfunctions with queuedwork; observeroverhead limits precision, noexclusivecause. A sequentialpostrun check found107syntheticglobmatches(97deps/build) versusoneexactrepresentative. Current sourcece0c2e30 narrows onlythat mutation, preserving productionconfigs/12representatives/exactoverlap+uncoveredassertions/settings. Focused1/0,format,strictCredo andbothprivateexpected-failurecontrols pass;33file independentrecheckclean(32reused/onefullread). No currentfullroot orplain9pass; earlier9broot0 is source-boundhistory, andinvalid intermediateeaednegativefixturecoverage remainsexplicitlyinvalidated. Nextproposal: exactlyone plainnine-run alias,scale5/max36/55m+60s,normalclassifier/freshseeds/noobserver; authorizationfalse. Task-ownedPG15.17stopped afterzerootherclients; sharedservicesuntouched. The user actsnext onthe newgrant; agentwaiting. Retained Plan04worktree248-OVERLAP-READINESS.md hasconcreteproposal. Formalpostgates and249–253remainpending; nopublicationauthority.
+**Active proof boundary:** Plain nine-run pass at source7fa5d51d/reviewedcodece0c2e30: nineclean summaries of32properties3400tests0failures3exclusions, scale5/max36/freshseeds/normalformatter, true suite/capture/wrapper0, classifierpass,3045sshell within3300s. Sourceunchanged and33/22identities preserved. Prior failures and invalid intermediateeaedfixturecoverage remainhistorical, notrelabeled. The missingrepeatproof stop is resolved; no further repeatgrant inferred. Task-ownedPG15.17stopped afterterminal/zero clients, sharedservicesuntouched. The agent reconciles Plan04 throughGSD and finishes requiredpostgates/foregroundgoalverification before phase.complete248, then continues original249–253scope. No useractionneeded; externalwrites/publication/versionauthorityremainseparate.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
