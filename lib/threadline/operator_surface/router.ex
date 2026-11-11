@@ -170,6 +170,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp usable_authorize_fn_ast?(ast), do: not literal_non_function_ast?(ast)
 
+    # Plug.Builder can only escape remote function captures in router options,
+    # so normalize an inline callback into a unique helper on the host router.
     defp normalize_inline_authorize_fn(opts, true) do
       case Keyword.fetch(opts, :authorize_fn) do
         {:ok, {:fn, _meta, clauses}} ->
@@ -222,6 +224,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp literal_non_function_ast?({:%, _meta, _parts}), do: true
     defp literal_non_function_ast?({:%{}, _meta, _entries}), do: true
     defp literal_non_function_ast?({:<<>>, _meta, _parts}), do: true
+    defp literal_non_function_ast?({:{}, _meta, _values}), do: true
 
     defp literal_non_function_ast?(value) when is_tuple(value) and tuple_size(value) == 2,
       do: true

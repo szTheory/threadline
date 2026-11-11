@@ -391,7 +391,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         public_functions = apply(inline_fn_mount, :__info__, [:functions])
 
-        refute Enum.any?(
+        assert Enum.any?(
                  public_functions,
                  fn {name, _arity} ->
                    String.starts_with?(Atom.to_string(name), "__threadline_authorize_fn_")
