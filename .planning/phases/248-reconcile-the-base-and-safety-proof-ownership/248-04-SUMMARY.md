@@ -173,6 +173,18 @@ Plan 248-04 is **halted**, not complete: the canonical integration and baseline 
 *Phase: 248-reconcile-the-base-and-safety-proof-ownership*
 *Completed: 2026-11-10*
 
+## Corrective follow-up — 2026-11-11
+
+The single explicitly approved renewed repeat is now terminal and failed: source `8311dc64ac4b7f0b686e27de41839899803139c7`, seed `500886`, suite exit 2, capture exit 0, 2,611 seconds, classifier `flaky` after six clean runs and an iteration-7 formatter timeout. Its portable receipt is [248-RENEWED-REPEAT-RECEIPT.json](248-RENEWED-REPEAT-RECEIPT.json); the active no-further-full-repeat stop remains in force.
+
+The failure stack entered recursive wildcard expansion from `ownership_errors/2`. The test now computes each ordered owner file set once per invocation and reuses those sets for all paths. This preserves fresh sets for the modified overlap/uncovered owners and retains duplicate owner records, all representative paths and negative-control assertions, the synthetic overlap glob, async setting, timeout, tags and suite coverage. Static traversal counts across the existing calls fell from 70 owner-set builds / 168 input wildcard expansions to 15 / 36. This identifies repeated work but does not claim it alone explains the timeout or infer a machine-load cause. Details and attribution limits are in [248-FORMATTER-FIX.md](248-FORMATTER-FIX.md).
+
+The permitted seed-500886 standalone baseline passed (1 test, 0 failures; 0.8s ExUnit, 2s wall). The same focused file passed after the fix (1 test, 0 failures; 0.2s ExUnit, 1s wall), and `mix verify.format` exited 0 in 3s. The code-only commit is `2b00c6bea83e42fe8843b2b8d7767f7ffbe13df4`; it changes only `test/threadline/formatter_topology_contract_test.exs`.
+
+The one canonical `mix ci.all` on that commit exited 1 after 438s. Credo, dependency audit, hygiene, xref, and the root suite passed; the root suite reported 3,400 tests, 0 failures, 3 excluded. `verify.example` then failed to establish its test database because PostgreSQL returned `too_many_connections`. The remaining Dialyzer and browser stages were not reached. A read-only snapshot taken after exit showed 100 configured connections, 30 idle sessions across other databases, and five sessions without a database; this does not prove the count or client owners at failure time. No process/client cleanup was performed. The candidate baseline validator passed all 15 checks. All four lockfile hashes remain unchanged and package version remains `1.1.0`.
+
+**Status remains halted/incomplete.** ADM-04 is incomplete because the renewed repeat failed and no passing nine-run receipt exists. The canonical command also did not complete. No full-repeat retry, additional canonical run, acceptance waiver, phase advance, or worktree removal is authorized. The next decision belongs to the orchestrator/maintainer: whether to authorize a separate canonical run after verified task-local PostgreSQL headroom is available, while preserving the no-repeat stop.
+
 
 ## Orchestration continuation and current authority boundary
 
