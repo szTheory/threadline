@@ -136,11 +136,11 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans; its final plan has corrected, checked and reviewed the public-document inventory timeout and guide example; the latest approved repeat failed after three clean runs. A fixture-premise regression in the pressure refactor was corrected, reviewed and checked; the corrected single root pass does not establish a speedup or timeout cause. One checked instrumented diagnostic proposal awaits a new grant; it cannot replace plain acceptance. Task-owned PostgreSQL is stopped. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans, zero complete phases.
+Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has three complete plans. Its latest approved instrumented diagnostic failed the first suite with one formatter timeout. The narrow synthetic overlap fixture correction is committed, focused checks and controlled negative tests pass, and independent source review has no active findings; no exclusive cause or current full-root/nine-run pass is claimed. One plain acceptance proposal awaits a new grant; owned PostgreSQL is stopped. Later phases remain Pending. Totals: six phases, zero complete, four plans, three complete plans.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
-| 248. Reconcile the base and safety/proof ownership | 3/4 | Waiting for diagnostic grant; plain repeat pending | - |
+| 248. Reconcile the base and safety/proof ownership | 3/4 | Waiting for plain acceptance grant | - |
 | 249. Map jobs, scenarios and the brand contract | 0/0 | Pending | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
@@ -149,4 +149,4 @@ Execution order: 248 → 249 → 250 → 251 → 252 → 253. Phase 248 has thre
 
 ## Next
 
-The user decides whether to grant one background instrumented diagnostic of the existing nine-run alias at scale 5 / max-cases 36, capped at 55 minutes plus 60 seconds. Its silent file-server observer is checked; instrumentation can affect timing, so a green result is diagnostic only and the required plain repeat remains outstanding. Current corrected checks/review pass; cause unresolved, previous grant consumed, owned PostgreSQL stopped. The agent is waiting. Concrete proposal and evidence remain in the retained Plan04 worktree's `248-PRESSURE-READINESS.md`. After a grant the agent runs only that diagnostic, investigates, preserves all gates and continues the original autonomous objective when acceptance is satisfied. No push/publication/version authority inferred.
+The user decides exactly one new plain nine-run acceptance invocation: background, scale 5 / max-cases 36, capped at 55 minutes plus 60 seconds, unchanged alias/classifier/fresh seeds and no observer. The diagnostic grant is consumed. Current focused fixture proof and review pass; shared pressure and the required repeated-suite gate remain unresolved. Task-owned PostgreSQL is stopped; no automatic subsequent run or external authority. The agent is waiting; concrete proposal is in the retained Plan04 worktree's `248-OVERLAP-READINESS.md`. After actual acceptance, finish mandatory post-gates before Phase249 and continue the original autonomous objective.

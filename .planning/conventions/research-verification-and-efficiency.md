@@ -110,3 +110,20 @@ capture file-server state during a bounded repeat, but may affect scheduling; it
 pass is diagnostic and does not silently replace an uninstrumented acceptance gate.
 QA the actual installed CLI flags, alias lifecycle and output/exit preservation in
 a tiny offline fixture first. Preserve fresh seed policy; a pinned seed changes it.
+
+## Bound synthetic mutations and continuation work
+
+When a control needs only one known representative to have a second owner, mutate
+that exact valid path rather than recursively enumerating dependency/build trees.
+Preserve production globs, baseline representatives and exact negative outcomes.
+Prove the control still fails when its mutation is omitted or misdirected; do not
+convert a smaller fixture match set or one-off timing into a flake-fix claim.
+
+For bounded executor continuations, give exact current manifest paths, key names,
+expected source and the one-file responsibility. The parent owns full identity and
+public-evidence reconciliation; the executor owns its source edit, focused checks,
+commit and one compact receipt. Do not make it rediscover historical temporary
+receipts or repeat the parent's cross-source hash work. This continuation spent
+about 298 seconds before a focused check that itself took about one second; narrow
+handoff inputs and single ownership reduce that avoidable critical path without
+adding caches, concurrency or dependencies. Preserve required independent review.
