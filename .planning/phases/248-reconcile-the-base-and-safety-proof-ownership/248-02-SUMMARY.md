@@ -190,3 +190,14 @@ None — no external service configuration is required.
 - All 23 planned source, test, and guide files exist, and all 8 task commits are ancestors of the current plan branch.
 - `gsd_run check evaluation-scope --plan "248-02" --commits-only --raw` resolved this plan with 8 commits.
 - The focused authorization/scope tests, full operator-surface suite, documentation contract, and formatting check passed.
+
+## Targeted Mount Review Fixes
+
+This follow-up applies only the two findings from the targeted mount review. It supersedes the earlier router verification for those callback shapes; it does not update phase state or claim the remaining Phase 248 work is complete.
+
+- **CR-01 — local unary captures:** local short and unqualified named `authorize_fn` captures are lowered to generated remote callbacks on the host router. Phoenix router generation now compiles them, and the tests invoke the authorization hook read from the generated LiveView route metadata. Qualified external captures remain unchanged, and compilation is still checked not to invoke callback bodies.
+- **WR-01 — guarded callback arity:** guarded callback arity counts parameter patterns inside `:when`, excluding the guard expression. Guarded unary callbacks compile; guarded multi-argument callbacks fail at the mount call with the existing actionable authorization diagnostic.
+- **Commits:** `e4694ebb` (`fix(248-02): normalize local mount authorizers for Phoenix`) and `f00b2b5e` (`fix(248-02): validate guarded authorizer arity`).
+- **Superseding verification:** the focused router/auth/export/theme/scope set passed 85 tests; `mix test test/threadline/operator_surface` passed 843 tests; `mix verify.format` passed. Detailed source identities and pre-fix evidence are in [248-MOUNT-FIXES.md](248-MOUNT-FIXES.md).
+
+This targeted pass changed no public host API, route, dependency, runtime brand, or phase state. Other Phase 248 plans and requirements remain under their existing verification ownership.
