@@ -8,6 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         actor_fn: &Auth.actor/1,
         policy_authorize_fn: &Auth.authorize/1
       )

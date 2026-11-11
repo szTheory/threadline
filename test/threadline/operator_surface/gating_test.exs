@@ -22,6 +22,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Control
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_disabled",
+        adopter_acknowledges_unauthenticated: true,
         exports: false,
         evidence_authorize_fn: &__MODULE__.evidence_auth/1
       )

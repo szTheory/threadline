@@ -6,7 +6,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true
+      )
     end
   end
 
@@ -64,6 +67,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_denied",
+        adopter_acknowledges_unauthenticated: true,
         export_authorize_fn: &__MODULE__.export_auth/1
       )
     end
@@ -99,6 +103,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_actor",
+        adopter_acknowledges_unauthenticated: true,
         actor_fn: &__MODULE__.actor_from_header/1
       )
     end
