@@ -431,7 +431,6 @@ else
 fi
 mix ecto.migrate --quiet
 mix demo.reset
-mix demo.seed
 
 cd "$E2E_DIR"
 if [[ "$PREVIEW_MODE" != "1" ]]; then

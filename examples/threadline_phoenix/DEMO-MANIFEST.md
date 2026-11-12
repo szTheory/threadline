@@ -12,7 +12,7 @@ with per-entity names such as `org/acme` or `user/closer@acme.example.com`.
 | Key | UTC instant | Notes |
 |-----|-------------|-------|
 | `demo_epoch` | `2026-05-27T12:00:00Z` | Frozen “today” for seed backfill and filters |
-| `demo_last_tuesday` | `2026-05-20T14:30:00Z` | Operator filters when prose says “last Tuesday” (7 days before epoch) |
+| `demo_last_tuesday` | `2026-05-26T14:30:00Z` | Operator filters for the preceding calendar Tuesday before the Wednesday epoch |
 
 Configured in `config/dev.exs` as `:demo_epoch` and `:demo_seed_password`.
 
@@ -57,9 +57,11 @@ Evidence `subject_ref` for org Y purge names `offboarded-co` and org UUID `93cba
 
 ## State recipes
 
-How to reach every meaningful operator-surface state from the enriched seed — no re-seeding, no `--profile` flags.
+How to reach every meaningful operator-surface state from the enriched seed — no `--profile` flags.
 
-**One-command story:** `mix demo.reset && mix demo.seed` is the only seed entrypoint. States are _reached_ (log in as X, open path Y, apply filter Z), never re-seeded. No `--profile` flag is used or needed.
+**Clean setup:** `mix demo.reset` is the one-command clean setup. It truncates and seeds the canonical demo fixture, so the E2E runner invokes it once and does not follow it with another seed command. States are _reached_ (log in as X, open path Y, apply filter Z), never re-seeded.
+
+**Direct seed:** `mix demo.seed` is a separate, guarded in-place operation against existing rows. Re-running the pipeline can have repeated effects, so use reset when you need a clean setup. The existing reset-then-seed regression only checks that its fixture sequence does not raise; it does not establish a general idempotence guarantee.
 
 | Screen | State | Login | Filter / Path | Notes |
 |--------|-------|-------|---------------|-------|

@@ -4,6 +4,16 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
 
   @manifest Path.expand("../../DEMO-MANIFEST.md", __DIR__)
 
+  describe "temporal anchors" do
+    test "DEMO-MANIFEST.md pins the previous-calendar-day Tuesday filter" do
+      doc = File.read!(@manifest)
+
+      assert String.contains?(doc, "`demo_epoch` | `2026-05-27T12:00:00Z`")
+      assert String.contains?(doc, "`demo_last_tuesday` | `2026-05-26T14:30:00Z`")
+      assert String.contains?(doc, "preceding calendar Tuesday")
+    end
+  end
+
   describe "recipe table" do
     test "DEMO-MANIFEST.md contains the State recipes section header" do
       doc = File.read!(@manifest)
@@ -36,15 +46,15 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
              "expected DEMO-MANIFEST.md to include \"?from=2030\""
     end
 
-    test "DEMO-MANIFEST.md references the one-command seed story without --profile flags" do
+    test "DEMO-MANIFEST.md distinguishes clean reset from direct in-place seeding" do
       doc = File.read!(@manifest)
 
-      assert String.contains?(doc, "mix demo.reset && mix demo.seed"),
-             "expected DEMO-MANIFEST.md to include \"mix demo.reset && mix demo.seed\""
+      assert String.contains?(doc, "`mix demo.reset` is the one-command clean setup")
+      assert String.contains?(doc, "truncates and seeds")
+      assert String.contains?(doc, "`mix demo.seed` is a separate, guarded in-place operation")
+      assert String.contains?(doc, "repeated effects")
 
-      assert String.contains?(doc, "--profile") == false or
-               String.contains?(doc, "no `--profile`"),
-             "expected DEMO-MANIFEST.md to document that no --profile flag is used"
+      refute String.contains?(doc, "mix demo.reset && mix demo.seed")
     end
 
     test "DEMO-MANIFEST.md notes the Coverage deferred state as Phase 138 owned" do

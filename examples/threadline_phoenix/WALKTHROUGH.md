@@ -327,7 +327,7 @@ Sigra auth and help-desk provisioning prove the reference app's first-hour opera
 
 ## §3 Daily use
 
-Daily operator flows use seeded personas and the mounted `/audit` surface. When prose says **"last Tuesday"**, use manifest anchor **`demo_last_tuesday`** = **`2026-05-20T14:30:00Z`** — not wall-clock-relative filters.
+Daily operator flows use seeded personas and the mounted `/audit` surface. When prose says **"last Tuesday"**, use manifest anchor **`demo_last_tuesday`** = **`2026-05-26T14:30:00Z`** — the preceding calendar Tuesday before the fixed Wednesday epoch, not a wall-clock-relative filter.
 
 #### Step WALK-02-01 — Agent reply and close
 
@@ -371,7 +371,7 @@ Daily operator flows use seeded personas and the mounted `/audit` surface. When 
 
 1. Log out; log in as **`admin@example.com`** / **`password123456`**
 2. Open **`http://localhost:4000/audit`**
-3. Apply a time filter window including **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — values in Appendix A
+3. Apply a time filter window including **`demo_last_tuesday`** (`2026-05-26T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — values in Appendix A
 4. Scan timeline for Acme help-desk table activity (`tickets`, `ticket_replies`)
 
 **Expected outcome:**
@@ -438,7 +438,7 @@ Daily operator flows use seeded personas and the mounted `/audit` surface. When 
 
 ## §4 Operator incidents
 
-Four atomic incident playbooks — one manifest hero each. When prose says **"last Tuesday"**, use **`demo_last_tuesday`** = **`2026-05-20T14:30:00Z`** (Appendix A) — not wall-clock-relative filters.
+Four atomic incident playbooks — one manifest hero each. When prose says **"last Tuesday"**, use **`demo_last_tuesday`** = **`2026-05-26T14:30:00Z`** (Appendix A), the preceding calendar Tuesday before the fixed Wednesday epoch — not a wall-clock-relative filter.
 
 Answers use only the shipped **`/audit`** operator surface and documented **`mix threadline.*`** CLI — no raw SQL, no IEx, no `Repo.all/2`.
 
@@ -452,7 +452,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 
 1. Open **`http://localhost:4000/audit`**
 2. Apply filter **`correlation_id: walk-acme-4521-close`**
-3. Narrow time window to include **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`)
+3. Narrow time window to include **`demo_last_tuesday`** (`2026-05-26T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`)
 4. Open the matching transaction drill-down **`/audit/transactions/:id`**
 5. Inspect row changes on **`tickets`** (status → closed) and **`ticket_replies`** (close reply insert)
 6. On the transaction drill-down, click **History** on the `ticket_replies` change row (canonical path: `/audit/transactions/:id/history/ticket_replies/:record_id`) and confirm sensitive fields
@@ -468,7 +468,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 
 | Route | Scope | Filters | Drill-down |
 |-------|-------|---------|------------|
-| `/audit` | Support org-scoped or admin cross-org | `correlation_id: walk-acme-4521-close`, `from`/`to` anchored to `2026-05-20T14:30:00Z` | → `/audit/transactions/:id` |
+| `/audit` | Support org-scoped or admin cross-org | `correlation_id: walk-acme-4521-close`, `from`/`to` anchored to `2026-05-26T14:30:00Z` | → `/audit/transactions/:id` |
 | `/audit/transactions/:id` | Org-scoped or admin | transaction id from timeline | row changes on `tickets`, `ticket_replies` |
 | Row history *(shorthand /audit/rows/ticket_replies/:pk)* | Org-scoped or admin | table pk from transaction | → **History** on change row → `/audit/transactions/:id/history/ticket_replies/:record_id` |
 
@@ -487,7 +487,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 **Do:**
 
 1. Open **`http://localhost:4000/audit/actors/user/33123cc4-da21-5674-b030-e168cee90521`** (Appendix A — `agent2@acme.example.com` user id)
-2. Set time window from **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — consistent with WALK-03-01 step 3
+2. Set time window from **`demo_last_tuesday`** (`2026-05-26T14:30:00Z`) through **`demo_epoch`** (`2026-05-27T12:00:00Z`) — consistent with WALK-03-01 step 3
 3. Alternatively: cross-org **`/audit`** timeline with actor filter for **`agent2@acme.example.com`** and the same window
 4. Scan the actor history list for **`tickets`** table activity (status changes)
 
@@ -557,7 +557,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 **Do:**
 
 1. Open **`http://localhost:4000/audit`**
-2. Filter timeline to **`table: ticket_replies`** and time window including **`demo_last_tuesday`** (`2026-05-20T14:30:00Z`)
+2. Filter timeline to **`table: ticket_replies`** and time window including **`demo_last_tuesday`** (`2026-05-26T14:30:00Z`)
 3. Locate **DELETE** operation on a reply row tied to hero ticket **#4518** (distinct from #4521 close story)
 4. Open delete transaction **`/audit/transactions/:id`** — confirm actor **`deleter@acme.example.com`**
 5. On the delete transaction drill-down, click **History** on the deleted reply change row (canonical path: `/audit/transactions/:id/history/ticket_replies/:record_id`) — inspect state before delete
@@ -574,7 +574,7 @@ Answers use only the shipped **`/audit`** operator surface and documented **`mix
 
 | Route | Scope | Filters | Drill-down |
 |-------|-------|---------|------------|
-| `/audit` | Support org-scoped or admin | `table: ticket_replies`, `from`/`to` including `2026-05-20T14:30:00Z`, op DELETE | → `/audit/transactions/:id` |
+| `/audit` | Support org-scoped or admin | `table: ticket_replies`, `from`/`to` including `2026-05-26T14:30:00Z`, op DELETE | → `/audit/transactions/:id` |
 | `/audit/transactions/:id` | Org-scoped or admin | delete transaction id | actor = deleter |
 | Row history *(shorthand /audit/rows/ticket_replies/:pk)* | Org-scoped or admin | reply pk from delete change | → **History** on change row → `/audit/transactions/:id/history/ticket_replies/:record_id` |
 
@@ -788,7 +788,7 @@ Walk-critical literals copied from **`DEMO-MANIFEST.md`** and **`DEMO_USERS.md`*
 | Key | UTC instant | Notes |
 |-----|-------------|-------|
 | `demo_epoch` | `2026-05-27T12:00:00Z` | Frozen “today” for seed backfill and filters |
-| `demo_last_tuesday` | `2026-05-20T14:30:00Z` | Operator filters when prose says “last Tuesday” |
+| `demo_last_tuesday` | `2026-05-26T14:30:00Z` | Operator filters for the preceding calendar Tuesday before the Wednesday epoch |
 
 ### Organizations
 
