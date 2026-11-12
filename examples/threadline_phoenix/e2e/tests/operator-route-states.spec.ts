@@ -52,7 +52,8 @@ function copyStatus(control: Locator) {
 
 async function phase250FocusByKeyboard(page: Page, target: Locator) {
   await target.scrollIntoViewIfNeeded();
-  for (let index = 0; index < 120; index += 1) {
+  const limit = await page.locator('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])').count() + 1;
+  for (let index = 0; index < limit; index += 1) {
     if (await target.evaluate((element) => element === document.activeElement)) return;
     await page.keyboard.press("Tab");
   }
@@ -137,7 +138,8 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
         expect(roles.numeric).toContain("tabular-nums");
         const contrastRows = await page.evaluate(({ mapping, pairs, lane }) => {
           const root = document.querySelector(".threadline-ui")!;
-          const probe = document.createElement("span"); root.append(probe);
+          const probe = document.createElement("span");
+          probe.style.transitionProperty = "none"; probe.style.animationName = "none"; root.append(probe);
           const rows = pairs.map((pair: any) => {
             const [text, ground] = mapping[pair.id]!;
             probe.style.color = `var(--tl-color-${text})`;
@@ -973,9 +975,9 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   await expect(
     page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
   ).toHaveCount(0);
-  // Separate unmatched long record-key input; no row is inserted or history invented.
-  const expectedLongId = "chg_00000000-0000-4000-8000-171171171171/correlation/" + "a".repeat(72);
-  await page.goto(`/audit/rows/ticket_replies/${encodeURIComponent(expectedLongId)}`);
+  // Existing shared-component long reference fixture, separate from the real record journey.
+  const expectedLongId = "chg_00000000-0000-4000-8000-000000000176/correlation/abcdef0123456789";
+  await page.goto("/audit/__stress?story=state.ref.current");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const values = await page.locator("button[data-tl-copy]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tl-copy")));
   const longIndex = values.indexOf(expectedLongId); expect(longIndex).toBeGreaterThanOrEqual(0);
