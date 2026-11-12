@@ -8,6 +8,302 @@ const root = resolve(import.meta.dirname, "../../../..");
 const fixturePath = resolve(root, "test/fixtures/operator_surface/route-inventory.json");
 const router = readFileSync(resolve(root, "lib/threadline/operator_surface/router.ex"), "utf8");
 const routerPaths = [...router.matchAll(/live\("([^"]+)"/g)].map((m) => m[1]).sort();
+const semanticInventoryPath = resolve(root, "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json");
+const semanticSourcePaths = [
+  "lib/threadline/operator_surface/router.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
+  "lib/threadline/operator_surface/live/start_live.ex",
+  "lib/threadline/operator_surface/live/timeline_live.ex",
+  "lib/threadline/operator_surface/live/transaction_live.ex",
+  "lib/threadline/operator_surface/live/row_history_live.ex",
+  "lib/threadline/operator_surface/live/row_history_component.ex",
+  "lib/threadline/operator_surface/live/actor_live.ex",
+  "lib/threadline/operator_surface/live/coverage_live.ex",
+  "lib/threadline/operator_surface/live/evidence_live.ex",
+  "lib/threadline/operator_surface/live/export_status_live.ex",
+  "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+  "lib/threadline/operator_surface/live/retention_history_live.ex",
+  "lib/threadline/operator_surface/controllers/theme_controller.ex",
+  "lib/threadline/operator_surface/controllers/export_controller.ex",
+  "lib/threadline/operator_surface/fonts.ex",
+  "lib/threadline/operator_surface/components/logo.ex",
+  "lib/threadline/operator_surface/components/surface_header.ex",
+  "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-phase-135-uat.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-features.spec.ts",
+  "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+  "test/fixtures/operator_surface/route-inventory.json",
+  "examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs",
+  "test/threadline/operator_surface/controllers/export_controller_test.exs",
+  "brand/BRAND.md",
+  "brand/brand.json",
+  "brand/assets/README.md",
+  "examples/threadline_phoenix/mix.exs",
+  "examples/threadline_phoenix/config/dev.exs",
+  "examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/page_controller.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/help_desk_dev_controller.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix/help_desk.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+];
+const semanticSources: Record<string, string> = Object.fromEntries(
+  semanticSourcePaths.map((path) => [path, readFileSync(resolve(root, path), "utf8")]),
+);
+const investigationRouteIds = [
+  "route.home",
+  "route.timeline",
+  "route.transaction",
+  "route.drawer",
+  "route.row",
+];
+
+type SemanticReference = { id?: string; path?: string; locator?: string; kind?: string; owner?: string; limitation?: string };
+type SemanticCoverage = {
+  disposition?: string;
+  description?: string;
+  reason?: string;
+  sourceRefIds?: string[];
+  proofRefIds?: string[];
+};
+type SemanticSurface = {
+  id?: string;
+  routeId?: string;
+  routePattern?: string;
+  http?: { method?: string; path?: string };
+  surfaceType?: string;
+  job?: string;
+  jobId?: string;
+  journeyOrder?: number;
+  renderer?: { module?: string; path?: string; locator?: string; noPageRendererReason?: string };
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+  access?: { authentication?: string; capability?: string; organizationScope?: string; supportDisposition?: string };
+  actions?: string[];
+  states?: string[];
+  uiCoverage?: Record<string, SemanticCoverage>;
+  journey?: {
+    id?: string;
+    routeIds?: string[];
+    identity?: { ticket?: string; actor?: string; correlation?: string; record?: { table?: string; key?: string } };
+    returnContext?: { transactionHistory?: string; directRowHistory?: string };
+  };
+};
+type SemanticResource = {
+  id?: string;
+  kind?: string;
+  disposition?: string;
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+};
+type SemanticInventory = { surfaces?: SemanticSurface[]; resourceDispositions?: SemanticResource[] };
+const uiCriteria = ["empty", "loading", "error", "populated", "partial", "overflow", "zero-one-many", "long-text"];
+const expectedSupportDisposition: Record<string, string> = {
+  "route.home": "read_only_scoped",
+  "route.timeline": "read_only_scoped",
+  "route.transaction": "read_only_scoped",
+  "route.drawer": "read_only_scoped",
+  "route.row": "read_only_scoped",
+  "route.actor": "read_only_scoped",
+  "route.coverage": "unavailable",
+  "route.evidence": "unavailable",
+  "route.exports": "unavailable",
+  "route.redaction": "unavailable",
+  "route.retention": "unavailable",
+  "seam.theme": "host_policy",
+  "seam.exports.changes-csv": "admin_only",
+  "seam.exports.changes-json": "admin_only",
+  "seam.exports.changes-ndjson": "admin_only",
+  "seam.exports.download-job_id": "admin_only",
+};
+
+function semanticInventoryErrors(
+  inventory: SemanticInventory,
+  fixture: { routes: Array<{ id: string; pattern: string }>; extraStates?: Array<{ id: string; routeId: string; state: string }>; items: Array<{ id: string; kind: string; label: string }> },
+  sources: Record<string, string>,
+) {
+  const surfaces = inventory.surfaces;
+  if (!Array.isArray(surfaces)) return ["semantic surfaces collection"];
+
+  const errors: string[] = [];
+  const structuralIds = [
+    ...fixture.routes.map((route) => route.id),
+    ...fixture.items.filter((item) => item.kind === "seam").map((item) => item.id),
+  ];
+  const expectedIds = new Set(structuralIds);
+  if (expectedIds.size !== structuralIds.length) errors.push("duplicate structural declaration identity");
+  const routePatterns = new Map(fixture.routes.map((route) => [route.id, route.pattern]));
+  const seamLabels = new Map(fixture.items.filter((item) => item.kind === "seam").map((item) => [item.id, item.label]));
+  const knownRouteIds = expectedIds;
+  const routeIds = surfaces.map((surface) => surface.routeId ?? "");
+  const mappedRouteIds = new Set(routeIds);
+  const journeySurfaces = surfaces
+    .filter((surface) => surface.jobId === "job.acme-4521-investigation")
+    .sort((left, right) => (left.journeyOrder ?? -1) - (right.journeyOrder ?? -1));
+
+  for (const routeId of investigationRouteIds) {
+    if (!mappedRouteIds.has(routeId)) errors.push(`missing journey route ${routeId}`);
+  }
+  if (new Set(routeIds).size !== routeIds.length) errors.push("duplicate route identity");
+  for (const routeId of expectedIds) {
+    if (!mappedRouteIds.has(routeId)) errors.push(`missing structural identity ${routeId}`);
+  }
+  for (const routeId of mappedRouteIds) {
+    if (!expectedIds.has(routeId)) errors.push(`unknown structural identity ${routeId}`);
+  }
+
+  for (const surface of surfaces) {
+    if (!surface.id || surface.id !== surface.routeId || !knownRouteIds.has(surface.routeId ?? "")) {
+      errors.push(`invalid structural route identity ${surface.routeId ?? "<missing>"}`);
+    }
+    if (!surface.job?.trim() || !surface.jobId?.trim()) errors.push(`missing job for ${surface.routeId ?? "<missing>"}`);
+    if (!surface.surfaceType || !["liveview", "http"].includes(surface.surfaceType)) {
+      errors.push(`missing surface type for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (surface.surfaceType === "liveview" && surface.routePattern !== routePatterns.get(surface.routeId ?? "")) {
+      errors.push(`route pattern mismatch for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (surface.surfaceType === "http") {
+      const label = seamLabels.get(surface.routeId ?? "");
+      if (!surface.http?.method || !surface.http.path || `${surface.http.method} ${surface.http.path}` !== label) {
+        errors.push(`HTTP declaration mismatch for ${surface.routeId ?? "<missing>"}`);
+      }
+    }
+    if (!surface.actions?.length || !surface.states?.length) errors.push(`missing actions or states for ${surface.routeId ?? "<missing>"}`);
+    if (surface.actions?.some((action) => !action.trim()) || surface.states?.some((state) => !state.trim())) {
+      errors.push(`empty action or state for ${surface.routeId ?? "<missing>"}`);
+    }
+
+    const sourceRefs = surface.sourceRefs ?? [];
+    const proofRefs = surface.proofRefs ?? [];
+    const sourceIds = new Set(sourceRefs.map((ref) => ref.id ?? ""));
+    const proofIds = new Set(proofRefs.map((ref) => ref.id ?? ""));
+    if (sourceIds.size !== sourceRefs.length || sourceIds.has("")) {
+      errors.push(`duplicate or missing source reference id for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (proofIds.size !== proofRefs.length || proofIds.has("")) {
+      errors.push(`duplicate or missing proof reference id for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (!surface.renderer?.module || !surface.renderer.path || !surface.renderer.locator || !sourceRefs.length) {
+      errors.push(`missing source ownership for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (surface.surfaceType === "http" && !surface.renderer?.noPageRendererReason?.trim()) {
+      errors.push(`missing no-page-renderer reason for ${surface.routeId ?? "<missing>"}`);
+    }
+
+    for (const ref of [surface.renderer ?? {}, ...sourceRefs]) {
+      const source = ref.path ? sources[ref.path] : undefined;
+      if (!source || !ref.locator || !source.includes(ref.locator)) {
+        errors.push(`invalid source locator ${ref.path ?? "<missing>"}#${ref.locator ?? "<missing>"}`);
+      }
+    }
+
+    if (!proofRefs.length) errors.push(`missing proof owner for ${surface.routeId ?? "<missing>"}`);
+    for (const proof of proofRefs) {
+      const source = proof.path ? sources[proof.path] : undefined;
+      if (!source || !proof.locator || !source.includes(proof.locator)) {
+        errors.push(`invalid proof locator ${proof.path ?? "<missing>"}#${proof.locator ?? "<missing>"}`);
+      }
+      if (!proof.kind?.toLowerCase().includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim()) {
+        errors.push(`incomplete proof ownership for ${surface.routeId ?? "<missing>"}`);
+      }
+    }
+
+    for (const name of ["authentication", "capability", "organizationScope"] as const) {
+      if (!surface.access?.[name]?.trim()) errors.push(`missing access.${name} for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (surface.access?.supportDisposition !== expectedSupportDisposition[surface.routeId ?? ""]) {
+      errors.push(`unexpected support disposition for ${surface.routeId ?? "<missing>"}`);
+    }
+
+    const coverage = surface.uiCoverage ?? {};
+    if (uiCriteria.some((criterion) => !coverage[criterion])) {
+      errors.push(`missing U1 state coverage for ${surface.routeId ?? "<missing>"}`);
+    }
+    if (Object.keys(coverage).some((criterion) => !uiCriteria.includes(criterion))) {
+      errors.push(`unknown U1 state coverage for ${surface.routeId ?? "<missing>"}`);
+    }
+    for (const [criterion, entry] of Object.entries(coverage)) {
+      const refsExist = (ids: string[] | undefined, known: Set<string>) =>
+        Array.isArray(ids) && ids.length > 0 && ids.every((id) => known.has(id));
+      if (entry.disposition === "mapped") {
+        if (!entry.description?.trim() || !refsExist(entry.sourceRefIds, sourceIds) || !refsExist(entry.proofRefIds, proofIds)) {
+          errors.push(`unproven ${criterion} state coverage for ${surface.routeId ?? "<missing>"}`);
+        }
+      } else if (entry.disposition === "not_applicable") {
+        if (!entry.reason?.trim() || !refsExist(entry.sourceRefIds, sourceIds)) {
+          errors.push(`unexplained ${criterion} state coverage for ${surface.routeId ?? "<missing>"}`);
+        }
+      } else {
+        errors.push(`invalid ${criterion} state coverage disposition for ${surface.routeId ?? "<missing>"}`);
+      }
+    }
+  }
+
+  for (const extra of fixture.extraStates ?? []) {
+    const surface = surfaces.find((candidate) => candidate.routeId === extra.routeId);
+    if (!surface?.states?.some((state) => state.toLowerCase().includes(extra.state.toLowerCase()))) {
+      errors.push(`missing structural state ${extra.id}`);
+    }
+  }
+
+  const resourceDispositions = inventory.resourceDispositions ?? [];
+  const requiredResources = ["resource.shared-assets", "resource.embedded-fonts", "resource.storybook", "resource.help-desk-writes", "resource.mailbox-preview"];
+  const resourceIds = resourceDispositions.map((resource) => resource.id ?? "");
+  if (new Set(resourceIds).size !== resourceIds.length) errors.push("duplicate resource disposition identity");
+  if (resourceIds.some((id) => !requiredResources.includes(id))) errors.push("unknown resource disposition identity");
+  for (const required of requiredResources) {
+    if (!resourceIds.includes(required)) errors.push(`missing resource disposition ${required}`);
+  }
+  for (const resource of resourceDispositions) {
+    if (!resource.id || !resource.disposition?.trim() || !resource.kind?.trim() || !resource.sourceRefs?.length) {
+      errors.push(`incomplete resource disposition ${resource.id ?? "<missing>"}`);
+    }
+    for (const ref of resource.sourceRefs ?? []) {
+      const source = ref.path ? sources[ref.path] : undefined;
+      if (!source || !ref.locator || !source.includes(ref.locator)) {
+        errors.push(`invalid resource locator ${ref.path ?? "<missing>"}#${ref.locator ?? "<missing>"}`);
+      }
+    }
+    for (const proof of resource.proofRefs ?? []) {
+      const source = proof.path ? sources[proof.path] : undefined;
+      if (!source || !proof.locator || !source.includes(proof.locator)) {
+        errors.push(`invalid resource proof locator ${proof.path ?? "<missing>"}#${proof.locator ?? "<missing>"}`);
+      }
+    }
+  }
+
+  if (journeySurfaces.length !== investigationRouteIds.length ||
+      journeySurfaces.map((surface) => surface.routeId).some((routeId, index) => routeId !== investigationRouteIds[index])) {
+    errors.push("Acme #4521 journey route order");
+  }
+  const homeJourney = journeySurfaces.find((surface) => surface.routeId === "route.home")?.journey;
+  if (JSON.stringify(homeJourney?.routeIds) !== JSON.stringify(investigationRouteIds)) {
+    errors.push("Acme #4521 journey links");
+  }
+  if (homeJourney?.id !== "job.acme-4521-investigation") errors.push("Acme #4521 journey identity");
+  const identity = homeJourney?.identity;
+  if (identity?.ticket !== "Acme #4521" || !identity.actor?.trim() ||
+      identity.correlation !== "walk-acme-4521-close" || identity.record?.table !== "ticket_replies" ||
+      !identity.record.key?.trim()) {
+    errors.push("Acme #4521 actor, correlation, and record identity");
+  }
+  const returnContext = homeJourney?.returnContext;
+  if (!returnContext?.transactionHistory?.trim() || !returnContext?.directRowHistory?.trim()) {
+    errors.push("Acme #4521 return context");
+  }
+
+  const transaction = surfaces.find((surface) => surface.routeId === "route.transaction");
+  const drawer = surfaces.find((surface) => surface.routeId === "route.drawer");
+  if (transaction?.renderer?.module !== drawer?.renderer?.module || transaction?.id === drawer?.id) {
+    errors.push("transaction and transaction-history route identities");
+  }
+  return errors;
+}
 
 test("route inventory exactly matches the independently read eleven router paths", () => {
   const fixture = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")) : { routes: [] };
@@ -31,3 +327,83 @@ for (const shell of [...new Set(["bash", ...(existsSync("/bin/bash") ? ["/bin/ba
     assert.equal(run(["operator-page-capture.spec.ts", "--grep", "home route"]), "npm test -- operator-page-capture.spec.ts --grep home\\ route");
   });
 }
+
+test("Acme #4521 investigation links Home, Timeline, transaction, drawer, and direct row history", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  assert.deepEqual(semanticInventoryErrors(inventory, fixture, semanticSources), []);
+
+  const missingDrawer = structuredClone(inventory);
+  missingDrawer.surfaces = missingDrawer.surfaces.filter((surface: SemanticSurface) => surface.routeId !== "route.drawer");
+  assert.ok(semanticInventoryErrors(missingDrawer, fixture, semanticSources).includes("missing journey route route.drawer"));
+
+  const absentSource = structuredClone(inventory);
+  absentSource.surfaces[0].sourceRefs[0].locator = "live(\"/missing\", MissingLive, :show)";
+  assert.ok(semanticInventoryErrors(absentSource, fixture, semanticSources).some((error) => error.startsWith("invalid source locator")));
+
+  const absentProof = structuredClone(inventory);
+  absentProof.surfaces[0].proofRefs[0].locator = "test(\"missing proof owner\")";
+  assert.ok(semanticInventoryErrors(absentProof, fixture, semanticSources).some((error) => error.startsWith("invalid proof locator")));
+});
+
+test("all independently declared operator routes and HTTP seams have semantic identities", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  const liveIds = fixture.routes.map((route: { id: string }) => route.id);
+  const declaredHttp = [
+    ...[...router.matchAll(/\bpost\("(\/theme)"/g)].map((match) => `POST ${match[1]}`),
+    ...[...router.matchAll(/\bget\("(\/(?:changes\.(?:csv|json|ndjson)|download\/:job_id))"/g)].map((match) => `GET ${match[1]}`),
+  ].sort();
+  const fixtureHttp = fixture.items
+    .filter((item: { kind: string }) => item.kind === "seam")
+    .map((item: { label: string }) => item.label)
+    .sort();
+  assert.deepEqual(fixtureHttp, declaredHttp);
+
+  const expectedIds = [
+    ...liveIds,
+    ...fixture.items.filter((item: { kind: string }) => item.kind === "seam").map((item: { id: string }) => item.id),
+  ].sort();
+  assert.equal(expectedIds.length, 16);
+  assert.deepEqual(inventory.surfaces.map((surface: { id: string }) => surface.id).sort(), expectedIds);
+  assert.deepEqual(
+    inventory.surfaces.filter((surface: SemanticSurface) => surface.surfaceType === "http")
+      .map((surface: SemanticSurface) => `${surface.http?.method} ${surface.http?.path}`).sort(),
+    declaredHttp,
+  );
+});
+
+test("semantic identities and source ownership survive reordered declarations; malformed mappings fail", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  const reorderedInventory = structuredClone(inventory);
+  const reorderedFixture = structuredClone(fixture);
+  reorderedInventory.surfaces.reverse();
+  reorderedFixture.routes.reverse();
+  reorderedFixture.items.reverse();
+  assert.deepEqual(semanticInventoryErrors(reorderedInventory, reorderedFixture, semanticSources), []);
+
+  const duplicate = structuredClone(inventory);
+  duplicate.surfaces.push(structuredClone(duplicate.surfaces[0]));
+  assert.ok(semanticInventoryErrors(duplicate, fixture, semanticSources).includes("duplicate route identity"));
+
+  const missing = structuredClone(inventory);
+  missing.surfaces = missing.surfaces.filter((surface: SemanticSurface) => surface.routeId !== "route.actor");
+  assert.ok(semanticInventoryErrors(missing, fixture, semanticSources).includes("missing structural identity route.actor"));
+
+  const invalidRenderer = structuredClone(inventory);
+  invalidRenderer.surfaces[0].renderer.locator = "defmodule Missing.Renderer";
+  assert.ok(semanticInventoryErrors(invalidRenderer, fixture, semanticSources).some((error) => error.startsWith("invalid source locator")));
+
+  const wrongAccess = structuredClone(inventory);
+  wrongAccess.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.actor").access.supportDisposition = "admin_only";
+  assert.ok(semanticInventoryErrors(wrongAccess, fixture, semanticSources).includes("unexpected support disposition for route.actor"));
+
+  const missingU1 = structuredClone(inventory);
+  delete missingU1.surfaces[0].uiCoverage.populated;
+  assert.ok(semanticInventoryErrors(missingU1, fixture, semanticSources).includes("missing U1 state coverage for route.home"));
+
+  const missingResourceOwner = structuredClone(inventory);
+  missingResourceOwner.resourceDispositions[0].sourceRefs[0].locator = "missing brand asset owner";
+  assert.ok(semanticInventoryErrors(missingResourceOwner, fixture, semanticSources).some((error) => error.startsWith("invalid resource locator")));
+});
