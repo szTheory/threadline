@@ -1,6 +1,7 @@
 ---
 phase: 249-map-jobs-scenarios-and-the-brand-contract
-reviewed: 2026-11-12T05:45:56Z
+reviewed: 2026-11-12T06:21:45Z
+reviewed_revision: 4f0b523efe0af4a0190d8aac07642ac6d2c90c9d
 depth: standard
 files_reviewed: 18
 files_reviewed_list:
@@ -24,49 +25,36 @@ files_reviewed_list:
   - examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs
 findings:
   critical: 0
-  warning: 3
+  warning: 1
   info: 0
-  total: 3
+  total: 1
   necessity: 0
 status: issues_found
 ---
 
 # Phase 249: Code Review Report
 
-**Reviewed:** 2026-11-12T05:45:56Z  
+**Reviewed:** 2026-11-12T06:21:45Z  
+**Reviewed revision:** `4f0b523efe0af4a0190d8aac07642ac6d2c90c9d`  
 **Depth:** standard  
 **Files Reviewed:** 18  
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the full resolved 18-file phase scope, including the seed call paths, their database contracts, and the semantic inventory validators. The seed timestamp and actor assertions align with the changed writes. Three warning-level gaps remain in the inventory validation and its focused test harness; no blocker-level runtime defect was established.
+Re-reviewed the exact 18-file scope at the current revision. WR-01 and WR-02 are fixed: expected classes are pinned per scenario ID, and nonblank unique IDs are checked within each reference list without rejecting IDs shared across separate lists. The changed carry mappings to the durable v1.48 research and existing route-test owner match their stated limitations. WR-03 remains open: the replacement source map still depends on the active milestone `REQUIREMENTS.md`, which normal milestone completion archives and removes. The fixer reports 32 focused Node tests passing, including a fixture without `.planning/phases`; that fixture does not cover this active-requirements lifecycle. I did not rerun suites or perform a TypeScript typecheck.
 
 ## Narrative Findings (AI reviewer)
 
-### WR-01: Scenario class changes bypass class-specific validation
+### WR-03: Focused contract test reads active requirements that milestone completion removes
 
 **Classification:** WARNING  
-**File:** `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts:596-685`  
-**Issue:** The required scenario IDs are checked, but their expected `class` values are not. The checks at lines 661-686 only apply the comparison-baseline rule when `candidate.class` is exactly `stress`, and the ordinary-data rule when it is exactly `ordinary`. Changing `scenario.state-empty` to `boundary` and removing its `ordinaryBaseline` therefore bypasses both checks while its ID still satisfies the required list. This lets the contract accept a misclassified named stress scenario.  
-**Fix:** Pin the expected class for each required scenario ID before applying class-specific rules, and add a negative control that changes a stress scenario to `boundary` while removing its baseline.
-
-### WR-02: Reference identity checks miss blank and duplicate brand-role IDs
-
-**Classification:** WARNING  
-**File:** `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts:551-556,614-625,718-757`  
-**Issue:** The Acme scenario check collects `fixtureIds`, but only compares set size to list length; a single fixture reference with no `id` becomes `{ "" }` and passes. The generic scenario loop at lines 614-625 does not check fixture IDs at all, so missing or duplicate IDs there also pass. Brand-role source and proof IDs are collected at lines 720-721 and used by U3 criteria, but are never checked for blanks or duplicates. As a result, incomplete or ambiguous reference identities can pass the semantic inventory contract.  
-**Fix:** Apply one helper to every identity-bearing reference list, requiring each ID to be non-empty and the set size to equal the list length. Add mutation controls for a missing Acme fixture ID, missing/duplicate named-scenario fixture IDs, and duplicate/blank brand-role source and proof IDs.
-
-### WR-03: Focused contract test reads planning files that normal cleanup moves
-
-**Classification:** WARNING  
-**File:** `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts:71-81`  
-**Issue:** Module initialization reads six files beneath `.planning/phases/249-map-jobs-scenarios-and-the-brand-contract/` with `readFileSync`. The repository cleanup workflow moves completed phase directories from `.planning/phases/` to `.planning/milestones/v{X.Y}-phases/` by default. After that routine archive, rerunning this focused contract test fails during module loading with `ENOENT`, before any assertions run.  
-**Fix:** Keep the contract test's source map limited to durable source paths, or resolve archived planning evidence through a maintained archive-aware path instead of hard-coding the live phase directory.
+**File:** `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts:71-76,991-997`; `examples/threadline_phoenix/e2e/support/operator-journey-inventory.json:2210-2220`  
+**Issue:** The source map still eagerly reads `.planning/REQUIREMENTS.md`, and the ADM-06 carry source references both its requirement text and the transient `Pending` row. The repository's milestone-completion workflow archives that file as `.planning/milestones/v1.48-REQUIREMENTS.md` and then removes the active `.planning/REQUIREMENTS.md`. After completion, the focused test fails at module load with `ENOENT`; if a later milestone creates a new active requirements file, the old ADM-06 locator is absent and the inventory reference validation fails instead. The private fixture that omits only `.planning/phases` does not exercise either state.  
+**Fix:** Make this specific v1.48 source lifecycle explicit: use the active requirements source before closeout and the versioned archive after closeout, with a focused fixture for each; keep the ADM-06 reference on stable requirement wording and preserve the unresolved flag and later owners without promoting the contract test into classifier or human-acceptance proof.
 
 ---
 
-_Reviewed: 2026-11-12T05:45:56Z_  
+_Reviewed: 2026-11-12T06:21:45Z_  
 _Reviewer: the agent (gsd-code-reviewer)_  
 _Depth: standard_
