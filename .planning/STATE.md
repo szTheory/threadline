@@ -3,18 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 249
 current_phase_name: Map jobs, scenarios and the brand contract
-status: planning
-stopped_at: Phase 248 complete, ready to plan Phase 249
-last_updated: "2026-11-11T23:16:48.449Z"
+status: executing
+stopped_at: Phase 249 plans independently approved; preparing isolated execution
+last_updated: "2026-11-12T00:13:11.118Z"
 last_activity: 2026-11-11
-last_activity_desc: Phase 248 complete, transitioned to Phase 249
-state_head: d1444421277c284c69b20bb1c91814700ce6178a
+last_activity_desc: Phase 249 planning complete; preparing isolated execution
+state_head: 1bfb718b35af9a9718b70e7bfd9aa6c3134b30f7
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
+  total_plans: 8
   completed_plans: 4
-  percent: 17
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -29,16 +28,16 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 
 ## Current Position
 
-Phase: 249 of 253 (Map jobs, scenarios and the brand contract)
+Phase: 249 (Map jobs, scenarios and the brand contract) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-11-11 — Phase 248 complete, transitioned to Phase 249
 
-Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 4 of 4 currently planned plans complete.
+Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 4 of 8 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; required research is privately prefetched. New source execution still requires a newly verified GSD worktree binding. No user action is needed for routine authorized work.
+**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; research, reference contract and four implementation plans are independently checked. New source execution still requires a newly verified GSD worktree binding. No user action is needed for routine authorized work.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. OwnedPG15.17stopped; sharedservicesuntouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -75,7 +74,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 1 complete, 4 currently planned plans, 4 complete plans, 4/34 formally closed requirements, 17% phase progress. Phase248 passed; Phase249 discussion/planning is active.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 1 complete, 4 currently planned plans, 4 complete plans, 4/34 formally closed requirements, 17% phase progress. Phase248 passed; Phase249 planning is complete; isolated execution is next.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
