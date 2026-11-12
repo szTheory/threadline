@@ -61,15 +61,11 @@ test.describe("generated ExDoc Threadline identity", () => {
         .toBe(true);
     }
 
-    for (const [theme, logoBytes] of [
-      ["light", lightLogo],
-      ["dark", darkLogo],
-    ] as const) {
-      if (theme === "dark") {
-        await page.evaluate(() => document.body.classList.add("dark"));
-      } else {
-        await page.evaluate(() => document.body.classList.remove("dark"));
-      }
+    for (const theme of ["light", "dark", "light"] as const) {
+      const logoBytes = theme === "dark" ? darkLogo : lightLogo;
+      await page.evaluate((isDark) => {
+        document.body.classList.toggle("dark", isDark);
+      }, theme === "dark");
 
       await expect(sidebarLogo).toHaveAttribute(
         "src",

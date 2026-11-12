@@ -857,9 +857,14 @@ defmodule Threadline.MixProject do
 
           const logoUrl = new URL(src, document.baseURI);
           const generatedLogo = "/assets/logo.svg";
-          if (!logoUrl.pathname.endsWith(generatedLogo)) return;
+          const pairedLogo = logoUrl.pathname.match(
+            /^(.*)\/brand\/assets\/logo\/threadline-lockup-(?:dark|light)\.svg$/
+          );
+          const prefix = logoUrl.pathname.endsWith(generatedLogo)
+            ? logoUrl.pathname.slice(0, -generatedLogo.length)
+            : pairedLogo?.[1];
+          if (prefix === undefined) return;
 
-          const prefix = logoUrl.pathname.slice(0, -generatedLogo.length);
           const variant = document.body.classList.contains("dark") ? "dark" : "light";
           logoUrl.pathname = prefix + "/brand/assets/logo/threadline-lockup-" + variant + ".svg";
           const themedLogo = logoUrl.toString();
