@@ -4,16 +4,17 @@ milestone: v1.48
 current_phase: 249
 current_phase_name: Map jobs, scenarios and the brand contract
 status: executing
-stopped_at: Phase 249 wave 1 integrated; starting seed chronology
-last_updated: "2026-11-12T00:14:49.147Z"
+stopped_at: Phase 249 chronology integrated; starting final mapping review
+last_updated: "2026-11-12T03:17:13.354440Z"
 last_activity: 2026-11-11
-last_activity_desc: Phase 249 mapping and calendar/reset integrated; seed chronology next
+last_activity_desc: Phase 249 plans 01–03 integrated; scenario and brand mapping next
 state_head: 0d68902520478f8aee991143e5e1149030ee8f3b
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
+  percent: 17
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -29,15 +30,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 ## Current Position
 
 Phase: 249 (Map jobs, scenarios and the brand contract) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Executing Phase 249
-Last activity: 2026-11-11 — Phase 249 wave 1 integrated and checked
+Last activity: 2026-11-11 — Phase 249 chronology integrated and focused evidence reconciled
 
-Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 6 of 8 currently planned plans complete.
+Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 7 of 8 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; research, reference contract and four implementation plans are independently checked. Plans249-01/02 were independently GSD-bound, merged and removed; combined focused checks and wave gates pass. Plan249-03 is ready and requires a fresh verified GSD binding. Ordinary snapshot chronology and scenario/stress/brand reconciliation remain unfinished. No user action is needed for routine authorized work.
+**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). Phase249 plans01–03 are GSD-bound, merged and removed. Semantic mapping, calendar/reset correction and original captured-row chronology have focused passing receipts. The bounded Plan03 correction restores original Sigra authentication materialization while retaining audited business clocks, actors, assignees and snapshot fixes. Plan04 scenario/stress selection, brand-reference mapping and independent judgment remain; phase goal verification is pending. No user action is needed for routine authorized work.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now running for focused249 checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -1281,8 +1282,8 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-- The agent completes the reviewed three-test request-volume reduction, bounded affected/root proof and independent review in the retained GSD worktree. No user action is needed while this authorized work remains active.
-- Preserve the consumed full-repeat grant and every failed receipt. No automatic fullrepeat, indirect substitute, Phase249 implementation, merge/removal or publication is authorized while required proof is missing. Stop only task-owned PostgreSQL before any user pause after owned checks finish.
+- The agent completes Plan249-04, independent mapping review and the remaining phase gates, then continues phases250–253 under the original autonomous request. No user action is needed while authorized work remains active.
+- Preserve consumed full-repeat grants, all failed receipts and external/publication limits. Stop only task-owned PostgreSQL before an actual user pause after owned checks finish.
 
 ## Restart Recovery (2026-10-10)
 
