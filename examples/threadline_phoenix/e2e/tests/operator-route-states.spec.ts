@@ -2,12 +2,16 @@ import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } 
 import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
 // Passing this suite means observed states have source-bound evidence. Existing
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
 test.beforeEach(async ({}, info) => {
+  if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme" &&
+      info.title === "theme preference, effective cascade and reduced motion are distinct observed facts" &&
+      info.project.name === "desktop-chromium") return;
   if ([
     "Evidence keeps selected subject/reference through latest and proof-history navigation",
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
@@ -138,8 +142,103 @@ test("Redaction inspection distinguishes a missing empty-policy trigger from unr
 });
 
 test("theme preference, effective cascade and reduced motion are distinct observed facts", async ({ page, browser }, info) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
   await login(page);
+  if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme") {
+    const title = "theme preference, effective cascade and reduced motion are distinct observed facts";
+    const root = page.locator(".threadline-ui");
+    const buttons = root.locator('button[name="theme"]');
+    const lightLogo = root.locator(".tl-topbar__brand-logo--light");
+    const darkLogo = root.locator(".tl-topbar__brand-logo--dark");
+    await page.goto("/audit");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(buttons).toHaveCount(3);
+    let currentPreference: "system" | "light" | "dark" = "dark";
+
+    const assertTheme = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
+      await expect(root).toHaveAttribute("data-tl-theme", preference);
+      await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toHaveCount(1);
+      const selected = root.locator('button[name="theme"][aria-pressed="true"]');
+      await expect(selected).toHaveAttribute("value", preference);
+      const appearance = await root.evaluate((element) => ({
+        stored: (element.querySelector<HTMLButtonElement>('button[name="theme"][aria-pressed="true"]')?.value) ?? "unknown",
+        mounted: element.getAttribute("data-tl-theme"),
+        effective: getComputedStyle(element).colorScheme,
+        system: matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark",
+        reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      }));
+      expect(appearance).toEqual({ stored: preference, mounted: preference, effective: preference === "system" ? system : preference, system, reduced: true });
+      const effective = preference === "system" ? system : preference;
+      await expect(lightLogo).toHaveCSS("display", effective === "light" ? "block" : "none");
+      await expect(darkLogo).toHaveCSS("display", effective === "dark" ? "block" : "none");
+      await expect(selected.locator(".tl-theme-picker__selected")).toContainText("Selected");
+      await expect(selected).toHaveAccessibleName(preference[0]!.toUpperCase() + preference.slice(1));
+      return selected;
+    };
+    await assertTheme(currentPreference, "dark");
+
+    const focusByKeyboard = async (target: Locator) => {
+      for (let attempts = 0; attempts < 40; attempts += 1) {
+        if (await target.evaluate((element) => document.activeElement === element)) break;
+        await page.keyboard.press("Tab");
+      }
+      const focused = await target.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { active: document.activeElement === element, outlineWidth: style.outlineWidth, outlineStyle: style.outlineStyle };
+      });
+      expect(focused).toEqual({ active: true, outlineWidth: "2px", outlineStyle: "solid" });
+    };
+
+    const activate = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
+      await page.emulateMedia({ colorScheme: system, reducedMotion: "reduce" });
+      await assertTheme(currentPreference, system);
+      const target = root.locator(`button[name="theme"][value="${preference}"]`);
+      await expect(target).toBeEnabled();
+      await focusByKeyboard(target);
+      await page.keyboard.press("Enter");
+      await expect(root).toHaveAttribute("data-tl-theme", preference);
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await assertTheme(preference, system);
+      currentPreference = preference;
+      const current = root.locator(`button[name="theme"][value="${preference}"]`);
+      await focusByKeyboard(current);
+      return current;
+    };
+
+    const defaultTheme = await activate("dark", "dark");
+    expect(await defaultTheme.getAttribute("aria-label")).toBe("Dark");
+    await activate("light", "dark");
+    await activate("dark", "light");
+    await activate("system", "dark");
+    await activate("system", "light");
+    await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await assertTheme("system", "light");
+    await focusByKeyboard(root.locator('button[name="theme"][value="system"]'));
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    const disclosure = page.locator(".tl-shell-nav__disclosure");
+    await disclosure.locator("summary").click();
+    await expect(disclosure).toHaveAttribute("open", "");
+    await expect(buttons).toBeVisible();
+    await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toBeVisible();
+    const narrow = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
+    expect(narrow.document - narrow.viewport).toBeLessThanOrEqual(1);
+    const choiceBounds = await root.locator('button[name="theme"][aria-pressed="true"]').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width, clientWidth: (element as HTMLElement).clientWidth, scrollWidth: (element as HTMLElement).scrollWidth };
+    });
+    expect(choiceBounds.left).toBeGreaterThanOrEqual(0);
+    expect(choiceBounds.right).toBeLessThanOrEqual(376);
+    expect(choiceBounds.scrollWidth).toBeLessThanOrEqual(choiceBounds.clientWidth + 1);
+    const observation = await capturePhase250GateObservation(page, browser, info, "theme");
+    expect(observation.condition).toMatchObject({ preference: "system", mountedTheme: "system", effectiveTheme: "light", systemScheme: "light", reducedMotion: true, browserZoom: "unverified" });
+    expect(observation.assets.fontFaceCount).toBe(4);
+    expect(observation.assets.fontFaces).toHaveLength(4);
+    expect(observation.route).toBe("/audit");
+    expect(info.title).toBe(title);
+    return;
+  }
   const e = await startEvidence(page, browser, info);
   await page.goto("/audit");
   const light = info.project.name === "desktop-chromium-light";
@@ -153,8 +252,9 @@ test("theme preference, effective cascade and reduced motion are distinct observ
   expect(initial.reducedMotion).toBe(true);
   expect(initial.resolvedValues["--tl-color-bg"]).toBeTruthy();
   for (const preference of ["light", "dark", "system"]) {
-    await page.locator(`input[name="theme"][value="${preference}"]`).check();
-    await page.getByRole("button", { name: "Apply theme" }).click();
+    await page.locator(`button[name="theme"][value="${preference}"]`).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(page.locator(".threadline-ui")).toHaveAttribute("data-tl-theme", preference);
     const observed = await e.capture(`state.theme.${preference}`, "/audit", `preference-${preference}`);
     expect(observed.preference).toBe(preference);

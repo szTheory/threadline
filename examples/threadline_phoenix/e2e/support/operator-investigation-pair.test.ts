@@ -19,7 +19,14 @@ import {
 
 const timelineUrl = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=walk-acme-4521-close";
 const browser = { project: "desktop-chromium", version: "148.0.7778.96", playwright: "1.60.0" };
-const fontNames = ["geist-400.woff2", "geist-500.woff2", "geist-600.woff2", "ibm-plex-mono-400.woff2", "ibm-plex-mono-500.woff2"];
+const legacyFontNames = ["geist-400.woff2", "geist-500.woff2", "geist-600.woff2", "ibm-plex-mono-400.woff2", "ibm-plex-mono-500.woff2"];
+const currentFontFaces = [
+  { family: "Threadline Familjen Grotesk", weight: "400 700", file: "FamiljenGrotesk-normal-400-700.woff2" },
+  { family: "Threadline Geist", weight: "400 700", file: "Geist-normal-400-700.woff2" },
+  { family: "Threadline IBM Plex Mono", weight: "400", file: "IBMPlexMono-normal-400.woff2" },
+  { family: "Threadline IBM Plex Mono", weight: "500", file: "IBMPlexMono-normal-500.woff2" },
+];
+const currentFontNames = currentFontFaces.map(({ file }) => file);
 const hash = (letter: string) => letter.repeat(64).slice(0, 64);
 const digest = (value: Buffer | string) => createHash("sha256").update(value).digest("hex");
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -62,7 +69,8 @@ function makeHalf(half: "before" | "after") {
   };
   const candidateId = half === "before" ? "baseline-correction-test" : undefined;
   const captureBase = candidateId ? `candidates/${candidateId}/captures/before` : `captures/${half}`;
-  const fonts = Object.fromEntries(fontNames.map((name, index) => [name, { sha256: hash("abcdef"[index]!), bytes: 12000 + index }]));
+  const halfFontNames = half === "before" ? legacyFontNames : currentFontNames;
+  const fonts = Object.fromEntries(halfFontNames.map((name, index) => [name, { sha256: hash("abcdef"[index]!), bytes: 12000 + index }]));
   const captureSpecs = [
     ["transaction", `/audit/transactions/${transactionId}`, "transaction-detail"],
     ["ticket-prior", `/audit/transactions/${transactionId}/history/tickets/${ticketId}?as_of=2026-05-01T00%3A00%3A00Z`, "prior-ticket-history-snapshot"],
@@ -85,8 +93,9 @@ function makeHalf(half: "before" | "after") {
       observation: { file: file(`${id}-observation.json`), sha256: hash("c"), bytes: 3000 },
       assets: {
         stylesheetSha256: hash("d"),
-        fontFaceCount: 5,
+        fontFaceCount: halfFontNames.length,
         fonts,
+        ...(half === "after" ? { fontFaces: currentFontFaces } : {}),
         inlineScriptSha256: hash("e"),
         svgCount: 26,
         svgMarkupSha256: hash("f"),
@@ -266,6 +275,23 @@ test("a clean pair is accepted while rendered source and assets may change", () 
     pairId: "before-pair/after-pair",
     materializationSha256: hash("9"),
   });
+});
+
+test("legacy before keeps five font files while current after binds four approved descriptors", () => {
+  const { before, after } = makePair();
+  assert.deepEqual(assertInvestigationPair(before, after), {
+    matched: true,
+    pairId: "before-pair/after-pair",
+    materializationSha256: hash("9"),
+  });
+
+  const weakenedBefore = makeHalf("before");
+  weakenedBefore.captures[0]!.assets.fontFaceCount = 4;
+  assert.throws(() => assertInvestigationPair(weakenedBefore, after), /before half has incomplete/i);
+
+  const staleAfter = makeHalf("after");
+  Object.assign(staleAfter.captures[0]!.assets, { fontFaces: [] });
+  assert.throws(() => assertInvestigationPair(before, staleAfter), /after half has incomplete/i);
 });
 
 test("missing, wrong-half, noncanonical and out-of-custody halves fail closed", () => {
@@ -464,7 +490,7 @@ test("missing shell, content, source, stylesheet, SVG or decoded font evidence r
     ["source", (half) => { half.before.testSource.files = {}; }],
     ["served CSS", (half) => { (half.before.captures[0] as any).assets.stylesheetSha256 = "missing"; }],
     ["served SVG", (half) => { (half.before.captures[0] as any).assets.svgMarkupSha256 = "missing"; }],
-    ["decoded fonts", (half) => { (half.before.captures[0] as any).assets.fonts[fontNames[0]!] = undefined; }],
+    ["decoded fonts", (half) => { (half.before.captures[0] as any).assets.fonts[legacyFontNames[0]!] = undefined; }],
   ];
   for (const [name, mutate] of mutations) {
     const pair = makePair();

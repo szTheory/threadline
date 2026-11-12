@@ -34,6 +34,12 @@ const styleFiles = [
   "08_overlays_motion.css", "09_responsive.css",
 ];
 const embeddedFonts = [
+  ["Threadline Familjen Grotesk", "400 700", "FamiljenGrotesk-normal-400-700.woff2"],
+  ["Threadline Geist", "400 700", "Geist-normal-400-700.woff2"],
+  ["Threadline IBM Plex Mono", "400", "IBMPlexMono-normal-400.woff2"],
+  ["Threadline IBM Plex Mono", "500", "IBMPlexMono-normal-500.woff2"],
+] as const;
+const legacyEmbeddedFonts = [
   ["Geist", 400, "geist-400.woff2"], ["Geist", 500, "geist-500.woff2"],
   ["Geist", 600, "geist-600.woff2"], ["IBM Plex Mono", 400, "ibm-plex-mono-400.woff2"],
   ["IBM Plex Mono", 500, "ibm-plex-mono-500.woff2"],
@@ -54,7 +60,7 @@ const productionSources = [
   "lib/threadline/operator_surface/script.ex",
   "lib/threadline/operator_surface/components/icon.ex",
   ...styleFiles.map((file) => `lib/threadline/operator_surface/style/${file}`),
-  ...embeddedFonts.map(([, , file]) => `priv/fonts/${file}`),
+  ...legacyEmbeddedFonts.map(([, , file]) => `priv/fonts/${file}`),
   "brand/assets/logo/threadline-lockup-dark.svg",
   "brand/assets/logo/threadline-lockup-light.svg",
   "brand/assets/icon/favicon.svg",
@@ -120,6 +126,7 @@ type ServedAssetIdentity = {
   readonly stylesheetSha256: string;
   readonly fontFaceCount: number;
   readonly fonts: Readonly<Record<string, AssetIdentity>>;
+  readonly fontFaces: readonly { readonly family: string; readonly weight: string; readonly file: string }[];
   readonly inlineScriptSha256: string | null;
   readonly svgCount: number;
   readonly svgMarkupSha256: string;
@@ -458,22 +465,30 @@ async function pageAssetIdentity(page: Page, root: string): Promise<ServedAssetI
   if (!stylesheet || !fontStyle) throw new Error("Served operator CSS or embedded font face is missing");
   const localStyle = styleFiles.map((file) => readFileSync(join(root, "lib/threadline/operator_surface/style", file), "utf8")).join("");
   if (stylesheet !== localStyle) throw new Error("Served mounted stylesheet bytes differ from the actual serving source segments");
-  const encoded = [...fontStyle.matchAll(/data:font\/woff2;base64,([A-Za-z0-9+/=]+)/g)].map((match) => Buffer.from(match[1]!, "base64"));
-  if (encoded.length !== embeddedFonts.length) throw new Error(`Expected ${embeddedFonts.length} actual embedded WOFF2 faces, found ${encoded.length}`);
+  const faceBlocks = [...fontStyle.matchAll(/@font-face\s*\{([^}]*)\}/g)].map((match) => match[1]!);
+  if (faceBlocks.length !== embeddedFonts.length) throw new Error(`Expected ${embeddedFonts.length} actual embedded WOFF2 faces, found ${faceBlocks.length}`);
   const fonts: Record<string, AssetIdentity> = {};
-  for (const [index, [, , file]] of embeddedFonts.entries()) {
-    const served = encoded[index]!;
-    const local = readFileSync(join(root, "priv/fonts", file));
-    if (!Buffer.from(served).equals(local)) throw new Error(`Served font bytes do not match ${file}`);
+  const fontFaces = embeddedFonts.map(([family, weight, file], index) => {
+    const block = faceBlocks[index]!;
+    const actualFamily = block.match(/font-family:\s*"([^"]+)"/)?.[1];
+    const actualWeight = block.match(/font-weight:\s*([^;]+);/)?.[1]?.trim();
+    const encoded = block.match(/data:font\/woff2;base64,([A-Za-z0-9+/=]+)/)?.[1];
+    if (actualFamily !== family || actualWeight !== weight || !encoded) {
+      throw new Error(`Served font-face descriptor does not match ${family} ${weight} ${file}`);
+    }
+    const served = Buffer.from(encoded, "base64");
+    const local = readFileSync(join(root, "brand/assets/fonts/web", file));
+    if (!served.equals(local)) throw new Error(`Served font bytes do not match ${file}`);
     fonts[file] = { sha256: sha256(served), bytes: served.byteLength };
-  }
+    return { family, weight, file };
+  });
   const scripts = await page.locator("script").allTextContents();
   const inlineScript = scripts.find((value) => value.includes("__tlCopyBound")) ?? null;
   if (!inlineScript) throw new Error("Mounted delegated copy script is missing");
   const svgs = await page.locator(".threadline-ui svg").evaluateAll((nodes) => nodes.map((node) => node.outerHTML));
   if (!svgs.length) throw new Error("No rendered Threadline SVG icons found");
   return {
-    stylesheetSha256: sha256(stylesheet), fontFaceCount: encoded.length, fonts,
+    stylesheetSha256: sha256(stylesheet), fontFaceCount: faceBlocks.length, fonts, fontFaces,
     inlineScriptSha256: sha256(inlineScript), svgCount: svgs.length,
     svgMarkupSha256: sha256(svgs.join("\n")),
   };
@@ -482,7 +497,7 @@ async function pageAssetIdentity(page: Page, root: string): Promise<ServedAssetI
 async function observeCondition(page: Page, browser: Browser, info: TestInfo): Promise<BrowserCondition> {
   const root = page.locator(".threadline-ui").first();
   const dom = await root.evaluate((element) => {
-    const selected = element.querySelector<HTMLInputElement>('input[name="theme"]:checked');
+    const selected = element.querySelector<HTMLButtonElement>('button[name="theme"][aria-pressed="true"]');
     const style = getComputedStyle(element);
     return {
       preference: selected?.value ?? "unknown",
@@ -877,8 +892,9 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
         !capturedFileBelongsToHalf(capture.shell?.file, expectedHalf, candidateId) || !validAssetIdentity(capture.shell) ||
         !capturedFileBelongsToHalf(capture.content?.file, expectedHalf, candidateId) || !validAssetIdentity(capture.content) ||
         !capturedFileBelongsToHalf(capture.observation?.file, expectedHalf, candidateId) || !validAssetIdentity(capture.observation) ||
-        capture.assets?.fontFaceCount !== embeddedFonts.length ||
-        JSON.stringify(fontNames) !== JSON.stringify(embeddedFonts.map(([, , file]) => file).sort()) ||
+        capture.assets?.fontFaceCount !== (expectedHalf === "before" ? legacyEmbeddedFonts.length : embeddedFonts.length) ||
+        JSON.stringify(fontNames) !== JSON.stringify((expectedHalf === "before" ? legacyEmbeddedFonts : embeddedFonts).map(([, , file]) => file).sort()) ||
+        (expectedHalf === "after" && JSON.stringify(capture.assets?.fontFaces) !== JSON.stringify(embeddedFonts.map(([family, weight, file]) => ({ family, weight, file })))) ||
         !validDigest(capture.assets?.stylesheetSha256) || !validDigest(capture.assets?.inlineScriptSha256) ||
         !validDigest(capture.assets?.svgMarkupSha256) || !Number.isInteger(capture.assets?.svgCount) || capture.assets.svgCount <= 0 ||
         !Object.values(capture.assets.fonts).every((font: any) => validAssetIdentity(font))) {

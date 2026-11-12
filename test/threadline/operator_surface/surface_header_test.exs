@@ -78,23 +78,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    test "renders native POST theme form with stable CSRF and radio contract" do
+    test "renders immediate native POST theme buttons with stable CSRF and pressed state" do
       html = render_header(%{theme: "system"})
 
       assert html =~ ~s|action="/audit/theme"|
       assert html =~ ~s|method="post"|
       assert html =~ ~s|name="_csrf_token"|
-      assert html =~ ~s|Apply theme|
       assert html =~ ~s|id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>|
+      assert html =~ ~s|class="tl-theme-picker__selected"|
+      assert html =~ "Selected"
 
-      for value <- ~w(system light dark) do
-        assert html =~ ~s|type="radio"|
-        assert html =~ ~s|name="theme"|
-        assert html =~ ~s|value="#{value}"|
+      theme_buttons =
+        Regex.scan(~r/<button\b[^>]*name="theme"[^>]*>.*?<\/button>/s, html)
+        |> Enum.map(&List.first/1)
+
+      assert length(theme_buttons) == 3
+
+      for {value, label} <- [{"system", "System"}, {"light", "Light"}, {"dark", "Dark"}] do
+        [button] = Enum.filter(theme_buttons, &String.contains?(&1, ~s|value="#{value}"|))
+
+        assert button =~ ~s|type="submit"|
+        assert button =~ ~s|aria-label="#{label}"|
+        assert button =~ ~r/aria-pressed="(?:true|false)"/
+        assert button =~ ~r/>#{label}<\/span>/
       end
 
-      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
-      refute html =~ ~s|onchange=|
+      assert Enum.count(theme_buttons, &String.contains?(&1, ~s|aria-pressed="true"|)) == 1
+
+      assert Enum.any?(theme_buttons, fn button ->
+               String.contains?(button, ~s|value="system"|) and
+                 String.contains?(button, ~s|aria-pressed="true"|)
+             end)
+
+      refute html =~ ~s|Apply theme|
+      refute html =~ ~s|type="radio"|
       refute html =~ ~s|onclick=|
       refute html =~ ~s|localStorage|
     end

@@ -100,20 +100,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
               <fieldset class="tl-theme-picker__options">
                 <legend id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>
-                <label class="tl-theme-picker__option" for="theme-system">
-                  <input type="radio" id="theme-system" name="theme" value="system" checked={@theme == "system"} />
-                  System
-                </label>
-                <label class="tl-theme-picker__option" for="theme-light">
-                  <input type="radio" id="theme-light" name="theme" value="light" checked={@theme == "light"} />
-                  Light
-                </label>
-                <label class="tl-theme-picker__option" for="theme-dark">
-                  <input type="radio" id="theme-dark" name="theme" value="dark" checked={@theme == "dark"} />
-                  Dark
-                </label>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="system"
+                  aria-label="System"
+                  aria-pressed={if(@theme == "system", do: "true", else: "false")}
+                >
+                  <span>System</span>
+                  <span :if={@theme == "system"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="light"
+                  aria-label="Light"
+                  aria-pressed={if(@theme == "light", do: "true", else: "false")}
+                >
+                  <span>Light</span>
+                  <span :if={@theme == "light"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="dark"
+                  aria-label="Dark"
+                  aria-pressed={if(@theme == "dark", do: "true", else: "false")}
+                >
+                  <span>Dark</span>
+                  <span :if={@theme == "dark"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
               </fieldset>
-              <button type="submit" class="tl-button tl-button--primary">Apply theme</button>
             </form>
           </section>
         </div>

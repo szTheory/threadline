@@ -714,9 +714,9 @@
     {
       "id": "resource.embedded-fonts",
       "kind": "shared-runtime-font-embedding",
-      "disposition": "Fonts.ex currently embeds existing woff2 data URIs; supplied brand font files and licenses are later migration inputs, not a Phase 249 runtime change.",
+      "disposition": "Fonts.ex embeds the current four Threadline WOFF2 faces from brand/assets/fonts/web into compile-time data URIs; Phase 250-08 owns proof of font loading, blocking, and disabled behavior.",
       "sourceRefs": [
-        {"id":"runtime-fonts","path":"lib/threadline/operator_surface/fonts.ex","locator":"embedded at compile time as"},
+        {"id":"runtime-fonts","path":"lib/threadline/operator_surface/fonts.ex","locator":"@external_resource Path.join(@fonts_dir, file)"},
         {"id":"approved-font-files","path":"brand/assets/README.md","locator":"fonts/variable/FamiljenGrotesk[wght].ttf"},
         {"id":"opt-out","path":"lib/threadline/operator_surface/fonts.ex","locator":"operator_surface_embed_fonts: false"}
       ]
