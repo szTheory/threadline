@@ -1,15 +1,3 @@
 {
-  "buildPath": "code",
-  "detector": {
-    "ignoreRules": [],
-    "ignoreFiles": [],
-    "ignoreValues": [
-      {
-        "rule": "overused-font",
-        "value": "geist",
-        "createdAt": "2026-11-12T14:02:38.786Z",
-        "reason": "Project scope: Phase 250 Plan 02 explicitly preserves the existing default host font; the typography role migration is separate Phase 250 work. This unchanged line predates this plan (git blame 3885b7d14)."
-      }
-    ]
-  }
+  "buildPath": "code"
 }
