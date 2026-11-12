@@ -129,6 +129,31 @@ defmodule ThreadlinePhoenix.DemoResetTest do
     assert output =~ "DEMO_ALLOW_RESET"
   end
 
+  test "prod mix demo.seed fails fast without DEMO_ALLOW_RESET=1" do
+    prev = System.get_env("DEMO_ALLOW_RESET")
+
+    on_exit(fn ->
+      case prev do
+        nil -> System.delete_env("DEMO_ALLOW_RESET")
+        value -> System.put_env("DEMO_ALLOW_RESET", value)
+      end
+    end)
+
+    System.delete_env("DEMO_ALLOW_RESET")
+
+    {output, exit_code} =
+      System.cmd(
+        "mix",
+        ["demo.seed"],
+        cd: @app_dir,
+        env: [{"MIX_ENV", "prod"}],
+        stderr_to_stdout: true
+      )
+
+    assert exit_code != 0
+    assert output =~ "DEMO_ALLOW_RESET"
+  end
+
   defp demo_setup_commands(setup_region) do
     Regex.scan(~r/^mix demo\.(?:reset|seed)(?:[ \t]+.*)?$/m, setup_region)
     |> Enum.map(&List.first/1)
