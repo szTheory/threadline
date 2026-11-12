@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, truncateSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -81,6 +82,17 @@ test("required inventory names every supported journey and material failure clas
   for (const label of ["light/System", "browser-full", "mobile zoom", "browser limitation"]) {
     assert.ok(nonvoting.some((row: { reason?: string }) => row.reason?.toLowerCase().includes(label.toLowerCase())), `missing explicit nonvoting reason for ${label}`);
   }
+});
+
+test("semantic inventory additions preserve the established voting identities and reasons", () => {
+  const checkedIn = JSON.parse(readFileSync(resolve(repositoryRoot, "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json"), "utf8"));
+  const stableValues = checkedIn.rows
+    .map(({ identity, voting, reason }: { identity: unknown; voting: string; reason?: string }) => ({ identity, voting, reason: reason ?? null }))
+    .sort((left: { identity: unknown }, right: { identity: unknown }) => JSON.stringify(left.identity).localeCompare(JSON.stringify(right.identity)));
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(stableValues)).digest("hex"),
+    "419c4f6da386f15d0b65b3dae3ae109c59769c8ea0930e016c82357be75475d7",
+  );
 });
 
 test("renamed file or title no longer satisfies the expected identity", () => {
