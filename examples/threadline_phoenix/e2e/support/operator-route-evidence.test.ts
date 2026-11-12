@@ -50,6 +50,7 @@ const semanticSourcePaths = [
   "examples/threadline_phoenix/lib/threadline_phoenix/help_desk.ex",
   "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
   "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+  "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
 ];
 const semanticSources: Record<string, string> = Object.fromEntries(
   semanticSourcePaths.map((path) => [path, readFileSync(resolve(root, path), "utf8")]),
@@ -61,6 +62,7 @@ const investigationRouteIds = [
   "route.drawer",
   "route.row",
 ];
+const scenarioStateCriteria = ["empty", "loading", "error_unavailable", "populated", "partial", "overflow_boundary", "zero_one_many", "long_text_unicode_duplicate_label"];
 
 type SemanticReference = { id?: string; path?: string; locator?: string; kind?: string; owner?: string; limitation?: string };
 type SemanticCoverage = {
@@ -100,7 +102,21 @@ type SemanticResource = {
   sourceRefs?: SemanticReference[];
   proofRefs?: SemanticReference[];
 };
-type SemanticInventory = { surfaces?: SemanticSurface[]; resourceDispositions?: SemanticResource[] };
+type SemanticInventory = {
+  surfaces?: SemanticSurface[];
+  resourceDispositions?: SemanticResource[];
+  scenarios?: Array<{
+    id?: string;
+    class?: string;
+    selection?: { resetCommand?: string; correlation?: string; routeIds?: string[] };
+    identity?: { organization?: { slug?: string }; actor?: { email?: string }; ticket?: { number?: number }; correlation?: string; record?: { table?: string; key?: string }; action?: string };
+    clocks?: { eventTime?: string; recordedTime?: string };
+    fixtureRefs?: SemanticReference[];
+    sourceRefs?: SemanticReference[];
+    proofRefs?: SemanticReference[];
+    stateCriteria?: Record<string, SemanticCoverage & { status?: string; meaning?: string; sourceRefIds?: string[]; proofRefIds?: string[] }>;
+  }>;
+};
 const uiCriteria = ["empty", "loading", "error", "populated", "partial", "overflow", "zero-one-many", "long-text"];
 const expectedSupportDisposition: Record<string, string> = {
   "route.home": "read_only_scoped",
@@ -302,6 +318,78 @@ function semanticInventoryErrors(
   if (transaction?.renderer?.module !== drawer?.renderer?.module || transaction?.id === drawer?.id) {
     errors.push("transaction and transaction-history route identities");
   }
+
+  const scenarios = inventory.scenarios;
+  if (!Array.isArray(scenarios)) return [...errors, "semantic scenarios collection"];
+  const scenarioIds = scenarios.map((scenario) => scenario.id ?? "");
+  if (new Set(scenarioIds).size !== scenarioIds.length) errors.push("duplicate scenario identity");
+  const scenario = scenarios.find((candidate) => candidate.id === "scenario.acme-4521-investigation");
+  if (!scenario) {
+    errors.push("missing ordinary scenario scenario.acme-4521-investigation");
+  } else {
+    if (scenario.class !== "ordinary") errors.push("Acme #4521 must remain ordinary selection data");
+    if (scenario.selection?.resetCommand !== "mix demo.reset" || scenario.selection?.correlation !== "walk-acme-4521-close") {
+      errors.push("Acme #4521 clean reset and correlation selection");
+    }
+    if (JSON.stringify(scenario.selection?.routeIds) !== JSON.stringify(investigationRouteIds)) {
+      errors.push("Acme #4521 selected route chain");
+    }
+    if (scenario.identity?.organization?.slug !== "acme" || scenario.identity?.actor?.email !== "closer@acme.example.com" ||
+        scenario.identity?.ticket?.number !== 4521 || scenario.identity?.correlation !== "walk-acme-4521-close" ||
+        scenario.identity?.record?.table !== "ticket_replies" || !scenario.identity?.record?.key?.includes("resolved from the seeded ticket_replies change at runtime") ||
+        scenario.identity?.action !== "ticket_replied_and_closed") {
+      errors.push("Acme #4521 stable organization, actor, ticket, correlation, record, and action identities");
+    }
+    if (!scenario.clocks?.eventTime?.includes("2026-05-26T14:30:00Z") || !scenario.clocks.recordedTime?.includes("AuditAction.inserted_at")) {
+      errors.push("Acme #4521 event and physical recording clocks");
+    }
+    const scenarioSources = scenario.sourceRefs ?? [];
+    const scenarioFixtures = scenario.fixtureRefs ?? [];
+    const scenarioProofs = scenario.proofRefs ?? [];
+    const sourceIds = new Set(scenarioSources.map((ref) => ref.id ?? ""));
+    const fixtureIds = new Set(scenarioFixtures.map((ref) => ref.id ?? ""));
+    const proofIds = new Set(scenarioProofs.map((ref) => ref.id ?? ""));
+    if (!scenarioSources.length || !scenarioFixtures.length || !scenarioProofs.length ||
+        sourceIds.size !== scenarioSources.length || fixtureIds.size !== scenarioFixtures.length || proofIds.size !== scenarioProofs.length) {
+      errors.push("Acme #4521 source, fixture, and proof ownership is missing or duplicated");
+    }
+    for (const ref of [...scenarioSources, ...scenarioFixtures, ...scenarioProofs]) {
+      const unsafePath = !ref.path || ref.path.startsWith("/") || ref.path.split(/[\\/]/).includes("..");
+      const source = ref.path ? sources[ref.path] : undefined;
+      if (unsafePath || !source || !ref.locator || !source.includes(ref.locator)) {
+        errors.push(`invalid scenario reference ${ref.path ?? "<missing>"}#${ref.locator ?? "<missing>"}`);
+      }
+    }
+    for (const proof of scenarioProofs) {
+      if (!proof.kind?.toLowerCase().includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim()) {
+        errors.push("incomplete Acme #4521 proof owner or limitation");
+      }
+    }
+    if (scenarioFixtures.some((ref) => ref.path?.includes("stress_fixtures") || ref.path?.includes("storybook/fixtures"))) {
+      errors.push("ordinary #4521 scenario substituted a stress fixture");
+    }
+    if (!scenarioProofs.some((proof) => proof.path?.endsWith("operator-earned-flows.spec.ts") && proof.locator?.includes("Home record lookup reaches first-class row history"))) {
+      errors.push("Acme #4521 return-context proof owner");
+    }
+    const criteria = scenario.stateCriteria ?? {};
+    if (scenarioStateCriteria.some((criterion) => !criteria[criterion]) || Object.keys(criteria).some((criterion) => !scenarioStateCriteria.includes(criterion))) {
+      errors.push("Acme #4521 U2 state criteria coverage");
+    }
+    for (const [criterion, entry] of Object.entries(criteria)) {
+      const refsExist = (ids: string[] | undefined, known: Set<string>) => Array.isArray(ids) && ids.length > 0 && ids.every((id) => known.has(id));
+      if (entry.status === "mapped") {
+        if (!entry.meaning?.trim() || !refsExist(entry.sourceRefIds, sourceIds) || !refsExist(entry.proofRefIds, proofIds)) {
+          errors.push(`unproven Acme #4521 ${criterion} state`);
+        }
+      } else if (entry.status === "not_applicable") {
+        if (!entry.reason?.trim() || !refsExist(entry.sourceRefIds, sourceIds) || !refsExist(entry.proofRefIds, proofIds)) {
+          errors.push(`unexplained Acme #4521 ${criterion} state`);
+        }
+      } else {
+        errors.push(`invalid Acme #4521 ${criterion} state disposition`);
+      }
+    }
+  }
   return errors;
 }
 
@@ -344,6 +432,49 @@ test("Acme #4521 investigation links Home, Timeline, transaction, drawer, and di
   const absentProof = structuredClone(inventory);
   absentProof.surfaces[0].proofRefs[0].locator = "test(\"missing proof owner\")";
   assert.ok(semanticInventoryErrors(absentProof, fixture, semanticSources).some((error) => error.startsWith("invalid proof locator")));
+});
+
+test("ordinary #4521 selection resolves the corrected seed through one maintainer recipe", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const scenario = inventory.scenarios?.find((candidate: { id?: string }) => candidate.id === "scenario.acme-4521-investigation");
+  assert.ok(scenario, "expected the ordinary #4521 investigation scenario in the semantic inventory");
+  assert.equal(scenario.class, "ordinary");
+  assert.equal(scenario.identity.organization.slug, "acme");
+  assert.equal(scenario.identity.actor.email, "closer@acme.example.com");
+  assert.equal(scenario.identity.ticket.number, 4521);
+  assert.equal(scenario.identity.correlation, "walk-acme-4521-close");
+  assert.equal(scenario.identity.record.table, "ticket_replies");
+  assert.match(scenario.identity.record.key, /resolved from the seeded ticket_replies change at runtime/i);
+  assert.match(scenario.clocks.eventTime, /2026-05-26T14:30:00Z/);
+  assert.match(scenario.clocks.recordedTime, /AuditAction\.inserted_at/);
+  assert.equal(scenario.selection.resetCommand, "mix demo.reset");
+  assert.ok(scenario.proofRefs.some((proof: { path?: string }) => proof.path?.endsWith("demo_contract_test.exs")));
+
+  const recipe = readFileSync(resolve(root, "examples/threadline_phoenix/DEMO-MANIFEST.md"), "utf8");
+  assert.match(recipe, /scenario\.acme-4521-investigation/);
+  assert.match(recipe, /record_id resolved from the seeded ticket_replies change at runtime/i);
+  assert.match(recipe, /do not use stress fixtures as ordinary scenario data/i);
+});
+
+test("ordinary scenario mapping rejects missing source, proof, return, and ordinary classification links", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+
+  const missingSource = structuredClone(inventory);
+  missingSource.scenarios[0].sourceRefs = [];
+  assert.ok(semanticInventoryErrors(missingSource, fixture, semanticSources).some((error) => error.includes("source, fixture, and proof ownership")));
+
+  const missingProof = structuredClone(inventory);
+  missingProof.scenarios[0].proofRefs = [];
+  assert.ok(semanticInventoryErrors(missingProof, fixture, semanticSources).some((error) => error.includes("source, fixture, and proof ownership")));
+
+  const missingReturn = structuredClone(inventory);
+  missingReturn.scenarios[0].proofRefs = missingReturn.scenarios[0].proofRefs.filter((proof: SemanticReference) => !proof.locator?.includes("Home record lookup reaches first-class row history"));
+  assert.ok(semanticInventoryErrors(missingReturn, fixture, semanticSources).includes("Acme #4521 return-context proof owner"));
+
+  const stressSubstitution = structuredClone(inventory);
+  stressSubstitution.scenarios[0].class = "stress";
+  assert.ok(semanticInventoryErrors(stressSubstitution, fixture, semanticSources).includes("Acme #4521 must remain ordinary selection data"));
 });
 
 test("all independently declared operator routes and HTTP seams have semantic identities", () => {

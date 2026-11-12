@@ -696,5 +696,69 @@
         {"id":"home-link","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/page_controller.ex","locator":"mailbox_path: \"/dev/mailbox\""}
       ]
     }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario.acme-4521-investigation",
+      "name": "Acme #4521 reply-and-close investigation",
+      "class": "ordinary",
+      "jobId": "job.acme-4521-investigation",
+      "selection": {
+        "resetCommand": "mix demo.reset",
+        "login": "admin@example.com",
+        "entryPath": "/audit",
+        "correlation": "walk-acme-4521-close",
+        "routeIds": ["route.home", "route.timeline", "route.transaction", "route.drawer", "route.row"]
+      },
+      "identity": {
+        "organization": {"slug": "acme", "keyRef": "Manifest.org_id(:acme)"},
+        "actor": {"email": "closer@acme.example.com", "keyRef": "Manifest.user_id(:closer)", "role": "Acme closer Agent"},
+        "ticket": {"number": 4521, "keyRef": "Manifest.ticket_number(:hero_close)", "table": "tickets"},
+        "correlation": "walk-acme-4521-close",
+        "record": {"table": "ticket_replies", "key": "record_id resolved from the seeded ticket_replies change at runtime", "primaryKey": "ephemeral database value resolved from the seeded AuditChange"},
+        "action": "ticket_replied_and_closed",
+        "transaction": "Resolved from the reply insert and ticket update captured in the close transaction",
+        "redaction": "The internal note is excluded from stored audit data and rendered as [REDACTED]."
+      },
+      "clocks": {
+        "foundationTime": "Manifest.epoch() minus 21 days",
+        "eventTime": "Manifest.last_tuesday() = 2026-05-26T14:30:00Z",
+        "recordedTime": "AuditAction.inserted_at remains the physical recording time, distinct from the fictional event time"
+      },
+      "returnContext": {
+        "transactionHistory": "Opening the drawer retains the transaction path; closing returns to that transaction and restores focus.",
+        "directRowHistory": "The seeded reply record id is resolved from its captured change at runtime; route navigation retains the supported return context."
+      },
+      "fixtureRefs": [
+        {"id": "fixture-manifest-ticket", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@hero_close_number 4521"},
+        {"id": "fixture-manifest-correlation", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@correlation_acme_close \"walk-acme-4521-close\""},
+        {"id": "fixture-seed-action", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex", "locator": "Support.reply_and_close("}
+      ],
+      "sourceRefs": [
+        {"id": "scenario-4521-ticket", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@hero_close_number 4521"},
+        {"id": "scenario-4521-org", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "acme: \"acme\""},
+        {"id": "scenario-4521-actor", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "closer: \"closer@acme.example.com\""},
+        {"id": "scenario-4521-correlation", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@correlation_acme_close \"walk-acme-4521-close\""},
+        {"id": "scenario-4521-write", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex", "locator": "Support.reply_and_close("},
+        {"id": "scenario-4521-redaction", "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex", "locator": "internal_note_body: \"synthetic-secret-canary-239-6f71\""},
+        {"id": "scenario-4521-db-contract", "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs", "locator": "test \"#4521 row and reply snapshots match the represented close event\""}
+      ],
+      "proofRefs": [
+        {"id": "proof-4521-db", "kind": "database-contract-owner", "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs", "locator": "test \"#4521 row and reply snapshots match the represented close event\"", "owner": "demo_contract_test.exs", "limitation": "Existing database proof owner; this selection contract does not rerun or claim a new capture receipt."},
+        {"id": "proof-4521-action", "kind": "database-contract-owner", "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs", "locator": "test \"ticket_replied_and_closed action on #4521 close transaction\"", "owner": "demo_contract_test.exs", "limitation": "Existing action proof owner; AuditTransaction occurrence time and AuditAction recording time remain separate."},
+        {"id": "proof-4521-return", "kind": "journey-owner", "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts", "locator": "test(\"Home record lookup reaches first-class row history\"", "owner": "operator-earned-flows.spec.ts", "limitation": "Existing browser proof owner only; this plan does not run a browser or assert fresh visual acceptance."},
+        {"id": "proof-4521-correlation", "kind": "journey-owner", "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts", "locator": "test(\"Home correlation lookup lands on Timeline correlation filter\"", "owner": "operator-earned-flows.spec.ts", "limitation": "Existing browser proof owner only; this inventory is not a fresh mounted-route receipt."}
+      ],
+      "stateCriteria": {
+        "empty": {"status": "not_applicable", "reason": "This ordinary selection follows a seeded reply; the zero-match result is a separate named state fixture.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-db"]},
+        "loading": {"status": "not_applicable", "reason": "The scenario selects persisted seed data; pending navigation is a separate route-state journey.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-correlation"]},
+        "error_unavailable": {"status": "not_applicable", "reason": "The ordinary seeded close succeeds; unavailable and recovery states use named stress fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-db"]},
+        "populated": {"status": "mapped", "meaning": "The matching ticket reply, actor, correlation, action and captured change form the ordinary investigation chain.", "sourceRefIds": ["scenario-4521-db-contract", "scenario-4521-correlation"], "proofRefIds": ["proof-4521-db", "proof-4521-return"]},
+        "partial": {"status": "not_applicable", "reason": "This selection maps the complete seeded close event; absent fields and partial payloads are separate state cases.", "sourceRefIds": ["scenario-4521-db-contract"], "proofRefIds": ["proof-4521-db"]},
+        "overflow_boundary": {"status": "not_applicable", "reason": "The ordinary reply is the normal investigation example; long-content and pagination boundaries use separate fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-return"]},
+        "zero_one_many": {"status": "not_applicable", "reason": "The scenario is a direct identity lookup, not a result-count stress selection; named empty and many fixtures own those counts.", "sourceRefIds": ["scenario-4521-ticket"], "proofRefIds": ["proof-4521-db"]},
+        "long_text_unicode_duplicate_label": {"status": "not_applicable", "reason": "The redacted internal note is not a long-text or Unicode sample; named stress fixtures own those values and duplicate labels.", "sourceRefIds": ["scenario-4521-redaction"], "proofRefIds": ["proof-4521-db"]}
+      }
+    }
   ]
 }

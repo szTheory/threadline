@@ -14,6 +14,20 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
     end
   end
 
+  describe "ordinary investigation selection" do
+    test "DEMO-MANIFEST.md uses the semantic #4521 scenario and preserves runtime record resolution" do
+      doc = File.read!(@manifest)
+
+      assert String.contains?(doc, "scenario.acme-4521-investigation")
+      assert String.contains?(doc, "record_id resolved from the seeded ticket_replies change at runtime")
+      assert String.contains?(doc, "AuditAction.inserted_at")
+      assert String.contains?(doc, "Do not use stress fixtures as ordinary scenario data")
+      assert String.contains?(doc, "Manifest.last_tuesday()")
+      assert String.contains?(doc, "physical recording time")
+      assert String.contains?(doc, "walk-acme-4521-close")
+    end
+  end
+
   describe "recipe table" do
     test "DEMO-MANIFEST.md contains the State recipes section header" do
       doc = File.read!(@manifest)
