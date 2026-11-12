@@ -11,7 +11,8 @@ provides:
   - "Explicit unfiltered from= marker preservation and path/query identity separation."
 affects: ["Phase 250 Plan 08", "Admin investigation journeys"]
 actuals:
-  tokens: 22026259
+  tokens: null
+  executor_total_reported_tokens: 22026259
   executor_usage:
     input_tokens: 21897449
     cached_input_tokens: 21457408
@@ -187,4 +188,4 @@ The current shell failed the historical receipt. Restoring only the previous hea
 
 On the restored current source, the union of both plan verification commands passed:243 tests,0 failures. Warnings-as-errors compilation, mix verify.format and git diff --check passed. The corpus gate is closed; deferred-items.md retains its original report and resolved disposition. This is scoped integration evidence, not a new full-root or browser result. Independent phase review still inspects the correction in Plan08.
 
-Duration is the actual managed executor span. Usage comes from the executor terminal event: cached input is included in input_tokens and reasoning output is included in output_tokens; neither subset is added twice. Parent reconciliation usage is not available. Phase-wide requirements remain pending and no rendered whole-flow claim is made here.
+Duration is the actual managed executor span. The GSD realized-diff calibration field remains unknown; it is separate from model usage. Executor usage comes from the terminal event: cached input is included in input_tokens and reasoning output is included in output_tokens; neither subset is added twice. Parent reconciliation usage is not available. Phase-wide requirements remain pending and no rendered whole-flow claim is made here.
