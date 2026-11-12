@@ -207,3 +207,6 @@ For a completed immutable implementation awaiting external parent review, return
 
 
 Freeze and return after the completed implementation handoff. Run required scoped scans before that boundary; do not reopen completed work with optional audits or change shared detector policy to silence unrelated findings. The signed-off brand controls intentional font choices. An integrity-only result is not an authorization result: pass the separate verified parent intake explicitly so a deliberate `parentAcceptance:false` integrity label cannot create a false approval stop. Use managed command sessions rather than detached shell jobs, which can disappear when their launching shell exits.
+
+
+Keep executor context current and bounded. Phase250 measured 144,889 bytes in the full historical PROJECT versus 11,383 in its verbatim current purpose/milestone/context/constraints sections; `state.load` emitted 237,721 bytes versus about 4,000 after omitting `state_raw`. These are output-volume measurements, not latency claims. Supply current sections and preserve all configuration/status gates, use exact predecessor summaries, and inspect relevant blocks of large source/test files. Open historical decisions when a new relevant ambiguity requires them. Do not infer token usage from diff bytes or start elapsed time at the first task after setup.

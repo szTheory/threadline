@@ -12,7 +12,7 @@ provides:
   - Updated source contracts and stylesheet byte locks for the intentional typography change
 affects: [250-05-package-assets, 250-08-rendered-browser-proof]
 actuals:
-  tokens: 10244
+  tokens: null
   tasks: 2
   commits: 3
 plan_head_before: 65c4cfbde68e5419f4a07150bc94afca24bee92c
@@ -65,7 +65,7 @@ coverage:
         ref: test/threadline/operator_surface/style_byte_lock_test.exs#rendered output equals the fonts prefix plus the golden file
         status: pass
     human_judgment: false
-duration: 16min
+duration: 28min
 completed: 2026-11-12
 status: complete
 ---
@@ -76,9 +76,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** 16 min
-- **Started:** 2026-11-12T14:18:49Z
-- **Completed:** 2026-11-12T14:35:33Z
+- **Duration:** 1704.8 seconds (managed launch through terminal exit)
+- **Started:** 2026-11-12T14:10:27.684142Z
+- **Completed:** 2026-11-12T14:38:52.497846Z
 - **Tasks:** 2
 - **Files modified:** 8
 
@@ -147,3 +147,5 @@ Font source bytes, option behavior, CSS role contracts, compile, format, and sty
 ## Self-Check: PASSED
 
 All created/modified key files exist; all three task commits are ancestors of the assigned branch HEAD. The plan-scoped evaluation resolver found three commits for `250-03`, and the task acceptance checks plus plan-level verification passed.
+
+Parent reconciliation uses the complete managed invocation for elapsed time. Provider usage is retained in the process receipt; no scalar token estimate is asserted from source size.

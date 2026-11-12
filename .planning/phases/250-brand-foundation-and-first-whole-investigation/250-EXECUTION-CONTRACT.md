@@ -73,3 +73,10 @@ Plan01 introduces captureInvestigationHalf, assertInvestigationPair, verifyBefor
 
 Plan03 introduces intentional test/threadline/operator_surface/fonts_test.exs. Plan05 introduces intentional E2E tests/operator-brand-docs.spec.ts. Plan08 produces sanitized 250-PAIR-EVIDENCE.md and parent-owned 250-REVIEW.md. Other modified implementation/test paths must be existing tracked owners enumerated by each plan. Private captures and runtime capsules are generated evidence outside disposable checkouts, not package payload.
 
+
+
+## Committed source handoff for mounted proof
+
+When a plan needs browser proof before its final summary, the executor first commits its production changes and affected static checks, requests `startup-source-receipt`, and holds source immutable. The parent may use GSD’s supported custom-merge deviation to integrate that exact committed revision into the retained orchestrator checkout while the worker waits. Parent pins the manifest root/branch/base, exact commit, scope and deletion diff, uses normal hooks, then restarts only its owned app with a real startup source snapshot and the original database/partition/port. The matching `environment_ready` result permits the remaining focused proof. GSD’s final manifest cleanup reconciles subsequent commits and removes the worker after completion. This local integration is not phase acceptance.
+
+Plan04’s theme observation must record the new four-face font payload introduced by Plan03 while continuing to validate the immutable legacy five-face before capsule. Plan08 still owns full computed/loaded/blocked/disabled font and supplied-logo attribution. Each selected browser invocation receives a fresh unused absolute report path under the private pair root before `browser-begin`; retries retain prior reports and use a new path.
