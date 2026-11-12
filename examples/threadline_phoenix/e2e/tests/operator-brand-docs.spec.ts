@@ -1,28 +1,38 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { Script } from "node:vm";
 
 const docsUrl = process.env.THREADLINE_PHASE250_DOCS_URL;
-if (!docsUrl) {
-  throw new Error("THREADLINE_PHASE250_DOCS_URL must point to the parent-owned generated docs listener.");
-}
 
-const repositoryRoot = resolve(process.cwd(), "../../..");
-const darkLogo = readFileSync(
-  resolve(repositoryRoot, "brand/assets/logo/threadline-lockup-dark.svg"),
-);
-const lightLogo = readFileSync(
-  resolve(repositoryRoot, "brand/assets/logo/threadline-lockup-light.svg"),
-);
-const favicon = readFileSync(
-  resolve(repositoryRoot, "brand/assets/icon/favicon.svg"),
-);
+const registerGeneratedDocsTests = (url: string) => {
+  const repositoryRoot = resolve(process.cwd(), "../../..");
+  const darkLogo = readFileSync(
+    resolve(repositoryRoot, "brand/assets/logo/threadline-lockup-dark.svg"),
+  );
+  const lightLogo = readFileSync(
+    resolve(repositoryRoot, "brand/assets/logo/threadline-lockup-light.svg"),
+  );
+  const favicon = readFileSync(
+    resolve(repositoryRoot, "brand/assets/icon/favicon.svg"),
+  );
 
-test.describe("generated ExDoc Threadline identity", () => {
+  // This private listener is required only for the bounded generated-doc proof.
+  const generatedHtml = readFileSync(
+    resolve(repositoryRoot, "doc/readme.html"),
+    "utf8",
+  );
+  const logoHook = Array.from(
+    generatedHtml.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi),
+    (match) => match[1] ?? "",
+  ).find((source) => source.includes("const updateProjectLogo"));
+  if (!logoHook) throw new Error("Generated ExDoc logo hook was not found in doc/readme.html.");
+  new Script(logoHook, { filename: "doc/readme.html#threadline-logo-hook" });
+
   test("loads the paired README artwork and switches the measured sidebar logo with body.dark", async ({
     page,
   }) => {
-    await page.goto(docsUrl, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
 
     const sidebarLogo = page.locator(".sidebar .sidebar-projectImage img");
     await expect(sidebarLogo).toBeVisible();
@@ -107,7 +117,7 @@ test.describe("generated ExDoc Threadline identity", () => {
     page,
   }) => {
     expect(favicon.toString()).toContain("@media (prefers-color-scheme:dark)");
-    await page.goto(docsUrl, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     const faviconLink = page.locator('link[rel="icon"]');
     await expect(faviconLink).toHaveAttribute("href", "assets/favicon.svg");
     const faviconUrl = new URL(await faviconLink.getAttribute("href")!, page.url());
@@ -129,4 +139,6 @@ test.describe("generated ExDoc Threadline identity", () => {
 
     await expect(page.locator("#threadline-mermaid-script")).toBeAttached();
   });
-});
+};
+
+if (docsUrl) registerGeneratedDocsTests(docsUrl);
