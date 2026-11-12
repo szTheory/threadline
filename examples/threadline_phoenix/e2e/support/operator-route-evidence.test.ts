@@ -230,25 +230,52 @@ type RouteCoverageRule = {
   disposition: "mapped" | "not_applicable";
   sourceRefIds: string[];
   proofRefIds?: string[];
+  sourceOwners?: Array<{ id: string; path: string; locator: string }>;
+  proofOwners?: Array<{ id: string; path: string; locator: string }>;
   descriptionIncludes?: string;
   reasonIncludes?: string;
 };
 const routeSpecificCoverage: Record<string, Record<string, RouteCoverageRule>> = {
   "route.transaction": {
     empty: { disposition: "mapped", sourceRefIds: ["source-txn-state-empty"], proofRefIds: ["proof-txn-state-empty"], descriptionIncludes: "no row-level changes captured" },
-    loading: { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "load synchronously" },
+    loading: { disposition: "not_applicable", sourceRefIds: ["source-txn-mount"], sourceOwners: [{ id: "source-txn-mount", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "def mount(%{\"id\" => id}, _session, socket) do" }], reasonIncludes: "read synchronously in mount/3" },
     error: { disposition: "mapped", sourceRefIds: ["source-txn-state-not-found", "source-txn-state-unavailable"], proofRefIds: ["proof-txn-state-not-found", "proof-txn-state-unavailable"], descriptionIncludes: "not-found and unavailable" },
-    populated: { disposition: "mapped", sourceRefIds: ["source-txn-state-populated"], proofRefIds: ["proof-txn-state-populated"], descriptionIncludes: "valid transaction displays" },
-    partial: { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "no partial-result branch" },
-    overflow: { disposition: "not_applicable", sourceRefIds: ["source-route-transaction-9"], reasonIncludes: "no existing high-volume proof" },
-    "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "no one-versus-many count state" },
+    populated: { disposition: "mapped", sourceRefIds: ["source-txn-state-populated", "source-txn-state-identity"], proofRefIds: ["proof-txn-state-populated", "proof-txn-state-identity"], sourceOwners: [
+      { id: "source-txn-state-populated", path: "test/threadline/operator_surface/transaction_live_test.exs", locator: "test \"labels the before and after sides of each field change\"" },
+      { id: "source-txn-state-identity", path: "test/threadline/operator_surface/transaction_live_test.exs", locator: "test \"keeps transaction and linked action actors and recorded context distinct\"" },
+    ], proofOwners: [
+      { id: "proof-txn-state-populated", path: "test/threadline/operator_surface/transaction_live_test.exs", locator: "test \"labels the before and after sides of each field change\"" },
+      { id: "proof-txn-state-identity", path: "test/threadline/operator_surface/transaction_live_test.exs", locator: "test \"keeps transaction and linked action actors and recorded context distinct\"" },
+    ], descriptionIncludes: "actor/action header and captured field changes" },
+    partial: { disposition: "not_applicable", sourceRefIds: ["source-txn-mount", "source-txn-not-found-branch", "source-txn-unavailable-branch", "source-txn-empty-branch", "source-txn-list-branch"], sourceOwners: [
+      { id: "source-txn-mount", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "def mount(%{\"id\" => id}, _session, socket) do" },
+      { id: "source-txn-not-found-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if @not_found do" },
+      { id: "source-txn-unavailable-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if @unavailable do" },
+      { id: "source-txn-empty-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if Enum.empty?(@bundle.changes) do" },
+      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list changes={@streams.changes} base_path={@base_path} />" },
+    ], reasonIncludes: "no partial-result branch" },
+    overflow: { disposition: "not_applicable", sourceRefIds: ["source-route-transaction-9", "source-route-transaction-12"], sourceOwners: [
+      { id: "source-route-transaction-9", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "handle_event(\"prev-page\", _, socket) do" },
+      { id: "source-route-transaction-12", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "handle_event(\"next-page\", _, socket) do" },
+    ], reasonIncludes: "handlers return the socket unchanged" },
+    "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-txn-empty-branch", "source-txn-list-branch"], sourceOwners: [
+      { id: "source-txn-empty-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if Enum.empty?(@bundle.changes) do" },
+      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list changes={@streams.changes} base_path={@base_path} />" },
+    ], reasonIncludes: "no one-versus-many count state" },
     "long-text": { disposition: "mapped", sourceRefIds: ["source-txn-state-long"], proofRefIds: ["proof-txn-state-long"], descriptionIncludes: "long diff values" },
   },
   "route.row": {
     empty: { disposition: "not_applicable", sourceRefIds: ["source-row-state-empty"], reasonIncludes: "no separate empty-history message" },
     loading: { disposition: "not_applicable", sourceRefIds: ["source-row-state-loading"], reasonIncludes: "loads history and snapshot synchronously" },
     error: { disposition: "mapped", sourceRefIds: ["source-row-state-error", "source-row-state-outage"], proofRefIds: ["proof-row-state-error", "proof-row-state-outage"], descriptionIncludes: "schema errors and read outages" },
-    populated: { disposition: "mapped", sourceRefIds: ["source-row-state-populated"], proofRefIds: ["proof-row-state-populated"], descriptionIncludes: "captured values are sorted" },
+    populated: { disposition: "mapped", sourceRefIds: ["source-row-state-populated", "source-row-sorted-snapshot", "source-row-state-sorted-snapshot"], proofRefIds: ["proof-row-state-populated", "proof-row-state-sorted-snapshot"], sourceOwners: [
+      { id: "source-row-state-populated", path: "test/threadline/operator_surface/live/row_history_live_test.exs", locator: "test \"first-class row-history route renders its semantic shell without a transaction id\"" },
+      { id: "source-row-sorted-snapshot", path: "lib/threadline/operator_surface/live/row_history_component.ex", locator: "defp snapshot_rows(snapshot) do" },
+      { id: "source-row-state-sorted-snapshot", path: "test/threadline/operator_surface/row_history_component_test.exs", locator: "test \"renders sorted snapshot rows with shared semantic value tokens\"" },
+    ], proofOwners: [
+      { id: "proof-row-state-populated", path: "test/threadline/operator_surface/live/row_history_live_test.exs", locator: "test \"first-class row-history route renders its semantic shell without a transaction id\"" },
+      { id: "proof-row-state-sorted-snapshot", path: "test/threadline/operator_surface/row_history_component_test.exs", locator: "test \"renders sorted snapshot rows with shared semantic value tokens\"" },
+    ], descriptionIncludes: "component sorts them into key/value rows" },
     partial: { disposition: "mapped", sourceRefIds: ["source-row-state-before-horizon", "source-row-state-deleted"], proofRefIds: ["proof-row-state-before-horizon", "proof-row-state-deleted"], descriptionIncludes: "before-horizon and deleted snapshots" },
     overflow: { disposition: "mapped", sourceRefIds: ["source-row-state-overflow"], proofRefIds: ["proof-row-state-overflow"], descriptionIncludes: "all 250 change rows" },
     "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-row-state-count"], reasonIncludes: "no count-specific 0/1/many state" },
@@ -403,11 +430,33 @@ function semanticInventoryErrors(
             (rule.proofRefIds ?? []).some((id) => !entry?.proofRefIds?.includes(id))) {
           errors.push(`missing route-specific U1 source/proof owner for ${surface.routeId} ${criterion}`);
         }
+        for (const expected of rule.sourceOwners ?? []) {
+          const actual = surface.sourceRefs?.find((reference) => reference.id === expected.id);
+          if (actual?.path !== expected.path || actual?.locator !== expected.locator) {
+            errors.push(`incorrect route-specific U1 source locator for ${surface.routeId} ${criterion} ${expected.id}`);
+          }
+        }
+        for (const expected of rule.proofOwners ?? []) {
+          const actual = surface.proofRefs?.find((reference) => reference.id === expected.id);
+          if (actual?.path !== expected.path || actual?.locator !== expected.locator) {
+            errors.push(`incorrect route-specific U1 proof locator for ${surface.routeId} ${criterion} ${expected.id}`);
+          }
+        }
         if (rule.descriptionIncludes && !entry?.description?.toLowerCase().includes(rule.descriptionIncludes)) {
           errors.push(`incorrect route-specific U1 description for ${surface.routeId} ${criterion}`);
         }
         if (rule.reasonIncludes && !entry?.reason?.toLowerCase().includes(rule.reasonIncludes)) {
           errors.push(`incorrect route-specific U1 not-applicable reason for ${surface.routeId} ${criterion}`);
+        }
+      }
+      if (surface.routeId === "route.transaction") {
+        const claims = [
+          ...(surface.actions ?? []),
+          ...(surface.states ?? []),
+          ...Object.values(coverage).flatMap((entry) => [entry.description ?? "", entry.reason ?? ""]),
+        ];
+        if (claims.some((claim) => /\b(?:paginate|pagination|page controls|load older or newer)\b/i.test(claim))) {
+          errors.push("unsupported transaction change pagination claim");
         }
       }
     }
@@ -1003,4 +1052,23 @@ test("semantic identities and source ownership survive reordered declarations; m
   homeOnlyTransactionState.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.transaction").uiCoverage.empty.description =
     "No result state and validation feedback on the Home lookup.";
   assert.ok(semanticInventoryErrors(homeOnlyTransactionState, fixture, semanticSources).includes("Home-only U1 state description for route.transaction empty"));
+
+  const wrongTransactionReadOwner = structuredClone(inventory);
+  wrongTransactionReadOwner.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.transaction")
+    .sourceRefs.find((reference: SemanticReference) => reference.id === "source-txn-mount").locator = "handle_params(params, uri, socket) do";
+  assert.ok(semanticInventoryErrors(wrongTransactionReadOwner, fixture, semanticSources)
+    .includes("incorrect route-specific U1 source locator for route.transaction loading source-txn-mount"));
+
+  const missingTransactionIdentityProof = structuredClone(inventory);
+  const populatedTransaction = missingTransactionIdentityProof.surfaces
+    .find((surface: SemanticSurface) => surface.routeId === "route.transaction").uiCoverage.populated;
+  populatedTransaction.proofRefIds = populatedTransaction.proofRefIds.filter((id: string) => id !== "proof-txn-state-identity");
+  assert.ok(semanticInventoryErrors(missingTransactionIdentityProof, fixture, semanticSources)
+    .includes("missing route-specific U1 source/proof owner for route.transaction populated"));
+
+  const falseTransactionPagination = structuredClone(inventory);
+  falseTransactionPagination.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.transaction")
+    .actions.push("Load older or newer transaction changes");
+  assert.ok(semanticInventoryErrors(falseTransactionPagination, fixture, semanticSources)
+    .includes("unsupported transaction change pagination claim"));
 });
