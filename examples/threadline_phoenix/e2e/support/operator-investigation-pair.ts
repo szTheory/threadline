@@ -95,6 +95,7 @@ type AppReceipt = {
   readonly port: number;
   readonly source_head: string;
   readonly launched_source: SourceIdentity;
+  readonly launched_source_extras?: SourceIdentity;
   readonly launched_source_observed_at: string;
   readonly status: string;
   readonly url: string;
@@ -199,6 +200,7 @@ export type InvestigationHalf = {
     readonly servingSource: SourceIdentity;
   };
   readonly testSource: SourceIdentity;
+  readonly additionalRuntimeSources?: { readonly launched: SourceIdentity; readonly serving: SourceIdentity; readonly test: SourceIdentity };
   readonly browser: { readonly project: string; readonly version: string; readonly playwright: string };
   readonly journey: InvestigationJourney;
   readonly captures: readonly InvestigationCapture[];
@@ -299,6 +301,36 @@ export function sourceIdentity(root: string): SourceIdentity {
   return { files };
 }
 
+const additionalRuntimePath = "lib/threadline/operator_surface/live/timeline_live/helpers.ex";
+
+export function additionalSourceIdentity(root: string): SourceIdentity {
+  const file = resolve(root, additionalRuntimePath);
+  const stat = lstatSync(file);
+  if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("Additional runtime source must be a regular helper file");
+  const bytes = readFileSync(file);
+  return { files: { [additionalRuntimePath]: { sha256: sha256(bytes), bytes: bytes.byteLength } } };
+}
+
+export function assertAdditionalSourceFreshness(
+  launched: SourceIdentity | undefined, serving: SourceIdentity, test: SourceIdentity,
+): void {
+  for (const source of [launched, serving, test]) {
+    if (!validSourceIdentity(source) || JSON.stringify(Object.keys(source!.files)) !== JSON.stringify([additionalRuntimePath])) {
+      throw new Error("Additional runtime provenance requires the actual startup helper inventory");
+    }
+  }
+  if (!sameSource(launched!, serving) || !sameSource(launched!, test)) {
+    throw new Error("Additional runtime helper differs between startup, serving and test source");
+  }
+}
+
+function currentAdditionalSources(receipt: AppReceipt) {
+  const serving = additionalSourceIdentity(receipt.checkout);
+  const test = additionalSourceIdentity(repoRoot);
+  assertAdditionalSourceFreshness(receipt.launched_source_extras, serving, test);
+  return { launched: receipt.launched_source_extras!, serving, test };
+}
+
 function sameSource(left: SourceIdentity, right: SourceIdentity): boolean {
   const leftFiles = Object.keys(left.files).sort();
   const rightFiles = Object.keys(right.files).sort();
@@ -358,7 +390,7 @@ async function assertLivePair(receipt = readAppReceipt()) {
   const servingSource = sourceIdentity(receipt.checkout);
   const testSource = sourceIdentity(repoRoot);
   assertLaunchedSourceFreshness(receipt.launched_source, servingSource, testSource);
-  return { listener, servingSource, testSource };
+  return { listener, servingSource, testSource, additionalRuntimeSources: currentAdditionalSources(receipt) };
 }
 
 type LiveMaterialization = {
@@ -458,17 +490,20 @@ function assertJourney(journey: InvestigationJourney, materialization: Materiali
   }
 }
 
-async function pageAssetIdentity(page: Page, root: string): Promise<ServedAssetIdentity> {
+async function pageAssetIdentity(page: Page, root: string, fontsDisabled = false): Promise<ServedAssetIdentity> {
   const styles = await page.locator("style").allTextContents();
   const stylesheet = styles.find((value) => value.includes(".threadline-ui"));
-  const fontStyle = styles.find((value) => value.includes("data:font/woff2;base64,"));
-  if (!stylesheet || !fontStyle) throw new Error("Served operator CSS or embedded font face is missing");
+  const fontStyle = styles.find((value) => value.includes("@font-face")) ?? "";
+  if (!stylesheet) throw new Error("Served operator stylesheet is missing");
   const localStyle = styleFiles.map((file) => readFileSync(join(root, "lib/threadline/operator_surface/style", file), "utf8")).join("");
   if (stylesheet !== localStyle) throw new Error("Served mounted stylesheet bytes differ from the actual serving source segments");
   const faceBlocks = [...fontStyle.matchAll(/@font-face\s*\{([^}]*)\}/g)].map((match) => match[1]!);
-  if (faceBlocks.length !== embeddedFonts.length) throw new Error(`Expected ${embeddedFonts.length} actual embedded WOFF2 faces, found ${faceBlocks.length}`);
+  const expectedFaces = fontsDisabled ? 0 : embeddedFonts.length;
+  if (faceBlocks.length !== expectedFaces || (fontsDisabled && styles.some((value) => value.includes("data:font/woff2;base64,")))) {
+    throw new Error(`Expected ${expectedFaces} actual embedded WOFF2 faces, found ${faceBlocks.length}`);
+  }
   const fonts: Record<string, AssetIdentity> = {};
-  const fontFaces = embeddedFonts.map(([family, weight, file], index) => {
+  const fontFaces = (fontsDisabled ? [] : embeddedFonts).map(([family, weight, file], index) => {
     const block = faceBlocks[index]!;
     const actualFamily = block.match(/font-family:\s*"([^"]+)"/)?.[1];
     const actualWeight = block.match(/font-weight:\s*([^;]+);/)?.[1]?.trim();
@@ -575,6 +610,7 @@ async function captureLane(
     id, route: url.pathname + url.search, state, condition,
     assets,
     source: { test: testSource, serving: servingSource },
+    additionalRuntimeSources: currentAdditionalSources(readAppReceipt()),
     viewport: condition.viewport,
     browserZoom: "unverified",
     capturedAt: now(),
@@ -747,6 +783,7 @@ export async function captureInvestigationHalf(
     },
     server: { pid: receipt.pid, port: receipt.port, sourceHeadAtStart: receipt.source_head, servingSource: live.servingSource },
     testSource: live.testSource,
+    ...(session.half === "after" ? { additionalRuntimeSources: live.additionalRuntimeSources } : {}),
     browser: { project: info.project.name, version: browser.version(), playwright: playwrightVersion() },
     journey,
     captures,
@@ -854,6 +891,10 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
       value.captures.length !== (isCandidate || expectedHalf === "after" ? 8 : 2) ||
       !Array.isArray(value.systemObservations) || value.systemObservations.length !== 2) {
     throw new Error(`Invalid or incomplete ${expectedHalf} investigation half`);
+  }
+  if (expectedHalf === "after") {
+    const additional = value.additionalRuntimeSources;
+    assertAdditionalSourceFreshness(additional?.launched, additional?.serving, additional?.test);
   }
   const ids = new Set(value.captures.map((capture: any) => capture?.id));
   const expectedIds = isCandidate || expectedHalf === "after"
@@ -1056,6 +1097,7 @@ export async function capturePhase250GateObservation(
   browser: Browser,
   info: TestInfo,
   gate: "theme" | "fonts-loaded" | "fonts-disabled",
+  renderedChecks?: Readonly<Record<string, unknown>>,
 ) {
   const root = pairRoot();
   const receipt = readAppReceipt();
@@ -1064,7 +1106,7 @@ export async function capturePhase250GateObservation(
     throw new Error("Phase250 browser observations require the selected desktop project and a separate test process");
   }
   const condition = await observeCondition(page, browser, info);
-  const assets = await pageAssetIdentity(page, receipt.checkout);
+  const assets = await pageAssetIdentity(page, receipt.checkout, gate === "fonts-disabled");
   const id = `${gate}-${randomUUID()}`;
   const outputDir = resolve(root, "gates", gate);
   mkdirSync(outputDir, { recursive: true, mode: 0o700 });
@@ -1086,7 +1128,10 @@ export async function capturePhase250GateObservation(
   const observation = {
     gate, id, route: new URL(page.url()).pathname + new URL(page.url()).search, condition, assets,
     shell: imageIdentity(shellPath, shellBytes), content: imageIdentity(contentPath, contentBytes),
-    source: { serving: live.servingSource, test: live.testSource }, observedAt: now(),
+    source: { serving: live.servingSource, test: live.testSource },
+    additionalRuntimeSources: live.additionalRuntimeSources,
+    ...(renderedChecks ? { renderedChecks } : {}),
+    observedAt: now(),
   };
   const file = resolveContainedPath(outputDir, `${id}.json`);
   const serialized = `${JSON.stringify(observation, null, 2)}\n`;
@@ -1260,6 +1305,7 @@ export async function browserCheck(gateValue: string) {
     reportSha256: sha256(reportBytes),
     invocationSha256: sha256(readFileSync(path)),
     source: { serving: live.servingSource, test: live.testSource },
+    additionalRuntimeSources: live.additionalRuntimeSources,
     results: actual,
     checkedAt: now(),
   };

@@ -78,6 +78,7 @@ defmodule Threadline.OperatorSurface.FontsTest do
     value = selector_block!(src, ".tl-value")
     metadata = selector_block!(src, ".tl-timeline-fact__detail")
     table_name = selector_block!(src, ".tl-policy__table")
+    record_id = selector_block!(src, ".tl-secondary-ref")
 
     assert tokens =~ ~s(--tl-font-family: "Threadline Geist",)
     assert tokens =~ ~s(--tl-font-mono: "Threadline IBM Plex Mono",)
@@ -119,6 +120,11 @@ defmodule Threadline.OperatorSurface.FontsTest do
     assert table_name =~ "font-size: var(--tl-font-size-dense);"
     assert table_name =~ "font-weight: var(--tl-weight-regular);"
     assert table_name =~ "line-height: var(--tl-line-mono);"
+
+    assert record_id =~ "font-family: var(--tl-font-mono);"
+    assert record_id =~ "font-size: var(--tl-font-size-dense);"
+    assert record_id =~ "font-weight: var(--tl-weight-regular);"
+    assert record_id =~ "line-height: var(--tl-line-mono);"
 
     assert metadata =~ "font-size: var(--tl-font-size-sm);"
     assert metadata =~ "font-weight: var(--tl-weight-regular);"

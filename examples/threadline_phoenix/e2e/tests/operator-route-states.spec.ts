@@ -2,7 +2,8 @@ import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } 
 import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
@@ -14,6 +15,8 @@ test.beforeEach(async ({}, info) => {
   if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme" &&
       info.title === "theme preference, effective cascade and reduced motion are distinct observed facts" &&
       info.project.name === "desktop-chromium") return;
+  if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_BROWSER_GATE ?? "") &&
+      info.title === "Phase250 fonts and brand boundaries" && info.project.name === "desktop-chromium") return;
   if ([
     "Evidence keeps selected subject/reference through latest and proof-history navigation",
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
@@ -45,6 +48,168 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 function copyStatus(control: Locator) {
   return control.locator("xpath=..").locator("[data-tl-copy-status]");
+}
+
+async function phase250FocusByKeyboard(page: Page, target: Locator) {
+  await target.scrollIntoViewIfNeeded();
+  for (let index = 0; index < 120; index += 1) {
+    if (await target.evaluate((element) => element === document.activeElement)) return;
+    await page.keyboard.press("Tab");
+  }
+  throw new Error("Keyboard traversal did not reach the required control");
+}
+
+function phase250Rgb(hex: string) {
+  return `rgb(${[1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16)).join(", ")})`;
+}
+
+function phase250Contrast(text: string, ground: string) {
+  const luminance = (color: string) => {
+    const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((value) => {
+      const s = value / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+  };
+  const a = luminance(text), b = luminance(ground);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_BROWSER_GATE ?? "")) {
+  test("Phase250 fonts and brand boundaries", async ({ page, context, browser }, info) => {
+    test.setTimeout(90_000);
+    const disabled = process.env.THREADLINE_PHASE250_FONT_MODE === "disabled";
+    expect(disabled).toBe(process.env.THREADLINE_PHASE250_BROWSER_GATE === "fonts-disabled");
+    const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
+    const brand = JSON.parse(readFileSync(join(sourceRoot, "brand/brand.json"), "utf8"));
+    const origin = new URL(process.env.E2E_BASE_URL!).origin;
+    const externalRequests: string[] = [];
+    const allowLocal = async (route: any) => {
+      const url = new URL(route.request().url());
+      if (["http:", "https:"].includes(url.protocol) && url.origin !== origin) {
+        externalRequests.push(url.origin); await route.abort();
+      } else await route.continue();
+    };
+    await page.route("**/*", allowLocal);
+    const fontRequests = [
+      '600 28px "Threadline Familjen Grotesk"', '400 16px "Threadline Geist"',
+      '400 13px "Threadline IBM Plex Mono"', '500 13px "Threadline IBM Plex Mono"',
+    ];
+    const timeline = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=walk-acme-4521-close";
+    const mapping: Record<string, [string, string]> = {
+      body: ["text", "bg"], descriptor: ["muted", "bg"], caption: ["muted", "surface"],
+      "application-copy": ["text", "surface"], hero: ["accent", "bg"], link: ["accent", "surface"],
+      focus: ["border-focus", "bg"], artwork: ["stitch-blue", "bg"],
+    };
+    const loadFaces = async (target: Page) => target.evaluate(async (requests) => {
+      await Promise.allSettled(requests.map((font) => document.fonts.load(font)));
+      await document.fonts.ready;
+      return Array.from(document.fonts).map((face) => ({ family: face.family.replaceAll('"', ""), weight: face.weight, status: face.status }));
+    }, fontRequests);
+    await login(page);
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const lane of ["dark", "light"] as const) {
+        await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+        await page.goto(timeline);
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        await page.getByRole("button", { name: lane === "dark" ? "Dark" : "Light", exact: true }).click();
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const faces = await loadFaces(page);
+        expect(faces).toHaveLength(disabled ? 0 : 4);
+        if (!disabled) expect(faces.every((face) => face.status === "loaded")).toBe(true);
+        const roles = await page.evaluate(() => {
+          const read = (selector: string) => {
+            const node = document.querySelector<HTMLElement>(selector);
+            if (!node) throw new Error(`Missing rendered type role ${selector}`);
+            const s = getComputedStyle(node);
+            return { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, line: s.lineHeight };
+          };
+          return { body: read(".threadline-ui"), heading: read("#tl-main h1"), id: read(".tl-ref .tl-secondary-ref"), numeric: Array.from(document.querySelectorAll(".threadline-ui *")).map((node) => getComputedStyle(node).fontVariantNumeric).find((value) => value.includes("tabular-nums")) ?? "missing" };
+        });
+        expect(roles.body.family).toContain("Threadline Geist");
+        expect(roles.body.size).toBe("16px");
+        expect(roles.heading.family).toContain("Threadline Familjen Grotesk");
+        expect(roles.heading).toMatchObject({ size: "28px", weight: "600" });
+        expect(roles.id.family).toContain("Threadline IBM Plex Mono");
+        expect(roles.id).toMatchObject({ size: "13px", weight: "400", line: "19.5px" });
+        expect(roles.numeric).toContain("tabular-nums");
+        const contrastRows = await page.evaluate(({ mapping, pairs, lane }) => {
+          const root = document.querySelector(".threadline-ui")!;
+          const probe = document.createElement("span"); root.append(probe);
+          const rows = pairs.map((pair: any) => {
+            const [text, ground] = mapping[pair.id]!;
+            probe.style.color = `var(--tl-color-${text})`;
+            probe.style.backgroundColor = `var(--tl-color-${ground})`;
+            const style = getComputedStyle(probe);
+            return { id: pair.id, text: style.color, ground: style.backgroundColor, minimum: pair.minimum, expected: pair[lane], mapping: [text, ground] };
+          });
+          probe.remove(); return rows;
+        }, { mapping, pairs: brand.color.contrastPairs, lane });
+        expect(contrastRows.map((row: any) => row.id)).toEqual(["body", "descriptor", "caption", "application-copy", "hero", "link", "focus", "artwork"]);
+        for (const row of contrastRows) {
+          expect(row.text, `${lane}/${row.id} foreground`).toBe(phase250Rgb(row.expected.text));
+          expect(row.ground, `${lane}/${row.id} background`).toBe(phase250Rgb(row.expected.ground));
+          expect(phase250Contrast(row.text, row.ground)).toBeGreaterThanOrEqual(row.minimum);
+        }
+        const home = page.getByRole("link", { name: "Threadline Admin home", exact: true });
+        await expect(home).toBeVisible();
+        const logo = page.locator(`.tl-topbar__brand-logo--${lane}`);
+        await expect(logo).toBeVisible();
+        const logoBox = await logo.boundingBox(); expect(logoBox!.width).toBeGreaterThanOrEqual(96);
+        const homeBox = await home.boundingBox();
+        expect(logoBox!.x).toBeGreaterThanOrEqual(homeBox!.x - 1);
+        expect(logoBox!.x + logoBox!.width).toBeLessThanOrEqual(homeBox!.x + homeBox!.width + 1);
+        const supplied = readFileSync(join(sourceRoot, `brand/assets/logo/threadline-lockup-${lane}.svg`), "utf8");
+        const artwork = await logo.evaluate((element, expected) => {
+          const source = new DOMParser().parseFromString(expected, "image/svg+xml").documentElement;
+          const paths = (node: Element) => Array.from(node.querySelectorAll("path")).map((p) => [p.getAttribute("d"), p.getAttribute("fill"), p.getAttribute("transform")]);
+          return { actualPaths: paths(element), suppliedPaths: paths(source), actualViewBox: element.getAttribute("viewBox"), suppliedViewBox: source.getAttribute("viewBox") };
+        }, supplied);
+        expect(artwork.actualPaths).toEqual(artwork.suppliedPaths);
+        expect(artwork.actualViewBox).toBe(artwork.suppliedViewBox);
+        const copy = page.locator("button[data-tl-copy]").first();
+        await phase250FocusByKeyboard(page, copy);
+        await expect(copy).toBeFocused();
+        await expect.poll(() => copy.evaluate((element) => getComputedStyle(element).outlineWidth)).toBe("2px");
+        const focus = await copy.evaluate((element) => ({ color: getComputedStyle(element).outlineColor, visible: element.matches(":focus-visible"), style: getComputedStyle(element).outlineStyle }));
+        expect(focus).toEqual({ color: phase250Rgb(brand.color.contrastPairs.find((pair: any) => pair.id === "focus")[lane].text), visible: true, style: "solid" });
+        await expectNoHorizontalOverflow(page);
+        await capturePhase250GateObservation(page, browser, info, disabled ? "fonts-disabled" : "fonts-loaded", { lane, width, faces, roles, contrastRows, focus, logoWidth: logoBox!.width, contrastBoundary: "scoped semantic-token samples; actual heading/body/ID/logo/focus consumers checked separately" });
+        if (!disabled) {
+          const fallback = await context.newPage();
+          try {
+            await fallback.setViewportSize({ width, height: 900 });
+            await fallback.route("**/*", async (route) => {
+              const request = route.request(); const url = new URL(request.url());
+              if (url.origin !== origin) { externalRequests.push(url.origin); await route.abort(); return; }
+              if (request.resourceType() === "document") {
+                const response = await route.fetch();
+                await route.fulfill({ response, headers: { ...response.headers(), "content-security-policy": "font-src 'none'" } });
+              } else await route.continue();
+            });
+            await fallback.goto(timeline);
+            await expect(fallback.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+            const blocked = await loadFaces(fallback);
+            expect(blocked).toHaveLength(4); expect(blocked.every((face) => face.status === "error")).toBe(true);
+            await expect(fallback.getByRole("heading", { name: "Timeline", exact: true })).toBeVisible();
+            await expect(fallback.locator(".tl-ref .tl-secondary-ref").first()).toBeVisible();
+            await expectNoHorizontalOverflow(fallback);
+            await capturePhase250GateObservation(fallback, browser, info, "fonts-loaded", { lane, width, mode: "test-controlled font-src-none", blockedFaces: blocked, readableFallback: "visible heading, original ID and controls remain in bounded layout" });
+          } finally { await fallback.close(); }
+        }
+      }
+    }
+    const iconHref = await page.locator('link[rel~="icon"]').first().getAttribute("href");
+    expect(iconHref).toBeTruthy(); const iconUrl = new URL(iconHref!, page.url()); expect(iconUrl.origin).toBe(origin);
+    const icon = await page.request.get(iconUrl.toString()); expect(icon.ok()).toBe(true);
+    const iconBytes = await icon.body();
+    expect(createHash("sha256").update(iconBytes).digest("hex")).toBe(createHash("sha256").update(readFileSync(join(sourceRoot, "brand/assets/icon/favicon.ico"))).digest("hex"));
+    const iconSizes = Array.from({ length: iconBytes.readUInt16LE(4) }, (_, index) => iconBytes[6 + index * 16] || 256);
+    expect(iconSizes.length).toBeGreaterThan(0); expect(Math.min(...iconSizes)).toBeGreaterThanOrEqual(16);
+    expect(externalRequests).toEqual([]);
+  });
 }
 
 test("Redaction policy comparison stays safe, keyboard-operable, and responsive", async ({ page }) => {
@@ -568,6 +733,7 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await page.addInitScript(() => {
     const probe = {
       calls: [] as Array<{ value: string; userActivation: boolean }>,
+      fallbackCalls: 0,
       pending: [] as Array<() => void>,
       resolveNext() {
         this.pending.shift()?.();
@@ -583,6 +749,7 @@ test("Clipboard success waits for confirmation on direct entry and after patches
         },
       },
     });
+    document.execCommand = () => { probe.fallbackCalls += 1; return false; };
   });
 
   await login(page);
@@ -593,7 +760,8 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await expect(copy).toBeVisible();
   const expected = await copy.getAttribute("data-tl-copy");
   expect(expected).toBeTruthy();
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await page.keyboard.press("Enter");
 
   const status = copyStatus(copy);
   await expect(status).toHaveText("Copying…");
@@ -605,6 +773,8 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
   await expect(status).toHaveText("Copied.");
   await expect(copy).toHaveClass(/is-copied/);
+  await expect(copy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(0);
 
   await page.locator("#filter-table").fill("ticket_replies");
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
@@ -613,12 +783,15 @@ test("Clipboard success waits for confirmation on direct entry and after patches
 
   const patchedCopy = page.locator("button[data-tl-copy]").first();
   const patchedExpected = await patchedCopy.getAttribute("data-tl-copy");
-  await patchedCopy.click();
+  await phase250FocusByKeyboard(page, patchedCopy);
+  await page.keyboard.press("Enter");
   const patchedStatus = copyStatus(patchedCopy);
   await expect(patchedStatus).toHaveText("Copying…");
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls)).toHaveLength(2);
   await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
   await expect(patchedStatus).toHaveText("Copied.");
+  await expect(patchedCopy).toBeFocused();
+  await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls[1])).toEqual({
     value: patchedExpected,
     userActivation: true,
@@ -645,7 +818,8 @@ test("Clipboard failure shows manual recovery without claiming success", async (
   const copy = page.locator("button[data-tl-copy]").first();
   await expect(copy).toBeVisible();
   const expected = await copy.getAttribute("data-tl-copy");
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await page.keyboard.press("Enter");
 
   const status = copyStatus(copy);
   await expect(status).toHaveText("Copy failed. Select the value and copy it manually.");
@@ -660,11 +834,12 @@ test("Clipboard failure shows manual recovery without claiming success", async (
 
 test("Clipboard fallback confirms success and restores focus and selection", async ({ page }) => {
   await page.addInitScript(() => {
-    const probe = { fallbackCalls: 0 };
+    const probe = { fallbackCalls: 0, values: [] as string[] };
     (window as any).__threadlineCopyProbe = probe;
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
     document.execCommand = () => {
       probe.fallbackCalls += 1;
+      probe.values.push((document.activeElement as HTMLTextAreaElement).value);
       return true;
     };
   });
@@ -687,9 +862,15 @@ test("Clipboard fallback confirms success and restores focus and selection", asy
   await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
 
   const copy = source.locator("xpath=..").locator("button[data-tl-copy]").first();
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await source.evaluate((element) => {
+    const range = document.createRange(); range.selectNodeContents(element);
+    const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+  });
+  await page.keyboard.press("Enter");
   await expect(copyStatus(copy)).toHaveText("Copied.");
   await expect(copy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.values)).toEqual([await copy.getAttribute("data-tl-copy")]);
   await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(1);
   await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
@@ -697,13 +878,17 @@ test("Clipboard fallback confirms success and restores focus and selection", asy
 
 test("Copy feedback fits long URLs and redacted values stay non-copyable", async ({ page }) => {
   await page.addInitScript(() => {
+    (window as any).__threadlineLongCopyValues = [];
+    document.execCommand = () => false;
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
-      value: { writeText: () => Promise.resolve() },
+      value: { writeText: (value: string) => { (window as any).__threadlineLongCopyValues.push(value); return Promise.resolve(); } },
     });
   });
 
   await login(page);
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 900 });
   const correlation = `copy-long-${"x".repeat(180)}`;
   const appliedUrl = `/audit/timeline?table=ticket_replies&correlation_id=${encodeURIComponent(correlation)}`;
   await page.goto(appliedUrl);
@@ -712,7 +897,8 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   const copySearch = drawer.getByRole("button", { name: "Copy search URL", exact: true });
   await expect(copySearch).toHaveAttribute("data-tl-copy", appliedUrl);
   await expect(copyStatus(copySearch)).toHaveCount(1);
-  await copySearch.click();
+  await phase250FocusByKeyboard(page, copySearch);
+  await page.keyboard.press("Enter");
   const status = copyStatus(copySearch);
   await expect(status).toHaveText("Copied.");
   await expectNoHorizontalOverflow(page);
@@ -737,7 +923,8 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   const reference = page.locator(".tl-ref").filter({ has: page.locator("button[data-tl-copy]") }).first();
   const referenceCopy = reference.locator("button[data-tl-copy]").first();
   await expect(referenceCopy).toBeVisible();
-  await referenceCopy.click();
+  await phase250FocusByKeyboard(page, referenceCopy);
+  await page.keyboard.press("Enter");
   await expect(copyStatus(referenceCopy)).toHaveText("Copied.");
   await expectNoHorizontalOverflow(page);
   const referenceGeometry = await reference.evaluate((element) => {
@@ -774,6 +961,19 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   await expect(
     page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
   ).toHaveCount(0);
+  // Separate synthetic stress fixture; it does not replace the ordinary investigation.
+  await page.goto("/audit/__stress?story=state.ref.current");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const expectedLongId = "chg_00000000-0000-4000-8000-171171171171/correlation/" + "a".repeat(72);
+  const values = await page.locator("button[data-tl-copy]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tl-copy")));
+  const longIndex = values.indexOf(expectedLongId); expect(longIndex).toBeGreaterThanOrEqual(0);
+  const longCopy = page.locator("button[data-tl-copy]").nth(longIndex);
+  await phase250FocusByKeyboard(page, longCopy); await page.keyboard.press("Enter");
+  await expect(copyStatus(longCopy)).toHaveText("Copied."); await expect(longCopy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineLongCopyValues.at(-1))).toBe(expectedLongId);
+  await expectNoHorizontalOverflow(page);
+
+  }
 });
 
 test("Exports seeded pending, failed, completed, unavailable and invalid context stay distinct", async ({ page, browser }, info) => {
