@@ -1,7 +1,9 @@
 import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
@@ -177,16 +179,139 @@ test("theme preference, effective cascade and reduced motion are distinct observ
     };
     await assertTheme(currentPreference, "dark");
 
+    const diagnosticOutput = process.env.THREADLINE_PHASE250_DIAGNOSTIC_OUTPUT;
+    const focusDiagnostics: unknown[] = [];
+    const fixtureMarkup = readFileSync(join(paths.repositoryRoot, "test/fixtures/style/operator_surface.css"), "utf8");
+    const fixturePrefix = "<style>\n";
+    const fixtureSuffix = "</style>";
+    const fixtureBody = fixtureMarkup.startsWith(fixturePrefix) && fixtureMarkup.endsWith(fixtureSuffix)
+      ? fixtureMarkup.slice(fixturePrefix.length, -fixtureSuffix.length)
+      : null;
+    const captureFocusDiagnostic = async (target: Locator) => {
+      const observed = await target.evaluate((element) => {
+        const active = document.activeElement;
+        const computed = getComputedStyle(element);
+        const styleBlocks = Array.from(document.querySelectorAll("style"))
+          .filter((style) => style.textContent?.includes(".threadline-ui"))
+          .map((style, index) => ({
+            index,
+            id: style.id || null,
+            body: style.textContent ?? "",
+            markup: style.outerHTML,
+          }));
+        const matchedRules: {
+          sourceOrigin: string;
+          stylesheetIndex: number;
+          selector: string;
+          conditions: string[];
+          declarations: Record<string, string>;
+        }[] = [];
+        for (let stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex += 1) {
+          const sheet = document.styleSheets.item(stylesheetIndex)!;
+          const owner = sheet.ownerNode instanceof Element ? sheet.ownerNode : null;
+          const sourceOrigin = sheet.href ?? (owner
+            ? `${owner.tagName.toLowerCase()}${owner.id ? `#${owner.id}` : `@${stylesheetIndex}`}`
+            : `constructed-stylesheet@${stylesheetIndex}`);
+          let rules: CSSRuleList;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue;
+          }
+          const visit = (nestedRules: CSSRuleList, conditions: string[]) => {
+            for (const rule of Array.from(nestedRules)) {
+              if ("selectorText" in rule && typeof rule.selectorText === "string" && "style" in rule) {
+                const styleRule = rule as CSSStyleRule;
+                let matches = false;
+                try {
+                  matches = element.matches(styleRule.selectorText);
+                } catch {
+                  matches = false;
+                }
+                if (matches) {
+                  const properties = ["outline", "outline-width", "outline-style", "outline-color", "outline-offset", "box-shadow"];
+                  matchedRules.push({
+                    sourceOrigin,
+                    stylesheetIndex,
+                    selector: styleRule.selectorText,
+                    conditions,
+                    declarations: Object.fromEntries(properties.map((name) => [name, styleRule.style.getPropertyValue(name).trim()])),
+                  });
+                }
+              }
+              const groupingRule = rule as CSSRule & { cssRules?: CSSRuleList; conditionText?: string };
+              if (groupingRule.cssRules) {
+                const condition = typeof groupingRule.conditionText === "string" ? groupingRule.conditionText : null;
+                const active = condition && rule.type === CSSRule.MEDIA_RULE
+                  ? window.matchMedia(condition).matches
+                  : condition && rule.type === CSSRule.SUPPORTS_RULE
+                    ? CSS.supports(condition)
+                    : true;
+                if (active) visit(groupingRule.cssRules, condition ? [...conditions, condition] : conditions);
+              }
+            }
+          };
+          visit(rules, []);
+        }
+        return {
+          route: location.pathname,
+          target: {
+            tag: element.tagName.toLowerCase(),
+            className: typeof element.className === "string" ? element.className : null,
+            name: element.getAttribute("name"),
+            value: element.getAttribute("value"),
+            ariaPressed: element.getAttribute("aria-pressed"),
+            active: active === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          activeElement: active instanceof HTMLElement
+            ? { tag: active.tagName.toLowerCase(), id: active.id || null, className: active.className || null, name: active.getAttribute("name"), value: active.getAttribute("value") }
+            : { tag: active?.nodeName ?? null },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineColor: computed.outlineColor,
+            outlineOffset: computed.outlineOffset,
+            boxShadow: computed.boxShadow,
+            focusColorToken: computed.getPropertyValue("--tl-color-border-focus").trim(),
+            focusRingToken: computed.getPropertyValue("--tl-focus-ring").trim(),
+          },
+          styleBlocks,
+          matchedRules,
+        };
+      });
+      const blocks = observed.styleBlocks.map((block) => ({
+        index: block.index,
+        id: block.id,
+        bodySha256: createHash("sha256").update(block.body).digest("hex"),
+        bodyBytes: Buffer.byteLength(block.body),
+        matchesCurrentFixtureBody: fixtureBody !== null && block.body === fixtureBody,
+        matchesCurrentFixtureMarkup: block.markup === fixtureMarkup,
+      }));
+      const record = {
+        sequence: focusDiagnostics.length + 1,
+        source: "mounted browser CSSOM and computed styles",
+        fixtureSha256: createHash("sha256").update(fixtureMarkup).digest("hex"),
+        fixtureBodySha256: fixtureBody === null ? null : createHash("sha256").update(fixtureBody).digest("hex"),
+        ...observed,
+        styleBlocks: blocks,
+      };
+      focusDiagnostics.push(record);
+      if (diagnosticOutput) {
+        writeFileSync(diagnosticOutput, `${JSON.stringify({ title, route: "/audit", focusDiagnostics }, null, 2)}\n`, { mode: 0o600 });
+      }
+      return record;
+    };
+
     const focusByKeyboard = async (target: Locator) => {
       for (let attempts = 0; attempts < 40; attempts += 1) {
         if (await target.evaluate((element) => document.activeElement === element)) break;
         await page.keyboard.press("Tab");
       }
-      const focused = await target.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return { active: document.activeElement === element, outlineWidth: style.outlineWidth, outlineStyle: style.outlineStyle };
-      });
-      expect(focused).toEqual({ active: true, outlineWidth: "2px", outlineStyle: "solid" });
+      const focused = await captureFocusDiagnostic(target);
+      expect(focused.target.active).toBe(true);
+      expect(focused.target.matchesFocusVisible).toBe(true);
+      expect(focused.computed).toMatchObject({ outlineWidth: "2px", outlineStyle: "solid" });
     };
 
     const activate = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
