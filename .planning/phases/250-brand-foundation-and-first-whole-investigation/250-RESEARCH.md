@@ -60,7 +60,7 @@ Remaining investigations belong to251; operations/catalog expansion to252; broad
 | ADM-09 | Threadline-owned UI/docs use the supplied spool lockups and favicons with correct theme variants, fixed Stitch Blue artwork, supported minimum sizes and unchanged asset geometry. | Existing Logo, README, ExDoc hooks and Admin static icon; exact source/archive parity. |
 | ADM-10 | The served heading/body/identifier fonts and weights follow the approved Familjen Grotesk, Geist and IBM Plex Mono roles, with required licenses, offline delivery and usable host opt-out/system fallback. | Existing compile-time embedder and token layer; supplied four WOFF2 and all three OFLs. |
 | ADM-11 | Dark-default, full light and System themes remain usable, immediately selected and server-resolved through the existing native CSRF-protected theme flow. | Existing header/controller/session/cookie path and CSS theme lanes; test immediate POST and persisted behavior. |
-| ADM-12 | User-facing UI/docs use Threadline Admin, audit trail library and the approved plain vocabulary while preserving public modules, options, schemas, telemetry names, URLs and query contracts. | Narrow README/operator-guide introductions; keep technical names/contracts, reserve broad reconciliation for Phase253. |
+| ADM-12 | User-facing UI/docs use Threadline Admin, audit trail library and the approved plain vocabulary while preserving public modules, options, schemas, telemetry names, URLs and query contracts. | Narrow README.md and guides/operator-surface.md introductions; keep technical names/contracts, reserve broad reconciliation for Phase253. |
 | ADM-13 | The interface preserves the distinct meanings of action/change/transaction/request, actor/user, Redacted/left out/null/missing/unavailable, and accepted/completed work without unsupported assurance claims. | Presentation/UI.Display and existing fixture families; do not add exceptions to the ordinary story. |
 | ADM-14 | Support can find a ticket change, inspect its transaction and exact values/actor, open record history, copy its identifier and return with the original search intact through mounted host routes. | Extend existing earned-flow to correlation/date selection, actual IDs, deferred clipboard double and restored filters. |
 | ADM-16 | Before/after values remain exact and neutrally presented, with missing/redacted/left-out cases unambiguous and operation words conveying meaning independently of color. | Existing Presentation/state contracts and separate exception fixtures; ordinary story asserts exact values and operation words. |
@@ -73,7 +73,7 @@ Descriptions are copied verbatim from .planning/REQUIREMENTS.md:25-37. [VERIFIED
 
 No new runtime package or framework is needed. Keep work in the existing Phoenix LiveView/HEEx token and component stack, example app's Storybook/Playwright boundary, current ExDoc hooks and Hex artifact contracts. Approved brand/ files are identity authority; unrelated brandbook/ consumers retain their ownership until coupled migration. [VERIFIED: AGENTS.md:133-163; mix.exs:512-529; test/threadline/release_artifact_contract_test.exs:76-90]
 
-**Primary recommendation:** Plan a baseline-first implementation. Prepare exact #4521 selection without rendered production changes, capture the current version on the already-seeded task database, then update tokens/logo/fonts/theme and directly owned docs/icons/package paths. Repeat the same read-only journey on the same materialized rows. Compare IDs, persisted times, target-row fingerprint, served assets, and shell/content captures. The standard E2E runner resets demo data and cannot run the pair. [VERIFIED: phase 250 CONTEXT D-09; examples/threadline_phoenix/e2e/run-e2e.sh:416-433; examples/threadline_phoenix/e2e/playwright.config.ts:1-4]
+**Primary recommendation:** Plan a baseline-first implementation. Prepare exact #4521 selection without rendered production changes, capture the current version on the already-seeded task database, then update tokens/logo/fonts/theme and directly owned docs/icons/package paths. Repeat the same read-only journey on the same materialized rows. Compare IDs, persisted times, target-row fingerprint, served assets, and shell/content captures. The standard E2E runner resets demo data and cannot run the pair. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-09; examples/threadline_phoenix/e2e/run-e2e.sh:416-433; examples/threadline_phoenix/e2e/playwright.config.ts:1-4]
 
 A material source constraint needs a named proof: installed ExDoc 0.40.1 emits one logo image and caps it at 48px. Existing head/body hooks and body.dark behavior support the approved pair, but the current head hook must override the size and generated docs must prove theme switching plus at least 96px rendered width. [VERIFIED: deps/ex_doc/lib/ex_doc/formatter/html/templates/sidebar_template.eex:11-14; deps/ex_doc/formatters/html/dist/html-elixir-YJO4MOOW.css:1; deps/ex_doc/formatters/html/dist/html-YU4BZFVS.js:1; mix.exs:512-529,659-754] [CITED: https://ex-doc.hexdocs.pm/0.40.1/ExDoc.html]
 
@@ -93,7 +93,7 @@ A material source constraint needs a named proof: installed ExDoc 0.40.1 emits o
 - Preserve capture/semantics/exploration separation and domain terms; brand work must not redefine transaction, action, request or actor meaning. [VERIFIED: AGENTS.md:9-28]
 - Use approved brand/; inspect the parity test; retain unrelated old references until their coupled owner migrates components, docs and tests. [VERIFIED: AGENTS.md:133-141]
 - Phoenix LiveView/HEEx and PhoenixStorybook remain the stack. No React, speculative Fablebook adapter, white-label or login API. [VERIFIED: AGENTS.md:143-163]
-- Preserve host-owned trigger migrations, optional Phoenix compile/host CSS/script/font boundaries and public contracts. [VERIFIED: AGENTS.md:78-86; phase CONTEXT D-15]
+- Preserve host-owned trigger migrations, optional Phoenix compile/host CSS/script/font boundaries and public contracts. [VERIFIED: AGENTS.md:78-86; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-15]
 - Use normal fixtures separately from stress fixtures; validate an ordinary whole-task path with shared components and matched behavior/accessibility proof. [VERIFIED: AGENTS.md:143-155]
 - Prefer named mix verify/ci entrypoints, honest default tests and doc contract tests. [VERIFIED: AGENTS.md:49-76]
 - Use managed background sessions with real exit status; no routine desktop focus. Honor attempt/window limits and stop/handoff requirements. [VERIFIED: AGENTS.md:56-68]
@@ -116,6 +116,8 @@ No install or dependency update is needed. Versions below are repository pins, n
 Exact checked-in version text: “nodejs 22.14.0”, “erlang 27.3.4.15”, “elixir 1.17.3-otp-27”; “"ex_doc": {:hex, :ex_doc, "0.40.1"”, “"phoenix": {:hex, :phoenix, "1.8.13"”, root “"phoenix_live_view": {:hex, :phoenix_live_view, "1.2.11"”, example “"phoenix_live_view": {:hex, :phoenix_live_view, "1.1.33"”, “"phoenix_storybook": {:hex, :phoenix_storybook, "1.2.0"”, and Playwright “"version": "1.60.0"”. [VERIFIED: .tool-versions:1-3; mix.lock:15,32,34; examples/threadline_phoenix/mix.lock:36,39,41; examples/threadline_phoenix/e2e/package-lock.json:456-464]
 
 **Installation:** none. Package Legitimacy Audit is inapplicable because no package is added.
+
+Current GSD position is Phase 250 planning after Phases 248 and 249 complete. Keep Phase 248's fail-closed mount/startup gate intact. STATE says the historical repeat grant was consumed; Phase 250's focused local checks remain within this phase's scope and do not renew that grant. [VERIFIED: .planning/STATE.md:1-45]
 
 ## Architecture Patterns
 
@@ -148,19 +150,19 @@ flowchart LR
 | Owner | Current seam | Plan action |
 |---|---|---|
 | Tokens | lib/threadline/operator_surface/style/01_tokens.css; test/threadline/brandbook_token_parity_test.exs | Replace old authority with brand/brand.json; verify all eight pairs in dark/light against functional variables. |
-| Logo/header/theme | logo.ex; components/surface_header.ex; theme_controller.ex | Inline supplied paired SVGs at compile time; preserve accessible name, immediate native submit and session/cookie/return contracts. |
-| Fonts | fonts.ex; token CSS | Embed supplied WOFF2 with private aliases; preserve opt-out/default/false, fallback and offline use. |
-| Semantics | presentation.ex and UI.Display | Reuse date/value/reference renderer and distinct state fixtures. |
-| Example icon | existing images/threadline-admin-favicon.svg; layout HEEx; operator_surface_test.exs | Replace only bytes at existing URL; keep demo home/login icon; compare served bytes and MIME. |
-| Journey/copy | operator-earned-flows.spec.ts; operator-route-states.spec.ts | Add correlation/date selection and exact journey checks; reuse deferred double/failure focus proof. |
-| Docs/package | README, operator-guide intro, mix.exs and existing contracts | Narrow copy change; ExDoc identity through hooks; exact asset allowlist and archive byte parity. |
-| Pair evidence | operator-browser-evidence.ts and current evidence owner | Capture shell/header and content; narrow sidecar with source/served asset identity, conditions and read-only row fingerprint. |
+| Logo/header/theme | lib/threadline/operator_surface/logo.ex; lib/threadline/operator_surface/components/surface_header.ex; lib/threadline/operator_surface/theme_controller.ex | Inline supplied paired SVGs at compile time; preserve accessible name, immediate native submit and session/cookie/return contracts. |
+| Fonts | lib/threadline/operator_surface/fonts.ex; token CSS | Embed supplied WOFF2 with private aliases; preserve opt-out/default/false, fallback and offline use. |
+| Semantics | lib/threadline/operator_surface/presentation.ex and UI.Display | Reuse date/value/reference renderer and distinct state fixtures. |
+| Example icon | examples/threadline_phoenix/priv/static/images/threadline-admin-favicon.svg; examples/threadline_phoenix/lib/threadline_phoenix_web/components/layouts/app.html.heex; examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs | Replace only bytes at existing URL; keep demo home/login icon; compare served bytes and MIME. |
+| Journey/copy | examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts; examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts | Add correlation/date selection and exact journey checks; reuse deferred double/failure focus proof. |
+| Docs/package | README, guides/operator-surface.md introduction, mix.exs and existing contracts | Narrow copy change; ExDoc identity through hooks; exact asset allowlist and archive byte parity. |
+| Pair evidence | examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts and current evidence owner | Capture shell/header and content; narrow sidecar with source/served asset identity, conditions and read-only row fingerprint. |
 
-The exact direct package scope is three SVGs: brand/assets/logo/threadline-lockup-dark.svg, brand/assets/logo/threadline-lockup-light.svg and brand/assets/icon/favicon.svg; four WOFF2 files: brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2, Geist-normal-400-700.woff2, IBMPlexMono-normal-400.woff2 and IBMPlexMono-normal-500.woff2; plus OFL-FamiljenGrotesk.txt, OFL-Geist.txt and OFL-IBMPlexMono.txt under brand/assets/fonts. Compare this exact set and source bytes with the unpacked Hex archive. Do not include the rest of brand/. [VERIFIED: brand/assets/README.md:7-15,24-45; brand/assets/fonts/web/fonts.css:1-4; repository asset inventory read this session; mix.exs:493; test/threadline/release_artifact_contract_test.exs:282-330]
+The exact direct package scope is three SVGs: brand/assets/logo/threadline-lockup-dark.svg, brand/assets/logo/threadline-lockup-light.svg and brand/assets/icon/favicon.svg; four WOFF2 files under brand/assets/fonts/web/: FamiljenGrotesk-normal-400-700.woff2, Geist-normal-400-700.woff2, IBMPlexMono-normal-400.woff2 and IBMPlexMono-normal-500.woff2; plus OFL-FamiljenGrotesk.txt, OFL-Geist.txt and OFL-IBMPlexMono.txt under brand/assets/fonts/. Compare this exact set and source bytes with the unpacked Hex archive. Do not include the rest of brand/. [VERIFIED: brand/assets/README.md:7-15,24-45; brand/assets/fonts/web/fonts.css:1-4; repository asset inventory read this session; mix.exs:493; test/threadline/release_artifact_contract_test.exs:282-330]
 
 ### Pattern 1: One approved token source
 
-Keep runtime CSS custom properties as owner and test them against approved JSON in both theme lanes. Exact stable IDs read from source: "body", "descriptor", "caption", "application-copy", "hero", "link", "focus", "artwork". [VERIFIED: brand/brand.json:280-424] Link, focus, control boundary and operation meanings remain distinct. [VERIFIED: phase CONTEXT D-01]
+Keep runtime CSS custom properties as owner and test them against approved JSON in both theme lanes. Exact stable IDs read from source: "body", "descriptor", "caption", "application-copy", "hero", "link", "focus", "artwork". [VERIFIED: brand/brand.json:280-424] Link, focus, control boundary and operation meanings remain distinct. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-01]
 
 ### Pattern 2: Compile-time local assets
 
@@ -175,11 +177,11 @@ Use the supplied paired SVGs and exact descriptors below, but generate Threadlin
 
 ### Pattern 3: Native immediate theme submit
 
-Preserve theme allowlist values exactly as "light", "dark" and "system"; submit each choice natively and immediately. Keep server validation, CSRF, session/cookie persistence and validated return path. [VERIFIED: lib/threadline/operator_surface/theme_controller.ex:9-20; phase CONTEXT D-04]
+Preserve theme allowlist values exactly as "light", "dark" and "system"; submit each choice natively and immediately. Keep server validation, CSRF, session/cookie persistence and validated return path. [VERIFIED: lib/threadline/operator_surface/theme_controller.ex:9-20; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-04]
 
 ### Pattern 4: Same-materialization evidence
 
-Capture baseline before rendered production edits. Record target correlation, actual transaction/change/record IDs, persisted UTC times, read-only target-row fingerprint and capture clock. After edits restart only app; keep DB/partition/port, with no recreate/migrate/reset/reseed. Recapture the same journey and shell/content; record actually served CSS/SVG/decoded WOFF2, browser/version, viewport/DPR, theme/effective system scheme, reduced motion, measured zoom or unverified, and UTC. Preserve existing evidence gates; screenshots do not prove timestamp semantics. [VERIFIED: phase CONTEXT D-09–D-10]
+Capture baseline before rendered production edits. Record target correlation, actual transaction/change/record IDs, persisted UTC times, read-only target-row fingerprint and capture clock. After edits restart only app; keep DB/partition/port, with no recreate/migrate/reset/reseed. Recapture the same journey and shell/content; record actually served CSS/SVG/decoded WOFF2, browser/version, viewport/DPR, theme/effective system scheme, reduced motion, measured zoom or unverified, and UTC. Preserve existing evidence gates; screenshots do not prove timestamp semantics. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-09–D-10]
 
 ### Pattern 5: ExDoc paired source using installed hooks
 
@@ -201,14 +203,14 @@ Use the existing head hook for a narrow size override and body hook to synchroni
 
 ## Common Pitfalls
 
-1. **Baseline after rendered edit:** invalidates comparison. Make baseline the first task; test-only selection preparation is acceptable if rendered production sources stay unchanged. [VERIFIED: phase CONTEXT D-09–D-10]
-2. **Standard E2E runner between halves:** it runs Ecto setup and demo reset; use direct Playwright with E2E_BASE_URL, restarting only server. [VERIFIED: e2e/run-e2e.sh:416-433; playwright.config.ts:1-4]
-3. **Selecting first row by table only:** current helper can choose unrelated data; filter exact correlation/date and assert target action before resolving IDs. [VERIFIED: e2e/tests/operator-earned-flows.spec.ts:41-75; phase CONTEXT D-05]
-4. **Collapsing event/insertion times or meanings:** preserve action/event distinctions, actor/user, transaction/request and absent/left-out/null/redacted/unavailable/accepted/completed semantics. [VERIFIED: demo/manifest.ex:62-74; demo/seed/anchors.ex:63-90; AGENTS.md:9-28; phase CONTEXT D-06–D-08]
-5. **Ignoring ExDoc 48px cap:** approved 96px logo fails without head-hook override; prove in generated docs and verify theme from installed JS. [VERIFIED: installed ExDoc CSS/JS line 1; mix.exs:659-754]
-6. **Global font collision/ignored opt-out:** use private aliases, inspect served bytes, preserve licenses, false behavior and system fallback. [VERIFIED: fonts.ex:1-65; brand/assets/fonts/web/fonts.css:1-4; brand/assets/README.md:37-45]
-7. **Overstating clipboard proof:** deferred test double covers API argument/feedback, not native clipboard contents or permissions. [VERIFIED: e2e/tests/operator-route-states.spec.ts:208-300; phase CONTEXT D-07]
-8. **Broad old-doc cleanup:** only update direct README/guide/ExDoc/icon/package scope; preserve other references for their owners. [VERIFIED: phase CONTEXT D-11–D-13]
+1. **Baseline after rendered edit:** invalidates comparison. Make baseline the first task; test-only selection preparation is acceptable if rendered production sources stay unchanged. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-09–D-10]
+2. **Standard E2E runner between halves:** it runs Ecto setup and demo reset; use direct Playwright with E2E_BASE_URL, restarting only server. [VERIFIED: examples/threadline_phoenix/e2e/run-e2e.sh:416-433; examples/threadline_phoenix/e2e/playwright.config.ts:1-4]
+3. **Selecting first row by table only:** current helper can choose unrelated data; filter exact correlation/date and assert target action before resolving IDs. [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts:41-75; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-05]
+4. **Collapsing event/insertion times or meanings:** preserve action/event distinctions, actor/user, transaction/request and absent/left-out/null/redacted/unavailable/accepted/completed semantics. [VERIFIED: examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex:62-74; examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex:63-90; AGENTS.md:9-28; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-06–D-08]
+5. **Ignoring ExDoc 48px cap:** approved 96px logo fails without head-hook override; prove in generated docs and verify theme from installed JS. [VERIFIED: deps/ex_doc/formatters/html/dist/html-elixir-YJO4MOOW.css:1; deps/ex_doc/formatters/html/dist/html-YU4BZFVS.js:1; mix.exs:659-754]
+6. **Global font collision/ignored opt-out:** use private aliases, inspect served bytes, preserve licenses, false behavior and system fallback. [VERIFIED: lib/threadline/operator_surface/fonts.ex:1-65; brand/assets/fonts/web/fonts.css:1-4; brand/assets/README.md:37-45]
+7. **Overstating clipboard proof:** deferred test double covers API argument/feedback, not native clipboard contents or permissions. [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts:208-300; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-07]
+8. **Broad old-doc cleanup:** only update direct README/guide/ExDoc/icon/package scope; preserve other references for their owners. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-11–D-13]
 
 ## Code Examples
 
@@ -222,8 +224,8 @@ ExDoc installed theme evidence is rr="dark" and document.body.classList.toggle(r
 
 | Earlier assumption | Verified current state | Impact |
 |---|---|---|
-| ExDoc paired logo/theme behavior should be deferred or guessed. | Pinned ExDoc 0.40.1 exposes hooks; body.dark is installed behavior; default logo max is 48px. | Existing closure is feasible with narrow override and generated output proof. [VERIFIED: ExDoc installed JS/CSS line 1; mix.exs:659-754] [CITED: https://ex-doc.hexdocs.pm/0.40.1/ExDoc.html] |
-| One logo screenshot is enough for before/after. | Context requires shell plus content and same persisted rows/IDs/times/assets/conditions. | Capture baseline first and preserve materialized DB. [VERIFIED: phase CONTEXT D-09–D-10] |
+| ExDoc paired logo/theme behavior should be deferred or guessed. | Pinned ExDoc 0.40.1 exposes hooks; body.dark is installed behavior; default logo max is 48px. | Existing closure is feasible with narrow override and generated output proof. [VERIFIED: deps/ex_doc/formatters/html/dist/html-YU4BZFVS.js:1; deps/ex_doc/formatters/html/dist/html-elixir-YJO4MOOW.css:1; mix.exs:659-754] [CITED: https://ex-doc.hexdocs.pm/0.40.1/ExDoc.html] |
+| One logo screenshot is enough for before/after. | Context requires shell plus content and same persisted rows/IDs/times/assets/conditions. | Capture baseline first and preserve materialized DB. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-09–D-10] |
 | ASVS v4 headings can be used without version. | OWASP lists ASVS 5.0.0 as current stable (published 2025-05-30); IDs may change. | Use version-pinned current category names. [CITED: https://asvs.owasp.org/; https://github.com/OWASP/ASVS/blob/master/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.json] |
 
 ## Assumptions Log
@@ -232,7 +234,7 @@ No decision relies solely on training knowledge. Generated ExDoc sizing/theme be
 
 ## Open Questions
 
-No public contract, policy, dependency or scope decision remains open. Assign a generated-ExDoc proof: paired image switches with installed body theme and renders at least 96px after the hook override. No user checkpoint is needed; focused local verification is authorized. [VERIFIED: phase CONTEXT D-11, D-14–D-15; installed ExDoc CSS/JS line 1]
+No public contract, policy, dependency or scope decision remains open. Assign a generated-ExDoc proof: paired image switches with installed body theme and renders at least 96px after the hook override. No user checkpoint is needed; focused local verification is authorized. [VERIFIED: .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-11, D-14–D-15; deps/ex_doc/formatters/html/dist/html-elixir-YJO4MOOW.css:1; deps/ex_doc/formatters/html/dist/html-YU4BZFVS.js:1]
 
 ## Environment Availability
 
@@ -241,7 +243,7 @@ No public contract, policy, dependency or scope decision remains open. Assign a 
 | Elixir / Erlang | ✓ | Elixir 1.17.3-otp-27, Erlang 27.3.4.15; local matches pins. [VERIFIED: .tool-versions:2-3; local probe] | None |
 | Node / npm | ✓ | 22.14.0 / 10.9.2. [VERIFIED: .tool-versions:1; local probe] | None |
 | PostgreSQL | ✓ | Task-owned 15.17 on loopback 60025 per handoff; not used/probed during research. [VERIFIED: task handoff] | Do not use shared services or reset runner |
-| Playwright | Partial | Package lock pins 1.60.0; browser was not launched/version-checked. [VERIFIED: e2e/package-lock.json:456-464] | Use existing browser-managed environment; no dependency install |
+| Playwright | Partial | Package lock pins 1.60.0; browser was not launched/version-checked. [VERIFIED: examples/threadline_phoenix/e2e/package-lock.json:456-464] | Use existing browser-managed environment; no dependency install |
 
 No missing dependency was identified. No app, browser, database service or test was run during research.
 
@@ -253,8 +255,8 @@ Nyquist validation is enabled in .planning/config.json:53-54.
 
 | Property | Value |
 |---|---|
-| Framework | ExUnit root/example; Playwright Test for browser flows. [VERIFIED: AGENTS.md:39-53; e2e/package.json] |
-| Config | Root/example mix.exs and e2e/playwright.config.ts. |
+| Framework | ExUnit root/example; Playwright Test for browser flows. [VERIFIED: AGENTS.md:39-53; examples/threadline_phoenix/e2e/package.json] |
+| Config | Root/example mix.exs and examples/threadline_phoenix/e2e/playwright.config.ts. |
 | Focused command | Existing specific ExUnit owners, then direct Playwright against prepared E2E_BASE_URL. |
 | Full command | mix ci.all, only if the bounded plan gate calls for it. [VERIFIED: AGENTS.md:49-53] |
 
@@ -262,13 +264,13 @@ Nyquist validation is enabled in .planning/config.json:53-54.
 
 | Req | Behavior | Owner and automation |
 |---|---|---|
-| ADM-08 | All pairs map to CSS variables in dark/light; semantic roles remain distinct. | brandbook_token_parity_test.exs, style_byte_lock_test.exs, mounted accessibility checks. |
-| ADM-09 | Variants, geometry/minima and README/ExDoc/Admin favicon match source. | README/ExDoc/archive contracts, example operator_surface_test.exs and generated-doc browser proof. |
+| ADM-08 | All pairs map to CSS variables in dark/light; semantic roles remain distinct. | test/threadline/brandbook_token_parity_test.exs, test/threadline/operator_surface/style_byte_lock_test.exs, mounted accessibility checks. |
+| ADM-09 | Variants, geometry/minima and README/ExDoc/Admin favicon match source. | README/ExDoc/archive contracts, examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs and generated-doc browser proof. |
 | ADM-10 | Served fonts/weights, licenses, offline and opt-out/fallback. | Font/style contracts and archive parity; inspect decoded served bytes in sidecar. |
 | ADM-11 | Dark/light/system native CSRF choice applies and persists immediately. | Header/controller tests and mounted browser tests including System build. |
 | ADM-12 | Approved copy changes while public names remain. | README/guide contracts and independent copy review. |
 | ADM-13 | Semantic distinctions remain truthful. | Presentation/UI.Display fixtures and ordinary-flow assertions. |
-| ADM-14 | Filtered selection → actual transaction/action → history → full ID → restored filters. | Extend operator-earned-flows spec; direct Playwright on same DB. |
+| ADM-14 | Filtered selection → actual transaction/action → history → full ID → restored filters. | Extend examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts; direct Playwright on same DB. |
 | ADM-16 | Exact neutral values, distinct exception semantics and operation words. | Presentation/state contracts and focused journey assertions. |
 | ADM-17 | UTC, full ID, keyboard, truthful pending/success/failure and focus. | Existing route-state double and earned-flow; visible time assertions separate from screenshot masks. |
 
@@ -277,7 +279,7 @@ Nyquist validation is enabled in .planning/config.json:53-54.
 Execution guidance only; none was run:
 
 ~~~sh
-mix test test/threadline/brandbook_token_parity_test.exs test/threadline/style_byte_lock_test.exs test/threadline/readme_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/release_artifact_contract_test.exs
+mix test test/threadline/brandbook_token_parity_test.exs test/threadline/operator_surface/style_byte_lock_test.exs test/threadline/readme_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/release_artifact_contract_test.exs
 
 cd examples/threadline_phoenix
 mix test test/threadline_phoenix_web/operator_surface_test.exs
@@ -285,9 +287,9 @@ mix test test/threadline_phoenix_web/operator_surface_test.exs
 
 Use mix verify.format and MIX_ENV=dev mix docs --warnings-as-errors for relevant format/docs gates. [VERIFIED: AGENTS.md:30-53; mix.exs:337]
 
-For the pair invoke the focused Playwright spec directly with E2E_BASE_URL from its e2e directory. Do not use run-e2e.sh; it resets demo data. [VERIFIED: playwright.config.ts:1-4; run-e2e.sh:416-433]
+For the pair invoke the focused Playwright spec directly with E2E_BASE_URL from its e2e directory. Do not use examples/threadline_phoenix/e2e/run-e2e.sh; it resets demo data. [VERIFIED: examples/threadline_phoenix/e2e/playwright.config.ts:1-4; examples/threadline_phoenix/e2e/run-e2e.sh:416-433]
 
-Against the prepared app, the focused invocation is: from examples/threadline_phoenix/e2e, run E2E_BASE_URL=http://127.0.0.1:60025 ./node_modules/.bin/playwright test tests/operator-earned-flows.spec.ts --project=desktop-chromium. Use this exact read-only journey in both halves; do not invoke a runner that resets the server-side demo data.
+Against the prepared app, the focused invocation is: from examples/threadline_phoenix/e2e, run E2E_BASE_URL=http://127.0.0.1:60025 ./node_modules/.bin/playwright test tests/operator-earned-flows.spec.ts --project=desktop-chromium. Use examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts as the same read-only journey in both halves; do not invoke a runner that resets server-side demo data.
 
 ### Sampling rate and Wave 0 gaps
 
@@ -323,7 +325,7 @@ This is a phase-scoped control map, not an ASVS compliance claim. [CITED: OWASP 
 | SVG/copy markup injection | Tampering / Elevation | Use repository SVGs and escaped text; no user-controlled HTML/data URL. |
 | Remote asset dependency | Denial of service / Tampering | Keep fonts/logos local and offline; no CDN. |
 
-Preservation checks only, no new security feature. [VERIFIED: AGENTS.md:78-86; phase CONTEXT D-02–D-04, D-15]
+Preservation checks only, no new security feature. [VERIFIED: AGENTS.md:78-86; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-02–D-04, D-15]
 
 ## Sources
 
@@ -332,10 +334,10 @@ Preservation checks only, no new security feature. [VERIFIED: AGENTS.md:78-86; p
 - .planning/REQUIREMENTS.md:25-37; .planning/STATE.md:1-45 — requirements and current handoff.
 - AGENTS.md:9-28,49-91,133-163; .planning/PROJECT.md:834-840 — domain, workflow, path and verification rules.
 - brand/BRAND.md, brand/brand.json:280-424, brand/tokens.json:656-684, brand/assets/README.md, brand/assets/fonts/web/fonts.css:1-4 — brand, token, font and asset sources.
-- lib/threadline/operator_surface/style/01_tokens.css:1-284; components/surface_header.ex:1-117; theme_controller.ex:1-20; fonts.ex:1-65; presentation.ex — runtime owners.
-- Example demo/manifest.ex:62-74, demo/seed/anchors.ex:63-90, e2e/tests/operator-earned-flows.spec.ts:1-175, operator-route-states.spec.ts:208-300 — fixture, route and clipboard owners.
-- mix.exs:512-529,659-754; doc/archive contracts; example operator_surface_test.exs:22-26 — docs, package and icon contracts.
-- e2e/run-e2e.sh:416-433; playwright.config.ts:1-4; package-lock.json:456-464 — reset behavior and pinned tools.
+- lib/threadline/operator_surface/style/01_tokens.css:1-284; lib/threadline/operator_surface/components/surface_header.ex:1-117; lib/threadline/operator_surface/theme_controller.ex:1-20; lib/threadline/operator_surface/fonts.ex:1-65; lib/threadline/operator_surface/presentation.ex — runtime owners.
+- examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex:62-74; examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex:63-90; examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts:1-175; examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts:208-300 — fixture, route and clipboard owners.
+- mix.exs:493,512-529,659-754; README.md; test/threadline/readme_doc_contract_test.exs; test/threadline/code_walkthrough_doc_contract_test.exs; test/threadline/release_artifact_contract_test.exs:76-90,282-330; examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs:22-26 — docs, package and icon contracts.
+- examples/threadline_phoenix/e2e/run-e2e.sh:416-433; examples/threadline_phoenix/e2e/playwright.config.ts:1-4; examples/threadline_phoenix/e2e/package-lock.json:456-464 — reset behavior and pinned tools.
 - .planning/conventions/research-verification-and-efficiency.md; .planning/config.json:53-54 — research/efficiency and validation settings.
 
 ### Official documentation
