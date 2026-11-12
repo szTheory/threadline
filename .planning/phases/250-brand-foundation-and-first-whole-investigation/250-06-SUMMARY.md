@@ -15,6 +15,7 @@ affects: [250-07, 250-08]
 actuals:
   tokens: null
   tasks: 2
+  elapsed_seconds: 3440.957
   commits: 9
 plan_head_before: 7895e790f250d3c3be0260219226583676cf564a
 plan_head_after: a16e8fc25e642f4e2746423ae2e0d2aa40ea93dd
@@ -65,7 +66,7 @@ coverage:
         ref: "mix verify.format"
         status: pass
     human_judgment: false
-duration: null
+duration: 57min
 completed: 2026-11-12
 status: complete
 ---
@@ -76,9 +77,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** Unknown at worker authoring; parent reconciles launch-to-terminal duration from the process receipt.
-- **Started:** Parent process receipt.
-- **Completed:** 2026-11-12T19:17:49Z.
+- **Duration:** 3440.957 seconds of managed wall time, including source handoff/coordination waits; not active test runtime.
+- **Started:** 2026-11-12T18:22:18.628299Z
+- **Completed:** 2026-11-12T19:19:39.584843Z
 - **Tasks:** 2.
 - **Files modified:** 10.
 

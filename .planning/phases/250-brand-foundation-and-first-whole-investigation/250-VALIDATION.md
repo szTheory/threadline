@@ -46,8 +46,8 @@ Completed rows below link the current plan-level proof and its limits; remaining
 | 05.1 | 5 | ADM-09/12; owned README/intro wording and stable technical identifiers | C04, C17 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
 | 05.2 | 5 | ADM-09/10; raw actual archive identity, distinct owned docs listener/root readiness and generated ExDoc theme/minimum | C18, C19, C31, C20 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
 | 05.3 | 5 | ADM-09; served exact Admin favicon with unchanged host home/login head | C13, C08 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
-| 06.1 | 6 | ADM-12/13/14; pending/committed query/empty/error/optional/long/count states | C04, C21, C22 | T-250-11, T-250-12 | pending execution |
-| 06.2 | 6 | ADM-13/16; shared typed loading/meaning and accepted/completed controls | C23, C08 | T-250-11, T-250-12 | pending execution |
+| 06.1 | 6 | ADM-12/13/14; pending/committed query/empty/error/optional/long/count states | C04, C21, C22 | T-250-11, T-250-12 | passed assigned scope; phase-wide acceptance pending ([summary](250-06-SUMMARY.md)) |
+| 06.2 | 6 | ADM-13/16; shared typed loading/meaning and accepted/completed controls | C23, C08 | T-250-11, T-250-12 | passed assigned scope; phase-wide acceptance pending ([summary](250-06-SUMMARY.md)) |
 | 07.1 | 7 | ADM-13/16/17; exact values/UTC/count/missing/unavailable transaction | C04, C24 | T-250-13, T-250-14 | pending execution |
 | 07.2 | 7 | ADM-13/16/17; exact history/exception/full-ID/return/corpus contracts | C25, C08 | T-250-13, T-250-14 | pending execution |
 | 08.1 | 8 | ADM-08–14/16/17; controlled clipboard/fonts/theme/responsive and matching after | C04, C26, C27, C28, C02, C29 | T-250-15, T-250-16 | pending execution |
