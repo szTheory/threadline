@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases 248–253; approved 2026-11-10, pending implementation. Four of34ADM requirements are complete; Phase248 is verified complete, with four complete plans. This planning version does not prescribe the package release version.
+- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases248–253; active. Seven of34 ADM requirements are locally complete. Phases248/249 are verified complete; Phase250 has seven of eight plans complete. This planning version does not prescribe the package release version.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -118,7 +118,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] 250-06-PLAN.md — Timeline filters and typed shared state (complete 2026-11-12)
 
 **Wave 7** *(requires Wave 6 completion)*
-- [ ] 250-07-PLAN.md — Exact transaction/history values and identity
+- [x] 250-07-PLAN.md — Exact transaction/history values, validated return context and causal corpus reconciliation (complete 2026-11-12)
 
 **Wave 8** *(requires Wave 7 completion)*
 - [ ] 250-08-PLAN.md — Matched after proof and independent review
@@ -170,13 +170,13 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,two complete,eight currently planned plans,eight complete plans. Phase250 discussion/planning now proceeds under the original autonomous scope.
+Execution order:248→249→250→251→252→253. Phases248/249 are independently verified complete; their eight plans are GSD-reconciled and ADM01–07 are locally complete. Phase250 has seven of eight plans complete; strict whole-browser investigation, complete font boundaries and independent current-source acceptance remain Plan08. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,two complete,sixteen currently planned plans,fifteen complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
-| 250. Brand foundation and first whole investigation | 6/8 | In progress | - |
+| 250. Brand foundation and first whole investigation | 7/8 | In progress | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
