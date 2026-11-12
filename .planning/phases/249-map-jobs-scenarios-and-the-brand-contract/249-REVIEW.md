@@ -1,7 +1,7 @@
 ---
 phase: 249-map-jobs-scenarios-and-the-brand-contract
-reviewed: 2026-11-12T06:21:45Z
-reviewed_revision: 4f0b523efe0af4a0190d8aac07642ac6d2c90c9d
+reviewed: 2026-11-12T06:39:02Z
+reviewed_revision: b7e6c6f46e18f34a0a4114e77420832c27c1b1de
 depth: standard
 files_reviewed: 18
 files_reviewed_list:
@@ -25,36 +25,41 @@ files_reviewed_list:
   - examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs
 findings:
   critical: 0
-  warning: 1
+  warning: 0
   info: 0
-  total: 1
+  total: 0
   necessity: 0
-status: issues_found
+status: clean
 ---
 
 # Phase 249: Code Review Report
 
-**Reviewed:** 2026-11-12T06:21:45Z
-**Reviewed revision:** `4f0b523efe0af4a0190d8aac07642ac6d2c90c9d`
+**Reviewed:** 2026-11-12T06:39:02Z
+**Reviewed revision:** `b7e6c6f46e18f34a0a4114e77420832c27c1b1de`
 **Depth:** standard
 **Files Reviewed:** 18
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-Re-reviewed the exact 18-file scope at the current revision. WR-01 and WR-02 are fixed: expected classes are pinned per scenario ID, and nonblank unique IDs are checked within each reference list without rejecting IDs shared across separate lists. The changed carry mappings to the durable v1.48 research and existing route-test owner match their stated limitations. WR-03 remains open: the replacement source map still depends on the active milestone `REQUIREMENTS.md`, which normal milestone completion archives and removes. The fixer reports 32 focused Node tests passing, including a fixture without `.planning/phases`; that fixture does not cover this active-requirements lifecycle. I did not rerun suites or perform a TypeScript typecheck.
+The final focused re-review confirms all three original findings are fixed. WR-01 and WR-02 remain fixed in the unchanged route-contract code. For WR-03, the test selects the versioned v1.48 requirements archive when present and the active requirements file before closeout; the ADM-06 source reference is rebound to that selected path before the existing source-locator validator checks its contents. The requirement locator uses stable ADM-06 wording rather than the mutable Pending/Complete traceability row. The unresolved, non-authoritative ADM-06 status and later owners remain intact.
+
+Only the changed inventory and route-contract files were re-read at this revision. The other 16 files retain the previous standard-depth review at `4f0b523efe0af4a0190d8aac07642ac6d2c90c9d`. The fixer reports 32 focused Node contract tests passing for the active source and for private fixtures covering archived-source precedence, no active requirements or phase directories, a later unrelated active requirements file, Pending-to-Complete mutation, and missing-both-source failure. These fixtures did not move the real planning files. No project-aware TypeScript typecheck is available; this review does not claim fresh browser, database, full-suite, hosted CI, visual, accessibility, or release acceptance.
+
+All reviewed files currently have no open findings.
 
 ## Narrative Findings (AI reviewer)
 
-### WR-03: Focused contract test reads active requirements that milestone completion removes
+No open findings.
 
-**Classification:** WARNING
-**File:** `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts:71-76,991-997`; `examples/threadline_phoenix/e2e/support/operator-journey-inventory.json:2210-2220`
-**Issue:** The source map still eagerly reads `.planning/REQUIREMENTS.md`, and the ADM-06 carry source references both its requirement text and the transient `Pending` row. The repository's milestone-completion workflow archives that file as `.planning/milestones/v1.48-REQUIREMENTS.md` and then removes the active `.planning/REQUIREMENTS.md`. After completion, the focused test fails at module load with `ENOENT`; if a later milestone creates a new active requirements file, the old ADM-06 locator is absent and the inventory reference validation fails instead. The private fixture that omits only `.planning/phases` does not exercise either state.
-**Fix:** Make this specific v1.48 source lifecycle explicit: use the active requirements source before closeout and the versioned archive after closeout, with a focused fixture for each; keep the ADM-06 reference on stable requirement wording and preserve the unresolved flag and later owners without promoting the contract test into classifier or human-acceptance proof.
+Resolved finding confirmations:
+
+- **WR-01: Scenario class changes bypass class-specific validation** — confirmed fixed at `4f0b523e`; expected scenario classes are pinned and the class-mutation control rejects an invalid class change.
+- **WR-02: Reference identity checks miss blank and duplicate brand-role IDs** — confirmed fixed at `4f0b523e`; reference IDs are checked per list, with the intended cross-list shared identities still accepted.
+- **WR-03: Focused contract test reads active requirements that milestone completion removes** — confirmed fixed at `b7e6c6f4`; source selection, inventory rebinding, stable requirement wording, and the lifecycle controls cover the known v1.48 active/archive transition.
 
 ---
 
-_Reviewed: 2026-11-12T06:21:45Z_
+_Reviewed: 2026-11-12T06:39:02Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
