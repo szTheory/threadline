@@ -220,7 +220,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".tl-topbar__brand-logo",
-          ".tl-topbar__brand-wordmark",
+          ".tl-topbar__brand-lockups",
           ".tl-shell-nav",
           ".tl-shell-nav__toggle",
           ".tl-shell-nav__panel",
@@ -252,10 +252,66 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "flex: 0 0 var(--tl-brand-logo-width);"
     ])
 
-    assert_selector_contains(topbar_section, ".tl-topbar__brand-wordmark", [
-      "font-family: var(--tl-font-family);",
-      "font-weight: var(--tl-weight-strong);"
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-lockups", [
+      "display: inline-flex;",
+      "align-items: center;"
     ])
+  end
+
+  test "phase 250 supplied lockups follow explicit and System theme precedence at safe sizes" do
+    src = StyleSource.read!()
+
+    assert_selector_contains(src, ".threadline-ui .tl-topbar__brand-logo--light", [
+      "display: none;"
+    ])
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    system_light =
+      src
+      |> String.split("@media (prefers-color-scheme: light) {")
+      |> Enum.drop(1)
+      |> Enum.join("@media (prefers-color-scheme: light) {")
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    refute Regex.match?(~r/(?:^|\n)\s*\.tl-topbar__brand-logo--light\s*\{/, src)
+    assert src =~ "--tl-brand-logo-width: 132px;"
+    assert src =~ "--tl-brand-logo-width-desktop: 148px;"
+
+    # Source viewBox width 7252.3 and spool mark bounds -1664.3..-553.11.
+    for width <- [132.0, 148.0] do
+      assert width >= 96
+      assert width * (1664.3 - 553.11) / 7252.3 >= 16
+    end
   end
 
   test "phase 139 home orientation primitives stay scoped token-backed" do

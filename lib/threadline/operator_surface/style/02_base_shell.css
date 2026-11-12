@@ -158,9 +158,31 @@
     overflow: visible;
   }
 
-  .tl-topbar__brand-wordmark {
-    font-family: var(--tl-font-family);
-    font-weight: var(--tl-weight-strong);
+  .tl-topbar__brand-lockups {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .threadline-ui .tl-topbar__brand-logo--light {
+    display: none;
+  }
+
+  .threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--dark {
+    display: none;
+  }
+
+  .threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--light {
+    display: block;
+  }
+
+  @media (prefers-color-scheme: light) {
+    .threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--dark {
+      display: none;
+    }
+
+    .threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--light {
+      display: block;
+    }
   }
 
   .tl-topbar__status .tl-chip {
