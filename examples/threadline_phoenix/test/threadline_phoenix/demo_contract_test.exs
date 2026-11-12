@@ -12,7 +12,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
-  alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
+  alias ThreadlinePhoenix.Accounts.User
+  alias ThreadlinePhoenix.HelpDesk.{Agent, OrgMembership, Organization, Ticket}
   alias ThreadlinePhoenix.Repo
 
   setup do
@@ -212,6 +213,72 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end
   end
 
+  describe "seed setup snapshots" do
+    test "organization, user, membership, agent and base ticket writes use setup S" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
+        setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+        setup_iso = snapshot_timestamp(setup_at)
+        {:ok, admin_ref} = ActorRef.new(:admin, Manifest.user_id(:admin))
+
+        for {table, actor_ref} <- [
+              {"organizations", nil},
+              {"users", nil},
+              {"org_memberships", admin_ref},
+              {"agents", admin_ref}
+            ] do
+          changes =
+            Repo.all(
+              from(ac in AuditChange,
+                join: at in assoc(ac, :transaction),
+                where: ac.table_name == ^table,
+                where: ac.op == "insert",
+                select: {ac, at}
+              ),
+              StorageSchema.repo_opts()
+            )
+
+          assert changes != [], "expected setup insert snapshots for #{table}"
+
+          for {change, transaction} <- changes do
+            assert change.data_after["inserted_at"] == setup_iso
+            assert change.data_after["updated_at"] == setup_iso
+            assert transaction.actor_ref == actor_ref
+          end
+        end
+
+        users = Repo.all(User, StorageSchema.repo_opts())
+        memberships = Repo.all(OrgMembership, StorageSchema.repo_opts())
+        agents = Repo.all(Agent, StorageSchema.repo_opts())
+
+        assert users != []
+        assert memberships != []
+        assert agents != []
+        assert Enum.all?(users, &(&1.inserted_at == setup_at and &1.updated_at == setup_at))
+        assert Enum.all?(users, &(&1.confirmed_at == setup_at))
+        assert Enum.all?(users, &(&1.password_changed_at == setup_at))
+        assert Enum.all?(memberships, &(&1.inserted_at == setup_at))
+        assert Enum.all?(agents, &(&1.inserted_at == setup_at and &1.updated_at == setup_at))
+
+        ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4521)
+
+        ticket_insert_tx =
+          Repo.one!(
+            from(at in AuditTransaction,
+              join: ac in assoc(at, :changes),
+              where: ac.table_name == "tickets",
+              where: ac.op == "insert",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id)),
+              select: at
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        assert is_nil(ticket_insert_tx.actor_ref)
+      end)
+    end
+  end
+
   describe "SEED-03 leaving agent window" do
     test "agent2 audit transactions fall within demo_last_tuesday through demo_epoch" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
@@ -263,19 +330,131 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert ticket_change_count >= 1
       end)
     end
+
+    test "all twelve agent2 close snapshots match their events and agent3 owns the earlier role change" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
+        agent2_id = Manifest.user_id(:agent2)
+        agent3_id = Manifest.user_id(:agent3)
+        {:ok, agent2_ref} = ActorRef.new(:user, agent2_id)
+        {:ok, backfill_ref} = ActorRef.new(:system, Manifest.actor_id(:trigger_backfill))
+
+        agent2_membership =
+          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent2_id)
+
+        agent3_membership =
+          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent3_id)
+
+        assert agent2_membership.role == "agent"
+        assert agent3_membership.role == "support"
+
+        for n <- 1..12 do
+          ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4600 + n)
+          event_at = DateTime.add(Manifest.last_tuesday(), n, :minute)
+
+          {change, transaction} =
+            Repo.one!(
+              from(ac in AuditChange,
+                join: at in assoc(ac, :transaction),
+                where: ac.table_name == "tickets",
+                where: ac.op == "update",
+                where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id)),
+                select: {ac, at}
+              ),
+              StorageSchema.repo_opts()
+            )
+
+          assert ticket.status == "closed"
+          assert DateTime.compare(ticket.closed_at, event_at) == :eq
+          assert DateTime.compare(ticket.updated_at, event_at) == :eq
+          assert DateTime.compare(transaction.occurred_at, event_at) == :eq
+          assert transaction.actor_ref == agent2_ref
+          assert change.data_after["closed_at"] == snapshot_timestamp(event_at)
+          assert change.data_after["updated_at"] == snapshot_timestamp(event_at)
+        end
+
+        agent2_role_change? =
+          Repo.exists?(
+            from(ac in AuditChange,
+              where: ac.table_name == "org_memberships",
+              where: ac.op == "update",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(agent2_membership.id)),
+              where: fragment("?->>'role' = ?", ac.data_after, "support")
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        refute agent2_role_change?
+
+        {role_change, role_change_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "org_memberships",
+              where: ac.op == "update",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(agent3_membership.id)),
+              where: fragment("?->>'role' = ?", ac.data_after, "support"),
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        role_change_at = DateTime.add(Manifest.epoch(), -7, :day)
+        assert role_change_tx.actor_ref == backfill_ref
+        assert DateTime.compare(role_change_tx.occurred_at, role_change_at) == :eq
+        assert role_change.data_after["updated_at"] == snapshot_timestamp(role_change_at)
+      end)
+    end
   end
 
   describe "SEED-05 delete incident" do
-    test "hard delete on ticket_replies for #4518 by deleter not closer" do
+    test "#4518 closes with a reply before the later capture-only deletion" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         acme = Repo.get_by!(Organization, slug: "acme")
-        _ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4518)
+        ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4518)
         deleter_id = Manifest.user_id(:deleter)
         closer_id = Manifest.user_id(:closer)
-
+        setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+        close_at = DateTime.add(Manifest.last_tuesday(), 1, :hour)
         delete_at = DateTime.add(Manifest.last_tuesday(), 2, :hour)
 
-        {_change, at} =
+        ticket_insert =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "tickets",
+              where: ac.op == "insert",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id))
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        {reply_insert, reply_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "ticket_replies",
+              where: ac.op == "insert",
+              where: fragment("?->>'ticket_id' = ?", ac.data_after, ^to_string(ticket.id)),
+              where: at.occurred_at == ^close_at,
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        {close_change, close_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "tickets",
+              where: ac.op == "update",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id)),
+              where: at.occurred_at == ^close_at,
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        {delete_change, delete_tx} =
           Repo.one!(
             from(ac in AuditChange,
               join: at in assoc(ac, :transaction),
@@ -288,8 +467,27 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             StorageSchema.repo_opts()
           )
 
-        assert %Threadline.Semantics.ActorRef{type: :user, id: ^deleter_id} = at.actor_ref
-        refute closer_id == deleter_id
+        action = Repo.get!(AuditAction, close_tx.action_id, StorageSchema.repo_opts())
+
+        assert ticket.status == "closed"
+        assert DateTime.compare(ticket.closed_at, close_at) == :eq
+        assert DateTime.compare(ticket.updated_at, close_at) == :eq
+        assert ticket_insert.data_after["inserted_at"] == snapshot_timestamp(setup_at)
+        assert close_change.data_after["closed_at"] == snapshot_timestamp(close_at)
+        assert close_change.data_after["updated_at"] == snapshot_timestamp(close_at)
+        assert reply_insert.data_after["inserted_at"] == snapshot_timestamp(close_at)
+        assert reply_insert.data_after["updated_at"] == snapshot_timestamp(close_at)
+        assert reply_tx.id == close_tx.id
+        assert DateTime.compare(reply_tx.occurred_at, close_at) == :eq
+        assert DateTime.compare(delete_tx.occurred_at, delete_at) == :eq
+        assert delete_tx.id != close_tx.id
+        assert delete_change.data_after == nil
+        assert delete_change.table_pk["id"] == reply_insert.table_pk["id"]
+        assert close_tx.actor_ref == %ActorRef{type: :user, id: closer_id}
+        assert delete_tx.actor_ref == %ActorRef{type: :user, id: deleter_id}
+        assert action.name == "ticket_replied_and_closed"
+        assert action.request_id == "demo-seed-4518-reply"
+        assert is_nil(delete_tx.action_id)
       end)
     end
   end
@@ -568,5 +766,9 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       ticket_4521_number: Repo.get_by!(Ticket, organization_id: acme.id, number: 4521).number,
       acme_slug: acme.slug
     }
+  end
+
+  defp snapshot_timestamp(%DateTime{} = timestamp) do
+    timestamp |> DateTime.to_naive() |> NaiveDateTime.to_iso8601()
   end
 end
