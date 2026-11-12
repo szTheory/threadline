@@ -100,7 +100,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 5. Displayed times name their zone and compact identifiers retain the full unchanged value, keyboard access and truthful copy success/failure feedback while compatible public names and query contracts remain intact.
 **Plans**: 8 plans in 8 ordered waves
 **Wave 1**
-- [ ] 250-01-PLAN.md — Baseline ordinary investigation and durable pair custody
+- [x] 250-01-PLAN.md — Baseline ordinary investigation and durable pair custody (complete 2026-11-12)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 250-02-PLAN.md — Approved semantic tokens and supplied header artwork
@@ -176,7 +176,7 @@ Execution order:248→249→250→251→252→253. Phase248 is verified complete
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
-| 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
+| 250. Brand foundation and first whole investigation | 1/8 | In progress | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
