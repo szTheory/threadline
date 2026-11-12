@@ -42,7 +42,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 - [x] **Phase 248: Reconcile the base and safety/proof ownership** - A preserved current-main candidate has fail-closed access and trustworthy affected verification. (completed 2026-11-11)
 - [x] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership. (completed 2026-11-12)
-- [ ] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes.
+- [x] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes. (completed 2026-11-12)
 - [ ] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design.
 - [ ] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs.
 - [ ] **Phase 253: Inclusive integration, docs, package and release readiness** - The complete existing Admin is accepted against current evidence with truthful release limits.
@@ -98,7 +98,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Support can find a ticket change, inspect its transaction, exact values and actor, open record history, copy the complete identifier and return with the original search intact through mounted host routes.
 4. UI/docs use the approved plain vocabulary while users can distinguish action/change/transaction/request, actor/user and accepted/completed work; exact old/new values, Redacted, left out, null, missing and unavailable remain unambiguous without assurance claims or color-only operation meaning.
 5. Displayed times name their zone and compact identifiers retain the full unchanged value, keyboard access and truthful copy success/failure feedback while compatible public names and query contracts remain intact.
-**Plans**: 8 plans in 8 ordered waves
+**Plans**: 8/8 plans complete in 8 ordered waves
 **Wave 1**
 - [x] 250-01-PLAN.md — Baseline ordinary investigation and durable pair custody (complete 2026-11-12)
 
@@ -170,17 +170,17 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248/249 are independently verified complete; their eight plans are GSD-reconciled and ADM01–07 are locally complete. Phase250 has eight of eight plans complete with selected whole-browser/font/copy/theme proof and independent current-source review; independent phase goal verification remains pending. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,two complete,sixteen currently planned plans,sixteen complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248/249/250 are independently verified complete; all16 plans are GSD-reconciled. ADM01–14/16–17 are locally complete. Phase250 passed76/76 unique must-haves with current whole-browser/font/copy/theme proof and independent review. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,three complete,sixteen currently planned plans,sixteen complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
-| 250. Brand foundation and first whole investigation | 8/8 | Verifying | - |
+| 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 
 ## Next
 
-Phase249 is independently complete at48/48 unique truths, with clean current formal review and no open review findings. Continue Phase250 brand foundation and the first whole investigation; reuse approved current brand, coherent fixtures and the existing private foundation/adversarial preparation. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.
+Continue Phase251 complete investigation and inspection screens. Reuse the accepted research and shared brand foundation, inspect only post250 source drift, and group coherent jobs with shared checks to reduce repeated intake/closeout. No user acknowledgment is needed. Preserve the consumed full-repeat stop, resource/data custody, external-action and publication limits; Phase253 owns the two retained UI observations and comprehensive acceptance.

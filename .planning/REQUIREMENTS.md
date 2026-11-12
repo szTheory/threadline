@@ -22,19 +22,19 @@
 
 ### Approved identity and language
 
-- [ ] **ADM-08**: Rendered UI colors map the approved brand roles to UI semantic tokens, including all eight stable contrast IDs in both themes; artwork, link/focus and control boundaries retain their distinct roles.
-- [ ] **ADM-09**: Threadline-owned UI/docs use the supplied spool lockups and favicons with correct theme variants, fixed Stitch Blue artwork, supported minimum sizes and unchanged asset geometry.
-- [ ] **ADM-10**: The served heading/body/identifier fonts and weights follow the approved Familjen Grotesk, Geist and IBM Plex Mono roles, with required licenses, offline delivery and usable host opt-out/system fallback.
-- [ ] **ADM-11**: Dark-default, full light and System themes remain usable, immediately selected and server-resolved through the existing native CSRF-protected theme flow.
-- [ ] **ADM-12**: User-facing UI/docs use Threadline Admin, audit trail library and the approved plain vocabulary while preserving public modules, options, schemas, telemetry names, URLs and query contracts.
-- [ ] **ADM-13**: The interface preserves the distinct meanings of action/change/transaction/request, actor/user, Redacted/left out/null/missing/unavailable, and accepted/completed work without unsupported assurance claims.
+- [x] **ADM-08**: Rendered UI colors map the approved brand roles to UI semantic tokens, including all eight stable contrast IDs in both themes; artwork, link/focus and control boundaries retain their distinct roles.
+- [x] **ADM-09**: Threadline-owned UI/docs use the supplied spool lockups and favicons with correct theme variants, fixed Stitch Blue artwork, supported minimum sizes and unchanged asset geometry.
+- [x] **ADM-10**: The served heading/body/identifier fonts and weights follow the approved Familjen Grotesk, Geist and IBM Plex Mono roles, with required licenses, offline delivery and usable host opt-out/system fallback.
+- [x] **ADM-11**: Dark-default, full light and System themes remain usable, immediately selected and server-resolved through the existing native CSRF-protected theme flow.
+- [x] **ADM-12**: User-facing UI/docs use Threadline Admin, audit trail library and the approved plain vocabulary while preserving public modules, options, schemas, telemetry names, URLs and query contracts.
+- [x] **ADM-13**: The interface preserves the distinct meanings of action/change/transaction/request, actor/user, Redacted/left out/null/missing/unavailable, and accepted/completed work without unsupported assurance claims.
 
 ### Investigation journeys
 
-- [ ] **ADM-14**: Support can find a ticket change, inspect its transaction and exact values/actor, open record history, copy its identifier and return with the original search intact through mounted host routes.
+- [x] **ADM-14**: Support can find a ticket change, inspect its transaction and exact values/actor, open record history, copy its identifier and return with the original search intact through mounted host routes.
 - [ ] **ADM-15**: Existing Timeline filters, saved views, direct entry, reload, browser back and return URLs preserve validated query state and host scope.
-- [ ] **ADM-16**: Before/after values remain exact and neutrally presented, with missing/redacted/left-out cases unambiguous and operation words conveying meaning independently of color.
-- [ ] **ADM-17**: Displayed times identify their time zone, and compact identifiers expose/copy the complete unchanged value with keyboard focus and truthful success/failure feedback.
+- [x] **ADM-16**: Before/after values remain exact and neutrally presented, with missing/redacted/left-out cases unambiguous and operation words conveying meaning independently of color.
+- [x] **ADM-17**: Displayed times identify their time zone, and compact identifiers expose/copy the complete unchanged value with keyboard focus and truthful success/failure feedback.
 - [ ] **ADM-18**: Home lookups and actor/correlation pivots complete their existing jobs with scoped context, including non-human and absent actor information, through the new design.
 - [ ] **ADM-19**: Supported record/transaction history and as-of paths retain exact identity, deletion/history-gap semantics and return context without implying new composite-key navigation.
 
@@ -88,16 +88,16 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-05 | Phase 249 | Complete |
 | ADM-06 | Phase 249 | Complete |
 | ADM-07 | Phase 249 | Complete |
-| ADM-08 | Phase 250 | Pending |
-| ADM-09 | Phase 250 | Pending |
-| ADM-10 | Phase 250 | Pending |
-| ADM-11 | Phase 250 | Pending |
-| ADM-12 | Phase 250 | Pending |
-| ADM-13 | Phase 250 | Pending |
-| ADM-14 | Phase 250 | Pending |
+| ADM-08 | Phase 250 | Complete |
+| ADM-09 | Phase 250 | Complete |
+| ADM-10 | Phase 250 | Complete |
+| ADM-11 | Phase 250 | Complete |
+| ADM-12 | Phase 250 | Complete |
+| ADM-13 | Phase 250 | Complete |
+| ADM-14 | Phase 250 | Complete |
 | ADM-15 | Phase 251 | Pending |
-| ADM-16 | Phase 250 | Pending |
-| ADM-17 | Phase 250 | Pending |
+| ADM-16 | Phase 250 | Complete |
+| ADM-17 | Phase 250 | Complete |
 | ADM-18 | Phase 251 | Pending |
 | ADM-19 | Phase 251 | Pending |
 | ADM-20 | Phase 251 | Pending |

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.48
-current_phase: 250
-current_phase_name: Brand foundation and first whole investigation
-status: verifying
-stopped_at: Phase250 all eight plans complete; independent goal verification pending
-last_updated: "2026-11-12T23:18:25.891908Z"
+current_phase: 251
+current_phase_name: Complete investigation and inspection screens
+status: planning
+stopped_at: Phase 250 complete, ready to plan Phase 251
+last_updated: "2026-11-12T23:40:56.822Z"
 last_activity: 2026-11-12
-last_activity_desc: Phase250 Plan08 matched proof, independent review and selected regression complete
-state_head: 592e6577f5a3b3e160cf5717c1d186b688c0b67b
+last_activity_desc: Phase 250 complete, transitioned to Phase 251
+state_head: ed68ce8cdb6b7bdb2af57179a595ad38626d232c
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 16
   completed_plans: 16
-  percent: 33
+  percent: 50
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -25,23 +25,23 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 250 — Brand foundation and first whole investigation
+**Current focus:** Phase251 — Complete investigation and inspection screens
 
 ## Current Position
 
 **Required autonomous closeout:** The maintainer explicitly requested retained lessons. Finalize the [run retrospective](research/2026-11-12-autonomous-run-retrospective.md) before milestone closure or any earlier handoff, then link it in chat. Current status is in progress.
 
 
-Phase: 250 (Brand foundation and first whole investigation) — VERIFYING
-Plan: 8 of 8 complete; phase goal verification pending
-Status: Verifying Phase 250
-Last activity: 2026-11-12 — Matched whole journey, font/copy/theme proof, independent review and scoped regression passed
+Phase: 251 — Complete investigation and inspection screens
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-12 — Phase 250 complete, transitioned to Phase 251
 
-Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 16 of 16 currently planned plans complete.
+Progress: [█████░░░░░] 50% — 3 of 6 phases complete; 16 of 16 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248/249 remain independently complete. All eight Phase250 plans now have actual completed summaries and selected proof; phase goal verification is pending. The current ordinary investigation preserves exact row/actor/time/redaction meaning and original filters through UI links, with in-drawer full-ID copy. Fresh current-source default5/disabled1/theme1/strict-after1 browser cases passed without skips/retries/flakes; source/asset/materialization and independent review identities matched. The18 authored ASVS1 threats are closed without risk acceptance. Independent code review is clean; UI review22/24 retains a nonblocking generic Retry refinement and missing error-layout pixels for Phase253. Selected prior-phase regression passed436 root tests,69 isolated example tests and32 Node cases after coupled contract migration; this is not a full-root repeat. Original before/data/failures are preserved. See [evidence](phases/250-brand-foundation-and-first-whole-investigation/250-PAIR-EVIDENCE.md), [review](phases/250-brand-foundation-and-first-whole-investigation/250-REVIEW.md), [security](phases/250-brand-foundation-and-first-whole-investigation/250-SECURITY.md) and [Plan08 summary](phases/250-brand-foundation-and-first-whole-investigation/250-08-SUMMARY.md). The original executor's interrupted exit1 remains honest; parent completed its existing GSD worktree. Keep that worktree until final goal verification and manifest-owned cleanup. No user action is needed; continue251–253 after actual Phase250 acceptance, reusing prepared251 research with narrow drift checking.
+**Current diagnosis and dispatch:** Phases248/249/250 are independently complete. Phase250 passed76/76 unique must-haves and all nine requirements; the owning verification.status accepted passed before phase.complete. All eight plans have completed summaries and selected proof. The current ordinary investigation preserves exact row/actor/time/redaction meaning and original filters through UI links, with in-drawer full-ID copy. Fresh current-source default5/disabled1/theme1/strict-after1 browser cases passed without skips/retries/flakes; source/asset/materialization and independent review identities matched. The18 authored ASVS1 threats are closed without risk acceptance. Independent code review is clean; UI review22/24 retains a nonblocking generic Retry refinement and missing error-layout pixels for Phase253. Selected prior-phase regression passed436 root tests,69 isolated example tests and32 Node cases after coupled contract migration; this is not a full-root repeat. Original before/data/failures are preserved. See [evidence](phases/250-brand-foundation-and-first-whole-investigation/250-PAIR-EVIDENCE.md), [review](phases/250-brand-foundation-and-first-whole-investigation/250-REVIEW.md), [security](phases/250-brand-foundation-and-first-whole-investigation/250-SECURITY.md) and [Plan08 summary](phases/250-brand-foundation-and-first-whole-investigation/250-08-SUMMARY.md). The original executor's interrupted exit1 remains honest; parent completed its existing GSD worktree. GSD manifest-owned cleanup merged/removed the final worktree with no warnings; no service was served from it. No user action is needed; continue251–253 now, reusing prepared251 research with a narrow post250 drift check.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -1257,7 +1257,7 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 ## Session Continuity
 
 **Last session:** 2026-11-12T19:31:42.774099Z
-**Stopped at:** Phase250 Plan06 complete; Plan07 transaction/history and return links selected
+**Stopped at:** Phase 250 complete, ready to plan Phase 251
 **Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
@@ -1304,3 +1304,5 @@ Recovered original conversation `01a11661-7527-7d81-a91e-9152783d392d` (old titl
 ## Recovery Completion (2026-10-10)
 
 Phase 241 is complete (4/4 plans, verification passed 50/50). Final `mix ci.all` exited 0 on the final source: 32 properties/3,110 root tests, 132 example tests, zero Dialyzer errors, 17 slice tests, 21 Node tests and 400 browser passes with 72 configured/conditional skips. Plans 03/04 and the review-discovered policy outage are committed. Three minor UI advisories have explicit Phase 243 dispositions. Phase 242 is next; its discussion/research/plans do not exist yet. Retain this worktree as source authority and preserve the original checkout and unrelated local planning edits. Phase completion initially emitted four false missing-file warnings by reading historical inline shell commands as paths; those commands are now fenced.
+
+**Phase250 completion note:** Its18 authored threats are closed atASVS1 without risk acceptance. Code review is clean and UI22/24 retains two nonblocking Phase253 observations. GSD’s REL-01 traceability warning concerns the deliberately carried v1.47 live-release clause, not a missing v1.48 ADM row; retain its separate pending natural-release trigger. The docs listener is stopped with generated files/captures retained; the owned app/PG remain available for authorized251 work.
