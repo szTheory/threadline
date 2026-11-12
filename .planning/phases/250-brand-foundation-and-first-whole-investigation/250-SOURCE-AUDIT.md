@@ -1,6 +1,6 @@
 # Phase 250 source coverage audit
 
-Status: planning coverage complete; execution acceptance pending. Eight plans, eighteen tasks, eight ordered waves. Calibration factor1/sample_count0/confidence low; estimates are projections, not usage evidence. Discovery Level0: current research/pattern map and locked installed stack cover established internal seams; no dependency choice or new external integration. Graphify is disabled; no semantic-graph inference. Project skill directories/configured planner skills supplied no applicable skill block. Required project policy and phase artifacts were read.
+Status: planning coverage complete; selected execution and independent review evidence are recorded in250-PAIR-EVIDENCE.md and250-REVIEW.md; independent phase goal verification pending. Eight plans, eighteen tasks, eight ordered waves. Calibration factor1/sample_count0/confidence low; estimates are projections, not usage evidence. Discovery Level0: current research/pattern map and locked installed stack cover established internal seams; no dependency choice or new external integration. Graphify is disabled; no semantic-graph inference. Project skill directories/configured planner skills supplied no applicable skill block. Required project policy and phase artifacts were read.
 
 ## Dependency and task graph
 

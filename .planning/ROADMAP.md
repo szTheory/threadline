@@ -121,7 +121,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] 250-07-PLAN.md — Exact transaction/history values, validated return context and causal corpus reconciliation (complete 2026-11-12)
 
 **Wave 8** *(requires Wave 7 completion)*
-- [ ] 250-08-PLAN.md — Matched after proof and independent review
+- [x] 250-08-PLAN.md — Matched after proof and independent review
 **UI hint**: yes
 **Canonical references**: [Approved foundation and slice](research/2026-11-10-brand-admin/milestone-proposal.md), [identity](../brand/BRAND.md), [machine-readable roles](../brand/brand.json), [supplied assets](../brand/assets/README.md), [migration parity contract](../test/threadline/brandbook_token_parity_test.exs), [theme tokens](../lib/threadline/operator_surface/style/01_tokens.css), [logo](../lib/threadline/operator_surface/components/logo.ex), [font boundary](../lib/threadline/operator_surface/fonts.ex), [theme controller](../lib/threadline/operator_surface/controllers/theme_controller.ex), [investigation journey](../examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts), [presentation](../lib/threadline/operator_surface/presentation.ex). This slice does not close the milestone.
 
@@ -170,13 +170,13 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248/249 are independently verified complete; their eight plans are GSD-reconciled and ADM01–07 are locally complete. Phase250 has seven of eight plans complete; strict whole-browser investigation, complete font boundaries and independent current-source acceptance remain Plan08. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,two complete,sixteen currently planned plans,fifteen complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248/249 are independently verified complete; their eight plans are GSD-reconciled and ADM01–07 are locally complete. Phase250 has eight of eight plans complete with selected whole-browser/font/copy/theme proof and independent current-source review; independent phase goal verification remains pending. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,two complete,sixteen currently planned plans,sixteen complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
-| 250. Brand foundation and first whole investigation | 7/8 | In progress | - |
+| 250. Brand foundation and first whole investigation | 8/8 | Verifying | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
