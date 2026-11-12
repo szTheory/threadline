@@ -964,7 +964,7 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "data_state/1 — typed reason dispatch (DATA-03, D-13..D-16)" do
     @reason_cases [
       {:unauthorized, "alert", "You do not have access to this audit data", "lock"},
-      {:no_data, "status", "No audit changes match these filters", "funnel"},
+      {:no_data, "status", "No changes match these filters", "funnel"},
       {:source_down, "alert", "temporarily unavailable", "cloud_off"},
       {:redacted, "status", "Value redacted by policy", "eye_off"},
       {:pruned, "status", "Audit data pruned under retention", "archive"},
