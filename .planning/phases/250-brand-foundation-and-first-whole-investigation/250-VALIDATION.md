@@ -43,9 +43,9 @@ Completed rows below link the current plan-level proof and its limits; remaining
 | 03.2 | 3 | ADM-10/09; independent font/style/byte/compile contracts | C10, C11, C08 | T-250-05, T-250-06 | passed assigned scope; phase-wide acceptance pending ([summary](250-03-SUMMARY.md)) |
 | 04.1 | 4 | ADM-11/08; native CSRF/auth/allowed value/session/cookie/safe return | C04, C12, C13 | T-250-07, T-250-08 | passed assigned scope; phase-wide acceptance pending ([summary](250-04-SUMMARY.md)) |
 | 04.2 | 4 | ADM-11/09/17; keyboard theme/effective scheme/focus and truthful observation | C14, C15, C16, C08 | T-250-07, T-250-08 | passed assigned scope; phase-wide acceptance pending ([summary](250-04-SUMMARY.md)) |
-| 05.1 | 5 | ADM-09/12; owned README/intro wording and stable technical identifiers | C04, C17 | T-250-09, T-250-10 | pending execution |
-| 05.2 | 5 | ADM-09/10; raw actual archive identity, distinct owned docs listener/root readiness and generated ExDoc theme/minimum | C18, C19, C31, C20 | T-250-09, T-250-10 | pending execution |
-| 05.3 | 5 | ADM-09; served exact Admin favicon with unchanged host home/login head | C13, C08 | T-250-09, T-250-10 | pending execution |
+| 05.1 | 5 | ADM-09/12; owned README/intro wording and stable technical identifiers | C04, C17 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
+| 05.2 | 5 | ADM-09/10; raw actual archive identity, distinct owned docs listener/root readiness and generated ExDoc theme/minimum | C18, C19, C31, C20 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
+| 05.3 | 5 | ADM-09; served exact Admin favicon with unchanged host home/login head | C13, C08 | T-250-09, T-250-10 | passed assigned scope; phase-wide acceptance pending ([summary](250-05-SUMMARY.md)) |
 | 06.1 | 6 | ADM-12/13/14; pending/committed query/empty/error/optional/long/count states | C04, C21, C22 | T-250-11, T-250-12 | pending execution |
 | 06.2 | 6 | ADM-13/16; shared typed loading/meaning and accepted/completed controls | C23, C08 | T-250-11, T-250-12 | pending execution |
 | 07.1 | 7 | ADM-13/16/17; exact values/UTC/count/missing/unavailable transaction | C04, C24 | T-250-13, T-250-14 | pending execution |
@@ -162,3 +162,5 @@ None. Automate behavior/accessibility/asset proofs and independent agent judgmen
 - [ ] Owning validation workflow sets nyquist_compliant only after evidence.
 
 Approval: pending automated execution and validation.
+
+Plan05 follow-through keeps new docs checks explicitly scoped to their supplied private URL. The existing Home cases remain discoverable without it; selecting only the docs file without its URL fails with zero tests. Actual emitted inline JavaScript is compiled before browser execution, and parent readiness binds both the redirect index and the served README carrying that hook. The final two-case C20 JSON passed with no skips/retries/errors; earlier failures and the original Task2 TDD sequencing deviation remain in the summary. These are bounded local checks, not a full canonical/browser-matrix result.

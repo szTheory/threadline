@@ -8,13 +8,15 @@ requires:
     provides: Immediate System, Light, and Dark selection through the existing Admin theme flow
 provides:
   - Approved README and operator-guide introductions with the paired supplied lockup
-  - The exact ten-file approved brand asset set in the Hex package and ExDoc inputs
+  - The exact ten-file approved brand asset set in the Hex package
+  - Local approved paired logos and favicon in generated ExDoc
   - Generated ExDoc theme switching with measured 96px minimum logo width
   - The example Admin favicon at its existing static path with exact supplied bytes
 affects: [250-08]
 actuals:
   tokens: null
   tasks: 3
+  elapsed_seconds: 4928.448
   commits: 8
 plan_head_before: 4b76cb748ed77004de71aadb979e1afb12a8094f
 plan_head_after: 02e8c0744feae3fd30eae400398a239c66380abe
@@ -82,27 +84,27 @@ coverage:
         ref: "examples/threadline_phoenix mix test test/threadline_phoenix_web/operator_surface_test.exs (13 tests)"
         status: pass
     human_judgment: false
-duration: null
+duration: 82min
 completed: 2026-11-12
 status: complete
 ---
 
-# Phase 250 Plan 05: Brand foundation and first whole investigation Summary
+# Phase 250 Plan 05: Owned docs, favicon and package assets Summary
 
 **Approved brand assets now flow through the README, Hex package, generated ExDoc, and Admin favicon; ExDoc theme switching is verified.**
 
 ## Performance
 
-- **Duration:** Unknown; parent-owned process receipts are needed for elapsed time.
-- **Started:** Unknown to this continuation; parent owns elapsed-time reconciliation.
-- **Completed:** 2026-11-12
+- **Duration:** 4928.448 seconds of managed wall time, including checkpoint and parent coordination waits; not active test runtime.
+- **Started:** 2026-11-12T16:51:57.628319Z
+- **Completed:** 2026-11-12T18:14:06.075955Z
 - **Tasks:** 3 complete.
 - **Files modified:** 12 product and test files.
 
 ## Accomplishments
 
 - Updated the README and operator-guide introductions with approved Threadline language and the supplied light/dark lockup.
-- Limited package and ExDoc assets to the exact approved SVG, WOFF2, and license files; the unpacked archive contract checks raw bytes and missing, mutated, and extra-file controls.
+- Limited the package to the exact ten approved SVG, WOFF2, and license files, and generated ExDoc identity inputs to the approved SVGs. The unpacked archive contract checks raw bytes and missing, mutated, and extra-file controls.
 - Kept the existing Admin favicon path and verified the supplied bytes through its existing response behavior.
 - Generated ExDoc with local paired assets, a 96px logo rule, valid theme-switch JavaScript, and a passing two-case browser proof.
 
@@ -148,7 +150,7 @@ Task 2 already had implementation commits before its original focused assertions
 
 ## Historical Verification
 
-- The first C20 attempt failed because the hook did not recognize ExDoc's initial `/assets/logo.svg` path; the paired-path correction was committed in `277eeac9`.
+- The first C20 attempt selected the initial light variant but could not switch later because the guard accepted only the original `/assets/logo.svg` path. The paired-path correction in `277eeac9` fixed that guard but introduced the separately recorded emitted-JavaScript syntax defect.
 - The next C20 attempt exposed the malformed emitted regular expression and was stopped under the existing browser limit. Its report and traces remain preserved.
 - After the source-bound static proof and parent authorization, the single fresh C31→C20 run passed both cases with zero skipped, unexpected, flaky, or retried results. No browser run followed it.
 - Earlier package mapping, release exclusion, archive residue, and observed MIME expectation failures were corrected; the final focused archive and Admin contracts passed.
