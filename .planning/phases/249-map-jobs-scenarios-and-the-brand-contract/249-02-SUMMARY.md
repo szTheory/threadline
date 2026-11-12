@@ -11,7 +11,11 @@ provides:
 affects: [phase-249-plan-03, demo-seed-workflows, walkthrough-fixtures]
 
 actuals:
-  tokens: 2295
+  tokens: 82459
+  reasoning_output_tokens: 54423
+  worker_elapsed_s: 1825
+  measurement_source: codex-exec-terminal-usage
+  tokens_meaning: output_tokens_including_reasoning
   tasks: 3
   commits: 7
   plan_head_before: fc6afadfcb0634f5df78e52e52d5220e08ef420c
@@ -40,7 +44,8 @@ key-decisions:
   - "Keep the fixed May 27 2026 12:00Z epoch and private fixture identities; correct only the preceding Tuesday anchor to May 26 2026 14:30Z."
   - "Use mix demo.reset for clean setup; document mix demo.seed as a separate guarded in-place operation without a general idempotence promise."
 
-requirements-completed: [ADM-06, ADM-07]
+requirements-completed: []
+requirements-addressed: [ADM-06, ADM-07]
 
 coverage:
   - id: D1
@@ -78,7 +83,7 @@ coverage:
         status: pass
     human_judgment: false
 
-duration: 20min
+duration: 30min25s
 completed: 2026-11-11
 status: complete
 ---
@@ -89,9 +94,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** About 20 minutes; preparation began before the first retained task timestamp.
-- **Started:** 2026-11-11T19:25:49-05:00 (first task commit; earlier setup and reading were not timestamped).
-- **Completed:** 2026-11-12T00:42:56Z.
+- **Duration:** Worker lifetime 1,825 seconds (30 minutes 25 seconds), measured by the managed launcher. Worktree creation and dependency cloning preceded worker launch and are excluded.
+- **Started:** 2026-11-12T00:18:36.441179+00:00 (worker launch).
+- **Completed:** 2026-11-12T00:49:01.914974+00:00 (worker terminal exit).
 - **Tasks:** 3
 - **Files modified:** 9
 
@@ -138,6 +143,10 @@ status: complete
 - `bash -n examples/threadline_phoenix/e2e/run-e2e.sh` passed. The E2E/browser runner was not executed.
 - Checks used the task-owned PostgreSQL 15.17 service and partition `p24902`; the shared PostgreSQL port 5432 was not used. Root and example lockfile hashes remained unchanged.
 
+## Parent Receipt Reconciliation
+
+After terminal exit, the parent corrected the duration and output-token metrics from the managed worker receipt and replaced premature whole-requirement completion metadata with partial contribution metadata. Task source, checks and their results are unchanged; this metadata-only correction adds no new runtime receipt.
+
 ## Deviations from Plan
 
 None - plan executed as written.
@@ -154,7 +163,7 @@ None - no external service configuration is required.
 
 ## Next Phase Readiness
 
-Plan 02 outputs are ready for the remaining phase work. No runtime brand, font, style, artwork, public API, route, or schema scope changed. Browser acceptance was not claimed. The parent owns shared STATE.md, ROADMAP.md, and REQUIREMENTS.md updates; none were edited here.
+Plan 02 outputs are ready for the remaining phase work. ADM-06 and ADM-07 are partially addressed here; ordinary snapshot chronology and complete scenario/stress selection remain with Plans 03 and 04. This plan does not complete those phase requirements. No runtime brand, font, style, artwork, public API, route, or schema scope changed. Browser acceptance was not claimed. The parent owns shared STATE.md, ROADMAP.md, and REQUIREMENTS.md updates; none were edited here.
 
 ## Self-Check: PASSED
 
