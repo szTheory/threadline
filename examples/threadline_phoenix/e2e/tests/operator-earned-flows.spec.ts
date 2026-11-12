@@ -99,7 +99,7 @@ async function discoverTicketReplyRecordId(page: Page) {
 test.describe("operator earned-flow browser UAT", () => {
   test.beforeEach(async ({ page }, info) => {
     if (info.title === investigationTitle) {
-      await page.addInitScript(() => {
+      await page.context().addInitScript(() => {
         const probe = {
           calls: [] as Array<{ value: string; trustedActivation: boolean }>,
           pending: [] as Array<() => void>,

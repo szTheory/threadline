@@ -658,14 +658,22 @@ export async function captureInvestigationCheckpoint(
 ): Promise<void> {
   const session = await beginCaptureSession(info);
   if (session.captures.some((capture) => capture.id.startsWith(`${id}-`))) throw new Error(`Duplicate capture checkpoint: ${id}`);
-  await page.waitForFunction(() => document.querySelector("[data-phx-main]")?.classList.contains("phx-connected") === true);
-  for (const theme of ["dark", "light"] as const) {
-    const captureId = `${id}-${theme}`;
-    const capture = await captureLane(
-      page, browser, info, session.receipt.checkout, session.root, session.relativeDir,
-      captureId, state, theme, "dark", session.live.servingSource, session.live.testSource,
-    );
-    session.captures.push(capture);
+  // Theme controls can add navigation history on legacy surfaces. Capture a
+  // same-context copy so the tested journey's Back stack remains untouched.
+  const capturePage = await page.context().newPage();
+  try {
+    await capturePage.goto(page.url(), { waitUntil: "domcontentloaded" });
+    await capturePage.waitForFunction(() => document.querySelector("[data-phx-main]")?.classList.contains("phx-connected") === true);
+    for (const theme of ["dark", "light"] as const) {
+      const captureId = `${id}-${theme}`;
+      const capture = await captureLane(
+        capturePage, browser, info, session.receipt.checkout, session.root, session.relativeDir,
+        captureId, state, theme, "dark", session.live.servingSource, session.live.testSource,
+      );
+      session.captures.push(capture);
+    }
+  } finally {
+    await capturePage.close();
   }
 }
 
