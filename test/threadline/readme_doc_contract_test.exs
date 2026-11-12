@@ -46,6 +46,25 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/domain-reference.md")
   end
 
+  test "README uses the approved theme-paired lockups and product introduction" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(
+             readme,
+             ~s|<source media="(prefers-color-scheme: dark)" srcset="brand/assets/logo/threadline-lockup-dark.svg">|
+           )
+
+    assert String.contains?(
+             readme,
+             ~s|<img alt="Threadline" src="brand/assets/logo/threadline-lockup-light.svg" width="420">|
+           )
+
+    assert String.contains?(readme, "**Follow what happened.**")
+    assert String.contains?(readme, "Threadline is an audit trail library for Phoenix apps.")
+    assert String.contains?(readme, "adds Threadline Admin")
+    assert String.contains?(readme, "[guides/operator-surface.md](guides/operator-surface.md)")
+  end
+
   test "README links the public docs hubs for adopters and operators" do
     readme = File.read!("README.md")
 

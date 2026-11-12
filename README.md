@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="brandbook/logo-primary.svg">
-  <img alt="Threadline" src="brandbook/logo-primary-light.svg" width="420">
+  <source media="(prefers-color-scheme: dark)" srcset="brand/assets/logo/threadline-lockup-dark.svg">
+  <img alt="Threadline" src="brand/assets/logo/threadline-lockup-light.svg" width="420">
 </picture>
 
 # Threadline
@@ -10,9 +10,9 @@
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
 **CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions).
 
-**Auditing for Phoenix, without a separate event system or black box.**
+**Follow what happened.**
 
-Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with application-level actor, intent, and correlation context.
+Threadline is an audit trail library for Phoenix apps. It records every insert, update and delete in your PostgreSQL database, with who made each change and when, and adds Threadline Admin, where your team can follow what happened.
 
 New Phoenix integrations should use `Threadline.Audit.transaction/3`; see [Getting started](guides/getting-started-saas.md) §6.
 

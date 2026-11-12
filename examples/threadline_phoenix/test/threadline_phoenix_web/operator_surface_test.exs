@@ -21,9 +21,44 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
 
   test "threadline admin favicon asset is served", %{conn: conn} do
     conn = get(conn, "/images/threadline-admin-favicon.svg")
+    body = response(conn, 200)
+    source = File.read!(Path.expand("../../../../brand/assets/icon/favicon.svg", __DIR__))
 
-    assert response(conn, 200) =~ "<svg"
+    assert body == source
+    assert body =~ ~s|viewBox="-30.740 -11.993 62.850 62.850"|
+    assert body =~ ~s|<title>Threadline</title>|
+    assert body =~ "#4781E6"
+    assert body =~ "#0F1728"
+    assert body =~ "#D7DEEA"
+    assert body =~ "@media (prefers-color-scheme:dark)"
     assert get_resp_header(conn, "content-type") == ["image/svg+xml"]
+  end
+
+  test "demo home and login retain the shared favicon while Admin uses its own", %{conn: conn} do
+    for path <- ["/", "/users/log_in"] do
+      html = conn |> get(path) |> html_response(200)
+
+      assert html =~ ~s|href="/favicon.ico"|
+      refute html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    end
+
+    user = user_fixture(email: "admin@example.com")
+
+    admin_html =
+      conn
+      |> login_via_sigra(user)
+      |> get("/audit")
+      |> html_response(200)
+
+    assert admin_html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    refute admin_html =~ ~s|href="/favicon.ico"|
+
+    favicon_path =
+      Path.expand("../../../../examples/threadline_phoenix/priv/static/favicon.ico", __DIR__)
+
+    favicon_conn = get(conn, "/favicon.ico")
+    assert response(favicon_conn, 200) == File.read!(favicon_path)
+    assert get_resp_header(favicon_conn, "content-type") == ["image/vnd.microsoft.icon"]
   end
 
   test "authenticated admin request reaches the surface", %{conn: conn} do
