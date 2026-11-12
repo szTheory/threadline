@@ -4303,6 +4303,11 @@
   }
 
   @media (max-width: 767px) {
+    .tl-alert {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
     .tl-shell-nav:has(.tl-shell-nav__disclosure[open]) {
       position: static;
       top: auto;
