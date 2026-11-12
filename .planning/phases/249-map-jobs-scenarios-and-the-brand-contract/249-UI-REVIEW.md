@@ -90,4 +90,4 @@ At audit time, no tests were rerun: the then-current focused receipts and source
 
 ## Parent current-use note
 
-The15/24 score remains the original code/reference-contract assessment, with no measured visual result. Later Node validator and provenance-lifecycle corrections are bound to [current formal review](249-REVIEW.md) and [fix proof](249-REVIEW-FIX-RECEIPT.json); they change no renderer, asset, theme, font or seed production source. This note does not create a fresh UI audit or close later-owned rendered findings.
+The 15/24 score remains the original code/reference-contract assessment, with no measured visual result. Later Node validator and provenance-lifecycle corrections are bound to [current formal review](249-REVIEW.md) and [fix proof](249-REVIEW-FIX-RECEIPT.json); they change no renderer, asset, theme, font or seed production source. This note does not create a fresh UI audit or close later-owned rendered findings.

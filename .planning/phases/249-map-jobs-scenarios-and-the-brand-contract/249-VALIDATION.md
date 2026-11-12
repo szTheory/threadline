@@ -88,4 +88,8 @@ None. Routine behavior is automated; independent agent review covers reference/c
 
 ## Current source after formal review fixes
 
-The [current fix receipt](249-REVIEW-FIX-RECEIPT.json) supersedes the older 30-test Node mapping result with32 passing tests and explicit active/archive/archive-priority/traceability-change controls on b7e6c6f4. Missing both known sources fails explicitly. [Formal independent review](249-REVIEW.md) confirms all three warnings fixed; [disposition](249-REVIEW-DISPOSITION.md) has zero open findings. Original seed/runtime source is unchanged, so66-test example and root/lock/build evidence remains applicable within its recorded scope. No project-aware TypeScript typecheck or fresh rendered acceptance is claimed.
+The [current fix receipt](249-REVIEW-FIX-RECEIPT.json) supersedes the older 30-test Node mapping result with 32 passing tests and explicit active/archive/archive-priority/traceability-change controls on b7e6c6f4. Missing both known sources fails explicitly. [Formal independent review](249-REVIEW.md) confirms all three warnings fixed; [disposition](249-REVIEW-DISPOSITION.md) has zero open findings. Original seed/runtime source is unchanged, so 66-test example and root/lock/build evidence remains applicable within its recorded scope. No project-aware TypeScript typecheck or fresh rendered acceptance is claimed.
+
+## Prior-phase regression
+
+The [bounded regression receipt](249-REGRESSION-RECEIPT.json) records 122 passing tests on the assembled source: six selected Phase248 mount/HTTP/public/doc/discovery contracts plus the current independent inventory seam. The named scoped Mix entrypoint ran within the configured 600-second default; the generic non-Mix resolver was not misreported as a tested pass. No full-suite or old repeat grant was used.
