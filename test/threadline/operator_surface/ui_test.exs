@@ -1165,6 +1165,9 @@ defmodule Threadline.OperatorSurface.UITest do
       refute html =~ "the-data-table"
       # A status loading region appears instead.
       assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-busy="true")
+      assert html =~ "tl-spinner"
+      assert html =~ "Loading audit changes"
       # Pager is hidden when not :ok.
       refute html =~ "the-pager"
     end
