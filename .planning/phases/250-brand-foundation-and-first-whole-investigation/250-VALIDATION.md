@@ -1,7 +1,7 @@
 ---
 phase: "250"
 slug: "brand-foundation-and-first-whole-investigation"
-status: draft
+status: in_progress
 nyquist_compliant: false
 wave_0_complete: false
 created: "2026-11-12"
@@ -30,19 +30,19 @@ The phase suite means the selected affected boundaries. It does not authorize a 
 
 ## Per-Task Verification Map
 
-All rows below are planned acceptance gates, not passing runtime evidence. Task/plan/wave and command IDs are concrete; the catalog preserves the exact runnable command and its observable failing direction. Parent scopes root/example fixture partitions separately from the original pair database. High/critical security findings block affected acceptance (ASVS5.0.0 level1).
+Completed rows below link the current plan-level proof and its limits; remaining rows are planned acceptance gates, not passing runtime evidence. Task/plan/wave and command IDs are concrete; the catalog preserves the exact runnable command and its observable failing direction. Parent scopes root/example fixture partitions separately from the original pair database. High/critical security findings block affected acceptance (ASVS5.0.0 level1).
 
 | Task | Wave | Requirement / secure behavior | Commands | Threat Ref | Status |
 |---|---:|---|---|---|---|
-| 01.1 | 1 | ADM-14/16/17; actual ordinary route/data/copy plus immutable before shell/content | C01 | T-250-01, T-250-02 | pending execution |
-| 01.2 | 1 | ADM-14/17; mutated pair rejection, exact selected browser-result rejection fixtures and durable source/listener/DB handoff | C02, C03, C04 | T-250-01, T-250-02 | pending execution |
-| 02.1 | 2 | ADM-08/16; eight exact roles/both lanes and distinct control/operation meanings | C04, C05 | T-250-03, T-250-04 | pending execution |
-| 02.2 | 2 | ADM-09/12; trusted exact SVG and accessible home route/name | C06 | T-250-03, T-250-04 | pending execution |
-| 02.3 | 2 | ADM-08/09; coupled reviewed semantic/byte locks | C07, C08 | T-250-03, T-250-04 | pending execution |
-| 03.1 | 3 | ADM-10/17; four exact private faces/roles/default/false option | C04, C09 | T-250-05, T-250-06 | pending execution |
-| 03.2 | 3 | ADM-10/09; independent font/style/byte/compile contracts | C10, C11, C08 | T-250-05, T-250-06 | pending execution |
-| 04.1 | 4 | ADM-11/08; native CSRF/auth/allowed value/session/cookie/safe return | C04, C12, C13 | T-250-07, T-250-08 | pending execution |
-| 04.2 | 4 | ADM-11/09/17; keyboard theme/effective scheme/focus and truthful observation | C14, C15, C16, C08 | T-250-07, T-250-08 | pending execution |
+| 01.1 | 1 | ADM-14/16/17; actual ordinary route/data/copy plus immutable before shell/content | C01 | T-250-01, T-250-02 | accepted corrected legacy before; final route/copy gaps remain08 ([summary](250-01-SUMMARY.md)) |
+| 01.2 | 1 | ADM-14/17; mutated pair rejection, exact selected browser-result rejection fixtures and durable source/listener/DB handoff | C02, C03, C04 | T-250-01, T-250-02 | passed assigned scope; phase-wide acceptance pending ([summary](250-01-SUMMARY.md)) |
+| 02.1 | 2 | ADM-08/16; eight exact roles/both lanes and distinct control/operation meanings | C04, C05 | T-250-03, T-250-04 | passed assigned scope; phase-wide acceptance pending ([summary](250-02-SUMMARY.md)) |
+| 02.2 | 2 | ADM-09/12; trusted exact SVG and accessible home route/name | C06 | T-250-03, T-250-04 | passed assigned scope; phase-wide acceptance pending ([summary](250-02-SUMMARY.md)) |
+| 02.3 | 2 | ADM-08/09; coupled reviewed semantic/byte locks | C07, C08 | T-250-03, T-250-04 | passed assigned scope; phase-wide acceptance pending ([summary](250-02-SUMMARY.md)) |
+| 03.1 | 3 | ADM-10/17; four exact private faces/roles/default/false option | C04, C09 | T-250-05, T-250-06 | passed assigned scope; phase-wide acceptance pending ([summary](250-03-SUMMARY.md)) |
+| 03.2 | 3 | ADM-10/09; independent font/style/byte/compile contracts | C10, C11, C08 | T-250-05, T-250-06 | passed assigned scope; phase-wide acceptance pending ([summary](250-03-SUMMARY.md)) |
+| 04.1 | 4 | ADM-11/08; native CSRF/auth/allowed value/session/cookie/safe return | C04, C12, C13 | T-250-07, T-250-08 | passed assigned scope; phase-wide acceptance pending ([summary](250-04-SUMMARY.md)) |
+| 04.2 | 4 | ADM-11/09/17; keyboard theme/effective scheme/focus and truthful observation | C14, C15, C16, C08 | T-250-07, T-250-08 | passed assigned scope; phase-wide acceptance pending ([summary](250-04-SUMMARY.md)) |
 | 05.1 | 5 | ADM-09/12; owned README/intro wording and stable technical identifiers | C04, C17 | T-250-09, T-250-10 | pending execution |
 | 05.2 | 5 | ADM-09/10; raw actual archive identity, distinct owned docs listener/root readiness and generated ExDoc theme/minimum | C18, C19, C31, C20 | T-250-09, T-250-10 | pending execution |
 | 05.3 | 5 | ADM-09; served exact Admin favicon with unchanged host home/login head | C13, C08 | T-250-09, T-250-10 | pending execution |

@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 250
 current_phase_name: Brand foundation and first whole investigation
 status: executing
-stopped_at: Phase250 licensed font roles merged; immediate native themes selected
-last_updated: "2026-11-12T14:50:53.516678Z"
+stopped_at: Phase250 native themes merged; owned docs and package assets selected
+last_updated: "2026-11-12T16:49:43.417Z"
 last_activity: 2026-11-12
-last_activity_desc: Phase250 Plan03 complete; Plan04 immediate native theme implementation selected
-state_head: 4be88a68bf22a424f29bb65df9c2e8484fab2c71
+last_activity_desc: Phase250 Plan04 complete; Plan05 owned docs, favicon and package assets selected
+state_head: 08cd875a3caa5ca25ec4ed7f09c8e2493025ed66
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
   percent: 33
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -30,15 +30,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 ## Current Position
 
 Phase: 250 (Brand foundation and first whole investigation) — EXECUTING
-Plan: 4 of 8 selected; 3 complete
+Plan: 5 of 8 selected; 4 complete
 Status: Executing Phase 250
-Last activity: 2026-11-12 — Licensed font roles complete; immediate native theme selection next
+Last activity: 2026-11-12 — Immediate native themes complete; owned docs and package assets next
 
-Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 11 of 16 currently planned plans complete.
+Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 12 of 16 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248 and249 are independently complete. Phase249 passed48/48 unique truths and the owning GSD status accepted passed before phase.complete; all four executors were merged/removed. ADM01–07 are locally complete. Named source/DB contracts, all fourteen threat mitigations, code/reference UI assessment, clean formal review, closed three-finding disposition and scoped regression are recorded in the phase artifacts. Descriptorless non-authoritative flags and the ADM06 taxonomy gap remain explicit; no rendered-brand or external acceptance is inferred. Phase250 research, approved UI contract, actual probes and eight plans are complete; independent plan checker resolved the selected-test skip guard and docs listener findings with no blockers/warnings. Plan01 is complete: corrected legacy-before candidate independently reviewed with no remaining intake blocker, fresh read-only startup/source/listener/data/artifact check passed, and GSD merged/removed its executor. The original data, all earlier candidates and pointer remain intact. Plan02 is merged/removed with approved semantic colors, supplied paired SVGs, accessible home link and passing focused source/component/byte-lock checks. Optional post-handoff audit drift was stopped and its unrelated ignore configuration reverted; the tested product source is intact. Plan03 is merged/removed with four exact licensed font faces, private aliases, type roles and preserved default/opt-out fallback. Its focused contracts, warnings-as-errors compile and format passed; package and actual loaded/blocked/disabled browser claims remain05/08. Plan04 now implements immediate native theme selection. Plan08 must remove manual after-filter re-entry and prove UI-link restoration, plus actual theme/font/logo behavior. No user action is needed.
+**Current diagnosis and dispatch:** Phases248 and249 are independently complete. Phase249 passed48/48 unique truths and the owning GSD status accepted passed before phase.complete; all four executors were merged/removed. ADM01–07 are locally complete. Named source/DB contracts, all fourteen threat mitigations, code/reference UI assessment, clean formal review, closed three-finding disposition and scoped regression are recorded in the phase artifacts. Descriptorless non-authoritative flags and the ADM06 taxonomy gap remain explicit; no rendered-brand or external acceptance is inferred. Phase250 research, approved UI contract, actual probes and eight plans are complete; independent plan checker resolved the selected-test skip guard and docs listener findings with no blockers/warnings. Plan01 is complete: corrected legacy-before candidate independently reviewed with no remaining intake blocker, fresh read-only startup/source/listener/data/artifact check passed, and GSD merged/removed its executor. The original data, all earlier candidates and pointer remain intact. Plan02 is merged/removed with approved semantic colors, supplied paired SVGs, accessible home link and passing focused source/component/byte-lock checks. Optional post-handoff audit drift was stopped and its unrelated ignore configuration reverted; the tested product source is intact. Plan03 is merged/removed with four exact licensed font faces, private aliases, type roles and preserved default/opt-out fallback. Its focused contracts, warnings-as-errors compile and format passed; package and actual loaded/blocked/disabled browser claims remain05/08. Plan04 is merged/removed with immediate native CSRF-protected theme choices, preserved server/session/return behavior, current four-face observations and passing affected source/Node/style/example checks. The exact headless theme case and receipt passed without retries/skips after correcting two observer assertions and bounding the focus-state wait; initial3px samples and the unproven browser cause remain documented. Phase-wide requirements remain pending. Plan05 now migrates directly owned docs, exact package assets and the Admin favicon. Plan08 must remove manual after-filter re-entry and prove UI-link restoration, plus actual theme/font/logo behavior. No user action is needed.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -1253,9 +1253,9 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 
 ## Session Continuity
 
-**Last session:** 2026-11-12T14:50:53.516678Z
-**Stopped at:** Phase250 Plan03 complete; Plan04 native themes selected
-**Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-04-PLAN.md
+**Last session:** 2026-11-12T16:51:08.577691Z
+**Stopped at:** Phase250 Plan04 complete; Plan05 docs and package assets selected
+**Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-05-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
 - **Current gates and next actor:** The orchestrator continues Phase250 under the original autonomous scope. Phases248/249 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.

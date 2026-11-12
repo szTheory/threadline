@@ -15,9 +15,10 @@ affects: [250-05-package-assets, 250-08-rendered-browser-proof]
 actuals:
   tokens: null
   tasks: 2
+  elapsed_seconds: 6732.446
   commits: 8
-  plan_head_before: 67450520d6c6700cfe53d04969d0a393f7b5a33d
-  plan_head_after: c1bb56d3f583c54b9f52349ca2e55452e77a8e1b
+plan_head_before: 67450520d6c6700cfe53d04969d0a393f7b5a33d
+plan_head_after: c1bb56d3f583c54b9f52349ca2e55452e77a8e1b
 tech-stack:
   added: []
   patterns:
@@ -45,7 +46,7 @@ key-decisions:
 patterns-established:
   - Theme preference, mounted theme, and effective System scheme are separate observations.
   - Home-route copy-script identity is nullable only when that route has no copy controls.
-requirements-completed: [ADM-11]
+requirements-completed: []
 coverage:
   - id: D1
     description: System, Light, and Dark theme choices submit immediately through the existing server flow and retain accessible, persisted behavior.
@@ -74,7 +75,7 @@ coverage:
         ref: mix verify.format
         status: pass
     human_judgment: false
-duration: null
+duration: 112min
 completed: 2026-11-12
 status: complete
 ---
@@ -85,9 +86,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** Not measured in this executor context; the parent reconciles the managed launch-to-terminal receipt.
-- **Started:** Exact start time is parent-owned and was not carried into this continuation.
-- **Completed:** 2026-11-12; exact terminal time is parent-owned.
+- **Duration:** 6732.446 seconds of managed wall time, including checkpoint and parent coordination waits; not active test runtime.
+- **Started:** 2026-11-12T14:55:02.432849Z
+- **Completed:** 2026-11-12T16:47:14.878503Z
 - **Tasks:** 2
 - **Files modified:** 12 source and test files, excluding this summary.
 
@@ -125,7 +126,7 @@ status: complete
 ## Decisions Made
 
 - Reused the existing native POST, CSRF, session, cookie, and validated return path; no public API or client-side persistence was added.
-- Marked ADM-11 complete because this plan establishes the immediate server-resolved theme flow. ADM-08, ADM-09, and ADM-17 remain phase-wide requirements and are not claimed complete by this partial contribution.
+- This plan establishes the immediate server-resolved theme flow and selected Home-route keyboard/responsive proof. ADM-11 remains pending alongside the other phase-wide requirements until Plan08 and independent verification establish broader light/System usability and the whole journey.
 - Kept the required 2px focus ring. Chromium’s initial post-reload sample sometimes reported 3px with zero offset despite current served CSS and a matching 2px author rule; the test now records that initial state and requires the exact 2px focus-visible state to settle. The cause of the transient sample is not claimed.
 
 ## Deviations from Plan
@@ -156,6 +157,8 @@ status: complete
 **Total deviations:** 3 auto-fixed (all Rule 1 test/evidence corrections). **Impact:** The final proof keeps the planned expectations and server contracts; no production focus value was changed.
 
 ## Issues Encountered
+
+- The first combined sidecar run passed44 cases and failed4 stale font-owner anchors. The Plan03 font migration was already correct; de0a5c78 updated the existing inventory anchor, within the subsequently declared Plan04 scope. The corrected and final runs passed48 cases. The original dispatch manifest remains preserved.
 
 - An early browser preflight compared a full commit SHA with an abbreviated value and stopped before browser-begin; it launched no browser. The guard was corrected before the next diagnostic.
 - The first preserved C14 attempt failed on a 3px versus 2px outline assertion. A later diagnostic run reached the planned focus checks but exposed the strict multi-button locator; the next run exposed the home-route copy-script assumption; another run captured the post-reload 3px sample. Each report and diagnostic was preserved.

@@ -102,25 +102,25 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 **Wave 1**
 - [x] 250-01-PLAN.md — Baseline ordinary investigation and durable pair custody (complete 2026-11-12)
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2** *(requires Wave 1 completion)*
 - [x] 250-02-PLAN.md — Approved semantic tokens and supplied header artwork (complete 2026-11-12)
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 3** *(requires Wave 2 completion)*
 - [x] 250-03-PLAN.md — Local licensed font roles and host fallback (complete 2026-11-12)
 
-**Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 250-04-PLAN.md — Immediate native theme selection
+**Wave 4** *(requires Wave 3 completion)*
+- [x] 250-04-PLAN.md — Immediate native theme selection (complete 2026-11-12)
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5** *(requires Wave 4 completion)*
 - [ ] 250-05-PLAN.md — Owned docs, favicon and package assets
 
-**Wave 6** *(blocked on Wave 5 completion)*
+**Wave 6** *(requires Wave 5 completion)*
 - [ ] 250-06-PLAN.md — Timeline filters and typed shared state
 
-**Wave 7** *(blocked on Wave 6 completion)*
+**Wave 7** *(requires Wave 6 completion)*
 - [ ] 250-07-PLAN.md — Exact transaction/history values and identity
 
-**Wave 8** *(blocked on Wave 7 completion)*
+**Wave 8** *(requires Wave 7 completion)*
 - [ ] 250-08-PLAN.md — Matched after proof and independent review
 **UI hint**: yes
 **Canonical references**: [Approved foundation and slice](research/2026-11-10-brand-admin/milestone-proposal.md), [identity](../brand/BRAND.md), [machine-readable roles](../brand/brand.json), [supplied assets](../brand/assets/README.md), [migration parity contract](../test/threadline/brandbook_token_parity_test.exs), [theme tokens](../lib/threadline/operator_surface/style/01_tokens.css), [logo](../lib/threadline/operator_surface/components/logo.ex), [font boundary](../lib/threadline/operator_surface/fonts.ex), [theme controller](../lib/threadline/operator_surface/controllers/theme_controller.ex), [investigation journey](../examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts), [presentation](../lib/threadline/operator_surface/presentation.ex). This slice does not close the milestone.
@@ -176,7 +176,7 @@ Execution order:248→249→250→251→252→253. Phase248 is verified complete
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
-| 250. Brand foundation and first whole investigation | 3/8 | In progress | - |
+| 250. Brand foundation and first whole investigation | 4/8 | In progress | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
