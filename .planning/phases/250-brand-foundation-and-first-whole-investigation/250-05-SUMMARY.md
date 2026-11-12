@@ -5,25 +5,25 @@ subsystem: ui
 tags: [phoenix, exdoc, brand, hex-package, svg, woff2]
 requires:
   - phase: 250-04
-    provides:
-      - Immediate System, Light, and Dark selection through the existing Admin theme flow
+    provides: Immediate System, Light, and Dark selection through the existing Admin theme flow
 provides:
-  - Approved README and operator-guide introductory copy with the paired supplied lockup
-  - An exact ten-file approved brand asset set in the Hex package and ExDoc inputs
+  - Approved README and operator-guide introductions with the paired supplied lockup
+  - The exact ten-file approved brand asset set in the Hex package and ExDoc inputs
+  - Generated ExDoc theme switching with measured 96px minimum logo width
   - The example Admin favicon at its existing static path with exact supplied bytes
 affects: [250-08]
 actuals:
   tokens: null
-  tasks: 2
-  commits: 6
-  elapsed_seconds: null
+  tasks: 3
+  commits: 8
 plan_head_before: 4b76cb748ed77004de71aadb979e1afb12a8094f
-plan_head_after: 277eeac9d0587be07deaff36daacd3f20d0a46ea
+plan_head_after: 02e8c0744feae3fd30eae400398a239c66380abe
 tech-stack:
   added: []
   patterns:
-    - ExDoc copies only the two named paired logo files into its generated assets.
-    - ExDoc theme changes derive the logo variant from body.dark while keeping the README picture on device color scheme.
+    - ExDoc copies only the two named paired logo files into generated assets.
+    - The logo hook matches trusted path suffixes and preserves a nested documentation prefix.
+    - Generated-doc browser cases register only when the private listener URL is supplied.
 key-files:
   created:
     - examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts
@@ -42,16 +42,17 @@ key-files:
 key-decisions:
   - Package the exact three SVGs, four approved WOFF2 files, and three OFL files; exclude the wider brand tree and TTFs.
   - Keep ExDoc and Admin behavior on their existing extension and asset paths without adding dependencies or public APIs.
+  - Require the explicit parent-owned docs URL before registering generated-doc browser cases.
 requirements-completed: []
 coverage:
   - id: D1
     description: README and operator-guide introductions use the approved product category and paired lockup while retaining technical links.
     verification:
       - kind: unit
-        ref: "mix verify.test readme_doc_contract_test.exs operator_surface_doc_contract_test.exs code_walkthrough_doc_contract_test.exs (38 tests)"
+        ref: "mix verify.test test/threadline/readme_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs (38 tests)"
         status: pass
       - kind: unit
-        ref: "mix verify.test persona_routing_doc_contract_test.exs (4 tests)"
+        ref: "mix verify.test test/threadline/persona_routing_doc_contract_test.exs (4 tests)"
         status: pass
     human_judgment: false
   - id: D2
@@ -62,19 +63,18 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: Generated ExDoc serves local assets and switches its measured sidebar logo between the approved pair.
+    description: Generated ExDoc serves local assets, switches its measured sidebar logo between the approved pair, and preserves favicon and Mermaid hooks.
     verification:
       - kind: other
-        ref: "MIX_ENV=dev mix docs --warnings-as-errors and generated asset byte comparisons"
+        ref: "MIX_ENV=dev mix docs --warnings-as-errors; node --check of the generated inline logo hook"
         status: pass
       - kind: other
-        ref: "C31 fresh parent-owned listener URL/root/port and index byte comparison"
+        ref: "C31 loopback listener preflight matched generated index bytes and parent-owned listener root"
         status: pass
       - kind: automated_ui
-        ref: "C20 docs-plan05-fixed run, desktop-chromium, 1 passed and 1 failed"
-        status: fail
-    human_judgment: true
-    rationale: "The browser proof failed because generated JavaScript retained the original ExDoc logo path; the parent stop rule ended browser execution after one authorized retest."
+        ref: "C20 desktop-chromium run of operator-brand-docs.spec.ts: 2 passed, 0 skipped, 0 unexpected, 0 flaky, no errors or retries"
+        status: pass
+    human_judgment: false
   - id: D4
     description: The example Admin serves the exact approved favicon while demo home, login, and /favicon.ico behavior remain unchanged.
     verification:
@@ -84,70 +84,74 @@ coverage:
     human_judgment: false
 duration: null
 completed: 2026-11-12
-status: halted
+status: complete
 ---
 
 # Phase 250 Plan 05: Brand foundation and first whole investigation Summary
 
-**Approved README copy, the exact ten-file package asset set, and the Admin favicon shipped; generated ExDoc theme switching remains halted on an emitted-script error.**
+**Approved brand assets now flow through the README, Hex package, generated ExDoc, and Admin favicon; ExDoc theme switching is verified.**
 
 ## Performance
 
-- **Duration:** Unknown; the parent reconciles elapsed time from the managed process receipt.
-- **Started:** Unknown to this executor; parent reconciles the managed start time.
+- **Duration:** Unknown; parent-owned process receipts are needed for elapsed time.
+- **Started:** Unknown to this continuation; parent owns elapsed-time reconciliation.
 - **Completed:** 2026-11-12
-- **Tasks:** 2 complete; Task 2 implementation is present but its required browser acceptance remains blocked.
-- **Files modified:** 12
+- **Tasks:** 3 complete.
+- **Files modified:** 12 product and test files.
 
 ## Accomplishments
 
-- Updated the README and operator-guide introductions with the approved Threadline category and Threadline Admin language; the README retains the supplied light/dark picture pair.
-- Restricted the Hex package to the exact approved three SVGs, four WOFF2 files, and three font licenses. The unpacked archive contract checks raw bytes and missing, mutated, and extra-file cases.
-- Replaced the example Admin favicon at its existing path with exact source bytes and tested the existing home/login /favicon.ico path and bytes.
-- Generated ExDoc with local logo/favicon assets and the 96px sizing rule. The theme-switch browser acceptance did not pass; see the halted verification below.
+- Updated the README and operator-guide introductions with approved Threadline language and the supplied light/dark lockup.
+- Limited package and ExDoc assets to the exact approved SVG, WOFF2, and license files; the unpacked archive contract checks raw bytes and missing, mutated, and extra-file controls.
+- Kept the existing Admin favicon path and verified the supplied bytes through its existing response behavior.
+- Generated ExDoc with local paired assets, a 96px logo rule, valid theme-switch JavaScript, and a passing two-case browser proof.
 
 ## Task Commits
 
-1. **Task 1: Align owned introductions** — c0e7b7be (docs)
-2. **Task 1: Update the paired-logo doc contract** — 39c912d5 (test)
-3. **Task 2: Add archive and generated-doc assertions** — 33e03521 (test)
-4. **Task 2: Package approved assets and configure ExDoc** — 6862adbb (feat)
-5. **Task 3: Update example Admin favicon bytes and response tests** — 6ec6e400 (feat)
-6. **Task 2: Attempt repeated ExDoc theme switching** — 277eeac9 (fix)
+1. **Task 1: Align owned introductions** — `c0e7b7be` (docs), `39c912d5` (test).
+2. **Task 2: Package approved assets and verify generated docs** — `33e03521` (test), `6862adbb` (feat), `277eeac9` (fix), `02e8c074` (fix).
+3. **Task 3: Update the example Admin favicon** — `6ec6e400` (feat).
 
-**Plan metadata:** this SUMMARY commit.
-
-## Files Created/Modified
-
-- README.md, guides/operator-surface.md — approved intro copy and paired artwork.
-- mix.exs, release-please-config.json — exact package allowlist, ExDoc assets and theme hook, and release exclusion alignment.
-- test/threadline/release_artifact_contract_test.exs and related doc contracts — archive bytes and approved wording/asset references.
-- examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts — two focused generated-doc browser cases.
-- examples/threadline_phoenix/priv/static/images/threadline-admin-favicon.svg and operator_surface_test.exs — Admin favicon source and response contract.
+The earlier halted checkpoint was recorded in `89c44dd0`; this summary supersedes its halted status. The plan closeout commit contains this summary.
 
 ## Decisions Made
 
-- Keep packaged identity limited to the specified assets and licenses; repository brand guidance, TTFs, and superseded brandbook package entries stay out.
-- Reuse the installed ExDoc hooks and its current asset mapping instead of adding a dependency or host-facing API.
+- Keep packaged identity limited to the specified assets and licenses; do not add a dependency, public API, or broad brand-tree migration.
+- Preserve normal Playwright discovery by registering the generated-doc cases only when their private listener URL is explicitly supplied.
 
 ## Deviations from Plan
 
-### Unresolved Rule 1 issue
+### Auto-fixed Issues
 
-The first C20 run found that the theme hook only recognized ExDoc's initial /assets/logo.svg path. The parent authorized a focused correction and one fresh retest. The correction used a JavaScript regular expression inside an Elixir heredoc, which emitted a malformed pattern: /^(.*)/brand/assets/logo/threadline-lockup-(?:dark|light).svg$/. The generated hook therefore left the sidebar on assets/logo.svg. C31 passed and the favicon browser case passed, but the sidebar theme case failed again. The parent explicitly stopped further browser invocations after that retest, so this plan is halted.
+**1. [Rule 1 - Bug] Emit valid JavaScript from the ExDoc logo hook**
 
-### TDD sequencing deviation
+- **Found during:** Task 2 continuation.
+- **Issue:** Elixir string escaping removed JavaScript regex escapes, producing an invalid regular expression in generated `readme.html`.
+- **Fix:** Match the generated logo and the two approved paired-logo suffixes with literal path checks while retaining the documentation path prefix.
+- **Files modified:** `mix.exs`, `examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts`.
+- **Verification:** The compile-only regression first failed on the old generated hook, then passed after the fix; the emitted hook passed `node --check` and both authorized browser cases passed.
+- **Committed in:** `02e8c074`.
 
-Task 2 declares tdd="true", but implementation edits existed before its focused assertion runs. No valid red-first evidence was captured; the test-then-feature commit order is not claimed as TDD proof.
+**2. [Rule 3 - Blocking] Keep default browser test discovery usable without the private docs listener**
 
-**Total deviations:** 0 fully resolved auto-fixes; 1 unresolved Rule 1 issue; 1 TDD sequencing deviation. **Impact:** README wording, package bytes, and Admin favicon checks pass; generated ExDoc theme switching remains unverified and is known to fail.
+- **Found during:** Task 2 continuation.
+- **Issue:** An unconditional missing-URL exception prevented the existing Home cases from being discovered in ordinary runs.
+- **Fix:** Register docs cases only when the explicit listener URL is supplied; no fallback URL or skip-only acceptance was added.
+- **Verification:** Docs plus Home without a URL listed nine Home cases; docs-only without a URL listed zero and failed; docs-only with a stub URL listed exactly two cases.
+- **Committed in:** `02e8c074`.
 
-## Issues Encountered
+**Total deviations:** 2 auto-fixed (one Rule 1, one Rule 3). Both were required to complete the planned generated-doc proof and preserve normal test discovery.
 
-- The first archive runs caught a stale SVG media-query expectation, old release exclusions, and an incomplete tracked-but-unshipped residue list. Those assertions were corrected; the final archive run passed 21 tests.
-- The first ExDoc build exited successfully without copying the paired logos because the nested asset mapping did not create its destination. The mapping was narrowed to the two basenames in the existing logo target, and generated files then matched the source bytes.
-- The first Admin test expected image/x-icon; the existing route responds with image/vnd.microsoft.icon. The assertion was updated to the observed unchanged MIME, and the focused test passed 13 tests.
-- The initial C20 report is retained. The one parent-authorized retest is also retained with its report and trace artifacts; no further browser invocation was run.
+### TDD Sequencing Deviation
+
+Task 2 already had implementation commits before its original focused assertions, so no valid red-first sequence is claimed for the original task. This continuation did add a generated-script compile regression, observed its expected failure on the old output, and verified it passed after the correction; that does not retroactively change the original sequencing.
+
+## Historical Verification
+
+- The first C20 attempt failed because the hook did not recognize ExDoc's initial `/assets/logo.svg` path; the paired-path correction was committed in `277eeac9`.
+- The next C20 attempt exposed the malformed emitted regular expression and was stopped under the existing browser limit. Its report and traces remain preserved.
+- After the source-bound static proof and parent authorization, the single fresh C31→C20 run passed both cases with zero skipped, unexpected, flaky, or retried results. No browser run followed it.
+- Earlier package mapping, release exclusion, archive residue, and observed MIME expectation failures were corrected; the final focused archive and Admin contracts passed.
 
 ## User Setup Required
 
@@ -155,12 +159,12 @@ None.
 
 ## Next Phase Readiness
 
-Plan 05 is **halted**, not complete. Parent-owned follow-up is needed to emit valid ExDoc JavaScript, regenerate docs, and decide whether a new browser proof window is authorized. Phase-wide ADM-09/10/12 remain incomplete; loaded/blocked/disabled font proof remains with Plan 08. The parent owns shared state, final review, and service cleanup. No user action is needed unless the parent requests a new scope or verification decision.
+Plan 05 is complete. This summary claims no phase-wide requirement completion; parent-owned phase verification and independent acceptance remain authoritative. No user action is needed for this plan.
 
 ---
 *Phase: 250-brand-foundation-and-first-whole-investigation*
 *Completed: 2026-11-12*
 
-## Self-Check: FAILED
+## Self-Check: PASSED
 
-All listed files exist and all six plan commits are on this branch. The required generated ExDoc theme-switch criterion failed on the only authorized retest: the emitted inline pattern was malformed and the sidebar remained on assets/logo.svg. The archive, README contracts, Admin favicon tests, formatting, docs build, and C31 byte check passed.
+The summary and generated-doc spec exist, and all eight plan-range commits are ancestors of the current HEAD.
