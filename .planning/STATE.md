@@ -29,6 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 ## Current Position
 
+**Required autonomous closeout:** The maintainer explicitly requested retained lessons. Finalize the [run retrospective](research/2026-11-12-autonomous-run-retrospective.md) before milestone closure or any earlier handoff, then link it in chat. Current status is in progress.
+
+
 Phase: 250 (Brand foundation and first whole investigation) — EXECUTING
 Plan: 8 of 8 selected; 7 complete
 Status: Executing Phase 250
