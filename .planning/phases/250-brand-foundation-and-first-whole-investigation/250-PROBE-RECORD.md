@@ -26,4 +26,8 @@ No phase SPEC exists; fallback enabled by default. Nine actual ADM requirement t
 
 ## Prohibitions
 
-The planner performs the required adversarial recall/precision/canon-referral pass and serializes retained values/intent prohibitions descriptor-less, flagged and non-authoritative under --auto. No fabricated wired checker, human attestation or risk acceptance. Zero-human policy requires useful automated checks/independent judgment for bounded claims; any genuine authority boundary remains a stop.
+The planner completed the adversarial recall/precision/canon-referral pass for all nine requirements. The raw-candidate/precision ledger is in 250-SOURCE-AUDIT.md. Three bespoke values/transparency prohibitions were serialized with installed projectProhibitions into Plan08 must_haves.prohibitions, descriptor-less and unresolved; downstream disposition remains flagged-unverified and non-authoritative under --auto. Canon CSRF/redirect/authorization/injection/privacy concerns are referred to phase threats and secure-phase rather than duplicated. No wired check, human attestation or risk acceptance was fabricated. Zero-human policy requires useful automated checks and parent-owned independent judgment for bounded claims; any genuine authority boundary remains a stop.
+
+## Planning lift equality
+
+All38 UI criteria are copied exactly into plan must_haves.truths (E1/E2→06, E3→07, E4→04, E5/E6→08). All8 explicit requirement-edge resolutions are copied exactly into truths; all5 unclassified/unresolved rows are explicit flagged assumptions in08. The source audit records the item-level equality ledger. These are future acceptance obligations, not executed proof or automatic passes.

@@ -98,7 +98,30 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Support can find a ticket change, inspect its transaction, exact values and actor, open record history, copy the complete identifier and return with the original search intact through mounted host routes.
 4. UI/docs use the approved plain vocabulary while users can distinguish action/change/transaction/request, actor/user and accepted/completed work; exact old/new values, Redacted, left out, null, missing and unavailable remain unambiguous without assurance claims or color-only operation meaning.
 5. Displayed times name their zone and compact identifiers retain the full unchanged value, keyboard access and truthful copy success/failure feedback while compatible public names and query contracts remain intact.
-**Plans**: 0 (not planned)
+**Plans**: 8 plans in 8 ordered waves
+**Wave 1**
+- [ ] 250-01-PLAN.md — Baseline ordinary investigation and durable pair custody
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 250-02-PLAN.md — Approved semantic tokens and supplied header artwork
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 250-03-PLAN.md — Local licensed font roles and host fallback
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 250-04-PLAN.md — Immediate native theme selection
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 250-05-PLAN.md — Owned docs, favicon and package assets
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 250-06-PLAN.md — Timeline filters and typed shared state
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 250-07-PLAN.md — Exact transaction/history values and identity
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 250-08-PLAN.md — Matched after proof and independent review
 **UI hint**: yes
 **Canonical references**: [Approved foundation and slice](research/2026-11-10-brand-admin/milestone-proposal.md), [identity](../brand/BRAND.md), [machine-readable roles](../brand/brand.json), [supplied assets](../brand/assets/README.md), [migration parity contract](../test/threadline/brandbook_token_parity_test.exs), [theme tokens](../lib/threadline/operator_surface/style/01_tokens.css), [logo](../lib/threadline/operator_surface/components/logo.ex), [font boundary](../lib/threadline/operator_surface/fonts.ex), [theme controller](../lib/threadline/operator_surface/controllers/theme_controller.ex), [investigation journey](../examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts), [presentation](../lib/threadline/operator_surface/presentation.ex). This slice does not close the milestone.
 

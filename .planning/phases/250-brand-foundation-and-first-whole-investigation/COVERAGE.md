@@ -1,0 +1,1 @@
+No external API integration: Phase250 changes existing Phoenix/LiveView components, native theme POST, local fonts/SVGs, ExDoc hooks, Hex allowlist and scoped local browser evidence. The Clipboard API is exercised through a controlled local double; no external service capability is integrated.
