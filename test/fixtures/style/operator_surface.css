@@ -1165,6 +1165,14 @@
     margin-bottom: var(--tl-space-4);
   }
 
+  /* Investigation results carry the card emphasis; controls remain a quiet tool. */
+  .tl-toolbar.tl-timeline-command {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
   .tl-timeline-command__summary {
     display: grid;
     gap: var(--tl-space-2);
@@ -1224,6 +1232,11 @@
 
   .tl-timeline-fact[data-status="success"] {
     box-shadow: inset var(--tl-status-stripe-width) 0 0 var(--tl-color-success-text), var(--tl-shadow-border);
+  }
+
+  .tl-timeline-command .tl-timeline-fact {
+    background: transparent;
+    box-shadow: none;
   }
 
   .tl-timeline-fact__label {
@@ -3660,6 +3673,10 @@
 
   /* Row history changes are evidence updates; its route patch has no stable
    * input-modality signal, so opening, closing, and changing as-of state snap. */
+  .tl-drawer-container:has(.tl-row-history-drawer) {
+    top: var(--tl-header-height-mobile);
+  }
+
   .tl-row-history-drawer {
     animation: none !important;
     transition: none !important;
@@ -4522,6 +4539,10 @@
       flex-wrap: nowrap;
       gap: var(--tl-space-3);
       padding: var(--tl-space-1) var(--tl-space-4);
+    }
+
+    .tl-drawer-container:has(.tl-row-history-drawer) {
+      top: var(--tl-header-height);
     }
 
     .tl-topbar__brand-logo {
