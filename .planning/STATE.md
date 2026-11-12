@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 250
 current_phase_name: Brand foundation and first whole investigation
 status: executing
-stopped_at: Phase250 before accepted; semantic colors and supplied artwork selected
-last_updated: "2026-11-12T13:22:19.300319Z"
+stopped_at: Phase250 approved colors and supplied artwork merged; local font roles selected
+last_updated: "2026-11-12T14:08:25.193937Z"
 last_activity: 2026-11-12
-last_activity_desc: Phase250 baseline accepted and merged; Plan02 selected
-state_head: 0584ea3df8318fa9f5365503b5b6a79c2412197a
+last_activity_desc: Phase250 Plan02 complete; Plan03 font implementation selected
+state_head: cda86d736af0f8054e85c10a3fc3a42e2e79c083
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 9
+  completed_plans: 10
   percent: 33
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -30,15 +30,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 ## Current Position
 
 Phase: 250 (Brand foundation and first whole investigation) — EXECUTING
-Plan: 2 of 8 selected; 1 complete
+Plan: 3 of 8 selected; 2 complete
 Status: Executing Phase 250
-Last activity: 2026-11-12 — Baseline accepted and merged; approved colors and supplied header artwork selected
+Last activity: 2026-11-12 — Approved semantic colors and supplied header artwork complete; local font roles selected
 
-Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 9 of 16 currently planned plans complete.
+Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 10 of 16 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248 and249 are independently complete. Phase249 passed48/48 unique truths and the owning GSD status accepted passed before phase.complete; all four executors were merged/removed. ADM01–07 are locally complete. Named source/DB contracts, all fourteen threat mitigations, code/reference UI assessment, clean formal review, closed three-finding disposition and scoped regression are recorded in the phase artifacts. Descriptorless non-authoritative flags and the ADM06 taxonomy gap remain explicit; no rendered-brand or external acceptance is inferred. Phase250 research, approved UI contract, actual probes and eight plans are complete; independent plan checker resolved the selected-test skip guard and docs listener findings with no blockers/warnings. Plan01 is complete: corrected legacy-before candidate independently reviewed with no remaining intake blocker, fresh read-only startup/source/listener/data/artifact check passed, and GSD merged/removed its executor. The original data, all earlier candidates and pointer remain intact. Plan02 now applies approved semantic colors and supplied header artwork. Plan08 must remove manual after-filter re-entry and prove UI-link restoration, plus actual theme/font/logo behavior. No user action is needed.
+**Current diagnosis and dispatch:** Phases248 and249 are independently complete. Phase249 passed48/48 unique truths and the owning GSD status accepted passed before phase.complete; all four executors were merged/removed. ADM01–07 are locally complete. Named source/DB contracts, all fourteen threat mitigations, code/reference UI assessment, clean formal review, closed three-finding disposition and scoped regression are recorded in the phase artifacts. Descriptorless non-authoritative flags and the ADM06 taxonomy gap remain explicit; no rendered-brand or external acceptance is inferred. Phase250 research, approved UI contract, actual probes and eight plans are complete; independent plan checker resolved the selected-test skip guard and docs listener findings with no blockers/warnings. Plan01 is complete: corrected legacy-before candidate independently reviewed with no remaining intake blocker, fresh read-only startup/source/listener/data/artifact check passed, and GSD merged/removed its executor. The original data, all earlier candidates and pointer remain intact. Plan02 is merged/removed with approved semantic colors, supplied paired SVGs, accessible home link and passing focused source/component/byte-lock checks. Optional post-handoff audit drift was stopped and its unrelated ignore configuration reverted; the tested product source is intact. Plan03 now implements local licensed font roles and existing host fallback. Plan08 must remove manual after-filter re-entry and prove UI-link restoration, plus actual theme/font/logo behavior. No user action is needed.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
