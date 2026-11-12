@@ -5,28 +5,28 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Scenario class changes bypass class-specific validation"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Reference identity checks miss blank and duplicate brand-role IDs"
   - id: WR-03
     severity: warning
-    disposition: open
-    title: "Focused contract test reads planning files that normal cleanup moves"
-open: 3
+    disposition: fixed
+    title: "Focused contract test reads active requirements that milestone completion removes"
+open: 0
 total: 3
-recorded: 2026-11-12T05:50:48.410Z
+recorded: 2026-11-12T06:44:05.795Z
 ---
 
 # Phase 249: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-01 | warning | fixed | 249-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 249-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 249-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
