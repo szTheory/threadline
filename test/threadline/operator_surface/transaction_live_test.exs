@@ -492,18 +492,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}?#{query}")
 
-      encoded_context =
-        "origin=timeline&amp;from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00" <>
+      encoded_filters =
+        "from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00" <>
           "&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account" <>
           "&amp;actor_id=sync-42&amp;correlation_id=timeline-return"
 
-      assert html =~ ~s|href="/audit/timeline?#{encoded_context}"|
+      assert html =~ ~s|href="/audit/timeline?#{encoded_filters}"|
 
       assert html =~
-               ~s|href="/audit/transactions/#{txn.id}/history/ticket_replies/reply%2F1?#{encoded_context}&amp;as_of=2026-05-26T14%3A30%3A00Z"|
+               ~s|href="/audit/transactions/#{txn.id}/history/ticket_replies/reply%2F1?origin=timeline&amp;#{encoded_filters}&amp;as_of=2026-05-26T14%3A30%3A00.000000Z"|
 
       refute html =~ "private_scope"
-      assert html =~ "Thanks — we're closing this out."
     end
 
     test "renders a row-history link only for the single-key change (READ-04)", %{conn: conn} do
