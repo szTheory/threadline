@@ -1,13 +1,19 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  assertInvestigationCaptureFiles,
   assertFreshBrowserReport,
   assertInvestigationPair,
+  assertLaunchedSourceFreshness,
   assertListenerIdentity,
   assertServingCheckout,
+  sourceIdentity,
+  validateBeforeCandidateReceipt,
   validateBrowserReport,
 } from "./operator-investigation-pair.js";
 
@@ -15,6 +21,8 @@ const timelineUrl = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A
 const browser = { project: "desktop-chromium", version: "148.0.7778.96", playwright: "1.60.0" };
 const fontNames = ["geist-400.woff2", "geist-500.woff2", "geist-600.woff2", "ibm-plex-mono-400.woff2", "ibm-plex-mono-500.woff2"];
 const hash = (letter: string) => letter.repeat(64).slice(0, 64);
+const digest = (value: Buffer | string) => createHash("sha256").update(value).digest("hex");
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 function condition(preference: "dark" | "light" | "system", effectiveTheme: "dark" | "light") {
   return {
@@ -52,14 +60,25 @@ function makeHalf(half: "before" | "after") {
     eventTime: "2026-05-26T14:30:00+00:00",
     actionInsertedAt: "2026-11-12T10:06:36.944698+00:00",
   };
+  const candidateId = half === "before" ? "baseline-correction-test" : undefined;
+  const captureBase = candidateId ? `candidates/${candidateId}/captures/before` : `captures/${half}`;
   const fonts = Object.fromEntries(fontNames.map((name, index) => [name, { sha256: hash("abcdef"[index]!), bytes: 12000 + index }]));
-  const captures = (["dark", "light"] as const).map((theme) => {
-    const id = `timeline-restored-${theme}`;
-    const file = (name: string) => `captures/${half}/attempt/${name}`;
+  const captureSpecs = [
+    ["transaction", `/audit/transactions/${transactionId}`, "transaction-detail"],
+    ["ticket-prior", `/audit/transactions/${transactionId}/history/tickets/${ticketId}?as_of=2026-05-01T00%3A00%3A00Z`, "prior-ticket-history-snapshot"],
+    ["reply-history", half === "before"
+      ? `/audit/rows/ticket_replies/${replyId}?origin=timeline&from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=walk-acme-4521-close`
+      : `/audit/transactions/${transactionId}/history/ticket_replies/${replyId}?as_of=2026-05-26T14%3A30%3A00Z`,
+    half === "before" ? "timeline-origin-reply-history" : "transaction-origin-reply-history"],
+    ["timeline-restored", timelineUrl, "filtered-timeline-return"],
+  ] as const;
+  const captures = captureSpecs.flatMap(([prefix, route, state]) => (["dark", "light"] as const).map((theme) => {
+    const id = `${prefix}-${theme}`;
+    const file = (name: string) => `${captureBase}/attempt/${name}`;
     return {
       id,
-      route: timelineUrl,
-      state: "filtered-timeline-return",
+      route,
+      state,
       condition: condition(theme, theme),
       shell: { file: file(`${id}-shell.png`), sha256: hash("a"), bytes: 1000 },
       content: { file: file(`${id}-content.png`), sha256: hash("b"), bytes: 2000 },
@@ -73,10 +92,10 @@ function makeHalf(half: "before" | "after") {
         svgMarkupSha256: hash("f"),
       },
     };
-  });
+  }));
   const systemObservations = (["dark", "light"] as const).map((system) => ({
     id: `system-${system}`,
-    file: `captures/${half}/attempt/system-${system}-observation.json`,
+    file: `${captureBase}/attempt/system-${system}-observation.json`,
     sha256: hash(system === "dark" ? "1" : "2"),
     condition: condition("system", system),
   }));
@@ -84,9 +103,12 @@ function makeHalf(half: "before" | "after") {
     schemaVersion: 1,
     half,
     capturedAt: half === "before" ? "2026-11-12T11:01:01.122Z" : "2026-11-12T12:00:00.000Z",
-    canonical: true,
+    canonical: half === "after",
+    ...(candidateId ? { candidateId } : {}),
     pairId: half === "before" ? "before-pair" : "after-pair",
     materializationSha256: hash("9"),
+    historySha256: hash("8"),
+    historyChangeCount: 3,
     selected,
     server: { pid: 17946, port: 60150, sourceHeadAtStart: "81fd490359cd0d68a558675678339df6cbc57b7c", servingSource: { files: { "lib/threadline/operator_surface/live/timeline_live.ex": { sha256: hash("1"), bytes: 4000 } } } },
     testSource: { files: { "lib/threadline/operator_surface/live/timeline_live.ex": { sha256: hash("1"), bytes: 4000 } } },
@@ -105,6 +127,9 @@ function makeHalf(half: "before" | "after") {
       copyStatus: "Copied.",
       keyboardActivation: true,
       filtersRestored: true,
+      navigationMode: half === "before" ? "legacy-before" : "strict-after",
+      copyContext: half === "before" ? "timeline" : "transaction-history",
+      returnMode: half === "before" ? "browser-back" : "ui-links",
     },
     captures,
     systemObservations,
@@ -113,6 +138,81 @@ function makeHalf(half: "before" | "after") {
 
 function makePair() {
   return { before: makeHalf("before"), after: makeHalf("after") };
+}
+
+function snapshotFor(half: ReturnType<typeof makeHalf>) {
+  const selected = half.selected;
+  const replyChange = {
+    id: selected.changeIds[0], op: "insert", table_pk: { id: selected.replyId },
+    data_after: { id: selected.replyId, body: "Thanks — we're closing this out.", internal_note_body: "[REDACTED]", ticket_id: selected.ticketId },
+    table_name: "ticket_replies", captured_at: selected.eventTime, transaction_id: selected.transactionId,
+  };
+  const ticketChange = {
+    id: selected.changeIds[1], op: "update", table_pk: { id: selected.ticketId },
+    data_after: { id: selected.ticketId, number: 4521, status: "closed", closed_at: "2026-05-26T14:30:00" },
+    table_name: "tickets", captured_at: selected.eventTime, transaction_id: selected.transactionId,
+  };
+  return {
+    database: selected.database,
+    actions: [{ id: selected.actionId, name: selected.actionName, correlation_id: "walk-acme-4521-close", actor_ref: { type: "user", id: selected.actorId }, inserted_at: selected.actionInsertedAt }],
+    transactions: [{ id: selected.transactionId, action_id: selected.actionId, actor_ref: { type: "user", id: selected.actorId }, occurred_at: selected.eventTime }],
+    changes: [replyChange, ticketChange],
+    ticket_row_hashes: [{ id: selected.ticketId, sha256: hash("5") }],
+    reply_row_hashes: [{ id: selected.replyId, sha256: hash("4") }],
+  };
+}
+
+function liveFor(half: ReturnType<typeof makeHalf>) {
+  return { matched: true as const, sha256: half.materializationSha256, snapshot: snapshotFor(half), history_sha256: half.historySha256, history_change_count: half.historyChangeCount };
+}
+
+function materializeCaptureFiles(root: string, half: ReturnType<typeof makeHalf>) {
+  for (const capture of half.captures as any[]) {
+    for (const identity of [capture.shell, capture.content, capture.observation]) {
+      const file = resolve(root, identity.file);
+      const bytes = Buffer.from(`artifact:${identity.file}`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, bytes);
+      identity.sha256 = digest(bytes);
+      identity.bytes = bytes.byteLength;
+    }
+  }
+  for (const observation of half.systemObservations as any[]) {
+    const file = resolve(root, observation.file);
+    const bytes = Buffer.from(`artifact:${observation.file}`);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, bytes);
+    observation.sha256 = digest(bytes);
+  }
+}
+
+function writeCandidate(root: string, half: ReturnType<typeof makeHalf>) {
+  materializeCaptureFiles(root, half);
+  const file = resolve(root, "candidates/baseline-correction-test/captures/before/half.json");
+  mkdirSync(dirname(file), { recursive: true });
+  const bytes = Buffer.from(`${JSON.stringify(half, null, 2)}\n`);
+  writeFileSync(file, bytes);
+  const candidate = {
+    schemaVersion: 1,
+    candidateId: "baseline-correction-test",
+    createdAt: "2026-11-12T12:00:00.000Z",
+    half: { file: "candidates/baseline-correction-test/captures/before/half.json", sha256: digest(bytes), pairId: half.pairId },
+  };
+  const candidatePath = resolve(root, "candidates/baseline-correction-test/candidate.json");
+  mkdirSync(dirname(candidatePath), { recursive: true });
+  writeFileSync(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`);
+  return candidatePath;
+}
+
+function refreshCandidateDigest(root: string, half: ReturnType<typeof makeHalf>) {
+  const file = resolve(root, "candidates/baseline-correction-test/captures/before/half.json");
+  const bytes = Buffer.from(`${JSON.stringify(half, null, 2)}\n`);
+  writeFileSync(file, bytes);
+  const candidatePath = resolve(root, "candidates/baseline-correction-test/candidate.json");
+  const candidate = JSON.parse(readFileSync(candidatePath, "utf8"));
+  candidate.half.sha256 = digest(bytes);
+  candidate.half.pairId = half.pairId;
+  writeFileSync(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`);
 }
 
 const titles = {
@@ -175,7 +275,7 @@ test("missing, wrong-half, noncanonical and out-of-custody halves fail closed", 
   assert.throws(() => assertInvestigationPair(pair.before, pair.after), /before investigation half/i);
 
   const noncanonical = makePair();
-  noncanonical.before.canonical = false;
+  noncanonical.before.canonical = true;
   assert.throws(() => assertInvestigationPair(noncanonical.before, noncanonical.after), /before investigation half/i);
 
   for (const file of ["/tmp/outside.png", "captures/after/outside.png", "captures/before/../outside.png"]) {
@@ -183,6 +283,124 @@ test("missing, wrong-half, noncanonical and out-of-custody halves fail closed", 
     mutated.before.captures[0]!.shell.file = file;
     assert.throws(() => assertInvestigationPair(mutated.before, mutated.after), /incomplete|incomparable/i, file);
   }
+});
+
+test("candidate receipt binds nonempty selected fields to live materialization after pointer digest refresh", () => {
+  const mutations: Array<[string, (half: ReturnType<typeof makeHalf>) => void]> = [
+    ["action", (half) => { half.selected.actionId = "different-action"; half.journey.actionId = "different-action"; }],
+    ["transaction", (half) => {
+      const old = half.selected.transactionId;
+      half.selected.transactionId = "different-transaction";
+      half.journey.transactionId = "different-transaction";
+      for (const capture of half.captures as any[]) capture.route = capture.route.replace(old, "different-transaction");
+    }],
+    ["change IDs", (half) => { half.selected.changeIds[0] = "different-change"; half.journey.changeIds[0] = "different-change"; }],
+    ["reply", (half) => {
+      const old = half.selected.replyId;
+      half.selected.replyId = "different-reply";
+      half.journey.replyId = "different-reply";
+      half.journey.copyValue = "different-reply";
+      for (const capture of half.captures as any[]) capture.route = capture.route.replace(old, "different-reply");
+    }],
+    ["ticket", (half) => {
+      const old = half.selected.ticketId;
+      half.selected.ticketId = "different-ticket";
+      half.journey.ticketId = "different-ticket";
+      for (const capture of half.captures as any[]) capture.route = capture.route.replace(old, "different-ticket");
+    }],
+    ["actor", (half) => { half.selected.actorId = "different-actor"; half.journey.actorId = "different-actor"; }],
+    ["event time", (half) => { half.selected.eventTime = "2026-05-27T14:30:00+00:00"; half.journey.eventTime = "2026-05-27T14:30:00+00:00"; }],
+    ["recording time", (half) => { half.selected.actionInsertedAt = "2026-11-13T10:06:36.944698+00:00"; half.journey.actionInsertedAt = "2026-11-13T10:06:36.944698+00:00"; }],
+    ["materialization fingerprint", (half) => { half.materializationSha256 = hash("7"); }],
+    ["history fingerprint", (half) => { half.historySha256 = hash("6"); }],
+    ["history count", (half) => { half.historyChangeCount = 4; }],
+  ];
+  for (const [name, mutate] of mutations) {
+    const root = mkdtempSync(join(tmpdir(), "phase250-live-bind-"));
+    try {
+      const before = makeHalf("before");
+      mutate(before);
+      writeCandidate(root, before); // Recomputed candidate pointer digest keeps each capsule internally self-consistent.
+      assert.throws(() => validateBeforeCandidateReceipt(root, "baseline-correction-test", liveFor(makeHalf("before"))), /live|fingerprint|materialization|history/i, name);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  const root = mkdtempSync(join(tmpdir(), "phase250-live-bind-clean-"));
+  try {
+    const before = makeHalf("before");
+    writeCandidate(root, before);
+    assert.equal(validateBeforeCandidateReceipt(root, "baseline-correction-test", liveFor(before)).candidateId, "baseline-correction-test");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("capture receipt resolves nested files, checks digests, and rejects missing or symlink-escaped bytes", () => {
+  const cleanRoot = mkdtempSync(join(tmpdir(), "phase250-capture-clean-"));
+  try {
+    const half = makeHalf("before");
+    materializeCaptureFiles(cleanRoot, half);
+    assert.equal(assertInvestigationCaptureFiles(cleanRoot, half), 26);
+    const shellFile = resolve(cleanRoot, half.captures[0]!.shell.file);
+    assert.equal(digest(readFileSync(shellFile)), half.captures[0]!.shell.sha256);
+  } finally {
+    rmSync(cleanRoot, { recursive: true, force: true });
+  }
+
+  for (const failure of ["missing", "changed", "nested symlink escape"] as const) {
+    const root = mkdtempSync(join(tmpdir(), "phase250-capture-negative-"));
+    const outside = mkdtempSync(join(tmpdir(), "phase250-capture-outside-"));
+    try {
+      const half = makeHalf("before");
+      materializeCaptureFiles(root, half);
+      const file = resolve(root, half.captures[0]!.shell.file);
+      if (failure === "missing") rmSync(file);
+      if (failure === "changed") writeFileSync(file, "different bytes");
+      if (failure === "nested symlink escape") {
+        const attemptDir = dirname(file);
+        rmSync(attemptDir, { recursive: true, force: true });
+        const outsideFile = join(outside, basename(file));
+        writeFileSync(outsideFile, "outside private root");
+        symlinkSync(outside, attemptDir, "dir");
+        const escapedPath = join(attemptDir, basename(file));
+        if (escapedPath !== file) throw new Error("Test fixture did not target the nested shell path");
+      }
+      assert.throws(() => assertInvestigationCaptureFiles(root, half), /regular file|outside|bytes|missing|digest|symlink/i, failure);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  }
+});
+
+test("startup, serving and test freshness compare the loaded runtime source inventory", () => {
+  const current = sourceIdentity(repoRoot);
+  const paths = Object.keys(current.files);
+  for (const path of [
+    "lib/threadline/operator_surface/components/surface_header.ex",
+    "lib/threadline/operator_surface/components/logo.ex",
+    "lib/threadline/operator_surface/presentation.ex",
+    "lib/threadline/operator_surface/ui/data.ex",
+    "lib/threadline/operator_surface/ui/display.ex",
+    "lib/threadline/operator_surface/live/row_history_live.ex",
+    "brand/assets/logo/threadline-lockup-dark.svg",
+    "brand/assets/logo/threadline-lockup-light.svg",
+    "brand/assets/icon/favicon.svg",
+    "brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2",
+    "brand/assets/fonts/web/Geist-normal-400-700.woff2",
+    "brand/assets/fonts/web/IBMPlexMono-normal-400.woff2",
+    "brand/assets/fonts/web/IBMPlexMono-normal-500.woff2",
+  ]) assert.ok(paths.includes(path), `missing source freshness input ${path}`);
+  assert.doesNotThrow(() => assertLaunchedSourceFreshness(current, current, current));
+
+  const changed = JSON.parse(JSON.stringify(current));
+  const key = paths[0]!;
+  changed.files[key].sha256 = hash("f");
+  assert.throws(() => assertLaunchedSourceFreshness(current, changed, current), /startup source differs from current serving/i);
+  assert.throws(() => assertLaunchedSourceFreshness(current, current, changed), /startup source differs from current test/i);
+  assert.throws(() => assertLaunchedSourceFreshness({ files: {} }, current, current), /complete Phase250 inventory/i);
 });
 
 test("database, partition, port, IDs, event and recording times must match", () => {
@@ -214,6 +432,20 @@ test("row fingerprint, browser identity and pair identity are stable", () => {
   const fingerprint = makePair();
   fingerprint.after.materializationSha256 = hash("8");
   assert.throws(() => assertInvestigationPair(fingerprint.before, fingerprint.after), /materialization/i);
+
+  const historyFingerprint = makePair();
+  historyFingerprint.after.historySha256 = hash("7");
+  assert.throws(() => assertInvestigationPair(historyFingerprint.before, historyFingerprint.after), /materialization/i);
+
+  const historyCount = makePair();
+  historyCount.after.historyChangeCount = 4;
+  assert.throws(() => assertInvestigationPair(historyCount.before, historyCount.after), /materialization/i);
+
+  const legacyAfter = makePair();
+  legacyAfter.after.journey.navigationMode = "legacy-before";
+  legacyAfter.after.journey.copyContext = "timeline";
+  legacyAfter.after.journey.returnMode = "browser-back";
+  assert.throws(() => assertInvestigationPair(legacyAfter.before, legacyAfter.after), /strict transaction-history copy/i);
 
   const sameCapture = makePair();
   sameCapture.after.pairId = sameCapture.before.pairId;
