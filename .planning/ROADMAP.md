@@ -75,8 +75,8 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 **Plans**: 4 (independently checked; three ordered waves)
 
 **Wave 1**
-- [ ] 249-01-PLAN.md — Semantic route, state and proof mapping
-- [ ] 249-02-PLAN.md — Calendar and canonical reset correction
+- [x] 249-01-PLAN.md — Semantic route, state and proof mapping
+- [x] 249-02-PLAN.md — Calendar and canonical reset correction
 
 **Wave 2** *(blocked on 249-02)*
 - [ ] 249-03-PLAN.md — Write-time seed chronology and snapshot proof
@@ -147,12 +147,12 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,one complete,eight currently planned plans,four complete plans. Phase249 isolated execution now proceeds under the original autonomous scope.
+Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,one complete,eight currently planned plans,six complete plans. Phase249 isolated execution now proceeds under the original autonomous scope.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
-| 249. Map jobs, scenarios and the brand contract | 0/4 | Planned | - |
+| 249. Map jobs, scenarios and the brand contract | 2/4 | In Progress | - |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
@@ -160,4 +160,4 @@ Execution order:248→249→250→251→252→253. Phase248 is verified complete
 
 ## Next
 
-Continue Phase249: reconcile actual jobs/routes/states and proof kinds, correct ordinary seed/calendar/reset chronology in the example boundary, and map authoritative brand roles without runtime migration. Reuse the prefetched research and adversarial synthesis, verify source assumptions, then carry discussion through plans and implementation. No new major product/API/compatibility decision is presently identified; no user acknowledgment is needed. Preserve existing full-repeat, external action and publication authority limits.
+Continue Phase249 with the seed chronology plan, then scenario/stress selection and reference-only brand reconciliation. The semantic inventory and calendar/reset plans are integrated; their focused combined checks and wave gates pass. Ordinary captured-row chronology remains unfinished until Plan03. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.

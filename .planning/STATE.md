@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 249
 current_phase_name: Map jobs, scenarios and the brand contract
 status: executing
-stopped_at: Phase 249 isolated execution starting
+stopped_at: Phase 249 wave 1 integrated; starting seed chronology
 last_updated: "2026-11-12T00:14:49.147Z"
 last_activity: 2026-11-11
-last_activity_desc: Phase 249 execution started
+last_activity_desc: Phase 249 mapping and calendar/reset integrated; seed chronology next
 state_head: 0d68902520478f8aee991143e5e1149030ee8f3b
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 6
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -29,17 +29,17 @@ See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initializatio
 ## Current Position
 
 Phase: 249 (Map jobs, scenarios and the brand contract) — EXECUTING
-Plan: 1 of 4
+Plan: 3 of 4
 Status: Executing Phase 249
-Last activity: 2026-11-11 — Phase 249 execution started
+Last activity: 2026-11-11 — Phase 249 wave 1 integrated and checked
 
-Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 4 of 8 currently planned plans complete.
+Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 6 of 8 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; research, reference contract and four implementation plans are independently checked. New source execution still requires a newly verified GSD worktree binding. No user action is needed for routine authorized work.
+**Current diagnosis and dispatch:** Phase248 is complete after passed independent verification (15/15 truths; ADM01–04 complete locally). The recorded GSD executor was locally reconciled and removed. Current work is Phase249 job/state/renderer mapping, deterministic ordinary fixture chronology/reset coherence and reference-only brand contract; research, reference contract and four implementation plans are independently checked. Plans249-01/02 were independently GSD-bound, merged and removed; combined focused checks and wave gates pass. Plan249-03 is ready and requires a fresh verified GSD binding. Ordinary snapshot chronology and scenario/stress/brand reconciliation remain unfinished. No user action is needed for routine authorized work.
 
-**Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. OwnedPG15.17stopped; sharedservicesuntouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
+**Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now running for focused249 checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 

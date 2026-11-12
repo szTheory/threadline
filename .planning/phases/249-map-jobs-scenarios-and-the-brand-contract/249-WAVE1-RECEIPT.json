@@ -1,0 +1,152 @@
+{
+  "source": "e3930c9f1763c8159384d452ffdf766eab025da5",
+  "scope": "merged Node inventory and example manifest/doc/format group; no canonical/browser/full repeat",
+  "checks": [
+    {
+      "label": "node",
+      "args": [
+        "./node_modules/.bin/tsx",
+        "--test",
+        "support/operator-ci-evidence.test.ts",
+        "support/operator-route-evidence.test.ts"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 4.412
+    },
+    {
+      "label": "format",
+      "args": [
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.485
+    },
+    {
+      "label": "manifest",
+      "args": [
+        "mix",
+        "test",
+        "test/threadline_phoenix/demo_manifest_test.exs",
+        "test/threadline_phoenix/demo_manifest_contract_test.exs"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 3.603
+    }
+  ],
+  "passed": true,
+  "isolation_reconciliation": [
+    {
+      "plan": "249-01",
+      "status": "merged_removed",
+      "warnings": [
+        {
+          "code": "scope_out_of_declared",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-01-red-evidence.json",
+          "disposition": "generated TDD evidence, required by executor workflow; no product scope expansion"
+        },
+        {
+          "code": "scope_out_of_declared",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-02-red-evidence.json",
+          "disposition": "generated TDD evidence, required by executor workflow; no product scope expansion"
+        }
+      ]
+    },
+    {
+      "plan": "249-02",
+      "status": "merged_removed",
+      "warnings": []
+    }
+  ],
+  "source_identity": [
+    {
+      "plan": "249-01",
+      "path": "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json",
+      "tested_blob": "8792015b4ad4c5f33bed1afd735eea6b7d2c399f",
+      "merged_blob": "8792015b4ad4c5f33bed1afd735eea6b7d2c399f"
+    },
+    {
+      "plan": "249-01",
+      "path": "test/fixtures/operator_surface/route-inventory.json",
+      "tested_blob": "c92ce92762ea79cebe9437a39d9f8c6f708b8aef",
+      "merged_blob": "c92ce92762ea79cebe9437a39d9f8c6f708b8aef"
+    },
+    {
+      "plan": "249-01",
+      "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+      "tested_blob": "0f852af882c7650cb595dd21fe127094713432f3",
+      "merged_blob": "0f852af882c7650cb595dd21fe127094713432f3"
+    },
+    {
+      "plan": "249-01",
+      "path": "examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts",
+      "tested_blob": "fb290f8eb152aa4311532284046752097be2f58c",
+      "merged_blob": "fb290f8eb152aa4311532284046752097be2f58c"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
+      "tested_blob": "36be4bde6a472552ceeab693e7ac281732b5ee5f",
+      "merged_blob": "36be4bde6a472552ceeab693e7ac281732b5ee5f"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_test.exs",
+      "tested_blob": "cf417c2b1ff87bd09a8918065fcf57140671d2f6",
+      "merged_blob": "cf417c2b1ff87bd09a8918065fcf57140671d2f6"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/DEMO-MANIFEST.md",
+      "tested_blob": "e8e4ec66cd8879cd10ed2a641cb69717190ec370",
+      "merged_blob": "e8e4ec66cd8879cd10ed2a641cb69717190ec370"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_contract_test.exs",
+      "tested_blob": "56eb5d9e0cc5492c98ca5c10c56913ed60b663de",
+      "merged_blob": "56eb5d9e0cc5492c98ca5c10c56913ed60b663de"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/WALKTHROUGH.md",
+      "tested_blob": "3edce52fd2cd3a595bd63f1c046910a804ab3841",
+      "merged_blob": "3edce52fd2cd3a595bd63f1c046910a804ab3841"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs",
+      "tested_blob": "d02dd39658586d11bdb1610a64f73d62056e8af5",
+      "merged_blob": "d02dd39658586d11bdb1610a64f73d62056e8af5"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+      "tested_blob": "0d3fbd2e613b70832535aae1ff154cc146033dc2",
+      "merged_blob": "0d3fbd2e613b70832535aae1ff154cc146033dc2"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/e2e/run-e2e.sh",
+      "tested_blob": "cf18aef3444b1e46d1eecb77db9c292a0d3ecccc",
+      "merged_blob": "cf18aef3444b1e46d1eecb77db9c292a0d3ecccc"
+    },
+    {
+      "plan": "249-02",
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs",
+      "tested_blob": "768f55f9ab558c7bee16cf753fb6836cddce6274",
+      "merged_blob": "768f55f9ab558c7bee16cf753fb6836cddce6274"
+    }
+  ],
+  "gates": {
+    "schema_drift": "no drift",
+    "codebase_drift": "skipped: no STRUCTURE.md",
+    "ui_safety": "passed: approved UI contract, no rendered UI files changed"
+  },
+  "limits": [
+    "No full canonical, browser or flake run",
+    "Chronology and full scenario/brand mapping remain Plans03/04",
+    "Requirements remain phase-incomplete until goal verification"
+  ]
+}

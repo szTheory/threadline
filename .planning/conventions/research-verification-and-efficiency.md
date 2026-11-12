@@ -139,3 +139,23 @@ Use the independent goal verifier to judge receipt/claim consistency and retain
 local-versus-hosted, visual-capture and automation limits. Documentation-judgment
 criteria should be explicit before verification; do not invent human attestation
 or a new routine approval checkpoint for an automated prose review.
+
+## Prepare the environment once and measure real worker receipts
+
+Use a concrete environment handoff with checkout/source identity, lock identities,
+owned database/partition, capacity, raw version strings and prepared dependency/build
+locations. Reuse that verified setup while checking current identity; do not rediscover
+it through unsupported command variants. Create and migrate a dedicated example test
+database before its first Mix test, even when the selected tests are pure contracts:
+the example application still boots. A packaged version may include a suffix such as
+`15.17 (Homebrew)`; preserve the raw value and compare the intended version component.
+Keep per-invocation failures and explicit retry/window limits visible.
+
+Do not substitute a character-count estimate for model token usage, or measure worker
+runtime only from its first task commit to summary authoring. The managed launch and
+terminal receipt provide actual elapsed time and usage after the worker returns.
+Leave unavailable metrics unknown until reconciliation. Requirement completion in a
+plan summary must distinguish full satisfaction from a partial contribution; phase
+verification remains authoritative. These corrections avoid repeated metadata repair
+without changing proof scope, adding caches/concurrency/dependencies, or claiming an
+unmeasured speedup.
