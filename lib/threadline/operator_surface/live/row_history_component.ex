@@ -141,6 +141,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <p id={"#{@id}-description"} class="tl-modal__body">
                 Inspect captured row state at the selected point in row history.
               </p>
+              <UI.Display.ref value={@record_id} copy_label="Copy row id" />
             </div>
             <.link patch={@close_path} class="tl-button tl-button--secondary" data-tl-initial-focus>
               <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />

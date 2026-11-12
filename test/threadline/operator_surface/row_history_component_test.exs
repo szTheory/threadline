@@ -50,6 +50,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "is not mapped to an Ecto schema"
     end
 
+    test "keeps the full row id copy control inside the row-history drawer" do
+      record_id = "row-" <> String.duplicate("x", 180)
+
+      html =
+        render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, %{
+          id: "test-history",
+          table: "unknown_table",
+          record_id: record_id,
+          base_path: "/audit/transactions/123",
+          threadline_schemas: %{},
+          repo: Threadline.Test.Repo,
+          as_of: nil
+        })
+
+      drawer =
+        html |> LazyHTML.from_fragment() |> LazyHTML.query("[data-testid=row-history-drawer]")
+
+      assert drawer
+             |> LazyHTML.query("button[aria-label='Copy row id']")
+             |> LazyHTML.attribute("data-tl-copy") == [
+               record_id
+             ]
+
+      assert drawer |> LazyHTML.query(".tl-secondary-ref") |> LazyHTML.attribute("title") == [
+               record_id
+             ]
+    end
+
     test "uses explicit close and history paths when supplied" do
       captured_at = ~U[2026-06-04 12:30:00Z]
       txn = insert_transaction(%{occurred_at: captured_at})

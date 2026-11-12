@@ -145,10 +145,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # A causal comparison with only the prior header/logo restored passed all
     # seven historical receipts. Keep those receipts intact and change only the
     # current shell pin; the other six current structures retain their pins.
+    # Plan250-08 adds the shared full-ID/copy reference inside the drawer (+7 elements).
     @phase_250_receipts Map.put(@phase_240_receipts, "row_history.shell", %{
-                          elements: 116,
+                          elements: 123,
                           sha256:
-                            "1527bbb72674a8b5e493c2e9242ef257479ccf44412ae3f50698b112cb19bdb6"
+                            "b3ee7b27e9d0080546576bd4f1f57832812e94f7a64fabbced784ae7bc5cfaa5"
                         })
 
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
