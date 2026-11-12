@@ -2083,14 +2083,14 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-drawer-context",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-maintainer-trigger",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "SEED-008's UI carry trigger is met by the maintainer feedback."
         },
         {
-          "id": "carry-drawer-research",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-approved-triage",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "Re-triage drawer overlap, typography, Redaction wording, screenshot baseline debt and degraded timeline provenance under ADM-05/07/32"
         }
       ],
       "proofRefs": [],
@@ -2106,14 +2106,14 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-type-context",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-maintainer-trigger",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "SEED-008's UI carry trigger is met by the maintainer feedback."
         },
         {
-          "id": "carry-type-research",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-approved-triage",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "Re-triage drawer overlap, typography, Redaction wording, screenshot baseline debt and degraded timeline provenance under ADM-05/07/32"
         }
       ],
       "proofRefs": [],
@@ -2129,14 +2129,14 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-redaction-context",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-maintainer-trigger",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "SEED-008's UI carry trigger is met by the maintainer feedback."
         },
         {
-          "id": "carry-redaction-research",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
-          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+          "id": "carry-v148-approved-triage",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "Re-triage drawer overlap, typography, Redaction wording, screenshot baseline debt and degraded timeline provenance under ADM-05/07/32"
         }
       ],
       "proofRefs": [],
@@ -2154,12 +2154,12 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-screenshot-context",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-          "locator": "Historical screenshot failures remain provenance until reviewed replacements;"
+          "id": "carry-v148-screenshot-debt",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "screenshot baseline debt"
         },
         {
-          "id": "carry-screenshot-research",
+          "id": "carry-v148-screenshot-policy",
           "path": ".planning/research/v1.48-SUMMARY.md",
           "locator": "do not automatically regenerate old-baseline screenshots or revive retired critic tooling."
         }
@@ -2177,24 +2177,24 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-timeline-context",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-          "locator": "Degraded Timeline is an evidence state, not a new route."
+          "id": "carry-v148-timeline-provenance",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "degraded timeline provenance"
         },
         {
-          "id": "carry-timeline-prior",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md",
-          "locator": "the degraded Timeline state"
+          "id": "carry-timeline-route",
+          "path": "lib/threadline/operator_surface/router.ex",
+          "locator": "live(\"/timeline\", TimelineLive, :index)"
         }
       ],
       "proofRefs": [
         {
           "id": "carry-timeline-owner",
-          "kind": "existing-structural-owner",
-          "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
-          "locator": "test(\"semantic identities and source ownership survive reordered declarations; malformed mappings fail\"",
-          "owner": "operator-route-evidence.test.ts",
-          "limitation": "Structural route/state mapping only; no fresh browser or rendered receipt is claimed."
+          "kind": "existing-test-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts",
+          "locator": "test(\"Timeline degraded ranking twin remains a separate state\"",
+          "owner": "operator-page-capture.spec.ts",
+          "limitation": "Existing browser-test owner only; no current browser execution, rendered comparison, or visual acceptance is claimed."
         }
       ],
       "proofGap": "The state remains attached to existing route ownership; no new route or fresh visual proof is implied."
@@ -2209,41 +2209,50 @@
       ],
       "sourceRefs": [
         {
-          "id": "carry-adm06-plan3",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
-          "locator": "spec-less autonomous-recall and descriptorless flagged-unverified intent claims as unresolved"
+          "id": "carry-adm06-requirement",
+          "path": ".planning/REQUIREMENTS.md",
+          "locator": "- [ ] **ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities."
         },
         {
-          "id": "carry-adm06-probe",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md",
-          "locator": "descriptorless flags or asking for routine human UAT."
+          "id": "carry-adm06-pending-status",
+          "path": ".planning/REQUIREMENTS.md",
+          "locator": "| ADM-06 | Phase 249 | Pending |"
         }
       ],
-      "proofRefs": [],
+      "proofRefs": [
+        {
+          "id": "carry-adm06-contract-owner",
+          "kind": "existing-inventory-contract-owner",
+          "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+          "locator": "test(\"carry dispositions retain unresolved ADM-06 flags and local evidence limits\"",
+          "owner": "operator-route-evidence.test.ts",
+          "limitation": "Inventory wording contract only; it does not resolve classifier correctness or replace independent phase verification."
+        }
+      ],
       "proofGap": "The prior classifier rollup remains unresolved; bounded independent judgment must record its limits without rewriting the flags."
     },
     {
       "id": "proof-scope.local-only",
       "status": "scope-limited",
-      "disposition": "Current evidence is focused local Node and ExUnit checks; canonical/full-repeat/browser/hosted/release claims remain unmade.",
+      "disposition": "The referenced owners are focused local Node and ExUnit checks; canonical/full-repeat/browser/hosted/release completion remains unclaimed.",
       "laterOwners": [
         "Phase verification",
         "Phase 253 release readiness"
       ],
       "sourceRefs": [
         {
-          "id": "carry-scope-plan",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md",
-          "locator": "no full canonical/flake/browser runner"
+          "id": "carry-scope-node-owner",
+          "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+          "locator": "test(\"semantic identities and source ownership survive reordered declarations; malformed mappings fail\""
         },
         {
-          "id": "carry-scope-history",
-          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
-          "locator": "No root-wide, canonical, full-repeat, browser, hosted, or release checks were run"
+          "id": "carry-scope-exunit-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"#4521 row and reply snapshots match the represented close event\""
         }
       ],
       "proofRefs": [],
-      "proofGap": "This work cannot establish hosted CI, fresh browser/a11y/visual acceptance, canonical checks, release readiness, or human sign-off."
+      "proofGap": "These local source/test owners do not establish hosted CI, fresh browser/a11y/visual acceptance, canonical checks, release readiness, or human sign-off."
     }
   ],
   "scenarios": [

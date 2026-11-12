@@ -68,12 +68,7 @@ const semanticSourcePaths = [
   "test/threadline/brandbook_token_parity_test.exs",
   "test/threadline/operator_surface/presentation_test.exs",
   "test/threadline/operator_surface/surface_header_test.exs",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md",
-  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md",
+  ".planning/REQUIREMENTS.md",
   ".planning/research/v1.48-SUMMARY.md",
   "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
 ];
@@ -991,6 +986,33 @@ test("brand crosswalk maps every approved role, asset family, and later owner wi
   const missingCarry = structuredClone(inventory);
   missingCarry.carryDispositions = missingCarry.carryDispositions.filter((entry: CarryDisposition) => entry.id !== "seed008.screenshot-provenance");
   assert.ok(semanticInventoryErrors(missingCarry, fixture, semanticSources).includes("missing carry disposition seed008.screenshot-provenance"));
+});
+
+test("semantic contract source map excludes mutable phase directories", () => {
+  assert.equal(semanticSourcePaths.some((path) => {
+    const [planningDirectory, sourceGroup] = path.split("/");
+    return planningDirectory === ".planning" && sourceGroup === "phases";
+  }), false);
+  assert.ok(semanticSources[".planning/REQUIREMENTS.md"]?.includes("| ADM-06 | Phase 249 | Pending |"));
+});
+
+test("carry dispositions retain unresolved ADM-06 flags and local evidence limits", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const adm06 = inventory.carryDispositions.find((entry: CarryDisposition) => entry.id === "adm06.descriptorless-intent");
+  assert.ok(adm06);
+  assert.equal(adm06.status, "unresolved-flagged-unverified");
+  assert.equal(adm06.disposition, "Keep spec-less autonomous recall and descriptorless flagged-unverified intent unresolved; do not invent check descriptors or silently turn the prohibition green.");
+  assert.deepEqual(adm06.laterOwners, ["Independent Plan 249-04 judgment", "Phase verification"]);
+  assert.ok(adm06.sourceRefs.some((reference: SemanticReference) =>
+    reference.path === ".planning/REQUIREMENTS.md" && reference.locator === "| ADM-06 | Phase 249 | Pending |"));
+  assert.ok(adm06.proofRefs.some((reference: SemanticReference) =>
+    reference.kind === "existing-inventory-contract-owner" && reference.owner === "operator-route-evidence.test.ts"));
+
+  const scope = inventory.carryDispositions.find((entry: CarryDisposition) => entry.id === "proof-scope.local-only");
+  assert.ok(scope);
+  assert.equal(scope.status, "scope-limited");
+  assert.deepEqual(scope.laterOwners, ["Phase verification", "Phase 253 release readiness"]);
+  assert.match(scope.disposition, /canonical\/full-repeat\/browser\/hosted\/release completion remains unclaimed/);
 });
 
 test("named scenarios reject missing state links, duplicate-label identities, unsafe paths, and wrong proof owners", () => {
