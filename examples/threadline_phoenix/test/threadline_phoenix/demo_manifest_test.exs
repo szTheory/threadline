@@ -35,7 +35,11 @@ defmodule ThreadlinePhoenix.DemoManifestTest do
     :ok
   end
 
-  test "last_tuesday/0 is seven days before epoch at 14:30 UTC" do
-    assert Manifest.last_tuesday() == ~U[2026-05-20 14:30:00Z]
+  test "last_tuesday/0 is the preceding calendar Tuesday at 14:30 UTC" do
+    last_tuesday = Manifest.last_tuesday()
+
+    assert Manifest.epoch() == ~U[2026-05-27 12:00:00Z]
+    assert last_tuesday == ~U[2026-05-26 14:30:00Z]
+    assert Date.day_of_week(DateTime.to_date(last_tuesday)) == 2
   end
 end

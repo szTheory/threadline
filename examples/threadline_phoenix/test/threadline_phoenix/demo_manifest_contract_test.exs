@@ -4,6 +4,16 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
 
   @manifest Path.expand("../../DEMO-MANIFEST.md", __DIR__)
 
+  describe "temporal anchors" do
+    test "DEMO-MANIFEST.md pins the previous-calendar-day Tuesday filter" do
+      doc = File.read!(@manifest)
+
+      assert String.contains?(doc, "`demo_epoch` | `2026-05-27T12:00:00Z`")
+      assert String.contains?(doc, "`demo_last_tuesday` | `2026-05-26T14:30:00Z`")
+      assert String.contains?(doc, "preceding calendar Tuesday")
+    end
+  end
+
   describe "recipe table" do
     test "DEMO-MANIFEST.md contains the State recipes section header" do
       doc = File.read!(@manifest)
