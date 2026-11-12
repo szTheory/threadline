@@ -1143,7 +1143,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       path = assert_patch(lv)
       assert URI.parse(path).path == "/audit/timeline"
-      assert URI.parse(path).query in [nil, ""]
 
       html = render(lv)
 
@@ -1153,6 +1152,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(lv, "#change-#{change.id} code", "unknown")
       refute has_element?(lv, "#change-#{change.id} a[title='View actor activity']")
       refute has_element?(lv, "#change-#{change.id}", "Correlation")
+
+      {:ok, reopened_lv, reopened_html} = live(conn, path)
+
+      assert has_element?(reopened_lv, "#change-#{change.id}")
+      assert URI.parse(path).query == "from="
+      assert reopened_html =~ "Showing 1 of 1 matching changes"
+      assert reopened_html =~ "value=\"\""
+      assert has_element?(reopened_lv, "#change-#{change.id} code", "unknown")
+      refute has_element?(reopened_lv, "#change-#{change.id} a[title='View actor activity']")
+      refute has_element?(reopened_lv, "#change-#{change.id}", "Correlation")
     end
 
     test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
