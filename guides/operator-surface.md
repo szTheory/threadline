@@ -1,7 +1,8 @@
 # Operator Surface
 
-The Threadline Operator Surface provides mountable LiveView screens for investigating
-row mutations, actor histories, and transaction contexts inside your host application.
+Threadline is an audit trail library for Phoenix apps. Threadline Admin provides
+mountable LiveView screens for investigating row mutations, actor histories, and
+transaction contexts inside your host application.
 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 

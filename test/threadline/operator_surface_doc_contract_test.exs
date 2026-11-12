@@ -22,6 +22,23 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")
   end
 
+  test "operator surface introduction names Threadline Admin and preserves technical anchors" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "Threadline is an audit trail library for Phoenix apps.")
+    assert String.contains?(guide, "Threadline Admin provides")
+
+    for heading <- [
+          "# Operator Surface",
+          "## 1-Minute Mount",
+          "### Theme",
+          "### `:actor_fn`",
+          "## Available Screens (v1.17)"
+        ] do
+      assert String.contains?(guide, heading), "missing stable technical heading #{heading}"
+    end
+  end
+
   test "all mount guides require explicit authorization separate from host pipelines" do
     guides = [
       "guides/operator-surface.md",
