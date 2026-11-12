@@ -4,11 +4,11 @@ milestone: v1.48
 current_phase: 249
 current_phase_name: Map jobs, scenarios and the brand contract
 status: verifying
-stopped_at: All Phase 249 plans integrated; required phase verification active
-last_updated: "2026-11-12T05:24:07.785457Z"
+stopped_at: Phase249 required gates passed; independent goal verification next
+last_updated: "2026-11-12T06:52:23.279860Z"
 last_activity: 2026-11-12
-last_activity_desc: All Phase 249 plans integrated; focused merged checks pass; phase gates pending
-state_head: fa49973a62f30bee027cbbaffd400d30d57bc399
+last_activity_desc: Phase249 all planned work and required gates complete; goal verification pending
+state_head: f77596b08980a9dee3c548e690d720bd675abe7a
 progress:
   total_phases: 6
   completed_phases: 1
@@ -38,7 +38,7 @@ Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 8 of 
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phase248 is independently verified complete. All four Phase249 plans are GSD-bound, merged and removed. Semantic routes/scenarios/state and reference-only brand mapping are reconciled; the final independent mapping review is clean after source-bound corrections, with descriptorless/classifier limits retained. The merged Node group passes and the affected example seed/doc/reset group passes after a formatting-only assertion correction (full Elixir AST unchanged). Required validation, security, UI-preservation review, formal code review, scoped prior-phase regression and goal verification remain. ADM05–07 remain incomplete until the phase goal verifier passes. No user action is needed for routine authorized work.
+**Current diagnosis and dispatch:** Phase248 is independently verified complete. All four Phase249 plans are GSD-bound, merged and removed. Automated task validation is complete; all fourteen planned threats are closed without risk acceptance. The UI audit is code/reference-only with known later-owned findings. Formal review is clean after scenario-class, identity and versioned evidence-lifecycle corrections; all three findings have fixed dispositions. Current Node and lifecycle controls pass, unchanged example chronology/reset evidence remains applicable, and the scoped prior/current regression group passes. Three claim-boundary intents have explicit bounded automated judgments while descriptorless non-authoritative flags and the ADM06 taxonomy gap remain visible. Independent goal verification is the remaining Phase249 gate; ADM05–07 remain incomplete until its owning status passes. No user action is needed.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now running for focused249 checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -1282,7 +1282,7 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-- The agent completes the remaining Phase249 gates and goal verification, then continues phases250–253 under the original autonomous request. No user action is needed while authorized work remains active.
+- The agent completes Phase249 independent goal verification and accounting, then continues phases250–253 under the original autonomous request. No user action is needed while authorized work remains active.
 - Preserve consumed full-repeat grants, all failed receipts and external/publication limits. Stop only task-owned PostgreSQL before an actual user pause after owned checks finish.
 
 ## Restart Recovery (2026-10-10)

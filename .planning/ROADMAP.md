@@ -160,4 +160,4 @@ Execution order:248→249→250→251→252→253. Phase248 is verified complete
 
 ## Next
 
-All four Phase249 plans are integrated and the final independent mapping review is clean. Complete the required phase gates, scoped regression and goal verification before advancing. Focused merged Node and example seed/doc/reset checks pass. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.
+All four Phase249 plans are integrated and the final independent mapping review is clean. Required phase gates and scoped regression are complete; independent goal verification is the remaining gate before advancing. Focused merged Node and example seed/doc/reset checks pass. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.
