@@ -262,15 +262,15 @@ test.describe("operator earned-flow browser UAT", () => {
       await openTimeline.click();
       await expectPath(page, "/audit/timeline");
       await expectLiveViewConnected(page);
-      await page.locator("#filter-from").fill(investigationFrom);
-      await page.locator("#filter-to").fill(investigationTo);
-      await page.locator("#filter-table").fill(rowTable);
-      await page.locator("#filter-correlation-id").fill(closeCorrelation);
-      await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
-      await expectLiveViewConnected(page);
+      const expectedTimelineUrl = new URL(timelineUrl, page.url()).toString();
+      await expect(page).toHaveURL(expectedTimelineUrl);
       for (const [selector, expected] of [["#filter-from", investigationFrom], ["#filter-to", investigationTo], ["#filter-table", rowTable], ["#filter-correlation-id", closeCorrelation]] as const) {
         await expect(page.locator(selector)).toHaveValue(expected);
       }
+      const restoredRow = page.getByTestId("timeline-row")
+        .filter({ hasText: closeCorrelation })
+        .filter({ hasText: rowTable });
+      await expect(restoredRow).toHaveCount(1);
     } else {
 
       // Legacy before evidence records the routes the current UI actually supports.

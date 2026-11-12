@@ -6,6 +6,8 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  additionalSourceIdentity,
+  assertAdditionalSourceFreshness,
   assertInvestigationCaptureFiles,
   assertFreshBrowserReport,
   assertInvestigationPair,
@@ -121,6 +123,11 @@ function makeHalf(half: "before" | "after") {
     selected,
     server: { pid: 17946, port: 60150, sourceHeadAtStart: "81fd490359cd0d68a558675678339df6cbc57b7c", servingSource: { files: { "lib/threadline/operator_surface/live/timeline_live.ex": { sha256: hash("1"), bytes: 4000 } } } },
     testSource: { files: { "lib/threadline/operator_surface/live/timeline_live.ex": { sha256: hash("1"), bytes: 4000 } } },
+    ...(half === "after" ? { additionalRuntimeSources: Object.fromEntries(
+      ["launched", "serving", "test"].map((key) => [key, { files: {
+        "lib/threadline/operator_surface/live/timeline_live/helpers.ex": { sha256: hash("1"), bytes: 18198 },
+      } }]),
+    ) } : {}),
     browser,
     journey: {
       timelineUrl,
@@ -577,4 +584,27 @@ test("malformed and stale Playwright report files are rejected", () => {
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+
+test("additional runtime helper requires actual matching startup, serving and test bytes", () => {
+  const identity = additionalSourceIdentity(repoRoot);
+  assert.deepEqual(Object.keys(identity.files), ["lib/threadline/operator_surface/live/timeline_live/helpers.ex"]);
+  assert.doesNotThrow(() => assertAdditionalSourceFreshness(identity, identity, identity));
+  assert.throws(() => assertAdditionalSourceFreshness(undefined, identity, identity), /additional runtime/i);
+  assert.throws(() => assertAdditionalSourceFreshness({ files: {} }, identity, identity), /additional runtime/i);
+  const changed = structuredClone(identity);
+  changed.files["lib/threadline/operator_surface/live/timeline_live/helpers.ex"].sha256 = hash("f");
+  assert.throws(() => assertAdditionalSourceFreshness(identity, changed, identity), /additional runtime/i);
+  assert.throws(() => assertAdditionalSourceFreshness(identity, identity, changed), /additional runtime/i);
+});
+
+test("after proof rejects absent or altered additional runtime provenance while legacy before stays valid", () => {
+  const pair = makePair();
+  assert.doesNotThrow(() => assertInvestigationPair(pair.before, pair.after));
+  delete (pair.after as any).additionalRuntimeSources;
+  assert.throws(() => assertInvestigationPair(pair.before, pair.after), /additional runtime/i);
+  const altered = makePair();
+  (altered.after as any).additionalRuntimeSources.test.files["lib/threadline/operator_surface/live/timeline_live/helpers.ex"].bytes += 1;
+  assert.throws(() => assertInvestigationPair(altered.before, altered.after), /additional runtime/i);
 });
