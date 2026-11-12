@@ -57,7 +57,7 @@ No accepted risks. No missing mitigation, new package risk or external receipt i
 - [x] Every plan-authored threat has a concrete mitigation and closed disposition.
 - [x] All unique IDs accounted for; repeated locked-restoration ID deduplicated.
 - [x] No accepted risk or transfer invented.
-- [x] No open threat at or below the configured high blocking threshold.
+- [x] No open threat at or above the configured high blocking threshold.
 - [x] `threats_open: 0` and `status: verified` recorded.
 
 **Approval:** Automated phase threat verification completed 2026-11-12. No user action or new risk acceptance is needed.
