@@ -29,7 +29,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   end
 
   describe "D-02 generated export calendar anchor" do
-    test "completed downloadable export bytes contain the exact corrected captured_at" do
+    test "completed downloadable export bytes contain the exact corrected captured_at",
+         %{seed_started_at: seed_started_at, seed_finished_at: seed_finished_at} do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         correlation_id = Manifest.correlation_id(:acme_4521_close)
 
@@ -42,6 +43,17 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         assert export_job,
                "expected the completed downloadable export for #{correlation_id}"
+
+        run_clock_start = DateTime.truncate(seed_started_at, :second)
+        run_clock_end = DateTime.add(DateTime.truncate(seed_finished_at, :second), 1, :second)
+
+        assert DateTime.compare(export_job.inserted_at, run_clock_start) != :lt
+        assert DateTime.compare(export_job.inserted_at, run_clock_end) == :lt
+
+        assert DateTime.compare(
+                 export_job.expires_at,
+                 DateTime.add(export_job.inserted_at, 7, :day)
+               ) == :eq
 
         assert File.read!(export_job.file_path) ==
                  "id,table_name,op,captured_at\ndemo,tickets,update,2026-05-26T14:30:00Z\n"
