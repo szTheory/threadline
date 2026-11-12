@@ -9,7 +9,11 @@ provides:
   - "Focused declaration and semantic-inventory contracts with adversarial mutation controls"
 affects: [249-02, 249-03, 249-04]
 actuals:
-  tokens: 33731.75
+  tokens: 191945
+  reasoning_output_tokens: 122071
+  worker_elapsed_s: 3908
+  measurement_source: codex-exec-terminal-usage
+  tokens_meaning: output_tokens_including_reasoning
   tasks: 2
   commits: 4
 plan_head_before: fc6afadfcb0634f5df78e52e52d5220e08ef420c
@@ -54,7 +58,7 @@ coverage:
         ref: "mix test test/threadline/operator_surface/operator_evidence_contract_test.exs"
         status: pass
     human_judgment: false
-duration: 47min
+duration: 65min8s
 completed: 2026-11-11
 status: complete
 ---
@@ -65,9 +69,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** 47 min
-- **Started:** 2026-11-12T00:33:40Z
-- **Completed:** 2026-11-12T01:20:36Z
+- **Duration:** Worker lifetime 3,908 seconds (65 minutes 8 seconds), measured by the managed launcher. Worktree creation and dependency cloning preceded worker launch and are excluded.
+- **Started:** 2026-11-12T00:18:21.242413+00:00 (worker launch).
+- **Completed:** 2026-11-12T01:23:29.235458+00:00 (worker terminal exit).
 - **Tasks:** 2
 - **Files modified:** 5, including two RED-evidence records
 - **Task commits:** 4 (two RED/GREEN pairs)
@@ -118,6 +122,10 @@ The task-owned PostgreSQL receipt also recorded earlier setup stops due to share
 - Proof locators identify owners and preserve their limitations. Passing source contracts prove the mapping and declarations, not fresh browser, accessibility, or visual behavior.
 - Support read access does not imply export, evidence, coverage, policy, or retention permission; host authentication, surface capability, and organization scope remain separate fields.
 
+## Parent Receipt Reconciliation
+
+After terminal exit, the parent replaced estimated duration/token metrics with the managed worker receipt and corrected the next inventory owner to Plan 04. Task source and passing checks are unchanged; no new runtime receipt is implied.
+
 ## Deviations from Plan
 
 None - plan executed as written.
@@ -135,7 +143,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-Plan 02 can extend this same inventory. The mapped proof references remain ownership links only; later plans retain responsibility for scenario and rendered acceptance.
+Plan 04 can extend this same inventory. The mapped proof references remain ownership links only; later plans retain responsibility for scenario and rendered acceptance.
 
 ## Self-Check: PASSED
 
