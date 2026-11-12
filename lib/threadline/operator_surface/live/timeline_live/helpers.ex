@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Query
     alias Threadline.Query.FilterParams
 
     @default_window_hours 24
@@ -58,6 +59,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def correlation_path(base_path, _correlation_id), do: base_path
 
     @doc false
+    def transaction_path(base_path, transaction_id, filters_raw, preserve_empty_from?)
+        when is_binary(base_path) and is_map(filters_raw) and is_boolean(preserve_empty_from?) do
+      path = "#{base_path}/transactions/#{encode_segment(transaction_id)}"
+
+      case timeline_origin_query(filters_raw, preserve_empty_from?) do
+        {:ok, query} -> path <> "?" <> query
+        :error -> path
+      end
+    end
+
+    @doc false
     def table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
     def table_ref(_change), do: Presentation.secondary_ref("", 30)
 
@@ -79,11 +91,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def safe_row_history_path(base_path, change, schemas, filters_raw)
         when is_binary(base_path) and is_map(schemas) and is_map(filters_raw) do
+      safe_row_history_path(base_path, change, schemas, filters_raw, false)
+    end
+
+    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw), do: nil
+
+    def safe_row_history_path(
+          base_path,
+          change,
+          schemas,
+          filters_raw,
+          preserve_empty_from?
+        )
+        when is_binary(base_path) and is_map(schemas) and is_map(filters_raw) and
+               is_boolean(preserve_empty_from?) do
       with {table, record_id} <- routeable_row_identity(change),
            route_table when is_binary(route_table) <-
              row_history_route_table(schemas, table, host_table_schema(change)) do
         path = "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
-        query = canonical_origin_query(filters_raw)
+
+        query =
+          case timeline_origin_query(filters_raw, preserve_empty_from?) do
+            {:ok, query} -> query
+            :error -> ""
+          end
 
         if query == "", do: path, else: path <> "?" <> query
       else
@@ -92,11 +123,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw), do: nil
+    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw, _preserve_empty_from?),
+      do: nil
 
-    defp canonical_origin_query(filters_raw) do
-      filter_query = FilterParams.canonical_query(filters_raw)
-      Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
+    @doc false
+    def timeline_filter_query(%{} = params) do
+      if params["origin"] == "timeline" do
+        filters_raw = FilterParams.filters_raw_from_params(params)
+        preserve_empty_from? = Map.has_key?(params, "from") and params["from"] == ""
+
+        validated_filter_query(filters_raw, preserve_empty_from?)
+      else
+        :error
+      end
+    end
+
+    def timeline_filter_query(_params), do: :error
+
+    defp timeline_origin_query(filters_raw, preserve_empty_from?) do
+      case validated_filter_query(filters_raw, preserve_empty_from?) do
+        {:ok, filter_query} ->
+          {:ok, Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")}
+
+        :error ->
+          :error
+      end
+    end
+
+    defp validated_filter_query(filters_raw, preserve_empty_from?) do
+      with {:ok, filters} <- FilterParams.parse(filters_raw),
+           :ok <- validate_timeline_filters(filters) do
+        query = FilterParams.canonical_query(filters_raw)
+        {:ok, if(query == "" and preserve_empty_from?, do: "from=", else: query)}
+      else
+        _ -> :error
+      end
+    end
+
+    defp validate_timeline_filters(filters) do
+      Query.validate_timeline_filters!(filters)
+    rescue
+      ArgumentError -> :error
     end
 
     defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do

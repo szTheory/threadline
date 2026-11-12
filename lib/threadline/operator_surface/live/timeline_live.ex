@@ -87,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
+      params = preserve_explicit_empty_from(params, uri_parsed.query)
       # Timeline is mounted at "<surface>/timeline"; strip the suffix so base_path
       # stays the surface root for cross-surface links (exports, coverage, actors,
       # transactions). timeline_path is the timeline's own path for self-patches.
@@ -139,7 +140,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp filter_error(socket, message) do
-      filter_query = build_canonical_query(socket.assigns.filters_raw)
+      filter_query =
+        build_query_preserving_empty_from(
+          socket.assigns.filters_raw,
+          socket.assigns.filter_query
+        )
 
       socket
       |> assign(:form_error, message)
@@ -199,7 +204,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {:ok, {:ok, page}}
           ] ->
             page = preload_visible_context(page, socket.assigns.repo, scope_aware_opts(socket))
-            filter_query = build_canonical_query(socket.assigns.filters_raw)
+
+            filter_query =
+              build_query_preserving_empty_from(
+                socket.assigns.filters_raw,
+                socket.assigns.filter_query
+              )
+
             future_window_empty = future_window_empty?(filters, count, socket)
 
             socket
@@ -234,7 +245,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp query_error(socket) do
-      filter_query = build_canonical_query(socket.assigns.filters_raw)
+      filter_query =
+        build_query_preserving_empty_from(
+          socket.assigns.filters_raw,
+          socket.assigns.filter_query
+        )
 
       socket
       |> assign(:form_error, nil)
@@ -551,6 +566,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           timeline_path={@timeline_path}
           schemas={assigns[:threadline_schemas]}
           filters_raw={@filters_raw}
+          filter_query={@filter_query}
         />
         <UI.Page.pager
           shown={@shown_count}
@@ -732,6 +748,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
+
+    defp build_query_preserving_empty_from(raw, "from=") do
+      case build_canonical_query(raw) do
+        "" -> "from="
+        query -> query
+      end
+    end
+
+    defp build_query_preserving_empty_from(raw, _previous_query),
+      do: build_canonical_query(raw)
+
+    defp preserve_explicit_empty_from(params, nil), do: params
+
+    defp preserve_explicit_empty_from(params, query) do
+      query_params = decode_query(query)
+
+      if Map.get(query_params, "from") == "" and not Map.has_key?(params, "from") do
+        Map.put(params, "from", "")
+      else
+        params
+      end
+    end
+
+    defp decode_query(query) do
+      URI.decode_query(query)
+    rescue
+      ArgumentError -> %{}
+    end
 
     defp committed_export_params(raw) do
       raw
