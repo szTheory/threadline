@@ -16,13 +16,13 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   alias ThreadlinePhoenix.Repo
 
   setup do
-    seed_started_at = DateTime.utc_now(:second)
+    seed_started_at = DateTime.utc_now(:microsecond)
 
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
       assert :ok = Reset.run()
     end)
 
-    seed_finished_at = DateTime.utc_now(:second)
+    seed_finished_at = DateTime.utc_now(:microsecond)
 
     {:ok, %{seed_started_at: seed_started_at, seed_finished_at: seed_finished_at}}
   end
@@ -196,7 +196,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert close_change.data_after["inserted_at"] == setup_iso
         assert close_change.data_after["updated_at"] == close_iso
         assert close_change.data_after["closed_at"] == close_iso
-        assert close_tx.occurred_at == close_at
+        assert DateTime.compare(close_tx.occurred_at, close_at) == :eq
         assert close_tx.actor_ref == %ActorRef{type: :user, id: Manifest.user_id(:closer)}
         assert close_tx.meta["organization_id"] == to_string(acme.id)
         assert action.name == "ticket_replied_and_closed"

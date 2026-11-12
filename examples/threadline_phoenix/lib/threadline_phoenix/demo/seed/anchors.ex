@@ -73,7 +73,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
       )
 
     {:ok, result} =
-      HelpDesk.ticket_replied_and_closed(
+      Support.reply_and_close(
         ctx_audit,
         acme,
         ticket,
@@ -83,8 +83,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
           # The configured trigger mask must keep it out of persisted audit data.
           internal_note_body: "synthetic-secret-canary-239-6f71"
         },
-        %{status: "closed", closed_at: Manifest.epoch()},
-        []
+        %{status: "closed", closed_at: Manifest.last_tuesday()},
+        Manifest.last_tuesday()
       )
 
     Support.put_timestamp(ctx, result.audit_transaction_id, Manifest.last_tuesday())
@@ -185,15 +185,19 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
   end
 
   defp upsert_ticket!(org, number, %Agent{} = assignee, status) do
+    setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+
     case Repo.get_by(Ticket, organization_id: org.id, number: number) do
       %Ticket{} = ticket ->
         ticket
         |> Ticket.changeset(%{status: status, assignee_id: assignee.id})
+        |> Support.stamp_update(setup_at)
         |> Repo.update!()
 
       nil ->
         %Ticket{organization_id: org.id}
         |> Ticket.changeset(%{number: number, status: status, assignee_id: assignee.id})
+        |> Support.stamp_insert(setup_at)
         |> Repo.insert!()
     end
   end
