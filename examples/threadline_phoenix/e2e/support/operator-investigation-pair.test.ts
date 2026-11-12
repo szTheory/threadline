@@ -88,7 +88,13 @@ function makeHalf(half: "before" | "after") {
     const file = (name: string) => `${captureBase}/attempt/${name}`;
     return {
       id,
-      route,
+      route: half === "after" && !id.startsWith("timeline-restored-")
+        ? (() => {
+          const url = new URL(route, "http://127.0.0.1");
+          url.searchParams.set("origin", "timeline");
+          for (const [key, value] of new URL(timelineUrl, "http://127.0.0.1").searchParams) url.searchParams.set(key, value);
+          return url.pathname + url.search;
+        })() : route,
       state,
       condition: condition(theme, theme),
       shell: { file: file(`${id}-shell.png`), sha256: hash("a"), bytes: 1000 },
@@ -632,4 +638,20 @@ test("independent review binds exact source and capture bytes with both judgment
   assert.throws(() => assertInvestigationReview({ ...review, status: "pending" }, binding), /unaccepted/);
   assert.throws(() => assertInvestigationReview({ ...review, findings: [{ severity: "high", disposition: "open" }] }, binding), /unresolved high/);
   assert.equal(assertInvestigationReview({ ...review, findings: [{ severity: "high", disposition: "resolved" }] }, binding).reviewIdentityMatched, true);
+});
+
+
+test("after capture permits only exact retained context and preserves the prior snapshot selection", () => {
+  const before = makeHalf("before"); const after = makeHalf("after");
+  assert.equal(assertInvestigationPair(before, after).matched, true);
+  for (const suffix of ["&unexpected=1", "&origin=timeline", "&table=tickets"]) {
+    const changed = structuredClone(after); changed.captures[0]!.route += suffix;
+    assert.throws(() => assertInvestigationPair(before, changed), /incomplete or incomparable/);
+  }
+  const changedFilter = structuredClone(after);
+  changedFilter.captures[0]!.route = changedFilter.captures[0]!.route.replace("table=ticket_replies", "table=tickets");
+  assert.throws(() => assertInvestigationPair(before, changedFilter), /incomplete or incomparable/);
+  const changedSnapshot = structuredClone(after);
+  changedSnapshot.captures[2]!.route = changedSnapshot.captures[2]!.route.replace("2026-05-01", "2026-05-02");
+  assert.throws(() => assertInvestigationPair(before, changedSnapshot), /route differs/);
 });

@@ -847,6 +847,20 @@ function validBrowserCondition(condition: any, browser: any): boolean {
     condition?.viewport?.height === 900 && condition?.viewport?.dpr === 1;
 }
 
+function exactAfterContext(url: URL, timeline: URL, history: boolean): boolean {
+  const keys = ["origin", "from", "to", "table", "correlation_id", ...(history ? ["as_of"] : [])].sort();
+  return JSON.stringify([...url.searchParams.keys()].sort()) === JSON.stringify(keys) &&
+    url.searchParams.get("origin") === "timeline" &&
+    ["from", "to", "table", "correlation_id"].every((key) => url.searchParams.get(key) === timeline.searchParams.get(key)) &&
+    (!history || Number.isFinite(Date.parse(url.searchParams.get("as_of") ?? "")));
+}
+
+function captureRouteWithoutAfterContext(route: string): string {
+  const url = new URL(route, "http://127.0.0.1");
+  for (const key of ["origin", "from", "to", "table", "correlation_id"]) url.searchParams.delete(key);
+  return url.pathname + url.search;
+}
+
 function validateHalf(value: any, expectedHalf: "before" | "after") {
   const selected = value?.selected;
   const browser = value?.browser;
@@ -908,16 +922,22 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
     const fontNames = Object.keys(capture.assets?.fonts ?? {}).sort();
     const routeFor = (id: string) => {
       if (id.startsWith("timeline-restored-")) return capture.route === journey.timelineUrl && capture.state === "filtered-timeline-return";
-      if (id.startsWith("transaction-")) return capture.route === `/audit/transactions/${selected.transactionId}` && capture.state === "transaction-detail";
+      if (id.startsWith("transaction-")) {
+        const url = new URL(capture.route, "http://127.0.0.1");
+        return url.pathname === `/audit/transactions/${selected.transactionId}` && capture.state === "transaction-detail" &&
+          (expectedHalf === "after" ? exactAfterContext(url, route!, false) : url.search === "");
+      }
       if (id.startsWith("ticket-prior-")) {
         const url = new URL(capture.route, "http://127.0.0.1");
         return url.pathname === `/audit/transactions/${selected.transactionId}/history/tickets/${selected.ticketId}` &&
-          url.searchParams.has("as_of") && capture.state === "prior-ticket-history-snapshot";
+          url.searchParams.has("as_of") && capture.state === "prior-ticket-history-snapshot" &&
+          (expectedHalf !== "after" || exactAfterContext(url, route!, true));
       }
       if (id.startsWith("reply-history-") && mode === "strict-after") {
         const url = new URL(capture.route, "http://127.0.0.1");
         return url.pathname === `/audit/transactions/${selected.transactionId}/history/ticket_replies/${selected.replyId}` &&
-          url.searchParams.has("as_of") && capture.state === "transaction-origin-reply-history";
+          exactAfterContext(url, route!, true) && Date.parse(url.searchParams.get("as_of")!) === Date.parse(selected.eventTime) &&
+          capture.state === "transaction-origin-reply-history";
       }
       if (id.startsWith("reply-history-") && mode === "legacy-before") {
         const url = new URL(capture.route, "http://127.0.0.1");
@@ -1049,7 +1069,9 @@ export function assertInvestigationPair(before: unknown, after: unknown) {
   for (const capture of a.captures as any[]) {
     const previous: any = byId.get(capture.id);
     const routeMayDiffer = capture.id.startsWith("reply-history-");
-    if (!previous || (!routeMayDiffer && (previous.route !== capture.route || previous.state !== capture.state)) ||
+    const comparableRoute = capture.id.startsWith("transaction-") || capture.id.startsWith("ticket-prior-")
+      ? captureRouteWithoutAfterContext(capture.route) : capture.route;
+    if (!previous || (!routeMayDiffer && (previous.route !== comparableRoute || previous.state !== capture.state)) ||
         JSON.stringify(previous.condition) !== JSON.stringify(capture.condition)) {
       throw new Error(`Pair capture condition or route differs for ${capture.id}`);
     }
