@@ -1,9 +1,9 @@
 ---
 phase: "250"
 slug: "brand-foundation-and-first-whole-investigation"
-status: in_progress
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-12"
 ---
 
@@ -50,8 +50,8 @@ Completed rows below link the current plan-level proof and its limits; remaining
 | 06.2 | 6 | ADM-13/16; shared typed loading/meaning and accepted/completed controls | C23, C08 | T-250-11, T-250-12 | passed assigned scope; phase-wide acceptance pending ([summary](250-06-SUMMARY.md)) |
 | 07.1 | 7 | ADM-13/16/17; exact values/UTC/count/missing/unavailable transaction | C04, C24 | T-250-13, T-250-14 | pending execution |
 | 07.2 | 7 | ADM-13/16/17; exact history/exception/full-ID/return/corpus contracts | C25, C08 | T-250-13, T-250-14 | pending execution |
-| 08.1 | 8 | ADM-08–14/16/17; controlled clipboard/fonts/theme/responsive and matching after | C04, C26, C27, C28, C02, C29 | T-250-15, T-250-16 | affected automated proof passed; independent acceptance pending ([evidence](250-PAIR-EVIDENCE.md)) |
-| 08.2 | 8 | ADM-08–14/16/17; current parent review, pair identity and honest evidence limits | C30, C08 | T-250-15, T-250-16 | pending execution |
+| 08.1 | 8 | ADM-08–14/16/17; controlled clipboard/fonts/theme/responsive and matching after | C04, C26, C27, C28, C02, C29 | T-250-15, T-250-16 | passed affected automated and independent review scope; phase goal pending ([evidence](250-PAIR-EVIDENCE.md)) |
+| 08.2 | 8 | ADM-08–14/16/17; current parent review, pair identity and honest evidence limits | C30, C08 | T-250-15, T-250-16 | passed current pair/review identity and independent confirmation ([evidence](250-PAIR-EVIDENCE.md)) |
 
 ## Command Catalog and Failing Direction
 
@@ -123,7 +123,7 @@ Every command assumes checkout root. New test/helper paths are intentionally cre
 ## Claim and Source Equality Map
 
 - All nine requirements appear in plan frontmatter; 250-SOURCE-AUDIT.md maps goal criteria, all15 decisions, research constraints, all38 exact UI truths and all13 edge rows.
-- UI38 are planned obligations: E1/E2→06, E3→07, E4→04, E5/E6→08 with03 font and05 docs/archive prerequisite proofs. Exact text is preserved in must_haves, not relabeled as runtime passes.
+- UI38 evidence is mapped in250-PAIR-EVIDENCE.md at its actual source/renderer/live/browser boundary: E1/E2→06, E3→07, E4→04, E5/E6→08 with03 font and05 docs/archive prerequisite proofs. Exact text is preserved in must_haves, not relabeled as runtime passes.
 - Eight explicit edge resolutions are lifted exactly; five unclassified/unresolved taxonomy gaps remain08 flagged assumptions. Actual requirements remain mandatory; taxonomy uncertainty is not feature deferral.
 - Three bespoke intent prohibitions were serialized through projectProhibitions descriptor-less and remain flagged-unverified. Independent automated judgment is not human attestation or risk acceptance.
 - Sixteen unique numbered phase threats are mapped above, with reserved T-250-SC repeated by convention. Each has severity/disposition/specific mitigation; high blocks affected acceptance.
@@ -161,6 +161,14 @@ None. Automate behavior/accessibility/asset proofs and independent agent judgmen
 - [ ] Independent review resolves material issues.
 - [ ] Owning validation workflow sets nyquist_compliant only after evidence.
 
-Approval: pending automated execution and validation.
+Approval: automated selected execution and independent bounded review verified; phase goal verification pending.
 
 Plan05 follow-through keeps new docs checks explicitly scoped to their supplied private URL. The existing Home cases remain discoverable without it; selecting only the docs file without its URL fails with zero tests. Actual emitted inline JavaScript is compiled before browser execution, and parent readiness binds both the redirect index and the served README carrying that hook. The final two-case C20 JSON passed with no skips/retries/errors; earlier failures and the original Task2 TDD sequencing deviation remain in the summary. These are bounded local checks, not a full canonical/browser-matrix result.
+
+## Validation Audit 2026-11-12
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
