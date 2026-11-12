@@ -181,13 +181,24 @@ test("theme preference, effective cascade and reduced motion are distinct observ
 
     const diagnosticOutput = process.env.THREADLINE_PHASE250_DIAGNOSTIC_OUTPUT;
     const focusDiagnostics: unknown[] = [];
+    const focusCascadeDiagnostics: unknown[] = [];
     const fixtureMarkup = readFileSync(join(paths.repositoryRoot, "test/fixtures/style/operator_surface.css"), "utf8");
     const fixturePrefix = "<style>";
     const fixtureSuffix = "</style>";
     const fixtureBody = fixtureMarkup.startsWith(fixturePrefix) && fixtureMarkup.endsWith(fixtureSuffix)
       ? fixtureMarkup.slice(fixturePrefix.length, -fixtureSuffix.length)
       : null;
-    const captureFocusDiagnostic = async (target: Locator) => {
+    const writeFocusDiagnostics = () => {
+      if (diagnosticOutput) {
+        writeFileSync(
+          diagnosticOutput,
+          `${JSON.stringify({ title, route: "/audit", focusDiagnostics, focusCascadeDiagnostics }, null, 2)}\n`,
+          { mode: 0o600 },
+        );
+      }
+    };
+
+    const captureFocusDiagnostic = async (target: Locator, phase: "initial" | "settled" = "initial") => {
       const observed = await target.evaluate((element) => {
         const active = document.activeElement;
         const computed = getComputedStyle(element);
@@ -276,6 +287,14 @@ test("theme preference, effective cascade and reduced motion are distinct observ
             focusColorToken: computed.getPropertyValue("--tl-color-border-focus").trim(),
             focusRingToken: computed.getPropertyValue("--tl-focus-ring").trim(),
           },
+          inlineStyle: {
+            attribute: element.getAttribute("style"),
+            outline: element.style.getPropertyValue("outline"),
+            outlineWidth: element.style.getPropertyValue("outline-width"),
+            outlineStyle: element.style.getPropertyValue("outline-style"),
+            outlineColor: element.style.getPropertyValue("outline-color"),
+            outlineOffset: element.style.getPropertyValue("outline-offset"),
+          },
           styleBlocks,
           matchedRules,
         };
@@ -290,6 +309,7 @@ test("theme preference, effective cascade and reduced motion are distinct observ
       }));
       const record = {
         sequence: focusDiagnostics.length + 1,
+        phase,
         source: "mounted browser CSSOM and computed styles",
         fixtureSha256: createHash("sha256").update(fixtureMarkup).digest("hex"),
         fixtureBodySha256: fixtureBody === null ? null : createHash("sha256").update(fixtureBody).digest("hex"),
@@ -297,10 +317,101 @@ test("theme preference, effective cascade and reduced motion are distinct observ
         styleBlocks: blocks,
       };
       focusDiagnostics.push(record);
-      if (diagnosticOutput) {
-        writeFileSync(diagnosticOutput, `${JSON.stringify({ title, route: "/audit", focusDiagnostics }, null, 2)}\n`, { mode: 0o600 });
-      }
+      writeFocusDiagnostics();
       return record;
+    };
+
+    const captureFocusCascadeDiagnostic = async (target: Locator, sequence: number) => {
+      const elementState = await target.evaluate((element) => ({
+        styleAttribute: element.getAttribute("style"),
+        animations: element.getAnimations().map((animation) => {
+          const effect = animation.effect;
+          const timing = effect?.getTiming();
+          const computedTiming = effect?.getComputedTiming();
+          return {
+            playState: animation.playState,
+            pending: animation.pending,
+            currentTime: animation.currentTime,
+            startTime: animation.startTime,
+            transitionProperty: "transitionProperty" in animation ? animation.transitionProperty : null,
+            timing: timing ? {
+              delay: timing.delay,
+              duration: timing.duration,
+              endDelay: timing.endDelay,
+              fill: timing.fill,
+              iterationStart: timing.iterationStart,
+              iterations: timing.iterations,
+              direction: timing.direction,
+              easing: timing.easing,
+            } : null,
+            computedTiming: computedTiming ? {
+              progress: computedTiming.progress,
+              currentIteration: computedTiming.currentIteration,
+              endTime: computedTiming.endTime,
+            } : null,
+            keyframes: effect?.getKeyframes().map((keyframe) => ({
+              outline: keyframe.outline,
+              outlineWidth: keyframe.outlineWidth,
+              outlineStyle: keyframe.outlineStyle,
+              outlineColor: keyframe.outlineColor,
+              outlineOffset: keyframe.outlineOffset,
+            })) ?? [],
+          };
+        }),
+      }));
+      const cdp = await page.context().newCDPSession(page);
+      try {
+        const sheetSources = new Map<string, string>();
+        cdp.on("CSS.styleSheetAdded", ({ header }) => sheetSources.set(header.styleSheetId, header.sourceURL));
+        await cdp.send("DOM.enable");
+        await cdp.send("CSS.enable");
+        const { root: documentNode } = await cdp.send("DOM.getDocument");
+        const value = await target.getAttribute("value");
+        const { nodeId } = await cdp.send("DOM.querySelector", {
+          nodeId: documentNode.nodeId,
+          selector: `button[name="theme"][value="${value}"]`,
+        });
+        if (!nodeId) throw new Error("Could not resolve the focused theme button through Chromium DOM");
+        const matched = await cdp.send("CSS.getMatchedStylesForNode", { nodeId });
+        const computed = await cdp.send("CSS.getComputedStyleForNode", { nodeId });
+        const focusProperties = (properties: Array<{ name: string; value: string; important?: boolean }>) =>
+          properties
+            .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+            .map(({ name, value: propertyValue, important }) => ({ name, value: propertyValue, important: Boolean(important) }));
+        const matchedRules = (matched.matchedCSSRules ?? []).map(({ rule }) => ({
+          origin: rule.origin,
+          sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+          selector: rule.selectorList.text,
+          declarations: focusProperties(rule.style.cssProperties),
+        })).filter(({ declarations }) => declarations.length > 0);
+        const pseudoRules = (matched.pseudoElements ?? []).map(({ pseudoType, matches }) => ({
+          pseudoType,
+          rules: matches.map(({ rule }) => ({
+            origin: rule.origin,
+            sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+            selector: rule.selectorList.text,
+            declarations: focusProperties(rule.style.cssProperties),
+          })).filter(({ declarations }) => declarations.length > 0),
+        })).filter(({ rules }) => rules.length > 0);
+        const computedOutline = (computed.computedStyle ?? [])
+          .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+          .map(({ name, value: propertyValue }) => ({ name, value: propertyValue }));
+        const diagnostic = {
+          sequence,
+          source: "Chromium CDP DOM/CSS matched styles",
+          elementState,
+          inlineStyle: matched.inlineStyle ? focusProperties(matched.inlineStyle.cssProperties) : [],
+          attributeStyle: matched.attributesStyle ? focusProperties(matched.attributesStyle.cssProperties) : [],
+          matchedRules,
+          pseudoRules,
+          computedOutline,
+        };
+        focusCascadeDiagnostics.push(diagnostic);
+        writeFocusDiagnostics();
+        return diagnostic;
+      } finally {
+        await cdp.detach();
+      }
     };
 
     const focusByKeyboard = async (target: Locator) => {
@@ -308,10 +419,33 @@ test("theme preference, effective cascade and reduced motion are distinct observ
         if (await target.evaluate((element) => document.activeElement === element)) break;
         await page.keyboard.press("Tab");
       }
-      const focused = await captureFocusDiagnostic(target);
-      expect(focused.target.active).toBe(true);
-      expect(focused.target.matchesFocusVisible).toBe(true);
-      expect(focused.computed).toMatchObject({ outlineWidth: "2px", outlineStyle: "solid" });
+      const initial = await captureFocusDiagnostic(target, "initial");
+      const expectedFocus = {
+        target: { active: true, matchesFocusVisible: true },
+        computed: { outlineWidth: "2px", outlineStyle: "solid", outlineOffset: "2px" },
+      };
+      const isSettled = initial.target.active && initial.target.matchesFocusVisible &&
+        initial.computed.outlineWidth === "2px" && initial.computed.outlineStyle === "solid" &&
+        initial.computed.outlineOffset === "2px";
+      if (isSettled) return;
+
+      await captureFocusCascadeDiagnostic(target, initial.sequence);
+      await expect.poll(async () => target.evaluate((element) => {
+        const computed = getComputedStyle(element);
+        return {
+          target: {
+            active: document.activeElement === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineOffset: computed.outlineOffset,
+          },
+        };
+      }), { timeout: 3000, intervals: [50, 100, 250, 500] }).toMatchObject(expectedFocus);
+      const settled = await captureFocusDiagnostic(target, "settled");
+      expect(settled).toMatchObject(expectedFocus);
     };
 
     const activate = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
