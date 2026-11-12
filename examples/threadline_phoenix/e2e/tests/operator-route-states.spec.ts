@@ -182,7 +182,7 @@ test("theme preference, effective cascade and reduced motion are distinct observ
     const diagnosticOutput = process.env.THREADLINE_PHASE250_DIAGNOSTIC_OUTPUT;
     const focusDiagnostics: unknown[] = [];
     const fixtureMarkup = readFileSync(join(paths.repositoryRoot, "test/fixtures/style/operator_surface.css"), "utf8");
-    const fixturePrefix = "<style>\n";
+    const fixturePrefix = "<style>";
     const fixtureSuffix = "</style>";
     const fixtureBody = fixtureMarkup.startsWith(fixturePrefix) && fixtureMarkup.endsWith(fixtureSuffix)
       ? fixtureMarkup.slice(fixturePrefix.length, -fixtureSuffix.length)
@@ -345,7 +345,7 @@ test("theme preference, effective cascade and reduced motion are distinct observ
     const disclosure = page.locator(".tl-shell-nav__disclosure");
     await disclosure.locator("summary").click();
     await expect(disclosure).toHaveAttribute("open", "");
-    await expect(buttons).toBeVisible();
+    for (const button of await buttons.all()) await expect(button).toBeVisible();
     await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toBeVisible();
     const narrow = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
     expect(narrow.document - narrow.viewport).toBeLessThanOrEqual(1);
