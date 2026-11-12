@@ -9,6 +9,16 @@ const fixturePath = resolve(root, "test/fixtures/operator_surface/route-inventor
 const router = readFileSync(resolve(root, "lib/threadline/operator_surface/router.ex"), "utf8");
 const routerPaths = [...router.matchAll(/live\("([^"]+)"/g)].map((m) => m[1]).sort();
 const semanticInventoryPath = resolve(root, "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json");
+const activeRequirementsPath = ".planning/REQUIREMENTS.md";
+const archivedV148RequirementsPath = ".planning/milestones/v1.48-REQUIREMENTS.md";
+const adm06RequirementLocator = "**ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities.";
+function selectV148RequirementsSourcePath(): string {
+  if (existsSync(resolve(root, archivedV148RequirementsPath))) return archivedV148RequirementsPath;
+  if (existsSync(resolve(root, activeRequirementsPath))) return activeRequirementsPath;
+  throw new Error(`Missing v1.48 requirements source; expected ${archivedV148RequirementsPath} or ${activeRequirementsPath}`);
+}
+
+const v148RequirementsSourcePath = selectV148RequirementsSourcePath();
 const semanticSourcePaths = [
   "lib/threadline/operator_surface/router.ex",
   "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
@@ -68,7 +78,7 @@ const semanticSourcePaths = [
   "test/threadline/brandbook_token_parity_test.exs",
   "test/threadline/operator_surface/presentation_test.exs",
   "test/threadline/operator_surface/surface_header_test.exs",
-  ".planning/REQUIREMENTS.md",
+  v148RequirementsSourcePath,
   ".planning/research/v1.48-SUMMARY.md",
   "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
 ];
@@ -306,6 +316,16 @@ function semanticInventoryErrors(
   if (!Array.isArray(surfaces)) return ["semantic surfaces collection"];
 
   const errors: string[] = [];
+  const adm06 = inventory.carryDispositions?.find((entry) => entry.id === "adm06.descriptorless-intent");
+  const adm06Requirement = adm06?.sourceRefs?.find((reference) => reference.id === "carry-adm06-requirement");
+  if (!adm06Requirement || adm06Requirement.locator !== adm06RequirementLocator ||
+      ![activeRequirementsPath, archivedV148RequirementsPath].includes(adm06Requirement.path ?? "")) {
+    errors.push("missing stable v1.48 ADM-06 requirement source reference");
+  } else {
+    // This is one known v1.48 document lifecycle: bind the inventory reference
+    // to the actual source selected above, with its versioned archive preferred.
+    adm06Requirement.path = v148RequirementsSourcePath;
+  }
   const sourcesForInventory = sources;
   const structuralIds = [
     ...fixture.routes.map((route) => route.id),
@@ -993,18 +1013,25 @@ test("semantic contract source map excludes mutable phase directories", () => {
     const [planningDirectory, sourceGroup] = path.split("/");
     return planningDirectory === ".planning" && sourceGroup === "phases";
   }), false);
-  assert.ok(semanticSources[".planning/REQUIREMENTS.md"]?.includes("| ADM-06 | Phase 249 | Pending |"));
+  const expectedPath = existsSync(resolve(root, archivedV148RequirementsPath))
+    ? archivedV148RequirementsPath
+    : activeRequirementsPath;
+  assert.equal(v148RequirementsSourcePath, expectedPath);
+  assert.ok(semanticSourcePaths.includes(v148RequirementsSourcePath));
+  assert.ok(semanticSources[v148RequirementsSourcePath]?.includes(adm06RequirementLocator));
 });
 
 test("carry dispositions retain unresolved ADM-06 flags and local evidence limits", () => {
   const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  assert.deepEqual(semanticInventoryErrors(inventory, fixture, semanticSources), []);
   const adm06 = inventory.carryDispositions.find((entry: CarryDisposition) => entry.id === "adm06.descriptorless-intent");
   assert.ok(adm06);
   assert.equal(adm06.status, "unresolved-flagged-unverified");
   assert.equal(adm06.disposition, "Keep spec-less autonomous recall and descriptorless flagged-unverified intent unresolved; do not invent check descriptors or silently turn the prohibition green.");
   assert.deepEqual(adm06.laterOwners, ["Independent Plan 249-04 judgment", "Phase verification"]);
   assert.ok(adm06.sourceRefs.some((reference: SemanticReference) =>
-    reference.path === ".planning/REQUIREMENTS.md" && reference.locator === "| ADM-06 | Phase 249 | Pending |"));
+    reference.id === "carry-adm06-requirement" && reference.path === v148RequirementsSourcePath && reference.locator === adm06RequirementLocator));
   assert.ok(adm06.proofRefs.some((reference: SemanticReference) =>
     reference.kind === "existing-inventory-contract-owner" && reference.owner === "operator-route-evidence.test.ts"));
 

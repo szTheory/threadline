@@ -2211,12 +2211,12 @@
         {
           "id": "carry-adm06-requirement",
           "path": ".planning/REQUIREMENTS.md",
-          "locator": "- [ ] **ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities."
+          "locator": "**ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities."
         },
         {
-          "id": "carry-adm06-pending-status",
-          "path": ".planning/REQUIREMENTS.md",
-          "locator": "| ADM-06 | Phase 249 | Pending |"
+          "id": "carry-adm06-approved-scope",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "249: map jobs/scenarios and approved brand contract (ADM-05–07)."
         }
       ],
       "proofRefs": [
