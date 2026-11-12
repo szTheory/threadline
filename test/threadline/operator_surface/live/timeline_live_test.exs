@@ -1553,6 +1553,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Row history"
     end
 
+    test "explicit empty from marker follows transaction and row-history links", %{conn: conn} do
+      change =
+        seed_change!(
+          table_schema: "support",
+          table: "tickets",
+          table_pk: %{"id" => "ticket-blank-marker"}
+        )
+
+      assert {:ok, _lv, html} = live(conn, "/audit_schema/timeline?from=")
+
+      assert html =~
+               ~s|href="/audit_schema/transactions/#{change.transaction_id}?origin=timeline&amp;from="|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/support.tickets/ticket-blank-marker?origin=timeline&amp;from="|
+    end
+
     defp clear_audit_rows! do
       Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
       Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
