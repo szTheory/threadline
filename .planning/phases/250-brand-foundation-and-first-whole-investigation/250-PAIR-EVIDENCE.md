@@ -7,8 +7,8 @@ The ordinary support investigation now opens the actual close transaction, inspe
 ## Identity and observations
 
 - Before runtime revision: `ce7daf984af1cd8acfed09be7c213b335d2e6b09`. Parent-selected candidate capsule digest: `ab1a0fbbbd92fcdc478e6284c0f26d74ffe014fc764c55855bdd1d637d87f293`.
-- After runtime revision: `bec1756eac5259c801c206adc0df31a25a9e0404`. Capture capsule digest: `3b5b5417f4cbbe0849dd186ae66e2c537e0cbeadcb2080c9c38872a423623e24`.
-- Current test/proof revision: `21d32ef7a13d7440417c35a4e2648f1989191a7e`; runtime source inventories contain the same35 core files in serving and test checkouts, plus the startup-bound Timeline return helper. Source/asset digests establish custody, not UI behavior.
+- After runtime revision: `395f0b5afcfd0bd84f39a9dbe62dc9f01045c41c`. Capture capsule digest: `80bdaa57b2e16669a995f0ea0e02ec40458b2113968682757adc22da313fd5ac`.
+- Current test/proof revision: `13dae295e4185afd1311e26a5dfd22e2b243ac2a`; runtime source inventories contain the same35 core files in serving and test checkouts, plus the startup-bound Timeline return helper. Source/asset digests establish custody, not UI behavior.
 - Original dedicated database `threadline_phoenix_testp250pair`, partition `p250pair` and owned HTTP port `60150` are equal between halves. One materialization; no reset/reseed.
 - Materialization digest: `163b1003612e386e3612ad478ca518ab12f69a8c6a96c4aed30bb1f04e971143`. Prior-history digest: `9ba494ce33ce130528049d0c7fcbf4d5ded7d99b99c389704e8aaec715dbe972` with3 changes.
 - Correlation `walk-acme-4521-close`; action `ticket_replied_and_closed` / `c5c875c0-ed40-45c2-908e-925872fce082`; transaction `de666048-6343-432a-b800-b4ac5d41e749`.
@@ -22,7 +22,7 @@ The ordinary support investigation now opens the actual close transaction, inspe
 
 | Boundary | Actual evidence |
 |---|---|
-| Stylesheet | Before `eaa6661249378705e1445c2fde5075c31e8884cf424d5e069f71e85f9b8b9631`; after `f24b4822f43fdb0722206a0de50aa06f7d5f35c0de2c868050fdacd9c73b1fe0`. Current bytes match all nine source segments. |
+| Stylesheet | Before `eaa6661249378705e1445c2fde5075c31e8884cf424d5e069f71e85f9b8b9631`; after `e4d20948db3382a3d6f870d26885d3127977b7006ef18077a740eaf77cbda7b9`. Current bytes match all nine source segments. |
 | Typography | Four supplied WOFF2 byte identities and descriptors; Familjen Grotesk heading28/600, Geist body16/400, Plex Mono ID13/400 with19.5px line height and tabular numerals. Private aliases preserve host family names. |
 | Artwork | Supplied paired lockup paths/viewBox/paint match; Admin accessible home name and minimum96px width fit both1280/375 lanes. Linked supplied favicon paints at16px; native browser-tab geometry is unmeasured. |
 | Contrast/focus | All eight approved contrast IDs map to scoped semantic tokens in both lanes. Actual heading/body/ID/logo and keyboard-visible2px focus are observed separately; token samples are not a pixel-wide accessibility audit. Operation words and source role distinctions remain covered by Plan02. |
@@ -32,9 +32,9 @@ The ordinary support investigation now opens the actual close transaction, inspe
 | Theme | Affected current2px focus/theme gate passed its exact single case, with System selection separate from device/effective scheme and native immediate form behavior. |
 | Current generated docs | Fresh warnings-as-errors build; two brand cases passed with zero skips/retries/flakes. Both first-viewport theme screenshots retained for independent review. Current generated README digest `cbadf2c322f6bc6cf91c4b2d2cbbc559fd5ba0ae4c20b5960caff52a082377c0`. |
 | Package | Plan05 inspected the real unpacked Hex archive: exact ten approved SVG/WOFF2/OFL assets and mutation/missing/extra controls. ExDoc imports only its selected SVGs. This is local package evidence, not publication. |
-| Helper/build contracts |20 pair/review/helper tests passed, including exact context/changed snapshot and missing/stale review controls.28 affected component/live/structure checks passed after adding the drawer copy control. Test-environment warnings-as-errors compilation and canonical format check passed. |
+| Helper/build contracts |21 pair/review/helper tests passed, including exact context/changed snapshot and missing/stale review controls.28 affected component/live/structure checks passed after adding the drawer copy control. The76 font/style/byte-lock contracts, test-environment warnings-as-errors compilation and canonical format check passed. |
 
-Default/disabled/theme observations predate only the shared drawer reference and pure pair/review validator corrections. Their observed Timeline/Actor consumers, CSS/fonts/theme/script bytes are unchanged. The accepted fresh after captures the corrected drawer with current served asset bytes. No broader browser/toolchain/full-root result is inferred.
+Default5, disabled1, theme1 and strict-after1 now all have fresh first-attempt proof at the review-corrected runtime source, with zero skips/retries/flakes. The final after geometry observation puts each ticket/reply drawer title at80px, below the45px app bar. Generated ExDoc inputs remain unchanged by these runtime-only CSS/helper corrections; its current build/two cases/screenshots remain applicable. No broader browser/toolchain/full-root result is inferred.
 
 ## Failure disposition
 
@@ -99,3 +99,5 @@ The pair validator now requires exact retained origin/filter keys for after tran
 Five unclassified requirement taxonomy signals remain **unresolved flagged assumptions**. Three descriptor-less prohibitions remain **flagged-unverified**, without fabricated wired checks, human attestation or automatic risk acceptance. Independent bounded judgment is recorded separately in [review](250-REVIEW.md). No reachable unresolved high/critical security finding may be accepted.
 
 Phase253 comprehensive docs/package/browser/toolchain/hosted release proof and live REL-01 remain outside this result. No full-root repeat, version bump, push, hosted dispatch or publication authority was renewed. The local owned service/data receipts and detailed invocation reports remain private; committed links stay repository-relative.
+
+Independent first-round warnings were addressed by rejecting external/protocol-relative/backslash/control/fragment routes, insetting only row-history drawers below the actual shell bar with an after geometry guard, and removing panel/metric card emphasis from editable filters. The context-specific existing transaction recovery copy is now declared in the current UI-SPEC; no runtime destination was changed. The same reviewers confirm only these bounded deltas against the final capture; original reports stay preserved.
