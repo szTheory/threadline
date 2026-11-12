@@ -11,9 +11,15 @@ provides:
   - "Explicit unfiltered from= marker preservation and path/query identity separation."
 affects: ["Phase 250 Plan 08", "Admin investigation journeys"]
 actuals:
-  tokens: null
+  tokens: 22026259
+  executor_usage:
+    input_tokens: 21897449
+    cached_input_tokens: 21457408
+    output_tokens: 128810
+    reasoning_output_tokens: 84118
+  managed_executor_seconds: 2694.987
   tasks: 2
-  commits: 4
+  commits: 5
   plan_head_before: 4ad59ed1549b0cba6c3c7a29c96d9fbb1a7fef64
   plan_head_after: 21d317a7f00e3d70395e54c447b98d9b0f2762b5
 tech-stack:
@@ -34,6 +40,7 @@ key-files:
     - "test/threadline/operator_surface/transaction_live_test.exs"
     - "test/threadline/operator_surface/live/timeline_live_test.exs"
     - "test/threadline/operator_surface/live/row_history_live_test.exs"
+    - "test/threadline/operator_surface/rendered_output_contract_test.exs"
 key-decisions:
   - "Reuse FilterParams parsing and Query timeline validation; invalid retained context falls back to direct-entry routes."
   - "Keep route table identity from the row path even when query table filters name another table."
@@ -43,9 +50,9 @@ patterns-established:
   - "Timeline links serialize only validated supported raw filters and the existing origin=timeline marker."
   - "Row-history URI filters are decoded separately from route table and record identity."
 requirements-completed: []
-duration: null
+duration: "45min"
 completed: 2026-11-12
-status: halted
+status: complete
 coverage:
   - id: D1
     description: "Transaction details preserve action, DB transaction, row-change, actor, exact-value, time, and unavailable-state distinctions."
@@ -59,7 +66,7 @@ coverage:
     requirement: "ADM-14"
     verification:
       - kind: integration
-        ref: "test/threadline/operator_surface/live/transaction_live_test.exs#Timeline-origin transaction preserves validated filters on return and history links"
+        ref: "test/threadline/operator_surface/transaction_live_test.exs#Timeline-origin transaction preserves validated filters on return and history links"
         status: pass
       - kind: integration
         ref: "test/threadline/operator_surface/live/row_history_live_test.exs#timeline origin preserves validated filters separately from row identity"
@@ -152,7 +159,7 @@ None — the planned route owners and existing public query names were retained.
 
 ## Issues Encountered
 
-The full Task 2 verification command remains non-green because the row-history structure receipt mismatch is present with pre-task row-history source. It is recorded in deferred-items.md for parent triage. An initial diagnostic attempt to restore those files was blocked by the local Git metadata permission boundary before any file changed; the files were verified intact, then the diagnostic was run with scoped Git access and the task edits were restored.
+The initial full Task 2 verification failed on a row-history structure receipt already mismatched with pre-task history source. Parent resolved this gate with the causal comparison and narrow current receipt described below; the original failure remains recorded. An initial diagnostic attempt to restore those files was blocked by the local Git metadata permission boundary before any file changed; the files were verified intact, then the diagnostic was run with scoped Git access and the task edits were restored.
 
 No browser keyboard, deferred clipboard, or rendered-overflow proof is claimed here; Plan 08 owns that browser journey.
 
@@ -162,7 +169,7 @@ None — no external service configuration is required.
 
 ## Next Phase Readiness
 
-The mounted return-context behavior is ready for Plan 08’s whole-browser-flow proof after the parent integrates the committed sources and records the serving-source provenance. Parent should triage the existing row-history receipt mismatch before phase verification. The current test checkout and parent-served checkout remain distinct; no browser proof was performed from this worktree.
+The mounted return-context behavior is ready for Plan 08’s whole-browser-flow proof after the parent integrates the committed sources and records the serving-source provenance. Parent causally reconciled the receipt and the combined affected suite now passes. Actual retained-app startup provenance and the whole browser flow remain Plan08 obligations. The current test checkout and parent-served checkout remain distinct; no browser proof was performed from this worktree.
 
 ## Self-Check: PASSED
 
@@ -170,6 +177,14 @@ All nine task source/test files, the deferred issue note, and the four task comm
 
 ---
 *Phase: 250-brand-foundation-and-first-whole-investigation*
-*Implementation complete; verification pending parent reconciliation.*
+*Completed: 2026-11-12 after parent integration verification.*
 
-Parent intake: the required corpus gate remains failed. Plan acceptance is pending the declared causal comparison and current scoped integration check. The executor completion label above does not accept this failure.
+## Parent integration reconciliation
+
+The original executor completion label was held pending the failed corpus gate. The parent integrated the committed sources through the declared GSD manifest and corrected the summary to pending before accepting the plan.
+
+The current shell failed the historical receipt. Restoring only the previous header and logo made all seven historical receipts pass; exact current source bytes were then restored. The approved supplied artwork changes the logo from13 elements to9, and the immediate theme controls from7 to9, accounting for the net118→116 shell elements. The current shell digest changed with those approved structures and accessible names. Only the current row_history.shell receipt is new; every historical receipt, the other six current pins, selectors, canonicalizer and mutation negative controls remain intact. This is an attributed migration, not blind regeneration.
+
+On the restored current source, the union of both plan verification commands passed:243 tests,0 failures. Warnings-as-errors compilation, mix verify.format and git diff --check passed. The corpus gate is closed; deferred-items.md retains its original report and resolved disposition. This is scoped integration evidence, not a new full-root or browser result. Independent phase review still inspects the correction in Plan08.
+
+Duration is the actual managed executor span. Usage comes from the executor terminal event: cached input is included in input_tokens and reasoning output is included in output_tokens; neither subset is added twice. Parent reconciliation usage is not available. Phase-wide requirements remain pending and no rendered whole-flow claim is made here.

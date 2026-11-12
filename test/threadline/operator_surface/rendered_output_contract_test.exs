@@ -141,6 +141,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         sha256: "eb676f68c6ff8f1073d2974ca829b9997a4695ad5734cc8ac2027dd676833c2a"
       }
     }
+    # Plans 250-02/04 deliberately replace the shell logo and theme controls.
+    # A causal comparison with only the prior header/logo restored passed all
+    # seven historical receipts. Keep those receipts intact and change only the
+    # current shell pin; the other six current structures retain their pins.
+    @phase_250_receipts Map.put(@phase_240_receipts, "row_history.shell", %{
+                          elements: 116,
+                          sha256:
+                            "1527bbb72674a8b5e493c2e9242ef257479ccf44412ae3f50698b112cb19bdb6"
+                        })
+
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
 
     setup_all do
@@ -297,16 +307,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                scan_planning_vocabulary("host-data-control", "Customer note for Phase 201")
     end
 
-    test "seven current structures match the reviewed Phase 240 receipts", %{conn: conn} do
+    test "seven current structures match the Phase 250 brand migration receipts", %{conn: conn} do
       receipts =
         conn
         |> representative_render_inventory()
         |> Map.new(fn {node_id, html} -> {node_id, structure_receipt(node_id, html)} end)
 
-      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_240_receipts) |> Enum.sort()
+      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_250_receipts) |> Enum.sort()
       assert Enum.all?(receipts, fn {_id, receipt} -> receipt.elements > 0 end)
 
-      assert receipts == @phase_240_receipts
+      assert receipts == @phase_250_receipts
     end
 
     test "canonical structure ignores copy and provenance but detects meaningful mutations" do
