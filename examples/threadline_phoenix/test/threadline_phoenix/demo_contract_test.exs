@@ -11,8 +11,9 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   alias Threadline.Governance.ExportJob
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.StorageSchema
-  alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
+  alias ThreadlinePhoenix.Accounts
   alias ThreadlinePhoenix.Accounts.User
+  alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
   alias ThreadlinePhoenix.HelpDesk.{Agent, OrgMembership, Organization, Ticket}
   alias ThreadlinePhoenix.Repo
 
@@ -226,7 +227,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   end
 
   describe "seed setup snapshots" do
-    test "organization, user, membership, agent and base ticket writes use setup S" do
+    test "audited setup and base ticket writes use S while Sigra users use the reset window",
+         %{seed_started_at: seed_started_at, seed_finished_at: seed_finished_at} do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         acme = Repo.get_by!(Organization, slug: "acme")
         setup_at = DateTime.add(Manifest.epoch(), -21, :day)
@@ -262,12 +264,46 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         memberships = Repo.all(OrgMembership)
         agents = Repo.all(Agent)
 
+        expected_users =
+          Manifest.user_ids()
+          |> Enum.map(fn {key, id} -> {Manifest.user_email(key), id} end)
+          |> Kernel.++([
+            {"agent2@acme.example.com", "33123cc4-da21-5674-b030-e168cee90521"},
+            {"agent3@acme.example.com", "fa227cac-3ba9-509f-90a0-dbbc32d348ed"},
+            {"agent4@globex.example.com", "27cf320b-2325-5a35-88d0-8e2f0331c368"},
+            {"agent5@globex.example.com", "ca9cb4b7-7e94-5da8-af2f-25eab547597b"},
+            {"agent6@offboarded-co.example.com", "d605cf4b-5448-59b7-9905-3544fe84bf3b"},
+            {"agent7@offboarded-co.example.com", "4d4fa837-6b08-598b-9015-0c23f70532fa"}
+          ])
+
         assert users != []
         assert memberships != []
         assert agents != []
-        assert Enum.all?(users, &(&1.inserted_at == setup_at and &1.updated_at == setup_at))
-        assert Enum.all?(users, &(&1.confirmed_at == setup_at))
-        assert Enum.all?(users, &(&1.password_changed_at == setup_at))
+
+        assert Enum.sort(Enum.map(users, &{&1.email, to_string(&1.id)})) ==
+                 Enum.sort(expected_users)
+
+        reset_window_start = DateTime.truncate(seed_started_at, :second)
+        reset_window_end = DateTime.add(DateTime.truncate(seed_finished_at, :second), 1, :second)
+
+        for user <- users do
+          assert %DateTime{} = user.confirmed_at
+
+          for field <- [:inserted_at, :updated_at, :confirmed_at, :password_changed_at] do
+            timestamp = Map.fetch!(user, field)
+            assert DateTime.compare(timestamp, reset_window_start) in [:gt, :eq]
+            assert DateTime.compare(timestamp, reset_window_end) == :lt
+          end
+        end
+
+        assert %User{id: admin_id, confirmed_at: %DateTime{}} =
+                 Accounts.get_user_by_email_and_password(
+                   Manifest.user_email(:admin),
+                   Manifest.demo_seed_password()
+                 )
+
+        assert to_string(admin_id) == Manifest.user_id(:admin)
+
         assert Enum.all?(memberships, &(&1.inserted_at == setup_at))
         assert Enum.all?(agents, &(&1.inserted_at == setup_at and &1.updated_at == setup_at))
 

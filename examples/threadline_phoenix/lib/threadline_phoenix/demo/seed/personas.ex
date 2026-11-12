@@ -31,8 +31,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
     password = Manifest.demo_seed_password()
     setup_ts = DateTime.add(Manifest.epoch(), -21, :day)
     orgs = upsert_orgs(setup_ts)
-    users = upsert_users(password, setup_ts)
-    users = upsert_extra_users(users, password, setup_ts)
+    users = upsert_users(password)
+    users = upsert_extra_users(users, password)
     ctx = Map.merge(ctx, %{orgs: orgs, users: users})
     seed_memberships(ctx)
   end
@@ -54,52 +54,47 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
     end)
   end
 
-  defp upsert_users(password, setup_ts) do
+  defp upsert_users(password) do
     Manifest.user_ids()
     |> Enum.map(fn {key, _id} ->
       email = Manifest.user_email(key)
-      user = upsert_user!(email, Manifest.user_id(key), password, setup_ts)
+      user = upsert_user!(email, Manifest.user_id(key), password)
       {key, user}
     end)
     |> Map.new()
   end
 
-  defp upsert_extra_users(users, password, setup_ts) do
+  defp upsert_extra_users(users, password) do
     Enum.reduce(@extra_personas, users, fn {key, email, _org}, acc ->
       user_id = UUID.format(UUID.v5_binary(@demo_namespace_bin, "user/#{email}"))
-      Map.put(acc, key, upsert_user!(email, user_id, password, setup_ts))
+      Map.put(acc, key, upsert_user!(email, user_id, password))
     end)
   end
 
-  defp upsert_user!(email, fixed_id, password, setup_ts) do
+  defp upsert_user!(email, fixed_id, password) do
     case Repo.get_by(User, email: email) do
       %User{id: id} = user ->
         if to_string(id) != fixed_id do
           raise "demo seed user #{email} exists with unexpected id #{id}, expected #{fixed_id}"
         end
 
-        maybe_confirm!(user, setup_ts)
+        maybe_confirm!(user)
 
       nil ->
         %User{id: fixed_id}
         |> User.registration_changeset(%{email: email, password: password})
-        |> User.confirm_changeset()
-        |> Ecto.Changeset.put_change(:confirmed_at, setup_ts)
-        |> Ecto.Changeset.put_change(:password_changed_at, setup_ts)
-        |> Support.stamp_insert(setup_ts)
         |> Repo.insert!()
+        |> maybe_confirm!()
     end
   end
 
-  defp maybe_confirm!(%User{confirmed_at: nil} = user, setup_ts) do
+  defp maybe_confirm!(%User{confirmed_at: nil} = user) do
     user
     |> User.confirm_changeset()
-    |> Ecto.Changeset.put_change(:confirmed_at, setup_ts)
-    |> Support.stamp_update(setup_ts)
     |> Repo.update!()
   end
 
-  defp maybe_confirm!(user, _setup_ts), do: user
+  defp maybe_confirm!(user), do: user
 
   defp seed_memberships(ctx) do
     admin_id = to_string(Map.fetch!(ctx.users, :admin).id)
