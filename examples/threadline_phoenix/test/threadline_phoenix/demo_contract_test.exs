@@ -545,7 +545,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         sync_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5005)
         {sync_insert, sync_tx} = captured_change("tickets", "insert", sync_ticket.id)
-        run_now = DateTime.add(sync_tx.occurred_at, 6, :hour)
+        run_now = sync_tx.occurred_at |> DateTime.truncate(:second) |> DateTime.add(6, :hour)
         assert run_now.microsecond == {0, 0}
 
         assert sync_insert.data_after["inserted_at"] ==
@@ -554,6 +554,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert sync_insert.data_after["updated_at"] ==
                  snapshot_timestamp(DateTime.add(run_now, -6, :hour))
 
+        assert sync_insert.data_after["assignee_id"] == to_string(support.id)
         assert sync_tx.actor_ref == %ActorRef{type: :service_account, id: zendesk_id}
 
         reply_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5001)
@@ -583,6 +584,11 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert reply_update_tx.actor_ref == %ActorRef{type: :user, id: closer_id}
 
         reopen_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5002)
+        {reopen_base, _reopen_base_tx} = captured_change("tickets", "insert", reopen_ticket.id)
+        setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+        assert reopen_base.data_after["status"] == "closed"
+        assert reopen_base.data_after["inserted_at"] == snapshot_timestamp(setup_at)
+        assert reopen_base.data_after["updated_at"] == snapshot_timestamp(setup_at)
 
         reopen_updates =
           Repo.all(
@@ -601,7 +607,6 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         [{reopen_change, reopen_tx}, {reassign_change, reassign_tx}] = reopen_updates
         reopen_at = DateTime.add(run_now, -2, :hour)
         reassign_at = DateTime.add(run_now, -110, :minute)
-        assert reopen_change.data_before["status"] == "closed"
         assert reopen_change.data_after["status"] == "open"
         assert is_nil(reopen_change.data_after["closed_at"])
         assert reopen_change.data_after["updated_at"] == snapshot_timestamp(reopen_at)
@@ -613,6 +618,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert DateTime.compare(reassign_tx.occurred_at, reassign_at) == :eq
         assert reassign_tx.actor_ref == %ActorRef{type: :user, id: support_id}
         assert reopen_ticket.status == "in_progress"
+        assert reopen_ticket.assignee_id == support.id
         assert DateTime.compare(reopen_ticket.updated_at, reassign_at) == :eq
 
         reply_delete_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5003)
@@ -638,8 +644,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         spam_delete_at = DateTime.add(run_now, -225, :minute)
         assert spam_insert.data_after["inserted_at"] == snapshot_timestamp(spam_insert_at)
         assert spam_insert.data_after["updated_at"] == snapshot_timestamp(spam_insert_at)
-        assert spam_delete.data_before["inserted_at"] == snapshot_timestamp(spam_insert_at)
         assert spam_delete.data_after == nil
+        assert spam_delete.table_pk["id"] == spam_insert.table_pk["id"]
         assert DateTime.compare(spam_insert_tx.occurred_at, spam_insert_at) == :eq
         assert DateTime.compare(spam_delete_tx.occurred_at, spam_delete_at) == :eq
         assert spam_insert_tx.actor_ref == %ActorRef{type: :anonymous, id: nil}
@@ -652,7 +658,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.table_name == "tickets",
               where: ac.op == "insert",
               where: fragment("?->>'number' = ?", ac.data_after, ^"5004"),
-              where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(acme.id)),
+              where: fragment("?->>'organization_id' = ?", ac.data_after, ^to_string(acme.id)),
               select: {ac, at}
             ),
             StorageSchema.repo_opts()
@@ -666,7 +672,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert is_nil(ticket_5004_insert_tx.actor_ref)
         assert ticket_5004_insert.data_after["inserted_at"] == snapshot_timestamp(setup_at)
         assert ticket_5004_insert.data_after["updated_at"] == snapshot_timestamp(setup_at)
-        assert ticket_5004_delete.data_before["inserted_at"] == snapshot_timestamp(setup_at)
+        assert ticket_5004_delete.data_after == nil
+        assert ticket_5004_delete.table_pk["id"] == ticket_5004_insert.table_pk["id"]
         assert DateTime.compare(ticket_5004_delete_tx.occurred_at, ticket_delete_at) == :eq
         assert ticket_5004_delete_tx.actor_ref == %ActorRef{type: :system, id: backfill_id}
         assert is_nil(Repo.get_by(Ticket, organization_id: acme.id, number: 5004))
@@ -727,6 +734,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             assert transaction.actor_ref.type == :user
             assert insert.data_after["inserted_at"] == snapshot_timestamp(event_at)
             assert insert.data_after["updated_at"] == snapshot_timestamp(event_at)
+            assert is_binary(insert.data_after["assignee_id"])
 
             case changed.op do
               "update" ->
@@ -737,8 +745,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
                 end
 
               "delete" ->
-                assert changed.data_before["inserted_at"] == snapshot_timestamp(event_at)
-                assert changed.data_before["updated_at"] == snapshot_timestamp(event_at)
+                assert is_nil(changed.data_after)
+                assert changed.table_pk == insert.table_pk
             end
           end
 
@@ -1074,18 +1082,18 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       ),
       StorageSchema.repo_opts()
     )
-    |> Enum.filter(fn {change, _transaction} ->
-      row = change.data_after || change.data_before
+    |> Enum.group_by(fn {_change, transaction} -> transaction.id end)
+    |> Enum.flat_map(fn {_transaction_id, changes} ->
+      inserted_number =
+        Enum.find_value(changes, fn {change, _transaction} ->
+          if change.op == "insert", do: change.data_after["number"]
+        end)
 
-      case row["number"] do
-        number when is_integer(number) -> number >= first_number
-        number when is_binary(number) -> String.to_integer(number) >= first_number
-        _ -> false
-      end
+      if is_integer(inserted_number) and inserted_number >= first_number, do: changes, else: []
     end)
   end
 
   defp snapshot_timestamp(%DateTime{} = timestamp) do
-    timestamp |> DateTime.to_naive() |> NaiveDateTime.to_iso8601()
+    timestamp |> DateTime.truncate(:second) |> DateTime.to_naive() |> NaiveDateTime.to_iso8601()
   end
 end

@@ -72,6 +72,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
     # Filler stays epoch-relative (not in-window); delete branch produces a DELETE
     # audit_change in the same transaction for honest wide-date-range op counts.
     status_roll = rem(number, 10)
+    event_at = Support.random_days_ago_timestamp()
 
     {:ok, tx_id} =
       Repo.transaction(fn ->
@@ -84,6 +85,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
             status: "open",
             assignee_id: agent.id
           })
+          |> Ecto.Changeset.put_change(:assignee_id, agent.id)
+          |> Support.stamp_insert(event_at)
           |> Repo.insert!()
 
         cond do
@@ -96,14 +99,16 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
             ticket
             |> Ticket.changeset(%{
               status: "closed",
-              closed_at: ThreadlinePhoenix.Demo.Manifest.epoch()
+              closed_at: event_at
             })
+            |> Support.stamp_update(event_at)
             |> Repo.update!()
 
           true ->
             # ~55–60% open/in_progress UPDATE
             ticket
             |> Ticket.changeset(%{status: "in_progress"})
+            |> Support.stamp_update(event_at)
             |> Repo.update!()
         end
 
@@ -111,7 +116,6 @@ defmodule ThreadlinePhoenix.Demo.Seed.Filler do
         Support.current_audit_transaction_id!()
       end)
 
-    ts = Support.random_days_ago_timestamp()
-    Support.put_timestamp(ctx, tx_id, ts)
+    Support.put_timestamp(ctx, tx_id, event_at)
   end
 end

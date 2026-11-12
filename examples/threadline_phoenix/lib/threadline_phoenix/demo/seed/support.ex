@@ -18,7 +18,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
 
   @doc false
   def stamp_update(%Ecto.Changeset{} = changeset, %DateTime{} = timestamp) do
-    put_schema_timestamp(changeset, :updated_at, timestamp)
+    force_schema_timestamp(changeset, :updated_at, timestamp)
   end
 
   @doc false
@@ -175,6 +175,18 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
        ) do
     if field in schema.__schema__(:fields) do
       Ecto.Changeset.put_change(changeset, field, timestamp)
+    else
+      changeset
+    end
+  end
+
+  defp force_schema_timestamp(
+         %Ecto.Changeset{data: %{__struct__: schema}} = changeset,
+         field,
+         timestamp
+       ) do
+    if field in schema.__schema__(:fields) do
+      Ecto.Changeset.force_change(changeset, field, timestamp)
     else
       changeset
     end
