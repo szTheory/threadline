@@ -27,7 +27,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            )
   end
 
-  test "operator shell is CSP-proof: native [open] nav + pure-CSS picker cue + hardened scroll (NAV-03/NAV-04)" do
+  test "operator shell is CSP-proof: native [open] nav + server-selected theme cue + hardened scroll (NAV-03/NAV-04)" do
     src = StyleSource.read!()
 
     # Mobile nav reveals its panel on the native <details> [open] attribute,
@@ -41,9 +41,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(src, "tl-shell-nav--open"),
            "the JS-toggled .--open class must be gone (CSP-proof shell)"
 
-    # The selected theme radio gets a pure-CSS non-color cue via :has(:checked).
-    assert String.contains?(src, ":has(:checked)"),
-           "theme picker active cue must be driven by :has(:checked), not a markup --active class"
+    # Theme state is rendered by the server and the selected button retains a
+    # non-color cue without depending on a checked radio or client-side class.
+    assert String.contains?(src, ~s|.tl-theme-picker__option[aria-pressed="true"]|),
+           "theme picker active cue must follow the server-rendered pressed button"
+
+    assert String.contains?(src, ".tl-theme-picker__selected"),
+           "the selected theme needs a visible non-color marker"
+
+    refute String.contains?(src, ":has(:checked)"),
+           "theme picker state must not depend on a radio input"
 
     refute String.contains?(src, "tl-segmented__item--active"),
            "the dead tl-segmented__item--active rule/markup hook must be gone"
@@ -87,12 +94,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "min-height: var(--tl-hit-area);"
     ])
 
-    assert_selector_contains(src, ".tl-theme-picker__option:focus-within", [
+    assert_selector_contains(src, ".tl-theme-picker__option:focus-visible", [
       "outline: 2px solid var(--tl-color-border-focus);",
       "outline-offset: 2px;"
     ])
 
-    assert_selector_contains(src, ".tl-theme-picker .tl-button", [
+    assert_selector_contains(src, ".tl-theme-picker__option", [
       "scroll-margin-block: var(--tl-space-8);"
     ])
 
