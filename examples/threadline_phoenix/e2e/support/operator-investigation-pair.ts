@@ -484,12 +484,13 @@ async function pageAssetIdentity(page: Page, root: string): Promise<ServedAssetI
   });
   const scripts = await page.locator("script").allTextContents();
   const inlineScript = scripts.find((value) => value.includes("__tlCopyBound")) ?? null;
-  if (!inlineScript) throw new Error("Mounted delegated copy script is missing");
+  const copyControlCount = await page.locator("[data-tl-copy]").count();
+  if (!inlineScript && copyControlCount > 0) throw new Error("Mounted delegated copy script is missing for rendered copy controls");
   const svgs = await page.locator(".threadline-ui svg").evaluateAll((nodes) => nodes.map((node) => node.outerHTML));
   if (!svgs.length) throw new Error("No rendered Threadline SVG icons found");
   return {
     stylesheetSha256: sha256(stylesheet), fontFaceCount: faceBlocks.length, fonts, fontFaces,
-    inlineScriptSha256: sha256(inlineScript), svgCount: svgs.length,
+    inlineScriptSha256: inlineScript ? sha256(inlineScript) : null, svgCount: svgs.length,
     svgMarkupSha256: sha256(svgs.join("\n")),
   };
 }
