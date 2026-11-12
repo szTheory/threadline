@@ -12,7 +12,7 @@ provides:
   - Source, theme, semantic-color, and CSS byte-lock assertions
 affects: [Phase 250 remaining plans]
 actuals:
-  tokens: 10159
+  tokens: null
   tasks: 3
   commits: 3
   plan_head_before: c76107c91b6e75aaf826d9cc2948c542fd31a75b
@@ -49,14 +49,14 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: The shared header uses exact supplied dark/light spool paths, theme swaps, and the named Admin home link.
+    description: The shared header embeds exact supplied dark/light spool paths, declares scoped theme selectors, and names the Admin home link.
     requirement: ADM-09
     verification:
       - kind: unit
         ref: mix verify.test test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/surface_header_csp_test.exs test/threadline/operator_surface/style_contract_test.exs
         status: pass
-    human_judgment: true
-    rationale: Browser proof of effective theme appearance and measured rendered size is reserved for Phase 250 Plan 08.
+    human_judgment: false
+    rationale: This is source/component coverage only; automated browser proof of effective theme appearance and measured rendered size remains Plan 08 work.
   - id: D3
     description: Approved CSS output is byte-locked while semantic and supplied-source assertions remain independent.
     requirement: ADM-16
@@ -146,3 +146,7 @@ The source, semantic oracles, and CSS byte lock are committed. No browser captur
 - The plan-scoped commit resolver found all three production commits on this branch.
 - Required focused acceptance checks passed: Task 1 palette/style tests and accepted before-integrity check; Task 2 header/CSP/theme checks; Task 3 semantic/source/byte-lock tests and format.
 - Working tree was clean before this summary was created.
+
+## Parent reconciliation
+
+The parent stopped an optional audit after the immutable implementation handoff and reverted only its unrequested detector-ignore configuration commit. The three tested product commits are intact. The transport exit reflects that interruption, not a failed product check. Token usage is unavailable for the interrupted turn; no estimate is reported as measured usage. Final phase-level browser and independent review remain pending.
