@@ -289,7 +289,7 @@ Use mix verify.format and MIX_ENV=dev mix docs --warnings-as-errors for relevant
 
 For the pair invoke the focused Playwright spec directly with E2E_BASE_URL from its e2e directory. Do not use examples/threadline_phoenix/e2e/run-e2e.sh; it resets demo data. [VERIFIED: examples/threadline_phoenix/e2e/playwright.config.ts:1-4; examples/threadline_phoenix/e2e/run-e2e.sh:416-433]
 
-Against the prepared app, the focused invocation is: from examples/threadline_phoenix/e2e, run E2E_BASE_URL=http://127.0.0.1:60025 ./node_modules/.bin/playwright test tests/operator-earned-flows.spec.ts --project=desktop-chromium. Use examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts as the same read-only journey in both halves; do not invoke a runner that resets server-side demo data.
+Against the prepared app, the focused invocation is: from examples/threadline_phoenix/e2e, run E2E_BASE_URL="$THREADLINE_PHASE250_APP_URL" ./node_modules/.bin/playwright test tests/operator-earned-flows.spec.ts --project=desktop-chromium. THREADLINE_PHASE250_APP_URL must name the separately preflighted HTTP application listener, never the owned PostgreSQL listener on60025. Select only the ordinary read-only case using a precise test filter, not unrelated cases in the spec. Use examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts as the same read-only journey in both halves; do not invoke a runner that resets server-side demo data.
 
 ### Sampling rate and Wave 0 gaps
 
