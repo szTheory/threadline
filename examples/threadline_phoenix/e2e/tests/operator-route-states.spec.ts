@@ -129,7 +129,7 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
           return { body: read(".threadline-ui"), heading: read("#tl-main h1"), id: read(".tl-ref .tl-secondary-ref"), numeric: Array.from(document.querySelectorAll(".threadline-ui *")).map((node) => getComputedStyle(node).fontVariantNumeric).find((value) => value.includes("tabular-nums")) ?? "missing" };
         });
         expect(roles.body.family).toContain("Threadline Geist");
-        expect(roles.body.size).toBe("16px");
+        expect(roles.body).toMatchObject({ size: "16px", weight: "400" });
         expect(roles.heading.family).toContain("Threadline Familjen Grotesk");
         expect(roles.heading).toMatchObject({ size: "28px", weight: "600" });
         expect(roles.id.family).toContain("Threadline IBM Plex Mono");
@@ -165,9 +165,10 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
         const artwork = await logo.evaluate((element, expected) => {
           const source = new DOMParser().parseFromString(expected, "image/svg+xml").documentElement;
           const paths = (node: Element) => Array.from(node.querySelectorAll("path")).map((p) => [p.getAttribute("d"), p.getAttribute("fill"), p.getAttribute("transform")]);
-          return { actualPaths: paths(element), suppliedPaths: paths(source), actualViewBox: element.getAttribute("viewBox"), suppliedViewBox: source.getAttribute("viewBox") };
+          return { actualPaths: paths(element), actualPaint: Array.from(element.querySelectorAll("path")).map((path) => getComputedStyle(path).fill), suppliedPaths: paths(source), actualViewBox: element.getAttribute("viewBox"), suppliedViewBox: source.getAttribute("viewBox") };
         }, supplied);
         expect(artwork.actualPaths).toEqual(artwork.suppliedPaths);
+        expect(artwork.actualPaint).toEqual(artwork.suppliedPaths.map((path) => phase250Rgb(path[1]!)));
         expect(artwork.actualViewBox).toBe(artwork.suppliedViewBox);
         const copy = page.locator("button[data-tl-copy]").first();
         await phase250FocusByKeyboard(page, copy);
@@ -191,6 +192,7 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
             });
             await fallback.goto(timeline);
             await expect(fallback.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+            await expect(fallback.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
             const blocked = await loadFaces(fallback);
             expect(blocked).toHaveLength(4); expect(blocked.every((face) => face.status === "error")).toBe(true);
             await expect(fallback.getByRole("heading", { name: "Timeline", exact: true })).toBeVisible();
@@ -205,9 +207,19 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
     expect(iconHref).toBeTruthy(); const iconUrl = new URL(iconHref!, page.url()); expect(iconUrl.origin).toBe(origin);
     const icon = await page.request.get(iconUrl.toString()); expect(icon.ok()).toBe(true);
     const iconBytes = await icon.body();
-    expect(createHash("sha256").update(iconBytes).digest("hex")).toBe(createHash("sha256").update(readFileSync(join(sourceRoot, "brand/assets/icon/favicon.ico"))).digest("hex"));
-    const iconSizes = Array.from({ length: iconBytes.readUInt16LE(4) }, (_, index) => iconBytes[6 + index * 16] || 256);
-    expect(iconSizes.length).toBeGreaterThan(0); expect(Math.min(...iconSizes)).toBeGreaterThanOrEqual(16);
+    expect(iconUrl.pathname).toBe("/images/threadline-admin-favicon.svg");
+    const iconHash = createHash("sha256").update(iconBytes).digest("hex");
+    expect(iconHash).toBe(createHash("sha256").update(readFileSync(join(sourceRoot, "brand/assets/icon/favicon.svg"))).digest("hex"));
+    const markProbe = await page.evaluate(async (url) => {
+      const image = new Image(); image.src = url; await image.decode();
+      const canvas = document.createElement("canvas"); canvas.width = 16; canvas.height = 16;
+      const context = canvas.getContext("2d")!; context.drawImage(image, 0, 0, 16, 16);
+      const pixels = context.getImageData(0, 0, 16, 16).data;
+      let painted = 0; for (let index = 3; index < pixels.length; index += 4) if (pixels[index]! > 0) painted += 1;
+      return { width: canvas.width, height: canvas.height, painted };
+    }, iconUrl.toString());
+    expect(markProbe.width).toBeGreaterThanOrEqual(16); expect(markProbe.height).toBeGreaterThanOrEqual(16); expect(markProbe.painted).toBeGreaterThan(0);
+    await info.attach("phase250-favicon", { body: JSON.stringify({ url: iconUrl.pathname, sha256: iconHash, markProbe, boundary: "linked supplied SVG paints at16px; native browser-tab geometry is not captured" }), contentType: "application/json" });
     expect(externalRequests).toEqual([]);
   });
 }
@@ -961,10 +973,10 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   await expect(
     page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
   ).toHaveCount(0);
-  // Separate synthetic stress fixture; it does not replace the ordinary investigation.
-  await page.goto("/audit/__stress?story=state.ref.current");
-  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  // Separate unmatched long record-key input; no row is inserted or history invented.
   const expectedLongId = "chg_00000000-0000-4000-8000-171171171171/correlation/" + "a".repeat(72);
+  await page.goto(`/audit/rows/ticket_replies/${encodeURIComponent(expectedLongId)}`);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const values = await page.locator("button[data-tl-copy]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tl-copy")));
   const longIndex = values.indexOf(expectedLongId); expect(longIndex).toBeGreaterThanOrEqual(0);
   const longCopy = page.locator("button[data-tl-copy]").nth(longIndex);
