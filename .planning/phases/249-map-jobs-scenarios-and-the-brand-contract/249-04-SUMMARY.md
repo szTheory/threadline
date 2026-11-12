@@ -22,7 +22,12 @@ provides:
 affects: [249-phase-verification, phase-250, phase-251, phase-252, phase-253, operator-inventory, brand-migration]
 
 actuals:
-  tokens: null
+  tokens: 268753
+  reasoning_output_tokens: 150032
+  worker_elapsed_s: 7227
+  measurement_source: codex-exec-terminal-usage
+  tokens_meaning: output_tokens_including_reasoning
+  elapsed_meaning: managed_process_including_review_handoff_waits
   tasks: 2
   commits: 4
   plan_head_before: 559082e0d7c31937e7498c360d46eb122c6581a8
@@ -85,7 +90,7 @@ coverage:
         ref: ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-MAPPING-REVIEW.md#eight-question-rubric"
         status: pass
     human_judgment: false
-duration: null
+duration: 120min27s
 completed: 2026-11-12
 status: complete
 ---
@@ -96,7 +101,7 @@ status: complete
 
 ## Performance
 
-- **Duration:** Not recorded in this executor context; the parent will reconcile terminal duration from the managed launch receipt.
+- **Managed duration:** 120 minutes 27 seconds from launch to terminal exit, including planned independent-review and handoff waits. Terminal usage records 268753 output tokens, including 150032 reasoning tokens; input/cache usage remains in the private managed receipt. These are measured process totals, not a character estimate or a claim of active execution time.
 - **Summary authored:** 2026-11-12T05:15:18Z. This is the documentation time, not the plan's terminal timestamp.
 - **Tasks:** 2 completed.
 - **Files:** 5 source files, the independent review artifact, and this summary.
@@ -171,6 +176,8 @@ These checks cover local contracts and source mapping. No browser, visual, acces
 **Impact:** Corrections stayed within the approved mapping and verification scope; runtime code, brand assets, public APIs, and schemas were unchanged.
 
 ## Issues Encountered
+
+During a stale second-round handoff, the executor inferred parent ownership from its local `/root` runtime role and started an overlapping independent review. The external parent remained active. Both source-bound finding sets were preserved and consolidated; the final report supersedes the premature M-01 closure, and the external-parent result protocol was restored before final confirmation. The parent recorded a durable ownership rule and explicit active-review acknowledgment for later handoffs. This did not authorize a new user gate or discard useful evidence.
 
 One focused Node invocation failed to launch because of shell command-string quoting, and an early suite run caught misplaced row-source references. Both causes were corrected; the complete focused suite passed afterward. Every invocation and actual exit is preserved in the task-local invocation ledger. No unresolved implementation blocker remains.
 
