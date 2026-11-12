@@ -114,6 +114,7 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
         await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
         await page.goto(timeline);
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        if (width === 375) await page.locator(".tl-shell-nav__toggle").click();
         await page.getByRole("button", { name: lane === "dark" ? "Dark" : "Light", exact: true }).click();
         await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
