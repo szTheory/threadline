@@ -4,11 +4,11 @@ milestone: v1.48
 current_phase: 250
 current_phase_name: Brand foundation and first whole investigation
 status: planning
-stopped_at: Phase 250 context gathered
-last_updated: "2026-11-12T07:57:52.742Z"
+stopped_at: Phase 250 UI-SPEC approved
+last_updated: "2026-11-12T09:05:47.534Z"
 last_activity: 2026-11-12
 last_activity_desc: Phase 249 complete, transitioned to Phase 250
-state_head: 4f62d4a21112172ae4533f3ed55e2058349f8b05
+state_head: 4134467ab1e67480a8fd503861fce6bd6fcbded1
 progress:
   total_phases: 6
   completed_phases: 2
@@ -1253,9 +1253,9 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 
 ## Session Continuity
 
-**Last session:** 2026-11-12T07:57:52.461Z
-**Stopped at:** Phase 250 context gathered
-**Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md
+**Last session:** 2026-11-12T09:05:47.258Z
+**Stopped at:** Phase 250 UI-SPEC approved
+**Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-UI-SPEC.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
 - **Current gates and next actor:** The orchestrator continues Phase250 under the original autonomous scope. Phases248/249 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.
