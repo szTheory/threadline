@@ -1,6 +1,6 @@
 # Matched investigation evidence
 
-Status: automated pair and affected checks passed; independent review and phase goal verification pending.
+Status: automated pair, affected checks and current independent source/copy/security/visual review passed; phase goal verification pending.
 
 The ordinary support investigation now opens the actual close transaction, inspects the earlier ticket state and reply history, copies the unchanged full reply ID from inside transaction-origin history, and returns through UI links with the original URL and four visible filters already restored. The before path used browser Back and Timeline-origin copying; that limitation remains explicit.
 
@@ -101,3 +101,5 @@ Five unclassified requirement taxonomy signals remain **unresolved flagged assum
 Phase253 comprehensive docs/package/browser/toolchain/hosted release proof and live REL-01 remain outside this result. No full-root repeat, version bump, push, hosted dispatch or publication authority was renewed. The local owned service/data receipts and detailed invocation reports remain private; committed links stay repository-relative.
 
 Independent first-round warnings were addressed by rejecting external/protocol-relative/backslash/control/fragment routes, insetting only row-history drawers below the actual shell bar with an after geometry guard, and removing panel/metric card emphasis from editable filters. The context-specific existing transaction recovery copy is now declared in the current UI-SPEC; no runtime destination was changed. The same reviewers confirm only these bounded deltas against the final capture; original reports stay preserved.
+
+The final review identity gate reread current listener/source/materialization, both capsules and independent confirmation bytes and returned matched pair/review identities. Cross-phase regression then found two stale native-theme assertions and stale inventory locators/declarations. Those contract-only corrections retain stable IDs, independent scanners, exact owner anchors and all negative controls:33 focused ExUnit,32 Node, the same27 prior root owners (436 tests) and nine isolated example owners (69 tests) passed. Example reset tests used p250tests; original p250pair remained unchanged. Two fixture-module redefinition warnings remain in the example reset output and are not presented as a warning-free build.
