@@ -63,3 +63,7 @@ No accepted risks. No missing mitigation, new package risk or external receipt i
 **Approval:** Automated phase threat verification completed 2026-11-12. No user action or new risk acceptance is needed.
 
 The task-owned PostgreSQL remains running only for authorized focused checks; shared services are untouched. Stop it before an actual user pause after owned clients finish. No full-repeat/canonical/browser/hosted/issue-closure/version/publication claim follows from this audit.
+
+## Current source reconciliation
+
+Formal code review subsequently strengthened scenario-class and per-list reference identity validation and removed mutable phase/requirement lifecycle coupling. [Current source/proof review](249-REVIEW.md) is clean on b7e6c6f4; [focused lifecycle receipt](249-REVIEW-FIX-RECEIPT.json) and [closed dispositions](249-REVIEW-DISPOSITION.md) bind those changes. The original seed, authorization, root runtime/asset and dependency-lock identities are unchanged; no new threat, risk acceptance or deeper-audit requirement is introduced. ADM06 taxonomy and descriptorless flags remain non-authoritative.

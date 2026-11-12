@@ -99,3 +99,7 @@ ADM-06 remains explicitly flagged-unverified and non-authoritative. No mechanica
 _Independent reviewer: Plan 249-04 source/claim mapping reviewer_  
 _Reviewed: 2026-11-12T05:05:47Z_  
 _Revision: b18a59a66c9f03c57933bc1f8a72b611fa0c2579_
+
+## Parent reconciliation after the reviewed revision
+
+This independent eight-rubric report remains pinned to b18a59a; its original source/receipt statements describe that revision. Later inventory/validator-only class, identity and evidence-lifecycle fixes are independently confirmed in [current formal review](249-REVIEW.md) at b7e6c6f4, with [source-bound proof](249-REVIEW-FIX-RECEIPT.json). That review rechecked affected provenance/reference semantics. Seed clocks/actors, route callbacks, runtime brand sources and the remaining eight-rubric facts are unchanged; the earlier raw source signature is not presented as a fresh signature for changed files. The bounded intent lifecycle is reconciled separately in [claim judgment](249-CLAIM-JUDGMENT.md), retaining all non-authoritative flags and the unresolved ADM06 taxonomy.

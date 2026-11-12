@@ -40,10 +40,12 @@ policy, rather than another prohibition.
 
 Three bespoke intent constraints remain: truthfulness of proof freshness
 (ADM-05), truthful uncertainty in ordinary fictional investigations (ADM-06),
-and truthful reference-only brand/accessibility claims (ADM-07). They are
-unresolved/judgment, projected with the installed probe-core projectProhibitions
-serializer into Plans 01/03/04. No check_kind, check_target, check_rule or fixture
-descriptor is authored. Their downstream disposition remains flagged-unverified.
+and truthful reference-only brand/accessibility claims (ADM-07). They were initially
+unresolved/judgment and projected with the installed probe-core projectProhibitions
+serializer into Plans 01/03/04. Their current bounded claim judgments are resolved
+and explicitly reconciled in [249-CLAIM-JUDGMENT.md](249-CLAIM-JUDGMENT.md); the ADM06
+edge-engine classification remains unresolved/unclassified. No check_kind, check_target, check_rule or fixture
+descriptor is authored. Their downstream disposition remains descriptorless, flagged-unverified and non-authoritative; bounded automated judgment does not create mechanical or human attestation.
 
 Plan 04 requires independent automated-agent judgment with eight explicit,
 source-grounded criteria, including all three intents and current/latest receipt

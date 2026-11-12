@@ -86,4 +86,8 @@ These are phase-contract scores. The low visual scores reflect missing rendered 
 - `brand/brand.json`
 - `brand/assets/README.md`
 
-No tests were rerun: the final focused receipts and source-bound mapping review were reused because their reviewed source identity is unchanged. No screenshots were created, so the screenshot gitignore gate was not needed.
+At audit time, no tests were rerun: the then-current focused receipts and source-bound mapping review were reused under their recorded source identity. Subsequent Node-only source/proof fixes are independently checked in the current formal code review; this does not assert unchanged raw inventory bytes. No screenshots were created, so the screenshot gitignore gate was not needed.
+
+## Parent current-use note
+
+The15/24 score remains the original code/reference-contract assessment, with no measured visual result. Later Node validator and provenance-lifecycle corrections are bound to [current formal review](249-REVIEW.md) and [fix proof](249-REVIEW-FIX-RECEIPT.json); they change no renderer, asset, theme, font or seed production source. This note does not create a fresh UI audit or close later-owned rendered findings.

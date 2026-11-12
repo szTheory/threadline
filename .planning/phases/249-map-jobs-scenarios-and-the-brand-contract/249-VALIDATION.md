@@ -71,7 +71,7 @@ None. Routine behavior is automated; independent agent review covers reference/c
 
 ## Executed evidence and limits
 
-- [Wave3 assembled proof](249-WAVE3-RECEIPT.json): current 30-test Node inventory group and 66-test example seed/document/reset/walkthrough group pass. The initial single assertion formatting failure was corrected; fresh example format passes, and the full Elixir AST of the formatted test is identical. The final mapping remains the independently reviewed source; no runtime change followed that review.
+- [Wave3 assembled proof](249-WAVE3-RECEIPT.json): then-current 30-test Node inventory group and 66-test example seed/document/reset/walkthrough group pass. The initial single assertion formatting failure was corrected; fresh example format passes, and the full Elixir AST of the formatted test is identical. Subsequent Node-only fixes are covered by the current formal review and fix receipt below; no runtime or seed production change followed the original mapping review.
 - [Remaining final affected proof](249-FINAL-AFFECTED-RECEIPT.json): named root format, warning-free compile, root inventory contract, example advisory-lock contract and E2E shell syntax all pass on the assembled source. The example production source is unchanged from Plan03's warning-free compile; its passing receipt is retained in [Plan03 summary](249-03-SUMMARY.md) and [Wave2 identity receipt](249-WAVE2-RECEIPT.json).
 - [Independent source/claim judgment](249-MAPPING-REVIEW.md): all eight rubric questions addressed; source-state and comparison-baseline findings are corrected and independently closed. Its current record explicitly supersedes the premature M01 closure and consolidates duplicate populated-proof findings.
 - Task commands are shared group checks, not ten distinct invocations. Plan summaries preserve red controls and per-invocation causes. Domain contracts observe original trigger snapshots, physical recording time, actors/partial order, real generated CSV, the real reset guard and backend lock identity.
@@ -85,3 +85,7 @@ None. Routine behavior is automated; independent agent review covers reference/c
 | Gaps found | 0 |
 | Resolved | 0 |
 | Escalated | 0 |
+
+## Current source after formal review fixes
+
+The [current fix receipt](249-REVIEW-FIX-RECEIPT.json) supersedes the older 30-test Node mapping result with32 passing tests and explicit active/archive/archive-priority/traceability-change controls on b7e6c6f4. Missing both known sources fails explicitly. [Formal independent review](249-REVIEW.md) confirms all three warnings fixed; [disposition](249-REVIEW-DISPOSITION.md) has zero open findings. Original seed/runtime source is unchanged, so66-test example and root/lock/build evidence remains applicable within its recorded scope. No project-aware TypeScript typecheck or fresh rendered acceptance is claimed.

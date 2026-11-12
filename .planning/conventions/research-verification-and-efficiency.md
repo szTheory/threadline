@@ -184,3 +184,10 @@ renderer/test boundary, keep source/catalog/DB/browser evidence distinct, and ad
 negative controls at the failure boundary. Narrow unsupported wording when that
 is the least disruptive supported remedy; do not add unrelated runtime tests to
 preserve an inaccurate claim.
+
+
+## Keep routine verification labels and archive lifecycles honest
+
+A fixer template saying “requires human verification” does not create a user gate when the project explicitly requires automated checks and independent agent confirmation. Record the actual automated proof and pending/completed independent confirmation; do not fabricate a human pass.
+
+When executable contracts cite versioned planning evidence, test the owning completion lifecycle, not only phase-directory cleanup. Active requirements may be archived, removed or replaced by a later milestone, and traceability Pending becomes Complete. Select the specific intended version and stable requirement wording; exercise archive precedence, absent sources and status changes in bounded fixtures. Keep unclassified intent separate from requirement completion. Prefer one explicit version-specific case to a new general archive framework.
