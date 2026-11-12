@@ -91,6 +91,15 @@ const scenarioStateCriteria = ["empty", "loading", "error", "populated", "partia
 const criteriaForScenario = scenarioStateCriteria;
 
 type SemanticReference = { id?: string; path?: string; locator?: string; kind?: string; owner?: string; limitation?: string };
+function hasNonblankUniqueReferenceIds(references: readonly SemanticReference[]): boolean {
+  const seen = new Set<string>();
+  for (const { id } of references) {
+    if (typeof id !== "string" || !id.trim() || seen.has(id)) return false;
+    seen.add(id);
+  }
+  return true;
+}
+
 type SemanticCoverage = {
   disposition?: string;
   description?: string;
@@ -355,10 +364,10 @@ function semanticInventoryErrors(
     const proofRefs = surface.proofRefs ?? [];
     const sourceIds = new Set(sourceRefs.map((ref) => ref.id ?? ""));
     const proofIds = new Set(proofRefs.map((ref) => ref.id ?? ""));
-    if (sourceIds.size !== sourceRefs.length || sourceIds.has("")) {
+    if (!hasNonblankUniqueReferenceIds(sourceRefs)) {
       errors.push(`duplicate or missing source reference id for ${surface.routeId ?? "<missing>"}`);
     }
-    if (proofIds.size !== proofRefs.length || proofIds.has("")) {
+    if (!hasNonblankUniqueReferenceIds(proofRefs)) {
       errors.push(`duplicate or missing proof reference id for ${surface.routeId ?? "<missing>"}`);
     }
     if (!surface.renderer?.module || !surface.renderer.path || !surface.renderer.locator || !sourceRefs.length) {
@@ -481,6 +490,9 @@ function semanticInventoryErrors(
     if (!resource.id || !resource.disposition?.trim() || !resource.kind?.trim() || !resource.sourceRefs?.length) {
       errors.push(`incomplete resource disposition ${resource.id ?? "<missing>"}`);
     }
+    if (!hasNonblankUniqueReferenceIds(resource.sourceRefs ?? []) || !hasNonblankUniqueReferenceIds(resource.proofRefs ?? [])) {
+      errors.push(`duplicate, blank, or missing resource reference ids for ${resource.id ?? "<missing>"}`);
+    }
     for (const ref of resource.sourceRefs ?? []) {
       const source = ref.path ? sources[ref.path] : undefined;
       if (!source || !ref.locator || !source.includes(ref.locator)) {
@@ -549,11 +561,11 @@ function semanticInventoryErrors(
     const scenarioFixtures = scenario.fixtureRefs ?? [];
     const scenarioProofs = scenario.proofRefs ?? [];
     const sourceIds = new Set(scenarioSources.map((ref) => ref.id ?? ""));
-    const fixtureIds = new Set(scenarioFixtures.map((ref) => ref.id ?? ""));
     const proofIds = new Set(scenarioProofs.map((ref) => ref.id ?? ""));
     if (!scenarioSources.length || !scenarioFixtures.length || !scenarioProofs.length ||
-        sourceIds.size !== scenarioSources.length || fixtureIds.size !== scenarioFixtures.length || proofIds.size !== scenarioProofs.length) {
-      errors.push("Acme #4521 source, fixture, and proof ownership is missing or duplicated");
+        !hasNonblankUniqueReferenceIds(scenarioSources) || !hasNonblankUniqueReferenceIds(scenarioFixtures) ||
+        !hasNonblankUniqueReferenceIds(scenarioProofs)) {
+      errors.push("Acme #4521 source, fixture, and proof ownership is missing, blank, or duplicated");
     }
     for (const ref of [...scenarioSources, ...scenarioFixtures, ...scenarioProofs]) {
       const unsafePath = !ref.path || ref.path.startsWith("/") || ref.path.split(/[\\/]/).includes("..");
@@ -629,8 +641,8 @@ function semanticInventoryErrors(
         !candidate.identity || !candidate.clocks || !sources.length || !fixtures.length || !proofs.length) {
       errors.push(`incomplete named scenario ${candidate.id ?? "<missing>"}`);
     }
-    if (sourceIds.size !== sources.length || sourceIds.has("") || proofIds.size !== proofs.length || proofIds.has("")) {
-      errors.push(`duplicate or missing scenario references for ${candidate.id ?? "<missing>"}`);
+    if (!hasNonblankUniqueReferenceIds(sources) || !hasNonblankUniqueReferenceIds(fixtures) || !hasNonblankUniqueReferenceIds(proofs)) {
+      errors.push(`duplicate, blank, or missing scenario reference ids for ${candidate.id ?? "<missing>"}`);
     }
     for (const reference of [...sources, ...fixtures, ...proofs]) {
       const unsafePath = !reference.path || reference.path.startsWith("/") || reference.path.split(/[\\/]/).includes("..");
@@ -726,6 +738,9 @@ function semanticInventoryErrors(
     const proofRefs = role.proofRefs ?? [];
     const sourceIds = new Set(sourceRefs.map((ref) => ref.id ?? ""));
     const proofIds = new Set(proofRefs.map((ref) => ref.id ?? ""));
+    if (!hasNonblankUniqueReferenceIds(sourceRefs) || !hasNonblankUniqueReferenceIds(proofRefs)) {
+      errors.push(`duplicate, blank, or missing brand role reference ids for ${role.roleId ?? "<missing>"}`);
+    }
     if (!role.consumer?.trim() || !role.job?.trim() || !role.laterOwner?.trim() || !role.proofGap?.trim() ||
         !role.currentStatus?.toLowerCase().includes("reference-only") || !sourceRefs.length || !proofRefs.length ||
         !role.consumerRefs?.length || !role.jobIds?.length) {
@@ -771,6 +786,7 @@ function semanticInventoryErrors(
   for (const family of families) {
     const refs = family.sourceRefs ?? [];
     if (!family.paths?.length || !refs.length) errors.push(`incomplete brand asset family ${family.id ?? "<missing>"}`);
+    if (!hasNonblankUniqueReferenceIds(refs)) errors.push(`duplicate, blank, or missing asset source reference ids for ${family.id ?? "<missing>"}`);
     for (const reference of refs) {
       const source = reference.path ? sourcesForInventory[reference.path] : undefined;
       if (!source || !reference.locator || !source.includes(reference.locator)) errors.push(`invalid asset source ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
@@ -796,6 +812,9 @@ function semanticInventoryErrors(
   for (const contract of contracts) {
     if (!contract.topic?.trim() || !contract.consumerJobs?.length || !contract.laterOwners?.length ||
         !contract.sourceRefs?.length || !contract.proofRefs?.length) errors.push(`incomplete brand contract ${contract.id ?? "<missing>"}`);
+    if (!hasNonblankUniqueReferenceIds(contract.sourceRefs ?? []) || !hasNonblankUniqueReferenceIds(contract.proofRefs ?? [])) {
+      errors.push(`duplicate, blank, or missing brand contract reference ids for ${contract.id ?? "<missing>"}`);
+    }
     for (const reference of [...(contract.sourceRefs ?? []), ...(contract.proofRefs ?? [])]) {
       const source = reference.path ? sourcesForInventory[reference.path] : undefined;
       if (!source || !reference.locator || !source.includes(reference.locator)) errors.push(`invalid brand contract reference ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
@@ -821,6 +840,9 @@ function semanticInventoryErrors(
   for (const entry of carry) {
     if (!entry.id || !entry.status?.trim() || !entry.disposition?.trim() || !entry.laterOwners?.length ||
         !entry.sourceRefs?.length || !entry.proofGap?.trim()) errors.push(`incomplete carry disposition ${entry.id ?? "<missing>"}`);
+    if (!hasNonblankUniqueReferenceIds(entry.sourceRefs ?? []) || !hasNonblankUniqueReferenceIds(entry.proofRefs ?? [])) {
+      errors.push(`duplicate, blank, or missing carry reference ids for ${entry.id ?? "<missing>"}`);
+    }
     for (const reference of [...(entry.sourceRefs ?? []), ...(entry.proofRefs ?? [])]) {
       const source = reference.path ? sourcesForInventory[reference.path] : undefined;
       if (!reference.path || reference.path.startsWith("/") || reference.path.split(/[\\/]/).includes("..") ||
@@ -915,6 +937,11 @@ test("ordinary scenario mapping rejects missing source, proof, return, and ordin
   missingReturn.scenarios[0].proofRefs = missingReturn.scenarios[0].proofRefs.filter((proof: SemanticReference) => !proof.locator?.includes("Home record lookup reaches first-class row history"));
   assert.ok(semanticInventoryErrors(missingReturn, fixture, semanticSources).includes("Acme #4521 return-context proof owner"));
 
+  const missingAcmeFixtureId = structuredClone(inventory);
+  delete missingAcmeFixtureId.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.acme-4521-investigation").fixtureRefs[0].id;
+  assert.ok(semanticInventoryErrors(missingAcmeFixtureId, fixture, semanticSources)
+    .includes("Acme #4521 source, fixture, and proof ownership is missing, blank, or duplicated"));
+
   const stressSubstitution = structuredClone(inventory);
   stressSubstitution.scenarios[0].class = "stress";
   assert.ok(semanticInventoryErrors(stressSubstitution, fixture, semanticSources).includes("Acme #4521 must remain ordinary selection data"));
@@ -937,6 +964,26 @@ test("brand crosswalk maps every approved role, asset family, and later owner wi
   wrongOwner.brandReferences.roles[0].proofRefs[0].owner = "unrelated-owner.exs";
   assert.ok(semanticInventoryErrors(wrongOwner, fixture, semanticSources).includes("wrong brand proof owner body"));
 
+  const blankBrandSourceId = structuredClone(inventory);
+  blankBrandSourceId.brandReferences.roles[0].sourceRefs[0].id = " \t";
+  assert.ok(semanticInventoryErrors(blankBrandSourceId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing brand role reference ids for body"));
+
+  const duplicateBrandSourceId = structuredClone(inventory);
+  duplicateBrandSourceId.brandReferences.roles[0].sourceRefs[1].id = duplicateBrandSourceId.brandReferences.roles[0].sourceRefs[0].id;
+  assert.ok(semanticInventoryErrors(duplicateBrandSourceId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing brand role reference ids for body"));
+
+  const blankBrandProofId = structuredClone(inventory);
+  blankBrandProofId.brandReferences.roles[0].proofRefs[0].id = " ";
+  assert.ok(semanticInventoryErrors(blankBrandProofId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing brand role reference ids for body"));
+
+  const duplicateBrandProofId = structuredClone(inventory);
+  duplicateBrandProofId.brandReferences.roles[0].proofRefs.push(structuredClone(duplicateBrandProofId.brandReferences.roles[0].proofRefs[0]));
+  assert.ok(semanticInventoryErrors(duplicateBrandProofId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing brand role reference ids for body"));
+
   const unsafeAsset = structuredClone(inventory);
   unsafeAsset.brandReferences.assetFamilies[0].paths[0] = "brand/assets/../../mix.exs";
   assert.ok(semanticInventoryErrors(unsafeAsset, fixture, semanticSources).some((error) => error.includes("missing or unreferenced brand asset")));
@@ -953,6 +1000,18 @@ test("named scenarios reject missing state links, duplicate-label identities, un
   const missingScenario = structuredClone(inventory);
   missingScenario.scenarios = missingScenario.scenarios.filter((candidate: SemanticScenario) => candidate.id !== "scenario.state-empty");
   assert.ok(semanticInventoryErrors(missingScenario, fixture, semanticSources).includes("missing named scenario scenario.state-empty"));
+
+  const missingScenarioFixtureId = structuredClone(inventory);
+  const emptyFixtureScenario = missingScenarioFixtureId.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
+  delete emptyFixtureScenario.fixtureRefs[0].id;
+  assert.ok(semanticInventoryErrors(missingScenarioFixtureId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing scenario reference ids for scenario.state-empty"));
+
+  const duplicateScenarioFixtureId = structuredClone(inventory);
+  const duplicateFixtureScenario = duplicateScenarioFixtureId.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
+  duplicateFixtureScenario.fixtureRefs.push(structuredClone(duplicateFixtureScenario.fixtureRefs[0]));
+  assert.ok(semanticInventoryErrors(duplicateScenarioFixtureId, fixture, semanticSources)
+    .includes("duplicate, blank, or missing scenario reference ids for scenario.state-empty"));
 
   const changedStressClass = structuredClone(inventory);
   const emptyScenario = changedStressClass.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
