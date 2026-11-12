@@ -159,3 +159,28 @@ plan summary must distinguish full satisfaction from a partial contribution; pha
 verification remains authoritative. These corrections avoid repeated metadata repair
 without changing proof scope, adding caches/concurrency/dependencies, or claiming an
 unmeasured speedup.
+
+
+## Keep review ownership explicit across managed processes
+
+When a managed executor hands a committed revision to its external parent for
+independent review, that parent remains the sole assignment/result owner. A local
+Codex process may identify its own role as `/root`; this does not transfer the
+external parent’s responsibilities. Waiting time, a stale previous-round result,
+or a runtime role label is not evidence that the parent abandoned the handoff.
+Use revision-bound ready/result capsules, preserve each completed round, and keep
+reviewed source immutable. Do not launch a duplicate review or overwrite the
+parent-owned result to make waiting appear productive. If an overlapping review
+already produced useful findings, retain and reconcile them rather than discard
+actual evidence. Phase249 exposed this coordination defect; the correction adds
+an explicit ownership clause to subsequent handoffs, without removing review.
+
+Mapping validators that prove nonblank descriptions and existing reference IDs do
+not prove that the referenced test observes the described behavior. Phase249’s
+independent review found Home-only state descriptions on transaction/history
+surfaces, missing ordinary comparisons for stress fixtures, and descriptions that
+exceeded their linked populated-state proofs. Match each claim to its actual
+renderer/test boundary, keep source/catalog/DB/browser evidence distinct, and add
+negative controls at the failure boundary. Narrow unsupported wording when that
+is the least disruptive supported remedy; do not add unrelated runtime tests to
+preserve an inaccurate claim.
