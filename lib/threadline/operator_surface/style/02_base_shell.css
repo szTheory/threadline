@@ -46,7 +46,9 @@
   .threadline-ui select:focus-visible,
   .threadline-ui a:focus-visible,
   .threadline-ui summary:focus-visible {
-    box-shadow: var(--tl-focus-ring);
+    outline: 2px solid var(--tl-color-border-focus);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 
   /* Skip-to-content link: visually hidden until focused, then the first

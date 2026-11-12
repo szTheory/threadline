@@ -157,7 +157,7 @@
     --tl-breakpoint-desktop: 1280px;
     --tl-muted-bg: var(--tl-color-surface);
     --tl-hit-area: 40px;
-    --tl-focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
+    --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
     --tl-gap-inline: var(--tl-space-2);
     --tl-gap-stack: var(--tl-space-4);
     --tl-gap-section: var(--tl-space-8);
@@ -243,7 +243,7 @@
     --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
     --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
     --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
-    --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+    --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
   }
 
   @media (prefers-color-scheme: light) {
@@ -301,7 +301,7 @@
       --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
       --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
       --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
-      --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+      --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
     }
   }
 
@@ -377,7 +377,9 @@
   .threadline-ui select:focus-visible,
   .threadline-ui a:focus-visible,
   .threadline-ui summary:focus-visible {
-    box-shadow: var(--tl-focus-ring);
+    outline: 2px solid var(--tl-color-border-focus);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 
   /* Skip-to-content link: visually hidden until focused, then the first

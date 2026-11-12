@@ -975,9 +975,9 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   await expect(
     page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
   ).toHaveCount(0);
-  // Existing shared-component long reference fixture, separate from the real record journey.
-  const expectedLongId = "chg_00000000-0000-4000-8000-000000000176/correlation/abcdef0123456789";
-  await page.goto("/audit/__stress?story=state.ref.current");
+  // Supported long string ActorRef with no recorded actions; no row or action is invented.
+  const expectedLongId = "svc-long-" + "x".repeat(180);
+  await page.goto(`/audit/actors/service_account/${encodeURIComponent(expectedLongId)}`);
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const values = await page.locator("button[data-tl-copy]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tl-copy")));
   const longIndex = values.indexOf(expectedLongId); expect(longIndex).toBeGreaterThanOrEqual(0);
