@@ -12,7 +12,7 @@ with per-entity names such as `org/acme` or `user/closer@acme.example.com`.
 | Key | UTC instant | Notes |
 |-----|-------------|-------|
 | `demo_epoch` | `2026-05-27T12:00:00Z` | Frozen “today” for seed backfill and filters |
-| `demo_last_tuesday` | `2026-05-20T14:30:00Z` | Operator filters when prose says “last Tuesday” (7 days before epoch) |
+| `demo_last_tuesday` | `2026-05-26T14:30:00Z` | Operator filters for the preceding calendar Tuesday before the Wednesday epoch |
 
 Configured in `config/dev.exs` as `:demo_epoch` and `:demo_seed_password`.
 
