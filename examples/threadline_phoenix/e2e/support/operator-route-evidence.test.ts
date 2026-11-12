@@ -593,25 +593,32 @@ function semanticInventoryErrors(
     }
   }
 
-  const requiredScenarioIds = [
-    "scenario.acme-4521-investigation",
-    "scenario.acme-4518-reply-close-delete",
-    "scenario.globex-2001-ordinary-close",
-    "scenario.offboarded-co-retention-boundary",
-    "scenario.state-empty",
-    "scenario.state-export-failed",
-    "scenario.state-permission-denied",
-    "scenario.state-pagination-boundary",
-    "scenario.state-long-content",
-    "scenario.state-unicode",
-    "scenario.state-duplicate-labels",
-  ];
+  const requiredScenarioClasses: Record<string, string> = {
+    "scenario.acme-4521-investigation": "ordinary",
+    "scenario.acme-4518-reply-close-delete": "ordinary",
+    "scenario.globex-2001-ordinary-close": "ordinary",
+    "scenario.offboarded-co-retention-boundary": "boundary",
+    "scenario.state-empty": "stress",
+    "scenario.state-export-failed": "stress",
+    "scenario.state-permission-denied": "stress",
+    "scenario.state-pagination-boundary": "stress",
+    "scenario.state-long-content": "stress",
+    "scenario.state-unicode": "stress",
+    "scenario.state-duplicate-labels": "stress",
+  };
+  const requiredScenarioIds = Object.keys(requiredScenarioClasses);
   for (const requiredId of requiredScenarioIds) {
     if (!scenarioIds.includes(requiredId)) errors.push(`missing named scenario ${requiredId}`);
   }
   if (scenarioIds.some((id) => !requiredScenarioIds.includes(id))) errors.push("unknown named scenario");
 
   for (const candidate of scenarios) {
+    const expectedClass = candidate.id ? requiredScenarioClasses[candidate.id] : undefined;
+    if (!expectedClass) {
+      errors.push(`unknown named scenario ${candidate.id ?? "<missing>"}`);
+    } else if (candidate.class !== expectedClass) {
+      errors.push(`incorrect class for ${candidate.id}: expected ${expectedClass}`);
+    }
     const sources = candidate.sourceRefs ?? [];
     const fixtures = candidate.fixtureRefs ?? [];
     const proofs = candidate.proofRefs ?? [];
@@ -946,6 +953,13 @@ test("named scenarios reject missing state links, duplicate-label identities, un
   const missingScenario = structuredClone(inventory);
   missingScenario.scenarios = missingScenario.scenarios.filter((candidate: SemanticScenario) => candidate.id !== "scenario.state-empty");
   assert.ok(semanticInventoryErrors(missingScenario, fixture, semanticSources).includes("missing named scenario scenario.state-empty"));
+
+  const changedStressClass = structuredClone(inventory);
+  const emptyScenario = changedStressClass.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
+  emptyScenario.class = "boundary";
+  delete emptyScenario.ordinaryBaseline;
+  assert.ok(semanticInventoryErrors(changedStressClass, fixture, semanticSources)
+    .includes("incorrect class for scenario.state-empty: expected stress"));
 
   const missingState = structuredClone(inventory);
   delete missingState.scenarios[0].stateCriteria.empty;
