@@ -1,7 +1,9 @@
 import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
@@ -177,16 +179,273 @@ test("theme preference, effective cascade and reduced motion are distinct observ
     };
     await assertTheme(currentPreference, "dark");
 
+    const diagnosticOutput = process.env.THREADLINE_PHASE250_DIAGNOSTIC_OUTPUT;
+    const focusDiagnostics: unknown[] = [];
+    const focusCascadeDiagnostics: unknown[] = [];
+    const fixtureMarkup = readFileSync(join(paths.repositoryRoot, "test/fixtures/style/operator_surface.css"), "utf8");
+    const fixturePrefix = "<style>";
+    const fixtureSuffix = "</style>";
+    const fixtureBody = fixtureMarkup.startsWith(fixturePrefix) && fixtureMarkup.endsWith(fixtureSuffix)
+      ? fixtureMarkup.slice(fixturePrefix.length, -fixtureSuffix.length)
+      : null;
+    const writeFocusDiagnostics = () => {
+      if (diagnosticOutput) {
+        writeFileSync(
+          diagnosticOutput,
+          `${JSON.stringify({ title, route: "/audit", focusDiagnostics, focusCascadeDiagnostics }, null, 2)}\n`,
+          { mode: 0o600 },
+        );
+      }
+    };
+
+    const captureFocusDiagnostic = async (target: Locator, phase: "initial" | "settled" = "initial") => {
+      const observed = await target.evaluate((element) => {
+        const active = document.activeElement;
+        const computed = getComputedStyle(element);
+        const styleBlocks = Array.from(document.querySelectorAll("style"))
+          .filter((style) => style.textContent?.includes(".threadline-ui"))
+          .map((style, index) => ({
+            index,
+            id: style.id || null,
+            body: style.textContent ?? "",
+            markup: style.outerHTML,
+          }));
+        const matchedRules: {
+          sourceOrigin: string;
+          stylesheetIndex: number;
+          selector: string;
+          conditions: string[];
+          declarations: Record<string, string>;
+        }[] = [];
+        for (let stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex += 1) {
+          const sheet = document.styleSheets.item(stylesheetIndex)!;
+          const owner = sheet.ownerNode instanceof Element ? sheet.ownerNode : null;
+          const sourceOrigin = sheet.href ?? (owner
+            ? `${owner.tagName.toLowerCase()}${owner.id ? `#${owner.id}` : `@${stylesheetIndex}`}`
+            : `constructed-stylesheet@${stylesheetIndex}`);
+          let rules: CSSRuleList;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue;
+          }
+          const visit = (nestedRules: CSSRuleList, conditions: string[]) => {
+            for (const rule of Array.from(nestedRules)) {
+              if ("selectorText" in rule && typeof rule.selectorText === "string" && "style" in rule) {
+                const styleRule = rule as CSSStyleRule;
+                let matches = false;
+                try {
+                  matches = element.matches(styleRule.selectorText);
+                } catch {
+                  matches = false;
+                }
+                if (matches) {
+                  const properties = ["outline", "outline-width", "outline-style", "outline-color", "outline-offset", "box-shadow"];
+                  matchedRules.push({
+                    sourceOrigin,
+                    stylesheetIndex,
+                    selector: styleRule.selectorText,
+                    conditions,
+                    declarations: Object.fromEntries(properties.map((name) => [name, styleRule.style.getPropertyValue(name).trim()])),
+                  });
+                }
+              }
+              const groupingRule = rule as CSSRule & { cssRules?: CSSRuleList; conditionText?: string };
+              if (groupingRule.cssRules) {
+                const condition = typeof groupingRule.conditionText === "string" ? groupingRule.conditionText : null;
+                const active = condition && rule.type === CSSRule.MEDIA_RULE
+                  ? window.matchMedia(condition).matches
+                  : condition && rule.type === CSSRule.SUPPORTS_RULE
+                    ? CSS.supports(condition)
+                    : true;
+                if (active) visit(groupingRule.cssRules, condition ? [...conditions, condition] : conditions);
+              }
+            }
+          };
+          visit(rules, []);
+        }
+        return {
+          route: location.pathname,
+          target: {
+            tag: element.tagName.toLowerCase(),
+            className: typeof element.className === "string" ? element.className : null,
+            name: element.getAttribute("name"),
+            value: element.getAttribute("value"),
+            ariaPressed: element.getAttribute("aria-pressed"),
+            active: active === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          activeElement: active instanceof HTMLElement
+            ? { tag: active.tagName.toLowerCase(), id: active.id || null, className: active.className || null, name: active.getAttribute("name"), value: active.getAttribute("value") }
+            : { tag: active?.nodeName ?? null },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineColor: computed.outlineColor,
+            outlineOffset: computed.outlineOffset,
+            boxShadow: computed.boxShadow,
+            focusColorToken: computed.getPropertyValue("--tl-color-border-focus").trim(),
+            focusRingToken: computed.getPropertyValue("--tl-focus-ring").trim(),
+          },
+          inlineStyle: {
+            attribute: element.getAttribute("style"),
+            outline: element.style.getPropertyValue("outline"),
+            outlineWidth: element.style.getPropertyValue("outline-width"),
+            outlineStyle: element.style.getPropertyValue("outline-style"),
+            outlineColor: element.style.getPropertyValue("outline-color"),
+            outlineOffset: element.style.getPropertyValue("outline-offset"),
+          },
+          styleBlocks,
+          matchedRules,
+        };
+      });
+      const blocks = observed.styleBlocks.map((block) => ({
+        index: block.index,
+        id: block.id,
+        bodySha256: createHash("sha256").update(block.body).digest("hex"),
+        bodyBytes: Buffer.byteLength(block.body),
+        matchesCurrentFixtureBody: fixtureBody !== null && block.body === fixtureBody,
+        matchesCurrentFixtureMarkup: block.markup === fixtureMarkup,
+      }));
+      const record = {
+        sequence: focusDiagnostics.length + 1,
+        phase,
+        source: "mounted browser CSSOM and computed styles",
+        fixtureSha256: createHash("sha256").update(fixtureMarkup).digest("hex"),
+        fixtureBodySha256: fixtureBody === null ? null : createHash("sha256").update(fixtureBody).digest("hex"),
+        ...observed,
+        styleBlocks: blocks,
+      };
+      focusDiagnostics.push(record);
+      writeFocusDiagnostics();
+      return record;
+    };
+
+    const captureFocusCascadeDiagnostic = async (target: Locator, sequence: number) => {
+      const elementState = await target.evaluate((element) => ({
+        styleAttribute: element.getAttribute("style"),
+        animations: element.getAnimations().map((animation) => {
+          const effect = animation.effect;
+          const timing = effect?.getTiming();
+          const computedTiming = effect?.getComputedTiming();
+          return {
+            playState: animation.playState,
+            pending: animation.pending,
+            currentTime: animation.currentTime,
+            startTime: animation.startTime,
+            transitionProperty: "transitionProperty" in animation ? animation.transitionProperty : null,
+            timing: timing ? {
+              delay: timing.delay,
+              duration: timing.duration,
+              endDelay: timing.endDelay,
+              fill: timing.fill,
+              iterationStart: timing.iterationStart,
+              iterations: timing.iterations,
+              direction: timing.direction,
+              easing: timing.easing,
+            } : null,
+            computedTiming: computedTiming ? {
+              progress: computedTiming.progress,
+              currentIteration: computedTiming.currentIteration,
+              endTime: computedTiming.endTime,
+            } : null,
+            keyframes: effect?.getKeyframes().map((keyframe) => ({
+              outline: keyframe.outline,
+              outlineWidth: keyframe.outlineWidth,
+              outlineStyle: keyframe.outlineStyle,
+              outlineColor: keyframe.outlineColor,
+              outlineOffset: keyframe.outlineOffset,
+            })) ?? [],
+          };
+        }),
+      }));
+      const cdp = await page.context().newCDPSession(page);
+      try {
+        const sheetSources = new Map<string, string>();
+        cdp.on("CSS.styleSheetAdded", ({ header }) => sheetSources.set(header.styleSheetId, header.sourceURL));
+        await cdp.send("DOM.enable");
+        await cdp.send("CSS.enable");
+        const { root: documentNode } = await cdp.send("DOM.getDocument");
+        const value = await target.getAttribute("value");
+        const { nodeId } = await cdp.send("DOM.querySelector", {
+          nodeId: documentNode.nodeId,
+          selector: `button[name="theme"][value="${value}"]`,
+        });
+        if (!nodeId) throw new Error("Could not resolve the focused theme button through Chromium DOM");
+        const matched = await cdp.send("CSS.getMatchedStylesForNode", { nodeId });
+        const computed = await cdp.send("CSS.getComputedStyleForNode", { nodeId });
+        const focusProperties = (properties: Array<{ name: string; value: string; important?: boolean }>) =>
+          properties
+            .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+            .map(({ name, value: propertyValue, important }) => ({ name, value: propertyValue, important: Boolean(important) }));
+        const matchedRules = (matched.matchedCSSRules ?? []).map(({ rule }) => ({
+          origin: rule.origin,
+          sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+          selector: rule.selectorList.text,
+          declarations: focusProperties(rule.style.cssProperties),
+        })).filter(({ declarations }) => declarations.length > 0);
+        const pseudoRules = (matched.pseudoElements ?? []).map(({ pseudoType, matches }) => ({
+          pseudoType,
+          rules: matches.map(({ rule }) => ({
+            origin: rule.origin,
+            sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+            selector: rule.selectorList.text,
+            declarations: focusProperties(rule.style.cssProperties),
+          })).filter(({ declarations }) => declarations.length > 0),
+        })).filter(({ rules }) => rules.length > 0);
+        const computedOutline = (computed.computedStyle ?? [])
+          .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+          .map(({ name, value: propertyValue }) => ({ name, value: propertyValue }));
+        const diagnostic = {
+          sequence,
+          source: "Chromium CDP DOM/CSS matched styles",
+          elementState,
+          inlineStyle: matched.inlineStyle ? focusProperties(matched.inlineStyle.cssProperties) : [],
+          attributeStyle: matched.attributesStyle ? focusProperties(matched.attributesStyle.cssProperties) : [],
+          matchedRules,
+          pseudoRules,
+          computedOutline,
+        };
+        focusCascadeDiagnostics.push(diagnostic);
+        writeFocusDiagnostics();
+        return diagnostic;
+      } finally {
+        await cdp.detach();
+      }
+    };
+
     const focusByKeyboard = async (target: Locator) => {
       for (let attempts = 0; attempts < 40; attempts += 1) {
         if (await target.evaluate((element) => document.activeElement === element)) break;
         await page.keyboard.press("Tab");
       }
-      const focused = await target.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return { active: document.activeElement === element, outlineWidth: style.outlineWidth, outlineStyle: style.outlineStyle };
-      });
-      expect(focused).toEqual({ active: true, outlineWidth: "2px", outlineStyle: "solid" });
+      const initial = await captureFocusDiagnostic(target, "initial");
+      const expectedFocus = {
+        target: { active: true, matchesFocusVisible: true },
+        computed: { outlineWidth: "2px", outlineStyle: "solid", outlineOffset: "2px" },
+      };
+      const isSettled = initial.target.active && initial.target.matchesFocusVisible &&
+        initial.computed.outlineWidth === "2px" && initial.computed.outlineStyle === "solid" &&
+        initial.computed.outlineOffset === "2px";
+      if (isSettled) return;
+
+      await captureFocusCascadeDiagnostic(target, initial.sequence);
+      await expect.poll(async () => target.evaluate((element) => {
+        const computed = getComputedStyle(element);
+        return {
+          target: {
+            active: document.activeElement === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineOffset: computed.outlineOffset,
+          },
+        };
+      }), { timeout: 3000, intervals: [50, 100, 250, 500] }).toMatchObject(expectedFocus);
+      const settled = await captureFocusDiagnostic(target, "settled");
+      expect(settled).toMatchObject(expectedFocus);
     };
 
     const activate = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
@@ -220,7 +479,7 @@ test("theme preference, effective cascade and reduced motion are distinct observ
     const disclosure = page.locator(".tl-shell-nav__disclosure");
     await disclosure.locator("summary").click();
     await expect(disclosure).toHaveAttribute("open", "");
-    await expect(buttons).toBeVisible();
+    for (const button of await buttons.all()) await expect(button).toBeVisible();
     await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toBeVisible();
     const narrow = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
     expect(narrow.document - narrow.viewport).toBeLessThanOrEqual(1);
