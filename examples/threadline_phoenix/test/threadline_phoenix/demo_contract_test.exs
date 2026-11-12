@@ -8,6 +8,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   @moduletag :demo_contract
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Governance.ExportJob
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
@@ -20,6 +21,27 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end)
 
     :ok
+  end
+
+  describe "D-02 generated export calendar anchor" do
+    test "completed downloadable export bytes contain the exact corrected captured_at" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        correlation_id = Manifest.correlation_id(:acme_4521_close)
+
+        export_job =
+          Repo.all(ExportJob, StorageSchema.repo_opts())
+          |> Enum.find(fn job ->
+            job.status == "completed" and is_binary(job.file_path) and
+              job.query_params["correlation_id"] == correlation_id
+          end)
+
+        assert export_job,
+               "expected the completed downloadable export for #{correlation_id}"
+
+        assert File.read!(export_job.file_path) ==
+                 "id,table_name,op,captured_at\ndemo,tickets,update,2026-05-26T14:30:00Z\n"
+      end)
+    end
   end
 
   describe "SEED-03 manifest heroes" do
