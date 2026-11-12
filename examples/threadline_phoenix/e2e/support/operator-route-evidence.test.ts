@@ -80,8 +80,8 @@ function semanticInventoryErrors(
       errors.push(`invalid structural route identity ${surface.routeId ?? "<missing>"}`);
     }
     if (!surface.job?.trim() || !surface.jobId?.trim()) errors.push(`missing job for ${surface.routeId ?? "<missing>"}`);
-    for (const [name, value] of Object.entries(surface.access ?? {})) {
-      if (!value?.trim()) errors.push(`missing access.${name} for ${surface.routeId ?? "<missing>"}`);
+    for (const name of ["authentication", "capability", "organizationScope"] as const) {
+      if (!surface.access?.[name]?.trim()) errors.push(`missing access.${name} for ${surface.routeId ?? "<missing>"}`);
     }
     if (!surface.actions?.length || !surface.states?.length) errors.push(`missing actions or states for ${surface.routeId ?? "<missing>"}`);
 
@@ -161,4 +161,16 @@ test("Acme #4521 investigation links Home, Timeline, transaction, drawer, and di
   const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
   const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
   assert.deepEqual(semanticInventoryErrors(inventory, fixture, semanticSources), []);
+
+  const missingDrawer = structuredClone(inventory);
+  missingDrawer.surfaces = missingDrawer.surfaces.filter((surface: SemanticSurface) => surface.routeId !== "route.drawer");
+  assert.ok(semanticInventoryErrors(missingDrawer, fixture, semanticSources).includes("missing journey route route.drawer"));
+
+  const absentSource = structuredClone(inventory);
+  absentSource.surfaces[0].sourceRefs[0].locator = "live(\"/missing\", MissingLive, :show)";
+  assert.ok(semanticInventoryErrors(absentSource, fixture, semanticSources).some((error) => error.startsWith("invalid source locator")));
+
+  const absentProof = structuredClone(inventory);
+  absentProof.surfaces[0].proofRefs[0].locator = "test(\"missing proof owner\")";
+  assert.ok(semanticInventoryErrors(absentProof, fixture, semanticSources).some((error) => error.startsWith("invalid proof locator")));
 });

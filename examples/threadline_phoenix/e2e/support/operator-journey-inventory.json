@@ -36,5 +36,224 @@
     {"category":"desktop-zoom","requirement":"UIV-01","journey":"Mobile browser extension zoom capability is outside this voting lane","failureClass":"unsupported-mobile-zoom","voting":"nonvoting","reason":"Mobile zoom limitation: browser limitation; mobile emulation cannot prove physical-device extension zoom or operating-system text scaling.","identity":{"project":"mobile-chromium","file":"operator-zoom-proof.spec.ts","titlePath":["inspection routes preserve exact scope and controls at verified real 200% tab zoom"]}},
     {"category":"appearance","requirement":"UIV-01","journey":"Light/System theme lane remains a separate local-only check","failureClass":"nonvoting-theme-project","voting":"nonvoting","reason":"Light/System is compiled and run through the local-only desktop-chromium-light lane, not the required dark voting projects.","identity":{"project":"desktop-chromium-light","file":"operator-accessibility.spec.ts","titlePath":["operator accessibility baseline","keeps System selection while served colors follow OS through investigation navigation"]}},
     {"category":"capture","requirement":"UIV-01","journey":"Browser-full route render smoke remains outside this required journey matrix","failureClass":"nonvoting-browser-full-project","voting":"nonvoting","reason":"Browser-full runs route-capture in a separate nonrequired workflow; it does not vote in ci-required.","identity":{"project":"route-capture","file":"operator-page-capture.spec.ts","titlePath":["operator real-route deterministic capture","renders every curated operator route at 1280"]}}
+  ],
+  "surfaces": [
+    {
+      "id": "route.home",
+      "routeId": "route.home",
+      "jobId": "job.acme-4521-investigation",
+      "job": "Investigate Acme ticket 4521 and follow its captured reply into row history",
+      "journeyOrder": 0,
+      "renderer": {
+        "module": "Threadline.OperatorSurface.Live.StartLive",
+        "path": "lib/threadline/operator_surface/live/start_live.ex",
+        "locator": "defmodule Threadline.OperatorSurface.Live.StartLive"
+      },
+      "sourceRefs": [
+        { "path": "lib/threadline/operator_surface/router.ex", "locator": "live(\"/\", StartLive, :index)" },
+        { "path": "lib/threadline/operator_surface/live/start_live.ex", "locator": "handle_event(\"open-correlation\", %{\"correlation\" => params}, socket)" },
+        { "path": "lib/threadline/operator_surface/live/start_live.ex", "locator": "handle_event(\"open-row-history\", %{\"record_lookup\" => params}, socket)" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def my_authorize_fn(%{assigns: assigns}) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def scope_operator_query(query, %{organization_id: org_id}, %{surface: surface})" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@hero_close_number 4521" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex", "locator": "@correlation_acme_close \"walk-acme-4521-close\"" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex", "locator": "closer = Repo.get_by!(Agent, organization_id: acme.id, user_id: closer_id)" }
+      ],
+      "proofRefs": [
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"Home correlation lookup lands on Timeline correlation filter\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "Scenario owner only; this plan does not run the browser test."
+        },
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"Home record lookup reaches first-class row history\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "The test resolves the record ID at runtime; it is not a fresh receipt from this plan."
+        }
+      ],
+      "access": {
+        "authentication": "Host authorization requires current_user; absent or unmatched users are unauthorized.",
+        "capability": "Admins are allowed; organization-bound support users receive support_read_only access.",
+        "organizationScope": "Scoped support queries use organization_id; unsupported query contexts return no rows."
+      },
+      "actions": ["Submit the seeded correlation lookup", "Look up a record and open its row history"],
+      "states": ["Home lookup forms rendered", "Invalid lookup remains on Home with validation feedback", "Successful lookup navigates to its destination"],
+      "journey": {
+        "id": "job.acme-4521-investigation",
+        "routeIds": ["route.home", "route.timeline", "route.transaction", "route.drawer", "route.row"],
+        "identity": {
+          "ticket": "Acme #4521",
+          "actor": "Seeded Acme closer Agent linked to the seeded closer user",
+          "correlation": "walk-acme-4521-close",
+          "record": {
+            "table": "ticket_replies",
+            "key": "record_id resolved from the seeded ticket_replies change at runtime"
+          }
+        },
+        "returnContext": {
+          "transactionHistory": "TransactionLive opens history with push_focus and patch; Close returns to the same transaction and restores focus.",
+          "directRowHistory": "Home opens /audit/rows/:table/:record_id; Timeline-origin history retains committed filters for its safe return."
+        }
+      }
+    },
+    {
+      "id": "route.timeline",
+      "routeId": "route.timeline",
+      "jobId": "job.acme-4521-investigation",
+      "job": "Investigate Acme ticket 4521 and follow its captured reply into row history",
+      "journeyOrder": 1,
+      "renderer": {
+        "module": "Threadline.OperatorSurface.Live.TimelineLive",
+        "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+        "locator": "defmodule Threadline.OperatorSurface.Live.TimelineLive"
+      },
+      "sourceRefs": [
+        { "path": "lib/threadline/operator_surface/router.ex", "locator": "live(\"/timeline\", TimelineLive, :index)" },
+        { "path": "lib/threadline/operator_surface/live/timeline_live.ex", "locator": "handle_event(\"apply\", %{\"filter\" => raw}, socket)" },
+        { "path": "lib/threadline/operator_surface/live/timeline_live.ex", "locator": "handle_params(params, uri, socket) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def my_authorize_fn(%{assigns: assigns}) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def scope_operator_query(query, %{organization_id: org_id}, %{surface: surface})" }
+      ],
+      "proofRefs": [
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"Home correlation lookup lands on Timeline correlation filter\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "Scenario owner only; the browser test is not run here."
+        },
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "locator": "test(\"starts at Home, applies a Timeline query, and opens its transaction\"",
+          "owner": "operator-timeline-investigation-flow.spec.ts",
+          "limitation": "This separate test creates a synthetic correlated post; it is not a receipt for seeded ticket 4521."
+        }
+      ],
+      "access": {
+        "authentication": "Host authorization requires current_user; absent or unmatched users are unauthorized.",
+        "capability": "Admins are allowed; organization-bound support users receive support_read_only access.",
+        "organizationScope": "Timeline support reads are filtered to organization_id; unsupported query contexts return no rows."
+      },
+      "actions": ["Apply the correlation and table filters", "Open a matching transaction", "Open row history from a matching row"],
+      "states": ["Committed filters reflected in the query URL", "Matching rows populated", "No matching rows"]
+    },
+    {
+      "id": "route.transaction",
+      "routeId": "route.transaction",
+      "jobId": "job.acme-4521-investigation",
+      "job": "Investigate Acme ticket 4521 and follow its captured reply into row history",
+      "journeyOrder": 2,
+      "renderer": {
+        "module": "Threadline.OperatorSurface.Live.TransactionLive",
+        "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+        "locator": "defmodule Threadline.OperatorSurface.Live.TransactionLive"
+      },
+      "sourceRefs": [
+        { "path": "lib/threadline/operator_surface/router.ex", "locator": "live(\"/transactions/:id\", TransactionLive, :show)" },
+        { "path": "lib/threadline/operator_surface/live/transaction_live.ex", "locator": "handle_params(params, uri, socket) do" },
+        { "path": "lib/threadline/operator_surface/live/transaction_live.ex", "locator": "data-testid=\"transaction-change-row\"" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def my_authorize_fn(%{assigns: assigns}) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def scope_operator_query(query, %{organization_id: org_id}, %{surface: :transaction_header})" }
+      ],
+      "proofRefs": [
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "locator": "test(\"starts at Home, applies a Timeline query, and opens its transaction\"",
+          "owner": "operator-timeline-investigation-flow.spec.ts",
+          "limitation": "The test owns a separate synthetic correlated-post journey; it is not run in this plan."
+        }
+      ],
+      "access": {
+        "authentication": "Host authorization requires current_user; absent or unmatched users are unauthorized.",
+        "capability": "Admins are allowed; organization-bound support users receive support_read_only access.",
+        "organizationScope": "Transaction headers and row changes are scoped to the support user's organization."
+      },
+      "actions": ["Inspect transaction changes", "Open a row-history drawer from a change"],
+      "states": ["Transaction changes populated", "Transaction not found or outside the authorized scope"]
+    },
+    {
+      "id": "route.drawer",
+      "routeId": "route.drawer",
+      "jobId": "job.acme-4521-investigation",
+      "job": "Investigate Acme ticket 4521 and follow its captured reply into row history",
+      "journeyOrder": 3,
+      "renderer": {
+        "module": "Threadline.OperatorSurface.Live.TransactionLive",
+        "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+        "locator": "defmodule Threadline.OperatorSurface.Live.TransactionLive"
+      },
+      "sourceRefs": [
+        { "path": "lib/threadline/operator_surface/router.ex", "locator": "live(\"/transactions/:id/history/:table/:record_id\", TransactionLive, :history)" },
+        { "path": "lib/threadline/operator_surface/live/transaction_live.ex", "locator": "JS.push_focus() |> JS.patch(row_history_path)" },
+        { "path": "lib/threadline/operator_surface/live/transaction_live.ex", "locator": "defp history_path(base_path, table, record_id) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def my_authorize_fn(%{assigns: assigns}) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def scope_operator_query(query, %{organization_id: org_id}, %{surface: :transaction_header})" }
+      ],
+      "proofRefs": [
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"transaction-origin row history returns to the same transaction\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "Scenario owner only; no browser run is claimed by this plan."
+        }
+      ],
+      "access": {
+        "authentication": "Host authorization requires current_user; absent or unmatched users are unauthorized.",
+        "capability": "Admins are allowed; organization-bound support users receive support_read_only access.",
+        "organizationScope": "Transaction and row-history reads remain inside the support user's organization."
+      },
+      "actions": ["Open transaction-scoped row history", "Set an as-of time", "Close history and return to the same transaction"],
+      "states": ["Drawer open with row history", "As-of query applied", "Drawer closed with prior transaction focus restored"]
+    },
+    {
+      "id": "route.row",
+      "routeId": "route.row",
+      "jobId": "job.acme-4521-investigation",
+      "job": "Investigate Acme ticket 4521 and follow its captured reply into row history",
+      "journeyOrder": 4,
+      "renderer": {
+        "module": "Threadline.OperatorSurface.Live.RowHistoryLive",
+        "path": "lib/threadline/operator_surface/live/row_history_live.ex",
+        "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryLive"
+      },
+      "sourceRefs": [
+        { "path": "lib/threadline/operator_surface/router.ex", "locator": "live(\"/rows/:table/:record_id\", RowHistoryLive, :show)" },
+        { "path": "lib/threadline/operator_surface/live/row_history_live.ex", "locator": "handle_params(params, uri, socket) do" },
+        { "path": "lib/threadline/operator_surface/live/row_history_component.ex", "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryComponent" },
+        { "path": "lib/threadline/operator_surface/live/row_history_component.ex", "locator": "def handle_event(\"retry\", _params, socket) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def my_authorize_fn(%{assigns: assigns}) do" },
+        { "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex", "locator": "def scope_operator_query(query, %{organization_id: org_id}, %{surface: surface})" }
+      ],
+      "proofRefs": [
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"Home record lookup reaches first-class row history\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "Scenario owner resolves the record key dynamically; this plan does not run the browser test."
+        },
+        {
+          "kind": "scenario-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+          "locator": "test(\"direct first-class row-history route opens without a transaction first\"",
+          "owner": "operator-earned-flows.spec.ts",
+          "limitation": "Direct-entry scenario owner only; not a fresh lifecycle receipt."
+        }
+      ],
+      "access": {
+        "authentication": "Host authorization requires current_user; absent or unmatched users are unauthorized.",
+        "capability": "Admins are allowed; organization-bound support users receive support_read_only access.",
+        "organizationScope": "Row-history reads are filtered to the support user's organization; unknown scope is fail-closed."
+      },
+      "actions": ["Open row history directly", "Retry history loading", "Apply an as-of time", "Return through the origin-specific context"],
+      "states": ["History populated", "Loading or unavailable history with retry", "Before-audit horizon", "Unknown table"]
+    }
   ]
 }
