@@ -15,7 +15,12 @@ provides:
 affects: [249-04-scenario-catalog, demo-seed-contracts]
 
 actuals:
-  tokens: null
+  tokens: 242782
+  reasoning_output_tokens: 163484
+  worker_elapsed_s: 5244
+  measurement_source: codex-exec-terminal-usage
+  tokens_meaning: output_tokens_including_reasoning
+  worker_runs: 2
   tasks: 3
   commits: 9
   plan_head_before: f89f051cbba4048860c23e1ec8cf8cef5435e9d7
@@ -103,7 +108,7 @@ coverage:
         status: pass
     human_judgment: false
 
-duration: null
+duration: 87min24s
 completed: "2026-11-11"
 status: complete
 summary-authored: "2026-11-12 03:05:48 UTC"
@@ -189,6 +194,10 @@ The original Task 3 contract failures were diagnosed and corrected. A post-plan 
 ## Corrective Continuation
 
 The parent planning correction keeps Sigra registration and confirmation as host fixture materialization and limits setup S to audited organization, membership and agent rows. The source now follows its original registration → insert → conditional confirmation sequence; the test checks the real reset window, all stable seeded IDs and admin authentication through the existing Accounts API. This does not waive risk or change public scope. Full evidence is in [249-03-AUTH-MATERIALIZATION-FIX.md](./249-03-AUTH-MATERIALIZATION-FIX.md).
+
+## Managed worker reconciliation
+
+The main executor ran for 4523.005 seconds and reported 207098 output tokens, including 138931 reasoning output tokens. The bounded authentication correction ran for 720.840 seconds and reported 35684 output tokens, including 24553 reasoning output tokens. The totals above sum worker execution only, excluding parent review and handoff time. Both managed processes exited zero; source remained unchanged after their final checks.
 
 ## Proof Limits
 
