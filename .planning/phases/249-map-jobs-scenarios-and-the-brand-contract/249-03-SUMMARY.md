@@ -17,9 +17,9 @@ affects: [249-04-scenario-catalog, demo-seed-contracts]
 actuals:
   tokens: null
   tasks: 3
-  commits: 7
+  commits: 9
   plan_head_before: f89f051cbba4048860c23e1ec8cf8cef5435e9d7
-  plan_head_after: ed1d87a98bdf20590a3b97d5049f13b3ca5d68f0
+  plan_head_after: b3bb92e317f3d861ea2cc12f6f0bb2d0100f5222
 
 tech-stack:
   added: []
@@ -27,7 +27,8 @@ tech-stack:
     - "Apply represented business timestamps to seed changesets before Repo writes."
     - "Keep transaction IDs and event times in the seed context for the existing Temporal pass."
 key-files:
-  created: []
+  created:
+    - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-AUTH-MATERIALIZATION-FIX.md
   modified:
     - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex
     - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex
@@ -36,6 +37,7 @@ key-files:
     - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex
     - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex
     - examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs
+    - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-PLAN.md
 
 key-decisions:
   - "Use force_change for seed updated_at values so equal-to-current timestamps are not replaced by Ecto's automatic update timestamp."
@@ -56,11 +58,11 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: "Setup snapshots, #4518 reply/close then deletion, and the twelve agent2 events retain exact chronology and actors."
+    description: "Audited setup snapshots use S; Sigra users retain stable IDs and host registration/confirmation timestamps in the real reset window; #4518 and the twelve agent2 events retain exact chronology and actors."
     requirement: ADM-06
     verification:
       - kind: integration
-        ref: "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs#organization, user, membership, agent and base ticket writes use setup S"
+        ref: "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs#audited setup and base ticket writes use S while Sigra users use the reset window"
         status: pass
       - kind: integration
         ref: "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs##4518 closes with a reply before the later capture-only deletion"
@@ -104,7 +106,7 @@ coverage:
 duration: null
 completed: "2026-11-11"
 status: complete
-summary-authored: "2026-11-12 02:44:50 UTC"
+summary-authored: "2026-11-12 03:05:48 UTC"
 ---
 
 # Phase 249 Plan 03: Map jobs, scenarios and the brand contract Summary
@@ -114,14 +116,14 @@ summary-authored: "2026-11-12 02:44:50 UTC"
 ## Performance
 
 - **Plan duration:** Not recorded in this worktree; the parent will reconcile terminal timing from the managed launch receipt.
-- **Summary authored:** 2026-11-12 02:44:50 UTC
+- **Summary authored:** 2026-11-12 03:05:48 UTC
 - **Tasks:** 3
 - **Files modified:** 7
 
 ## Accomplishments
 
 - Added seed-only timestamp and reply/close helpers, stamped original rows before trigger capture, and retained the existing transaction-ID timestamp map.
-- Corrected setup, #4521, #4518, the agent2 close window, Globex, current-window stories, and ordinary filler histories; export insertion and expiry now share one seed-run clock.
+- Corrected audited organization/membership/agent setup, #4521, #4518, the agent2 close window, Globex, current-window stories, and ordinary filler histories; export insertion and expiry now share one seed-run clock. Sigra user registration and confirmation remain normal host fixture materialization.
 - Added exact row-snapshot, event-order, actor, assignee, export-expiry, redaction, reset-stability, and retention assertions. Public schemas, HelpDesk casts/signatures, and runtime clock behavior remain unchanged.
 
 ## Task Commits
@@ -133,16 +135,19 @@ summary-authored: "2026-11-12 02:44:50 UTC"
 5. **Task 3 RED** — b6e9f686 (test(249-03): assert ordinary event snapshot timelines)
 6. **Task 3 GREEN** — aca8c761 (feat(249-03): align ordinary seed snapshots to event clocks)
 7. **Task 3 verification** — ed1d87a9 (test(249-03): assert export run-clock expiry)
+8. **Bounded correction** — b3bb92e3 (fix(249-03): preserve Sigra host user materialization)
 
 ## Files Created/Modified
 
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex — Captures one second-precision run clock for the existing seed pipeline.
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex — Stamps existing timestamp fields before writes, preserves equal update timestamps, and groups seed-only reply/close writes.
-- examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex — Aligns setup rows to S.
+- examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex — Aligns audited setup rows to S and retains normal Sigra user materialization timestamps.
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex — Aligns hero, active-window, and current-story writes to their represented events.
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/filler.ex — Uses one represented timestamp for filler insert and update/delete snapshots.
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex — Uses the run clock for export insertion and downloadable expiry.
 - examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs — Covers source snapshots, event sequences, actors, identities, and retention boundaries.
+- .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-PLAN.md — Narrows Task 2 timestamp wording to audited setup rows and the accepted host materialization boundary.
+- .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-AUTH-MATERIALIZATION-FIX.md — Records the bounded correction, regression proof, environment identity and verification limits.
 
 ## Decisions Made
 
@@ -150,6 +155,7 @@ summary-authored: "2026-11-12 02:44:50 UTC"
 - Use one run clock for current-window offsets and export expiry, while keeping named epoch-relative fixtures explicit.
 - Set ticket assignees inside seed changesets because the runtime Ticket changeset does not cast that field; no public cast or schema change was needed.
 - Force updated_at in the seed helper when it equals the stored value, so the represented time survives Ecto's automatic timestamping.
+- Parent planning correction: setup S applies to audited business rows; Sigra user registration and confirmation stay on the host materialization path. This narrows Task 2 wording to the accepted scenario boundary without waiving a risk or changing public scope.
 
 ## Deviations from Plan
 
@@ -178,12 +184,16 @@ summary-authored: "2026-11-12 02:44:50 UTC"
 
 ## Issues Encountered
 
-All task3 contract failures were diagnosed and corrected. The final focused suite passes. ExUnit output includes shape-fixture module redefinition warnings; the suite exit was successful.
+The original Task 3 contract failures were diagnosed and corrected. A post-plan red control then exposed the Task 2 wording drift: Sigra user timestamps were being placed at fictional setup S. The bounded correction restores host materialization and the final affected group passes. A default-sandbox staging attempt could not create the worktree index lock; it staged nothing, and the authorized source/test commit succeeded with hooks after the automatic sandbox review. ExUnit output includes existing shape-fixture module redefinition warnings.
+
+## Corrective Continuation
+
+The parent planning correction keeps Sigra registration and confirmation as host fixture materialization and limits setup S to audited organization, membership and agent rows. The source now follows its original registration → insert → conditional confirmation sequence; the test checks the real reset window, all stable seeded IDs and admin authentication through the existing Accounts API. This does not waive risk or change public scope. Full evidence is in [249-03-AUTH-MATERIALIZATION-FIX.md](./249-03-AUTH-MATERIALIZATION-FIX.md).
 
 ## Proof Limits
 
 - The ADM-06 edge probe still classifies the broader spec-less autonomous-recall and descriptorless flagged-unverified intent claims as unresolved. These tests establish only the named snapshot, actor, and chronology facts; Plan 04 owns the independent review of that broader boundary.
-- No root-wide, canonical, browser, hosted, or release checks were run; the authorized evidence is the focused example contract suite and example-owned format/compile checks.
+- No root-wide, canonical, full-repeat, browser, hosted, or release checks were run; current evidence is the authorized five-file example group (41 tests), the targeted red/green control, and example format/compile checks.
 
 ## User Setup Required
 
@@ -195,10 +205,11 @@ Ready for Plan 249-04 with deterministic seed-clock and capture-boundary evidenc
 
 ## Self-Check: PASSED
 
-- All seven plan-owned source/test files exist; no generated stubs were introduced.
-- All seven task commits are ancestors of this worktree HEAD, and the evaluation-scope query resolved all seven plan commits.
-- Final plan verification passed: focused example command reported 26 tests, 0 failures; example formatting and warnings-as-errors compilation passed.
-- Worktree branch, root, clean diff, and planning artifact ownership checks passed; STATE.md, ROADMAP.md, and REQUIREMENTS.md were not modified.
+- The seven original plan source/test files and the new correction note exist; no generated stubs were introduced.
+- All seven original task commits and the bounded source/test correction commit are ancestors of this worktree HEAD. The recorded 9-commit actual is the measured range from the plan baseline through the corrective source commit.
+- The expected red control failed on a user timestamp before the real reset window; after source restoration the targeted test passed, followed by the final affected group (41 tests, 0 failures).
+- Example-wide formatting and warnings-as-errors compilation passed after the source correction.
+- Root and agent branch matched the handoff; only owned source and planning files changed. Parent-owned STATE.md, ROADMAP.md, and REQUIREMENTS.md remain untouched.
 
 ---
 *Phase: 249-map-jobs-scenarios-and-the-brand-contract*
