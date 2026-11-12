@@ -16,11 +16,15 @@ defmodule ThreadlinePhoenix.DemoContractTest do
   alias ThreadlinePhoenix.Repo
 
   setup do
+    seed_started_at = DateTime.utc_now(:second)
+
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
       assert :ok = Reset.run()
     end)
 
-    :ok
+    seed_finished_at = DateTime.utc_now(:second)
+
+    {:ok, %{seed_started_at: seed_started_at, seed_finished_at: seed_finished_at}}
   end
 
   describe "D-02 generated export calendar anchor" do
@@ -124,6 +128,86 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         encoded = Jason.encode!(reply_change.data_after)
         assert encoded =~ "[REDACTED]"
         refute encoded =~ "synthetic-secret-canary-239-6f71"
+      end)
+    end
+
+    test "#4521 row and reply snapshots match the represented close event",
+         %{seed_started_at: seed_started_at, seed_finished_at: seed_finished_at} do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
+        ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 4521)
+        setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+        close_at = Manifest.last_tuesday()
+        setup_iso = setup_at |> DateTime.to_naive() |> NaiveDateTime.to_iso8601()
+        close_iso = close_at |> DateTime.to_naive() |> NaiveDateTime.to_iso8601()
+
+        ticket_insert =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "tickets",
+              where: ac.op == "insert",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id)),
+              limit: 1
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        close_tx =
+          Repo.one!(
+            from(at in AuditTransaction,
+              join: ac in assoc(at, :changes),
+              where: ac.table_name == "tickets",
+              where: ac.op == "update",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(ticket.id)),
+              where: fragment("?->>'status' = ?", ac.data_after, "closed"),
+              select: at,
+              limit: 1
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        close_change =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.transaction_id == ^close_tx.id,
+              where: ac.table_name == "tickets",
+              where: ac.op == "update"
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        reply_change =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.transaction_id == ^close_tx.id,
+              where: ac.table_name == "ticket_replies",
+              where: ac.op == "insert"
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        action = Repo.get!(AuditAction, close_tx.action_id, StorageSchema.repo_opts())
+
+        assert ticket.inserted_at == setup_at
+        assert ticket.updated_at == close_at
+        assert ticket.closed_at == close_at
+        assert ticket_insert.data_after["inserted_at"] == setup_iso
+        assert ticket_insert.data_after["updated_at"] == setup_iso
+        assert close_change.data_after["inserted_at"] == setup_iso
+        assert close_change.data_after["updated_at"] == close_iso
+        assert close_change.data_after["closed_at"] == close_iso
+        assert close_tx.occurred_at == close_at
+        assert close_tx.actor_ref == %ActorRef{type: :user, id: Manifest.user_id(:closer)}
+        assert close_tx.meta["organization_id"] == to_string(acme.id)
+        assert action.name == "ticket_replied_and_closed"
+        assert action.correlation_id == Manifest.correlation_id(:acme_4521_close)
+        assert action.request_id == "demo-seed-4521"
+        assert DateTime.compare(seed_started_at, action.inserted_at) in [:lt, :eq]
+        assert DateTime.compare(action.inserted_at, seed_finished_at) in [:lt, :eq]
+        refute action.inserted_at == close_at
+
+        assert reply_change.data_after["inserted_at"] == close_iso
+        assert reply_change.data_after["updated_at"] == close_iso
       end)
     end
   end
