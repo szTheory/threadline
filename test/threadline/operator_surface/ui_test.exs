@@ -964,7 +964,7 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "data_state/1 — typed reason dispatch (DATA-03, D-13..D-16)" do
     @reason_cases [
       {:unauthorized, "alert", "You do not have access to this audit data", "lock"},
-      {:no_data, "status", "No audit changes match these filters", "funnel"},
+      {:no_data, "status", "No changes match these filters", "funnel"},
       {:source_down, "alert", "temporarily unavailable", "cloud_off"},
       {:redacted, "status", "Value redacted by policy", "eye_off"},
       {:pruned, "status", "Audit data pruned under retention", "archive"},
@@ -1165,6 +1165,9 @@ defmodule Threadline.OperatorSurface.UITest do
       refute html =~ "the-data-table"
       # A status loading region appears instead.
       assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-busy="true")
+      assert html =~ "tl-spinner"
+      assert html =~ "Loading audit changes"
       # Pager is hidden when not :ok.
       refute html =~ "the-pager"
     end

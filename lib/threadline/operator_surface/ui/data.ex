@@ -197,7 +197,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     def data_state(%{reason: :no_data} = assigns) do
       ~H"""
       <.empty_state variant="no_data" role="status" icon={:funnel} class={@class} {@rest}>
-        <:title>No audit changes match these filters</:title>
+        <:title>No changes match these filters</:title>
         Clear a filter or widen the time range.
       </.empty_state>
       """

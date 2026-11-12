@@ -116,6 +116,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         filters_raw = FilterParams.filters_raw_from_params(params)
         filter_query = build_canonical_query(filters_raw)
 
+        filter_query =
+          if filter_query == "" and Map.get(params, "from") == "", do: "from=", else: filter_query
+
         search_url =
           if filter_query == "", do: timeline_path, else: "#{timeline_path}?#{filter_query}"
 
@@ -375,8 +378,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("apply", %{"filter" => raw}, socket) do
-      query = build_canonical_query(raw)
-      {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
+      query =
+        case build_canonical_query(raw) do
+          "" -> "from="
+          query -> query
+        end
+
+      path = "#{socket.assigns.timeline_path}?#{query}"
+
+      {:noreply, push_patch(socket, to: path)}
     end
 
     def handle_event("apply", _params, socket) do
@@ -560,7 +570,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <%= if field_filtered_query?(@filters_raw) and not @future_window_empty, do: "No changes match these filters", else: Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %>
           </:title>
           <%= if field_filtered_query?(@filters_raw) and not @future_window_empty do %>
-            Adjust the time range or filters, then apply again.
+            Try a wider date range or adjust the filters, then apply again.
             <span :if={@scope}>Scoped views only show records you are authorized to see.</span>
           <% else %>
             <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
