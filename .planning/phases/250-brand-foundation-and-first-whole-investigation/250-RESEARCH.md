@@ -81,9 +81,9 @@ A material source constraint needs a named proof: installed ExDoc 0.40.1 emits o
 
 | Capability | Primary tier | Secondary tier | Rationale |
 |---|---|---|---|
-| Brand semantic tokens/theme appearance | Browser / Client | Frontend Server | Existing scoped CSS owns roles and dark/light/System lanes; server mount/controller keeps theme choice authoritative. [VERIFIED: lib/threadline/operator_surface/style/01_tokens.css:1-284; lib/threadline/operator_surface/theme_controller.ex:1-20] |
-| Theme submit and persistence | API / Backend | Browser / Client | Existing Phoenix CSRF POST, theme allowlist, session/cookie and validated return path own behavior. [VERIFIED: lib/threadline/operator_surface/components/surface_header.ex:99-117; lib/threadline/operator_surface/theme_controller.ex:1-20] |
-| Logo, fonts and Admin favicon | Browser / Client | Frontend Server | Shared compile-time SVG/font delivery plus one existing example static asset; no adopter route. [VERIFIED: lib/threadline/operator_surface/logo.ex:1-28; lib/threadline/operator_surface/fonts.ex:1-65; examples/threadline_phoenix/lib/threadline_phoenix_web/components/layouts/app.html.heex:1-15] |
+| Brand semantic tokens/theme appearance | Browser / Client | Frontend Server | Existing scoped CSS owns roles and dark/light/System lanes; server mount/controller keeps theme choice authoritative. [VERIFIED: lib/threadline/operator_surface/style/01_tokens.css:1-284; lib/threadline/operator_surface/controllers/theme_controller.ex:1-20] |
+| Theme submit and persistence | API / Backend | Browser / Client | Existing Phoenix CSRF POST, theme allowlist, session/cookie and validated return path own behavior. [VERIFIED: lib/threadline/operator_surface/components/surface_header.ex:99-117; lib/threadline/operator_surface/controllers/theme_controller.ex:1-20] |
+| Logo, fonts and Admin favicon | Browser / Client | Frontend Server | Shared compile-time SVG/font delivery plus one existing example static asset; no adopter route. [VERIFIED: lib/threadline/operator_surface/components/logo.ex:1-28; lib/threadline/operator_surface/fonts.ex:1-65; examples/threadline_phoenix/lib/threadline_phoenix_web/components/layouts/app.html.heex:1-15] |
 | Ordinary investigation | Frontend Server | Database / Storage | Existing mounted Timeline/transaction/history routes and browser journey read seeded action/change rows. [VERIFIED: examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts:1-175; examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex:63-90] |
 | README, ExDoc and archive identity | CDN / Static | Frontend Server | Mix docs/package configuration owns generated output and what ships; the Hex archive is the boundary. [VERIFIED: mix.exs:512-529; test/threadline/release_artifact_contract_test.exs:76-90] |
 | Before/after evidence | Browser / Client | Database / Storage | Existing capture owner plus read-only target fingerprint; direct base URL avoids reset runner. [VERIFIED: examples/threadline_phoenix/e2e/playwright.config.ts:1-4; examples/threadline_phoenix/e2e/run-e2e.sh:416-433] |
@@ -150,7 +150,7 @@ flowchart LR
 | Owner | Current seam | Plan action |
 |---|---|---|
 | Tokens | lib/threadline/operator_surface/style/01_tokens.css; test/threadline/brandbook_token_parity_test.exs | Replace old authority with brand/brand.json; verify all eight pairs in dark/light against functional variables. |
-| Logo/header/theme | lib/threadline/operator_surface/logo.ex; lib/threadline/operator_surface/components/surface_header.ex; lib/threadline/operator_surface/theme_controller.ex | Inline supplied paired SVGs at compile time; preserve accessible name, immediate native submit and session/cookie/return contracts. |
+| Logo/header/theme | lib/threadline/operator_surface/components/logo.ex; lib/threadline/operator_surface/components/surface_header.ex; lib/threadline/operator_surface/controllers/theme_controller.ex | Inline supplied paired SVGs at compile time; preserve accessible name, immediate native submit and session/cookie/return contracts. |
 | Fonts | lib/threadline/operator_surface/fonts.ex; token CSS | Embed supplied WOFF2 with private aliases; preserve opt-out/default/false, fallback and offline use. |
 | Semantics | lib/threadline/operator_surface/presentation.ex and UI.Display | Reuse date/value/reference renderer and distinct state fixtures. |
 | Example icon | examples/threadline_phoenix/priv/static/images/threadline-admin-favicon.svg; examples/threadline_phoenix/lib/threadline_phoenix_web/components/layouts/app.html.heex; examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs | Replace only bytes at existing URL; keep demo home/login icon; compare served bytes and MIME. |
@@ -177,7 +177,7 @@ Use the supplied paired SVGs and exact descriptors below, but generate Threadlin
 
 ### Pattern 3: Native immediate theme submit
 
-Preserve theme allowlist values exactly as "light", "dark" and "system"; submit each choice natively and immediately. Keep server validation, CSRF, session/cookie persistence and validated return path. [VERIFIED: lib/threadline/operator_surface/theme_controller.ex:9-20; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-04]
+Preserve theme allowlist values exactly as "light", "dark" and "system"; submit each choice natively and immediately. Keep server validation, CSRF, session/cookie persistence and validated return path. [VERIFIED: lib/threadline/operator_surface/controllers/theme_controller.ex:9-20; .planning/phases/250-brand-foundation-and-first-whole-investigation/250-CONTEXT.md D-04]
 
 ### Pattern 4: Same-materialization evidence
 
@@ -334,7 +334,7 @@ Preservation checks only, no new security feature. [VERIFIED: AGENTS.md:78-86; .
 - .planning/REQUIREMENTS.md:25-37; .planning/STATE.md:1-45 — requirements and current handoff.
 - AGENTS.md:9-28,49-91,133-163; .planning/PROJECT.md:834-840 — domain, workflow, path and verification rules.
 - brand/BRAND.md, brand/brand.json:280-424, brand/tokens.json:656-684, brand/assets/README.md, brand/assets/fonts/web/fonts.css:1-4 — brand, token, font and asset sources.
-- lib/threadline/operator_surface/style/01_tokens.css:1-284; lib/threadline/operator_surface/components/surface_header.ex:1-117; lib/threadline/operator_surface/theme_controller.ex:1-20; lib/threadline/operator_surface/fonts.ex:1-65; lib/threadline/operator_surface/presentation.ex — runtime owners.
+- lib/threadline/operator_surface/style/01_tokens.css:1-284; lib/threadline/operator_surface/components/surface_header.ex:1-117; lib/threadline/operator_surface/controllers/theme_controller.ex:1-20; lib/threadline/operator_surface/fonts.ex:1-65; lib/threadline/operator_surface/presentation.ex — runtime owners.
 - examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex:62-74; examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex:63-90; examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts:1-175; examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts:208-300 — fixture, route and clipboard owners.
 - mix.exs:493,512-529,659-754; README.md; test/threadline/readme_doc_contract_test.exs; test/threadline/code_walkthrough_doc_contract_test.exs; test/threadline/release_artifact_contract_test.exs:76-90,282-330; examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs:22-26 — docs, package and icon contracts.
 - examples/threadline_phoenix/e2e/run-e2e.sh:416-433; examples/threadline_phoenix/e2e/playwright.config.ts:1-4; examples/threadline_phoenix/e2e/package-lock.json:456-464 — reset behavior and pinned tools.
