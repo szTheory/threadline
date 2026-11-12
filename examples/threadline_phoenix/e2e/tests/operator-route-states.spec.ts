@@ -206,7 +206,7 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
             await expect(fallback.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
             const blocked = await loadFaces(fallback);
             expect(blocked).toHaveLength(4); expect(blocked.every((face) => face.status === "error")).toBe(true);
-            await expect(fallback.getByRole("heading", { name: "Timeline", exact: true })).toBeVisible();
+            await expect(fallback.getByRole("heading", { name: "Investigate audit activity", exact: true })).toBeVisible();
             await expect(fallback.locator(".tl-ref .tl-secondary-ref").first()).toBeVisible();
             await expectNoHorizontalOverflow(fallback);
             await capturePhase250GateObservation(fallback, browser, info, "fonts-loaded", { lane, width, mode: "test-controlled font-src-none", blockedFaces: blocked, readableFallback: "visible heading, original ID and controls remain in bounded layout" });
