@@ -174,3 +174,25 @@ test("Acme #4521 investigation links Home, Timeline, transaction, drawer, and di
   absentProof.surfaces[0].proofRefs[0].locator = "test(\"missing proof owner\")";
   assert.ok(semanticInventoryErrors(absentProof, fixture, semanticSources).some((error) => error.startsWith("invalid proof locator")));
 });
+
+test("all independently declared operator routes and HTTP seams have semantic identities", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  const liveIds = fixture.routes.map((route: { id: string }) => route.id);
+  const declaredHttp = [
+    ...[...router.matchAll(/\bpost\("(\/theme)"/g)].map((match) => `POST ${match[1]}`),
+    ...[...router.matchAll(/\bget\("(\/(?:changes\.(?:csv|json|ndjson)|download\/:job_id))"/g)].map((match) => `GET ${match[1]}`),
+  ].sort();
+  const fixtureHttp = fixture.items
+    .filter((item: { kind: string }) => item.kind === "seam")
+    .map((item: { label: string }) => item.label)
+    .sort();
+  assert.deepEqual(fixtureHttp, declaredHttp);
+
+  const expectedIds = [
+    ...liveIds,
+    ...fixture.items.filter((item: { kind: string }) => item.kind === "seam").map((item: { id: string }) => item.id),
+  ].sort();
+  assert.equal(expectedIds.length, 16);
+  assert.deepEqual(inventory.surfaces.map((surface: { id: string }) => surface.id).sort(), expectedIds);
+});
