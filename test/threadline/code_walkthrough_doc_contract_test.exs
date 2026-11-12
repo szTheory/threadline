@@ -181,13 +181,14 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     project = Threadline.MixProject.project()
     favicon = project[:docs][:favicon]
 
-    assert favicon == "brandbook/favicon.svg"
+    assert favicon == "brand/assets/icon/favicon.svg"
     assert File.exists?(favicon)
     assert favicon in project[:package][:files]
 
     svg = File.read!(favicon)
-    assert String.contains?(svg, "aria-label=\"Threadline\"")
-    assert String.contains?(svg, "prefers-color-scheme: dark")
+    assert String.contains?(svg, "role=\"img\"")
+    assert String.contains?(svg, "<title>Threadline</title>")
+    assert String.contains?(svg, "prefers-color-scheme:dark")
   end
 
   defp elixir_blocks(doc) do
