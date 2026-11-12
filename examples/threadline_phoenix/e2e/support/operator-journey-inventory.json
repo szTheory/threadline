@@ -165,7 +165,7 @@
         {"id":"source-txn-not-found-branch","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"if @not_found do"},
         {"id":"source-txn-unavailable-branch","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"if @unavailable do"},
         {"id":"source-txn-empty-branch","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"if Enum.empty?(@bundle.changes) do"},
-        {"id":"source-txn-list-branch","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"<.change_list changes={@streams.changes} base_path={@base_path} />"},
+        {"id":"source-txn-list-branch","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"<.change_list\n                changes={@streams.changes}\n                base_path={@base_path}\n                timeline_context_query={@timeline_context_query}\n              />"},
         {"id":"source-txn-state-long","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"diff cells truncate long values and expose a gated copy bound to the full value (D-04)\""}
       ],
       "proofRefs": [
@@ -263,7 +263,7 @@
       "sourceRefs": [
         {"path":"lib/threadline/operator_surface/router.ex","locator":"live(\"/transactions/:id/history/:table/:record_id\", TransactionLive, :history)","id":"source-drawer-2"},
         {"path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"JS.push_focus() |> JS.patch(row_history_path)","id":"source-drawer-3"},
-        {"path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"defp history_path(base_path, table, record_id) do","id":"source-drawer-4"},
+        {"path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"defp history_path(base_path, table, record_id, timeline_context_query) do","id":"source-drawer-4"},
         {"path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def my_authorize_fn(%{assigns: assigns}) do","id":"source-drawer-5"},
         {"path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def scope_operator_query(query, %{organization_id: org_id}, %{surface: :transaction_header})","id":"source-drawer-6"},
         {"id":"source-drawer-7","path":"lib/threadline/operator_surface/router.ex","locator":"live(\"/transactions/:id/history/:table/:record_id\","},

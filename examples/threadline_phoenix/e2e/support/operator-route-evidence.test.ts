@@ -266,7 +266,7 @@ const routeSpecificCoverage: Record<string, Record<string, RouteCoverageRule>> =
       { id: "source-txn-not-found-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if @not_found do" },
       { id: "source-txn-unavailable-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if @unavailable do" },
       { id: "source-txn-empty-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if Enum.empty?(@bundle.changes) do" },
-      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list changes={@streams.changes} base_path={@base_path} />" },
+      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list\n                changes={@streams.changes}\n                base_path={@base_path}\n                timeline_context_query={@timeline_context_query}\n              />" },
     ], reasonIncludes: "no partial-result branch" },
     overflow: { disposition: "not_applicable", sourceRefIds: ["source-route-transaction-9", "source-route-transaction-12"], sourceOwners: [
       { id: "source-route-transaction-9", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "handle_event(\"prev-page\", _, socket) do" },
@@ -274,7 +274,7 @@ const routeSpecificCoverage: Record<string, Record<string, RouteCoverageRule>> =
     ], reasonIncludes: "handlers return the socket unchanged" },
     "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-txn-empty-branch", "source-txn-list-branch"], sourceOwners: [
       { id: "source-txn-empty-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "if Enum.empty?(@bundle.changes) do" },
-      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list changes={@streams.changes} base_path={@base_path} />" },
+      { id: "source-txn-list-branch", path: "lib/threadline/operator_surface/live/transaction_live.ex", locator: "<.change_list\n                changes={@streams.changes}\n                base_path={@base_path}\n                timeline_context_query={@timeline_context_query}\n              />" },
     ], reasonIncludes: "no one-versus-many count state" },
     "long-text": { disposition: "mapped", sourceRefIds: ["source-txn-state-long"], proofRefIds: ["proof-txn-state-long"], descriptionIncludes: "long diff values" },
   },

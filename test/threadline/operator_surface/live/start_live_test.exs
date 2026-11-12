@@ -664,7 +664,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = posted_conn |> recycle() |> live("/audit_system")
 
         assert html =~ ~s|data-tl-theme="#{theme}"|
-        assert html =~ ~r/name="theme" value="#{theme}" checked(="checked")?/
+
+        selected =
+          html
+          |> LazyHTML.from_fragment()
+          |> LazyHTML.query("button[name='theme'][aria-pressed='true']")
+
+        assert LazyHTML.attribute(selected, "value") == [theme]
       end
     end
 
@@ -706,7 +712,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _view, html} = live(posted_conn |> recycle(), live_path)
 
       assert html =~ ~s|data-tl-theme="system"|
-      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
+
+      selected =
+        html
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("button[name='theme'][aria-pressed='true']")
+
+      assert LazyHTML.attribute(selected, "value") == ["system"]
       refute html =~ ~r/name="theme" value="sepia"/
     end
   end
