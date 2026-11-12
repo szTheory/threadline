@@ -595,6 +595,16 @@ async function captureLane(
   if (condition.effectiveTheme !== preference || condition.preference !== preference || condition.reducedMotion !== true) {
     throw new Error(`Theme/motion condition failed for ${id}`);
   }
+  const historyTitle = page.locator('[data-testid="row-history-drawer"] .tl-subview__title');
+  let historyGeometry: { titleTop: number; titleBottom: number; topbarBottom: number } | undefined;
+  if (process.env.THREADLINE_PHASE250_PAIR_HALF === "after" && await historyTitle.count()) {
+    const title = await historyTitle.boundingBox();
+    const topbar = await page.locator(".tl-topbar").boundingBox();
+    if (!title || !topbar || title.y < topbar.y + topbar.height - 1 || title.y + title.height > condition.viewport.height) {
+      throw new Error(`Row-history title is clipped by the app bar or viewport at ${id}`);
+    }
+    historyGeometry = { titleTop: title.y, titleBottom: title.y + title.height, topbarBottom: topbar.y + topbar.height };
+  }
   const assets = await pageAssetIdentity(page, sourceRoot);
   const outputDir = resolveContainedPath(outputRoot, relativeDir);
   mkdirSync(outputDir, { recursive: true, mode: 0o700 });
@@ -614,6 +624,7 @@ async function captureLane(
     viewport: condition.viewport,
     browserZoom: "unverified",
     capturedAt: now(),
+    ...(historyGeometry ? { historyGeometry } : {}),
   };
   const observationPath = resolveContainedPath(outputDir, `${id}-observation.json`);
   const serialized = `${JSON.stringify(observation, null, 2)}\n`;
@@ -847,6 +858,11 @@ function validBrowserCondition(condition: any, browser: any): boolean {
     condition?.viewport?.height === 900 && condition?.viewport?.dpr === 1;
 }
 
+function localPathAndQuery(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") &&
+    !value.includes("\\") && !/[\u0000-\u0020#]/.test(value);
+}
+
 function exactAfterContext(url: URL, timeline: URL, history: boolean): boolean {
   const keys = ["origin", "from", "to", "table", "correlation_id", ...(history ? ["as_of"] : [])].sort();
   return JSON.stringify([...url.searchParams.keys()].sort()) === JSON.stringify(keys) &&
@@ -871,7 +887,7 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
   if (expectedHalf === "after" && (mode !== "strict-after" || journey?.copyContext !== "transaction-history" || journey?.returnMode !== "ui-links")) {
     throw new Error("After proof must use strict transaction-history copy and UI-link return; legacy browser-back evidence is insufficient");
   }
-  const route = typeof journey?.timelineUrl === "string" ? new URL(journey.timelineUrl, "http://127.0.0.1") : null;
+  const route = localPathAndQuery(journey?.timelineUrl) ? new URL(journey.timelineUrl, "http://127.0.0.1") : null;
   const routeKeys = route ? [...route.searchParams.keys()].sort().join(",") : "";
   if (!value || value.schemaVersion !== 1 || value.half !== expectedHalf ||
       (isCandidate && (!validCandidateId(candidateId) || expectedHalf !== "before" || value.canonical !== false)) ||
@@ -921,6 +937,7 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
     const theme = capture.id.endsWith("dark") ? "dark" : "light";
     const fontNames = Object.keys(capture.assets?.fonts ?? {}).sort();
     const routeFor = (id: string) => {
+      if (!localPathAndQuery(capture.route)) return false;
       if (id.startsWith("timeline-restored-")) return capture.route === journey.timelineUrl && capture.state === "filtered-timeline-return";
       if (id.startsWith("transaction-")) {
         const url = new URL(capture.route, "http://127.0.0.1");

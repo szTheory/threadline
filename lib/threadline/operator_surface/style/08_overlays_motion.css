@@ -207,6 +207,10 @@
 
   /* Row history changes are evidence updates; its route patch has no stable
    * input-modality signal, so opening, closing, and changing as-of state snap. */
+  .tl-drawer-container:has(.tl-row-history-drawer) {
+    top: var(--tl-header-height-mobile);
+  }
+
   .tl-row-history-drawer {
     animation: none !important;
     transition: none !important;

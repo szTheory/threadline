@@ -5,6 +5,32 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   alias Threadline.Test.StyleSource
 
+  test "investigation results keep card emphasis and history clears the fixed app bar" do
+    src = StyleSource.read!()
+
+    assert_selector_contains(src, ".tl-toolbar.tl-timeline-command", [
+      "background: transparent;",
+      "border-color: transparent;",
+      "box-shadow: none;",
+      "backdrop-filter: none;"
+    ])
+
+    assert_selector_contains(src, ".tl-timeline-command .tl-timeline-fact", [
+      "background: transparent;",
+      "box-shadow: none;"
+    ])
+
+    assert_selector_contains(src, ".tl-drawer-container:has(.tl-row-history-drawer)", [
+      "top: var(--tl-header-height-mobile);"
+    ])
+
+    assert_selector_contains(
+      media_section(src, "1280px"),
+      ".tl-drawer-container:has(.tl-row-history-drawer)",
+      ["top: var(--tl-header-height);"]
+    )
+  end
+
   test "operator surface is dark-primary with governed light and system token lanes" do
     src = StyleSource.read!()
 

@@ -655,3 +655,19 @@ test("after capture permits only exact retained context and preserves the prior 
   changedSnapshot.captures[2]!.route = changedSnapshot.captures[2]!.route.replace("2026-05-01", "2026-05-02");
   assert.throws(() => assertInvestigationPair(before, changedSnapshot), /route differs/);
 });
+
+
+test("pair routes reject absolute, protocol-relative and nonlocal route evidence", () => {
+  for (const prefix of ["https://outside.example", "http://127.0.0.1:60150", "//outside.example", "/" + String.fromCharCode(92) + "outside.example"]) {
+    const before = makeHalf("before"); const after = makeHalf("after");
+    before.journey.timelineUrl = prefix + before.journey.timelineUrl;
+    assert.throws(() => assertInvestigationPair(before, after), /Invalid or incomplete/);
+    const cleanBefore = makeHalf("before");
+    after.captures[0]!.route = prefix + after.captures[0]!.route;
+    assert.throws(() => assertInvestigationPair(cleanBefore, after), /incomplete or incomparable/);
+  }
+  for (const suffix of ["#fragment", "\n"]) {
+    const before = makeHalf("before"); const after = makeHalf("after"); after.captures[0]!.route += suffix;
+    assert.throws(() => assertInvestigationPair(before, after), /incomplete or incomparable/);
+  }
+});

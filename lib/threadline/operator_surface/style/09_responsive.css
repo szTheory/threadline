@@ -380,6 +380,10 @@
       padding: var(--tl-space-1) var(--tl-space-4);
     }
 
+    .tl-drawer-container:has(.tl-row-history-drawer) {
+      top: var(--tl-header-height);
+    }
+
     .tl-topbar__brand-logo {
       width: var(--tl-brand-logo-width-desktop);
       height: var(--tl-brand-logo-height-desktop);
