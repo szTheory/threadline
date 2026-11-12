@@ -238,14 +238,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit/rows/users/row-path-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
 
-    test "timeline origin keeps only canonical filters through as-of and safe return", %{
+    test "timeline origin preserves validated filters separately from row identity", %{
       conn: conn
     } do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
 
       insert_change(txn, %{
-        table_name: "users",
+        table_name: "ticket_replies",
         table_pk: %{"id" => "row-context"},
         data_after: %{"id" => "row-context", "name" => "Context Value"},
         changed_fields: ["id", "name"],
@@ -253,15 +253,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       })
 
       path =
-        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&private_scope=secret"
+        "/audit/rows/ticket_replies/row-context?origin=timeline&from=2020-01-01T00:00:00" <>
+          "&to=2099-01-01T00:00:00&table_schema=support&table=tickets" <>
+          "&actor_kind=service_account&actor_id=sync-42&correlation_id=rel-42&private_scope=secret"
 
       assert {:ok, lv, html} = live(conn, path)
 
       assert html =~
-               ~s|href="/audit/timeline?table=users&amp;actor_kind=service&amp;correlation_id=rel-42"|
+               ~s|href="/audit/timeline?from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account&amp;actor_id=sync-42&amp;correlation_id=rel-42"|
 
       assert html =~
-               ~s|href="/audit/rows/users/row-context?origin=timeline&amp;table=users&amp;actor_kind=service&amp;correlation_id=rel-42&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+               ~s|href="/audit/rows/ticket_replies/row-context?origin=timeline&amp;from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account&amp;actor_id=sync-42&amp;correlation_id=rel-42&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+
+      assert html =~ "Row history - ticket_replies"
+      refute html =~ "Row history - tickets"
 
       refute html =~ "private_scope"
 
@@ -271,7 +276,61 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert_patch(
         lv,
-        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&as_of=2026-10-03T12%3A00%3A00Z"
+        "/audit/rows/ticket_replies/row-context?origin=timeline&from=2020-01-01T00%3A00%3A00&to=2099-01-01T00%3A00%3A00&table_schema=support&table=tickets&actor_kind=service_account&actor_id=sync-42&correlation_id=rel-42&as_of=2026-10-03T12%3A00%3A00Z"
+      )
+    end
+
+    test "invalid timeline filters discard the entire retained context", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-invalid-context"},
+        data_after: %{"id" => "row-invalid-context", "name" => "Context Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/rows/users/row-invalid-context?origin=timeline&table=users&actor_kind=service&actor_id=sync-42&private_scope=secret"
+               )
+
+      assert html =~ ~s|href="/audit/timeline"|
+      assert html =~ ~s|href="/audit/rows/users/row-invalid-context?as_of=|
+      refute html =~ "actor_kind"
+      refute html =~ "private_scope"
+    end
+
+    test "explicit empty from marker survives row-history as-of changes", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "ticket_replies",
+        table_pk: %{"id" => "reply-blank"},
+        data_after: %{"id" => "reply-blank", "body" => "Blank marker"},
+        changed_fields: ["id", "body"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, lv, html} =
+               live(conn, "/audit/rows/ticket_replies/reply-blank?origin=timeline&from=")
+
+      assert html =~ ~s|href="/audit/timeline?from="|
+
+      assert html =~
+               ~s|href="/audit/rows/ticket_replies/reply-blank?origin=timeline&amp;from=&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+
+      render_change(element(lv, "form[phx-change='update-as-of']"), %{
+        "as_of" => "2026-10-03T12:00"
+      })
+
+      assert_patch(
+        lv,
+        "/audit/rows/ticket_replies/reply-blank?origin=timeline&from=&as_of=2026-10-03T12%3A00%3A00Z"
       )
     end
 

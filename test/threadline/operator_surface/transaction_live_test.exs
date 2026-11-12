@@ -141,6 +141,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Transaction Not Found"
     end
 
+    test "rejects malformed Timeline return context on a missing transaction", %{conn: conn} do
+      uuid = Ecto.UUID.generate()
+
+      assert {:ok, _lv, html} =
+               live(
+                 conn,
+                 "/audit/transactions/#{uuid}?origin=timeline&actor_kind=service&actor_id=sync-42&private_scope=secret"
+               )
+
+      assert html =~ ~s|href="/audit/timeline"|
+      refute html =~ "actor_kind"
+      refute html =~ "service"
+      refute html =~ "private_scope"
+    end
+
     test "renders the not-found state for a malformed transaction id", %{conn: conn} do
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/not-a-uuid")
 
@@ -438,6 +453,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-transaction?as_of=|
 
       refute html =~ "/history/users/tenant/row-transaction"
+    end
+
+    test "Timeline-origin transaction preserves validated filters on return and history links", %{
+      conn: conn
+    } do
+      captured_at = ~U[2026-05-26 14:30:00Z]
+
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: ~U[2026-05-26 14:30:17Z],
+            correlation_id: "timeline-return"
+          }),
+          repo_opts()
+        )
+
+      Repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "support",
+          table_name: "ticket_replies",
+          table_pk: %{"id" => "reply/1"},
+          op: "update",
+          data_after: %{"id" => "reply/1", "body" => "Thanks — we're closing this out."},
+          changed_fields: ["body"],
+          changed_from: %{"body" => "Earlier reply"},
+          captured_at: captured_at
+        }),
+        repo_opts()
+      )
+
+      query =
+        "origin=timeline&from=2020-01-01T00%3A00%3A00&to=2099-01-01T00%3A00%3A00" <>
+          "&table_schema=support&table=tickets&actor_kind=service_account&actor_id=sync-42" <>
+          "&correlation_id=timeline-return&private_scope=secret"
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}?#{query}")
+
+      encoded_filters =
+        "from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00" <>
+          "&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account" <>
+          "&amp;actor_id=sync-42&amp;correlation_id=timeline-return"
+
+      assert html =~ ~s|href="/audit/timeline?#{encoded_filters}"|
+
+      assert html =~
+               ~s|href="/audit/transactions/#{txn.id}/history/ticket_replies/reply%2F1?origin=timeline&amp;#{encoded_filters}&amp;as_of=2026-05-26T14%3A30%3A00.000000Z"|
+
+      refute html =~ "private_scope"
     end
 
     test "renders a row-history link only for the single-key change (READ-04)", %{conn: conn} do

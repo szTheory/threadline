@@ -4,9 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveComponent
 
     alias Phoenix.LiveView.JS
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
-    alias Threadline.Query.FilterParams
 
     def update(assigns, socket) do
       schemas = assigns[:threadline_schemas] || %{}
@@ -231,14 +231,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if query == "", do: path, else: path <> "?" <> query
     end
 
-    defp timeline_origin_query(%{"origin" => "timeline"} = params) do
-      filter_query =
-        params |> FilterParams.filters_raw_from_params() |> FilterParams.canonical_query()
+    defp timeline_origin_query(params) do
+      case Helpers.timeline_filter_query(params) do
+        {:ok, filter_query} ->
+          Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
 
-      Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
+        :error ->
+          ""
+      end
     end
-
-    defp timeline_origin_query(_params), do: ""
 
     defp unavailable_message("Timeline"),
       do: "Row history is unavailable. Retry row history or return to Timeline."

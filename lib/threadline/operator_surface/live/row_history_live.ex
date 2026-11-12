@@ -11,7 +11,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
-    alias Threadline.Query.FilterParams
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
 
     def mount(_params, _session, socket) do
       repo =
@@ -24,20 +24,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       parsed_uri = URI.parse(uri)
       path = parsed_uri.path || ""
       base_path = surface_root(path)
+      query_params = decode_query(parsed_uri.query)
       table = params["table"]
       record_id = params["record_id"]
-      origin = if params["origin"] == "timeline", do: :timeline, else: :default
-      filters_raw = FilterParams.filters_raw_from_params(params)
 
-      context_query =
-        if origin == :timeline, do: FilterParams.canonical_query(filters_raw), else: ""
+      {origin, context_query} =
+        case Helpers.timeline_filter_query(query_params) do
+          {:ok, query} -> {:timeline, query}
+          :error -> {:default, ""}
+        end
 
       {:noreply,
        assign(socket,
          base_path: base_path,
          table: table,
          record_id: record_id,
-         as_of: parse_as_of(params["as_of"]),
+         as_of: parse_as_of(query_params["as_of"]),
          history_path: row_history_path(base_path, table, record_id, origin, context_query),
          close_path: timeline_path(base_path, origin, context_query)
        )}
@@ -108,6 +110,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp parse_as_of(_), do: nil
+
+    defp decode_query(nil), do: %{}
+
+    defp decode_query(query) do
+      URI.decode_query(query)
+    rescue
+      ArgumentError -> %{}
+    end
 
     defp surface_root(path) when is_binary(path) do
       case Regex.run(~r/^(.*)\/rows\/[^\/]+\/[^\/]+$/, path) do

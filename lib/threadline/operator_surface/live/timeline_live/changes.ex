@@ -14,6 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:timeline_path, :string, required: true)
     attr(:schemas, :map, default: nil)
     attr(:filters_raw, :map, default: %{})
+    attr(:filter_query, :string, default: "")
 
     def change_list(assigns) do
       ~H"""
@@ -75,12 +76,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </span>
             </div>
             <div class="tl-change__actions">
-              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
+              <a href={Helpers.transaction_path(@base_path, change.transaction_id, @filters_raw, @filter_query == "from=")} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                 Open transaction
               </a>
               <a
-                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas, @filters_raw)}
+                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas, @filters_raw, @filter_query == "from=")}
                 href={row_history_path}
                 class="tl-button tl-button--compact tl-button--secondary"
                 data-testid="timeline-row-history-link"

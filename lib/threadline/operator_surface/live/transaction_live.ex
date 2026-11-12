@@ -13,6 +13,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Query.FilterParams
 
     def mount(%{"id" => id}, _session, socket) do
       repo =
@@ -52,6 +53,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
+      timeline_context_query = timeline_context_query(uri_parsed.query)
       # Extract base path up to /transactions/:id
       base_path =
         case Regex.run(~r/(.*\/transactions\/[^\/]+)/, uri_parsed.path) do
@@ -59,7 +61,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _ -> uri_parsed.path
         end
 
-      socket = assign(socket, :base_path, base_path)
+      socket =
+        socket
+        |> assign(:base_path, base_path)
+        |> assign(:timeline_context_query, timeline_context_query)
+        |> assign(
+          :timeline_return_path,
+          timeline_return_path(surface_root(base_path), timeline_context_query)
+        )
+        |> assign(
+          :transaction_return_path,
+          transaction_return_path(base_path, timeline_context_query)
+        )
 
       if socket.assigns.live_action == :history do
         table = params["table"]
@@ -124,7 +137,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
-                %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+                %{label: "Timeline", href: @timeline_return_path},
                 %{label: "Transaction"}
               ]}
             >
@@ -136,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               No transaction is available at this ID. It may not exist or may be outside the records available to your current scope.
               Return to Timeline and check the transaction id.
               <:actions>
-                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                <.link navigate={@timeline_return_path} class="tl-button tl-button--secondary">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
                   Open timeline
                 </.link>
@@ -149,7 +162,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <UI.Page.page_header
                 title="Transaction"
                 breadcrumbs={[
-                  %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+                %{label: "Timeline", href: @timeline_return_path},
                   %{label: "Transaction"}
                 ]}
               >
@@ -160,17 +173,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <:title>Transaction details unavailable</:title>
                 The transaction could not be loaded. Retry or return to Timeline.
                 <:actions>
-                  <.link href={"#{surface_root(@base_path)}/transactions/#{@failed_id}"} class="tl-button tl-button--secondary">
+                  <.link href={@transaction_return_path} class="tl-button tl-button--secondary">
                     Retry
                   </.link>
-                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                  <.link navigate={@timeline_return_path} class="tl-button tl-button--secondary">
                     Open timeline
                   </.link>
                 </:actions>
               </UI.Data.error_state>
             </div>
           <% else %>
-            <.transaction_header bundle={@bundle} base_path={@base_path} />
+            <.transaction_header
+              bundle={@bundle}
+              base_path={@base_path}
+              timeline_context_query={@timeline_context_query}
+              timeline_return_path={@timeline_return_path}
+            />
 
             <%= if Enum.empty?(@bundle.changes) do %>
               <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
@@ -178,14 +196,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 A database transaction was found, but row-level changes were not captured.
                 Check audit readiness for this table, then return to Timeline.
                 <:actions>
-                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                  <.link navigate={@timeline_return_path} class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
                     Open timeline
                   </.link>
                 </:actions>
               </UI.Data.empty_state>
             <% else %>
-              <.change_list changes={@streams.changes} base_path={@base_path} />
+              <.change_list
+                changes={@streams.changes}
+                base_path={@base_path}
+                timeline_context_query={@timeline_context_query}
+              />
             <% end %>
           <% end %>
         <% end %>
@@ -197,9 +219,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             record_id={@history_record_id}
             as_of={@history_as_of}
             base_path={@base_path}
-            close_path={@base_path}
+            close_path={@transaction_return_path}
             return_label="transaction"
-            history_path={history_path(@base_path, @history_table, @history_record_id)}
+            history_path={history_path(@base_path, @history_table, @history_record_id, @timeline_context_query)}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
             scope={@threadline_scope}
@@ -219,6 +241,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     attr(:bundle, :map, required: true)
     attr(:base_path, :string, default: nil)
+    attr(:timeline_context_query, :string, default: nil)
+    attr(:timeline_return_path, :string, required: true)
 
     defp transaction_header(assigns) do
       ~H"""
@@ -227,7 +251,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
-                %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+                %{label: "Timeline", href: @timeline_return_path},
                 %{label: transaction_title}
               ]}
             >
@@ -265,7 +289,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:metadata :if={transaction_correlation_value(@bundle.transaction)} key="Correlation">
                 <% correlation_id = transaction_correlation_value(@bundle.transaction) %>
                 <UI.Display.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
-                <a href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
+                <a href={timeline_correlation_path(surface_root(@base_path), correlation_id, @timeline_context_query)} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                   Open timeline
                 </a>
@@ -284,6 +308,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     attr(:changes, :any, required: true)
     attr(:base_path, :string, default: nil)
+    attr(:timeline_context_query, :string, default: nil)
 
     defp change_list(assigns) do
       ~H"""
@@ -307,7 +332,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-meta">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
-                  <% row_history_path = change_history_path(@base_path, change) %>
+                  <% row_history_path = change_history_path(@base_path, change, @timeline_context_query) %>
                   <div class="tl-change__actions" :if={row_history_path}>
                     <.link
                       href={row_history_path}
@@ -492,14 +517,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
+    defp timeline_correlation_path(base_path, correlation_id, nil)
+         when is_binary(correlation_id) do
       "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
     end
 
-    defp timeline_correlation_path(base_path, _correlation_id), do: base_path
+    defp timeline_correlation_path(base_path, correlation_id, context_query)
+         when is_binary(correlation_id) and is_binary(context_query) do
+      filters_raw =
+        context_query
+        |> URI.decode_query()
+        |> Map.put("correlation_id", correlation_id)
+        |> FilterParams.filters_raw_from_params()
 
-    defp history_path(base_path, table, record_id) do
-      "#{base_path}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
+      query = FilterParams.canonical_query(filters_raw)
+      "#{base_path}/timeline?#{query}"
+    end
+
+    defp timeline_correlation_path(base_path, _correlation_id, _context_query), do: base_path
+
+    defp history_path(base_path, table, record_id, timeline_context_query) do
+      path = "#{base_path}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
+      append_timeline_context(path, timeline_context_query)
     end
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
@@ -507,7 +546,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Reuses the timeline's single-key guard so the two surfaces cannot drift:
     # a composite table_pk, `{}`, or `{"id" => nil}` is not routeable and
     # yields no link rather than a link to the wrong row.
-    defp change_history_path(base_path, change) do
+    defp change_history_path(base_path, change, timeline_context_query) do
       case Helpers.routeable_row_ref(change) do
         nil ->
           nil
@@ -515,8 +554,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         record_id ->
           table = change.change_diff["table_name"]
           captured_at = change.change_diff["captured_at"]
+          path = "#{base_path}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
+          context = timeline_origin_query(timeline_context_query)
 
-          "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
+          as_of_query =
+            if is_nil(captured_at),
+              do: "",
+              else: URI.encode_query(%{"as_of" => change_datetime(captured_at)})
+
+          query = Enum.reject([context, as_of_query], &(&1 == "")) |> Enum.join("&")
+          if query == "", do: path, else: path <> "?" <> query
+      end
+    end
+
+    defp timeline_context_query(nil), do: nil
+
+    defp timeline_context_query(query) when is_binary(query) do
+      query_params = safe_decode_query(query)
+
+      if query_params["origin"] == "timeline" do
+        with {:ok, filters} <- FilterParams.parse(query_params),
+             :ok <- validate_timeline_filters(filters) do
+          filters_raw = FilterParams.filters_raw_from_params(query_params)
+          filter_query = FilterParams.canonical_query(filters_raw)
+
+          if filter_query == "" and Map.get(query_params, "from") == "" do
+            "from="
+          else
+            filter_query
+          end
+        else
+          _ -> nil
+        end
+      end
+    end
+
+    defp timeline_context_query(_query), do: nil
+
+    defp safe_decode_query(query) do
+      URI.decode_query(query)
+    rescue
+      ArgumentError -> %{}
+    end
+
+    defp validate_timeline_filters(filters) do
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      ArgumentError -> :error
+    end
+
+    defp timeline_return_path(base_path, nil), do: "#{base_path}/timeline"
+    defp timeline_return_path(base_path, ""), do: "#{base_path}/timeline"
+    defp timeline_return_path(base_path, query), do: "#{base_path}/timeline?#{query}"
+
+    defp transaction_return_path(base_path, nil), do: base_path
+    defp transaction_return_path(base_path, ""), do: base_path <> "?origin=timeline"
+
+    defp transaction_return_path(base_path, query),
+      do: base_path <> "?origin=timeline&" <> query
+
+    defp timeline_origin_query(nil), do: ""
+    defp timeline_origin_query(""), do: "origin=timeline"
+    defp timeline_origin_query(query), do: "origin=timeline&" <> query
+
+    defp append_timeline_context(path, query) do
+      case timeline_origin_query(query) do
+        "" -> path
+        context -> path <> "?" <> context
       end
     end
 
