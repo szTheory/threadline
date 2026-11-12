@@ -185,6 +185,16 @@ negative controls at the failure boundary. Narrow unsupported wording when that
 is the least disruptive supported remedy; do not add unrelated runtime tests to
 preserve an inaccurate claim.
 
+For before/after UI work, observe the existing supported path before making final
+behavior a baseline prerequisite. Preserve missing capabilities as explicit before
+limitations, then require the intended behavior in the after check. A passing
+legacy workaround does not establish the final journey. Capture each meaningful
+checkpoint, bind selected fields to live rows, validate artifact bytes and real
+containment, and record runtime source before app startup. Comparing two current
+disk trees does not prove what an already running app loaded. Keep parent review
+and source-readiness handoffs distinct so a routine correction does not become a
+new user approval or falsely promote incomplete evidence.
+
 
 ## Keep routine verification labels and archive lifecycles honest
 

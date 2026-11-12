@@ -206,7 +206,7 @@ Use `.threadline-ui` variables for runtime values, compile-time/local approved a
 
 ## Source Gotchas
 
-- Two paths named in `250-RESEARCH.md` are not tracked in this checkout: `lib/threadline/operator_surface/logo.ex` and `lib/threadline/operator_surface/theme_controller.ex`. Use tracked origins `lib/threadline/operator_surface/components/logo.ex` and `lib/threadline/operator_surface/controllers/theme_controller.ex`.
+- Historical research-path correction: the initial research named untracked `lib/threadline/operator_surface/logo.ex` and `lib/threadline/operator_surface/theme_controller.ex`. `250-RESEARCH.md` was corrected before planning to the tracked origins `lib/threadline/operator_surface/components/logo.ex` and `lib/threadline/operator_surface/controllers/theme_controller.ex`; use those current paths.
 - The old token test and current logo implementation still refer to `brandbook/`; those are migration inputs, not authority. The approved files `brand/brand.json`, `brand/assets/README.md`, and the supplied asset paths are tracked.
 - The current earned-flow and evidence helpers can select a first row based on a table-only predicate. The #4521 story must bind through correlation and exact selected row identity.
 - ExDoc dependency internals under `deps/` are install/runtime mirrors. They must not appear as analog paths in plans; cite tracked hooks and verify generated output.
