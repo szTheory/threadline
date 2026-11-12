@@ -84,7 +84,9 @@
   .threadline-ui pre,
   .tl-code {
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-muted {

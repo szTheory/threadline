@@ -415,7 +415,9 @@
   .threadline-ui pre,
   .tl-code {
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-muted {
@@ -2771,7 +2773,7 @@
   .tl-table code {
     overflow-wrap: anywhere;
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
+    font-size: var(--tl-font-size-dense);
   }
 
   .tl-table--compact .tl-table__code,
@@ -2874,6 +2876,7 @@
     color: var(--tl-color-muted);
     font-family: var(--tl-font-mono);
     font-weight: var(--tl-weight-regular);
+    font-variant-numeric: tabular-nums;
     font-size: var(--tl-font-size-dense);
     line-height: var(--tl-line-mono);
     overflow-wrap: anywhere;
