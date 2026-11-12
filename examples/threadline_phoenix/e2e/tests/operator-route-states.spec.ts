@@ -928,26 +928,56 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   const e = process.env.THREADLINE_E2E_EVIDENCE === "1" ? await startEvidence(page, browser, info) : undefined;
   await page.goto("/audit/timeline");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-  const long = "unmatched_correlation_" + "x".repeat(210);
-  const filter = page.locator("#filter-correlation-id");
-  await filter.fill(long);
+  const longTable = "unmatched_table_" + "t".repeat(210);
+  const longCorrelation = "unmatched_correlation_" + "x".repeat(210);
+  const tableFilter = page.locator("#filter-table");
+  const correlationFilter = page.locator("#filter-correlation-id");
+  await tableFilter.fill(longTable);
+  await correlationFilter.fill(longCorrelation);
   hold = true;
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
   await expect.poll(() => Boolean(held)).toBe(true);
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
-  if (e) await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longValueLength: long.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
+  if (e) await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longTableLength: longTable.length, longCorrelationLength: longCorrelation.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
   hold = false;
   held!.server.send(held!.message);
   await expect(page.locator("#timeline-filters")).not.toHaveClass(/phx-submit-loading/);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
-  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
-  await expect(filter).toHaveValue(long);
-  expect(long).toHaveLength(232);
+  await expect(page.locator("#tl-main")).toContainText("Try a wider date range or adjust the filters, then apply again.");
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("0");
+  await expect(page.locator("nav.tl-pager")).toHaveCount(0);
+  await expect(tableFilter).toHaveValue(longTable);
+  await expect(correlationFilter).toHaveValue(longCorrelation);
+  expect(longTable).toHaveLength(226);
+  expect(longCorrelation).toHaveLength(232);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const controlsFit = async () => page.evaluate(() => {
+    const form = document.querySelector<HTMLElement>("#timeline-filters")!;
+    const viewportWidth = window.innerWidth;
+    const controls = Array.from(form.querySelectorAll<HTMLElement>("input, button, a"));
+    return {
+      shellFits: document.documentElement.scrollWidth <= viewportWidth,
+      controls: controls.map((control) => {
+        const rect = control.getBoundingClientRect();
+        return { visible: rect.width > 0 && rect.height > 0, inside: rect.left >= 0 && rect.right <= viewportWidth };
+      }),
+    };
+  });
+  const desktopControls = await controlsFit();
+  expect(desktopControls.shellFits).toBe(true);
+  expect(desktopControls.controls.every((control) => control.visible && control.inside)).toBe(true);
   await page.setViewportSize({ width: 375, height: 900 });
+  const narrowControls = await controlsFit();
+  expect(narrowControls.shellFits).toBe(true);
+  expect(narrowControls.controls.every((control) => control.visible && control.inside)).toBe(true);
+  await expect(tableFilter).toBeVisible();
+  await expect(correlationFilter).toBeVisible();
+  await expect(tableFilter).toHaveValue(longTable);
+  await expect(correlationFilter).toHaveValue(longCorrelation);
   if (e) {
-    await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longValueLength: long.length, fullValueRetained: await filter.inputValue() === long });
+    await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longTableLength: longTable.length, longCorrelationLength: longCorrelation.length, fullValuesRetained: await tableFilter.inputValue() === longTable && await correlationFilter.inputValue() === longCorrelation });
     e.finish("state.timeline", "/audit/timeline", "delayed-empty-long-value");
   }
 });
@@ -964,14 +994,23 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   });
 
   await login(page);
-  await seedPaths(page);
   const queryA = "walk-acme-4521-close";
-  await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=${queryA}`);
+  await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=${queryA}`);
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByTestId("timeline-row")).toHaveCount(1);
   await expect(page.getByTestId("timeline-row").first()).toBeVisible();
   const queryARowCount = await page.getByTestId("timeline-row").count();
-  expect(queryARowCount).toBeGreaterThan(0);
+  expect(queryARowCount).toBe(1);
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("1");
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  const transactionHref = await page.getByTestId("transaction-link").getAttribute("href");
+  expect(transactionHref).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const desktopOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(desktopOverflow).toBe(false);
 
   const queryB = "timeline-query-b-" + "x".repeat(215);
   expect(queryB).toHaveLength(232);
@@ -984,17 +1023,44 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
   await expect(page.getByTestId("timeline-row")).toHaveCount(queryARowCount);
+  await expect(page.getByTestId("transaction-link")).toHaveAttribute("href", transactionHref!);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
   await expect(page.locator(".tl-filter-summary")).not.toContainText(queryB);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
+  await expect(page.locator(".tl-pager__range")).toContainText("Showing 1 of 1 matching changes");
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(queryB);
+  await expect(page.getByRole("status").filter({ hasText: "Showing 1 of 1 matching changes" })).toBeVisible();
+  await page.setViewportSize({ width: 375, height: 900 });
+  await expect(page.getByTestId("timeline-row")).toHaveCount(1);
+  const pendingOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(pendingOverflow).toBe(false);
 
   hold = false;
   held!.server.send(held!.message);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryB);
   await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
-  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
+  await expect(page.locator("#tl-main")).toContainText("Try a wider date range or adjust the filters, then apply again.");
   await expect(page.locator("#filter-correlation-id")).toHaveValue(queryB);
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  const committedUrl = new URL(page.url());
+  expect(committedUrl.searchParams.get("from")).toBe("2020-01-01T00:00");
+  expect(committedUrl.searchParams.get("to")).toBe("2099-01-01T00:00");
+  expect(committedUrl.searchParams.get("table")).toBe("ticket_replies");
+  expect(committedUrl.searchParams.get("correlation_id")).toBe(queryB);
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("0");
+
+  await page.setViewportSize({ width: 375, height: 900 });
+  await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+  await expect(page.locator("#filter-table")).toBeVisible();
+  await expect(page.locator("#filter-correlation-id")).toBeVisible();
+  const narrowOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(narrowOverflow).toBe(false);
   const completedApply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
   await expect(completedApply).toBeVisible();
   await expect(completedApply.locator("svg")).toHaveCount(1);

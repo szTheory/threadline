@@ -1109,7 +1109,50 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ "No changes match these filters"
-      assert html =~ "Adjust the time range or filters, then apply again."
+      assert html =~ "Try a wider date range or adjust the filters, then apply again."
+    end
+
+    test "submitting empty filters queries without a date window or invented actor context", %{
+      conn: conn
+    } do
+      table = "unfiltered_timeline_#{System.unique_integer([:positive])}"
+      occurred_at = ~U[2020-05-01 12:00:00Z]
+      change = seed_change!(table: table, actor_ref: nil, occurred_at: occurred_at)
+
+      {:ok, lv, _html} =
+        live(
+          conn,
+          "/audit/timeline?from=2020-01-01T00:00&to=2020-12-31T23:59&table=#{table}"
+        )
+
+      assert has_element?(lv, "#change-#{change.id}")
+
+      lv
+      |> form("#timeline-filters",
+        filter: %{
+          from: "",
+          to: "",
+          table_schema: "",
+          table: "",
+          actor_kind: "",
+          actor_id: "",
+          correlation_id: ""
+        }
+      )
+      |> render_submit()
+
+      path = assert_patch(lv)
+      assert URI.parse(path).path == "/audit/timeline"
+      assert URI.parse(path).query in [nil, ""]
+
+      html = render(lv)
+
+      assert has_element?(lv, "#change-#{change.id}")
+      assert html =~ "Showing 1 of 1 matching changes"
+      assert html =~ "value=\"\""
+      assert has_element?(lv, "#change-#{change.id} code", "unknown")
+      refute has_element?(lv, "#change-#{change.id} a[title='View actor activity']")
+      refute has_element?(lv, "#change-#{change.id}", "Correlation")
     end
 
     test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
@@ -1137,7 +1180,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert filtered_html =~ ~s|tl-empty--no_data|
       assert filtered_html =~ "No changes match these filters"
-      assert filtered_html =~ "Adjust the time range or filters, then apply again."
+      assert filtered_html =~ "Try a wider date range or adjust the filters, then apply again."
 
       refute filtered_html =~ "No captured changes in this window"
     end
@@ -1169,7 +1212,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ "No changes match these filters"
-      assert html =~ "Adjust the time range or filters, then apply again."
+      assert html =~ "Try a wider date range or adjust the filters, then apply again."
     end
 
     test "F-403: dense Timeline renders filter summary and rows without a visible journey legend",
