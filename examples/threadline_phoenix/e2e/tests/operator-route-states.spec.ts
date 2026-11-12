@@ -114,6 +114,7 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
         await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
         await page.goto(timeline);
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        if (width === 375) await page.locator(".tl-shell-nav__toggle").click();
         await page.getByRole("button", { name: lane === "dark" ? "Dark" : "Light", exact: true }).click();
         await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
@@ -184,20 +185,29 @@ if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_
           const fallback = await context.newPage();
           try {
             await fallback.setViewportSize({ width, height: 900 });
-            await fallback.route("**/*", async (route) => {
-              const request = route.request(); const url = new URL(request.url());
-              if (url.origin !== origin) { externalRequests.push(url.origin); await route.abort(); return; }
-              if (request.resourceType() === "document") {
-                const response = await route.fetch();
-                await route.fulfill({ response, headers: { ...response.headers(), "content-security-policy": "font-src 'none'" } });
-              } else await route.continue();
+            await fallback.route("**/*", allowLocal);
+            // Preserve the real loopback document response and LiveView connection.
+            // A fulfilled response changes Chromium's local-network classification.
+            await fallback.addInitScript(() => {
+              const install = () => {
+                if (!document.head) return false;
+                const policy = document.createElement("meta");
+                policy.httpEquiv = "Content-Security-Policy";
+                policy.content = "font-src 'none'";
+                document.head.prepend(policy);
+                return true;
+              };
+              if (!install()) {
+                const observer = new MutationObserver(() => { if (install()) observer.disconnect(); });
+                observer.observe(document, { childList: true, subtree: true });
+              }
             });
             await fallback.goto(timeline);
             await expect(fallback.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
             await expect(fallback.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
             const blocked = await loadFaces(fallback);
             expect(blocked).toHaveLength(4); expect(blocked.every((face) => face.status === "error")).toBe(true);
-            await expect(fallback.getByRole("heading", { name: "Timeline", exact: true })).toBeVisible();
+            await expect(fallback.getByRole("heading", { name: "Investigate audit activity", exact: true })).toBeVisible();
             await expect(fallback.locator(".tl-ref .tl-secondary-ref").first()).toBeVisible();
             await expectNoHorizontalOverflow(fallback);
             await capturePhase250GateObservation(fallback, browser, info, "fonts-loaded", { lane, width, mode: "test-controlled font-src-none", blockedFaces: blocked, readableFallback: "visible heading, original ID and controls remain in bounded layout" });
