@@ -73,9 +73,11 @@ defmodule Threadline.OperatorSurface.FontsTest do
     tokens = selector_block!(src, ".threadline-ui")
     heading = selector_block!(src, ".tl-timeline-command__title")
     label = selector_block!(src, ".tl-toolbar__field")
-    control = selector_block!(src, ".tl-toolbar__control")
+    control = selector_block!(src, ".tl-toolbar__control,\n  .tl-control")
     button = selector_block!(src, ".tl-button")
     value = selector_block!(src, ".tl-value")
+    metadata = selector_block!(src, ".tl-timeline-fact__detail")
+    table_name = selector_block!(src, ".tl-policy__table")
 
     assert tokens =~ ~s(--tl-font-family: "Threadline Geist",)
     assert tokens =~ ~s(--tl-font-mono: "Threadline IBM Plex Mono",)
@@ -83,13 +85,18 @@ defmodule Threadline.OperatorSurface.FontsTest do
     assert tokens =~ "--tl-font-size-body: 16px;"
     assert tokens =~ "--tl-font-size-label: 12px;"
     assert tokens =~ "--tl-font-size-dense: 13px;"
+    assert tokens =~ "--tl-font-size-heading: 28px;"
     assert tokens =~ "--tl-line-body: 1.55;"
     assert tokens =~ "--tl-line-label: 1.2;"
+    assert tokens =~ "--tl-line-metadata: 1.4;"
+    assert tokens =~ "--tl-line-mono: 1.5;"
+    assert tokens =~ "system-ui"
+    assert tokens =~ "ui-monospace"
 
     assert heading =~ "font-family: var(--tl-font-heading);"
-    assert heading =~ "font-size: 28px;"
+    assert heading =~ "font-size: var(--tl-font-size-heading);"
     assert heading =~ "font-weight: var(--tl-weight-strong);"
-    assert heading =~ "line-height: 1.2;"
+    assert heading =~ "line-height: var(--tl-line-heading);"
 
     assert label =~ "font-size: var(--tl-font-size-label);"
     assert label =~ "font-weight: var(--tl-weight-strong);"
@@ -106,11 +113,20 @@ defmodule Threadline.OperatorSurface.FontsTest do
     assert value =~ "font-family: var(--tl-font-mono);"
     assert value =~ "font-size: var(--tl-font-size-dense);"
     assert value =~ "font-weight: var(--tl-weight-regular);"
-    assert value =~ "line-height: 1.5;"
+    assert value =~ "line-height: var(--tl-line-mono);"
+
+    assert table_name =~ "font-family: var(--tl-font-mono);"
+    assert table_name =~ "font-size: var(--tl-font-size-dense);"
+    assert table_name =~ "font-weight: var(--tl-weight-regular);"
+    assert table_name =~ "line-height: var(--tl-line-mono);"
+
+    assert metadata =~ "font-size: var(--tl-font-size-sm);"
+    assert metadata =~ "font-weight: var(--tl-weight-regular);"
+    assert metadata =~ "line-height: var(--tl-line-metadata);"
   end
 
   defp selector_block!(source, selector) do
-    pattern = Regex.compile!(Regex.escape(selector) <> "\\s*\\{([^}]*)\\}", "s")
+    pattern = Regex.compile!("(?m)^\\s*" <> Regex.escape(selector) <> "\\s*\\{([^}]*)\\}", "s")
 
     case Regex.run(pattern, source) do
       [_, block] -> block
