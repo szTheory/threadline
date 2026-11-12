@@ -51,6 +51,28 @@ const semanticSourcePaths = [
   "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
   "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
   "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+  "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_runs.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex",
+  "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+  "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+  "examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs",
+  "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json",
+  "lib/threadline/operator_surface/stress_fixtures.ex",
+  "lib/threadline/operator_surface/presentation.ex",
+  "lib/threadline/operator_surface/style/01_tokens.css",
+  "lib/threadline/retention.ex",
+  "test/threadline/brandbook_token_parity_test.exs",
+  "test/threadline/operator_surface/presentation_test.exs",
+  "test/threadline/operator_surface/surface_header_test.exs",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md",
+  ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md",
+  ".planning/research/v1.48-SUMMARY.md",
+  "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
 ];
 const semanticSources: Record<string, string> = Object.fromEntries(
   semanticSourcePaths.map((path) => [path, readFileSync(resolve(root, path), "utf8")]),
@@ -62,7 +84,8 @@ const investigationRouteIds = [
   "route.drawer",
   "route.row",
 ];
-const scenarioStateCriteria = ["empty", "loading", "error_unavailable", "populated", "partial", "overflow_boundary", "zero_one_many", "long_text_unicode_duplicate_label"];
+const scenarioStateCriteria = ["empty", "loading", "error", "populated", "partial", "overflow", "zero-one-many", "long-text"];
+const criteriaForScenario = scenarioStateCriteria;
 
 type SemanticReference = { id?: string; path?: string; locator?: string; kind?: string; owner?: string; limitation?: string };
 type SemanticCoverage = {
@@ -102,20 +125,77 @@ type SemanticResource = {
   sourceRefs?: SemanticReference[];
   proofRefs?: SemanticReference[];
 };
+type ScenarioState = {
+  status?: string;
+  meaning?: string;
+  reason?: string;
+  sourceRefIds?: string[];
+  proofRefIds?: string[];
+};
+type SemanticScenario = {
+  id?: string;
+  name?: string;
+  class?: string;
+  jobId?: string;
+  selection?: { resetCommand?: string; correlation?: string; routeIds?: string[]; [key: string]: unknown };
+  identity?: {
+    organization?: { slug?: string };
+    actor?: { email?: string };
+    ticket?: { number?: number };
+    correlation?: string;
+    record?: { table?: string; key?: string };
+    action?: string;
+    [key: string]: unknown;
+  };
+  clocks?: { eventTime?: string; recordedTime?: string; [key: string]: unknown };
+  duplicateLabelExamples?: Array<{ label?: string; identity?: string }>;
+  fixtureRefs?: SemanticReference[];
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+  stateCriteria?: Record<string, ScenarioState>;
+};
+type BrandRole = {
+  roleId?: string;
+  consumer?: string;
+  job?: string;
+  currentStatus?: string;
+  laterOwner?: string;
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+  assetPaths?: string[];
+  consumerRefs?: string[];
+  jobIds?: string[];
+  proofGap?: string;
+  u3Criteria?: Record<string, ScenarioState>;
+};
+type BrandContract = {
+  id?: string;
+  topic?: string;
+  consumerJobs?: string[];
+  laterOwners?: string[];
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+};
+type BrandAssetFamily = {
+  id?: string;
+  paths?: string[];
+  sourceRefs?: SemanticReference[];
+};
+type CarryDisposition = {
+  id?: string;
+  status?: string;
+  disposition?: string;
+  laterOwners?: string[];
+  sourceRefs?: SemanticReference[];
+  proofRefs?: SemanticReference[];
+  proofGap?: string;
+};
 type SemanticInventory = {
   surfaces?: SemanticSurface[];
   resourceDispositions?: SemanticResource[];
-  scenarios?: Array<{
-    id?: string;
-    class?: string;
-    selection?: { resetCommand?: string; correlation?: string; routeIds?: string[] };
-    identity?: { organization?: { slug?: string }; actor?: { email?: string }; ticket?: { number?: number }; correlation?: string; record?: { table?: string; key?: string }; action?: string };
-    clocks?: { eventTime?: string; recordedTime?: string };
-    fixtureRefs?: SemanticReference[];
-    sourceRefs?: SemanticReference[];
-    proofRefs?: SemanticReference[];
-    stateCriteria?: Record<string, SemanticCoverage & { status?: string; meaning?: string; sourceRefIds?: string[]; proofRefIds?: string[] }>;
-  }>;
+  scenarios?: SemanticScenario[];
+  brandReferences?: { contracts?: BrandContract[]; assetFamilies?: BrandAssetFamily[]; roles?: BrandRole[] };
+  carryDispositions?: CarryDisposition[];
 };
 const uiCriteria = ["empty", "loading", "error", "populated", "partial", "overflow", "zero-one-many", "long-text"];
 const expectedSupportDisposition: Record<string, string> = {
@@ -146,6 +226,7 @@ function semanticInventoryErrors(
   if (!Array.isArray(surfaces)) return ["semantic surfaces collection"];
 
   const errors: string[] = [];
+  const sourcesForInventory = sources;
   const structuralIds = [
     ...fixture.routes.map((route) => route.id),
     ...fixture.items.filter((item) => item.kind === "seam").map((item) => item.id),
@@ -390,6 +471,216 @@ function semanticInventoryErrors(
       }
     }
   }
+
+  const requiredScenarioIds = [
+    "scenario.acme-4521-investigation",
+    "scenario.acme-4518-reply-close-delete",
+    "scenario.globex-2001-ordinary-close",
+    "scenario.offboarded-co-retention-boundary",
+    "scenario.state-empty",
+    "scenario.state-export-failed",
+    "scenario.state-permission-denied",
+    "scenario.state-pagination-boundary",
+    "scenario.state-long-content",
+    "scenario.state-unicode",
+    "scenario.state-duplicate-labels",
+  ];
+  for (const requiredId of requiredScenarioIds) {
+    if (!scenarioIds.includes(requiredId)) errors.push(`missing named scenario ${requiredId}`);
+  }
+  if (scenarioIds.some((id) => !requiredScenarioIds.includes(id))) errors.push("unknown named scenario");
+
+  for (const candidate of scenarios) {
+    const sources = candidate.sourceRefs ?? [];
+    const fixtures = candidate.fixtureRefs ?? [];
+    const proofs = candidate.proofRefs ?? [];
+    const sourceIds = new Set(sources.map((ref) => ref.id ?? ""));
+    const proofIds = new Set(proofs.map((ref) => ref.id ?? ""));
+    if (!candidate.name?.trim() || !candidate.jobId?.trim() || !candidate.selection ||
+        (!candidate.selection.resetCommand && !candidate.selection.catalog) ||
+        !candidate.identity || !candidate.clocks || !sources.length || !fixtures.length || !proofs.length) {
+      errors.push(`incomplete named scenario ${candidate.id ?? "<missing>"}`);
+    }
+    if (sourceIds.size !== sources.length || sourceIds.has("") || proofIds.size !== proofs.length || proofIds.has("")) {
+      errors.push(`duplicate or missing scenario references for ${candidate.id ?? "<missing>"}`);
+    }
+    for (const reference of [...sources, ...fixtures, ...proofs]) {
+      const unsafePath = !reference.path || reference.path.startsWith("/") || reference.path.split(/[\\/]/).includes("..");
+      const source = reference.path ? sourcesForInventory[reference.path] : undefined;
+      if (unsafePath || !source || !reference.locator || !source.includes(reference.locator)) {
+        errors.push(`invalid named scenario reference ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
+      }
+    }
+    for (const proof of proofs) {
+      if (!proof.kind?.includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim() ||
+          proof.owner !== proof.path?.split("/").at(-1)) {
+        errors.push(`wrong or incomplete scenario proof owner for ${candidate.id ?? "<missing>"}`);
+      }
+    }
+    const stateCriteria = candidate.stateCriteria ?? {};
+    if (criteriaForScenario.some((criterion) => !stateCriteria[criterion]) ||
+        Object.keys(stateCriteria).some((criterion) => !criteriaForScenario.includes(criterion))) {
+      errors.push(`missing U2 criteria for ${candidate.id ?? "<missing>"}`);
+    }
+    for (const [criterion, state] of Object.entries(stateCriteria)) {
+      const hasKnownRefs = (ids: string[] | undefined, known: Set<string>) =>
+        Array.isArray(ids) && ids.length > 0 && ids.every((id) => known.has(id));
+      if (state.status === "mapped") {
+        if (!state.meaning?.trim() || !hasKnownRefs(state.sourceRefIds, sourceIds) || !hasKnownRefs(state.proofRefIds, proofIds)) {
+          errors.push(`unproven U2 ${criterion} for ${candidate.id ?? "<missing>"}`);
+        }
+      } else if (state.status === "not_applicable") {
+        if (!state.reason?.trim() || !hasKnownRefs(state.sourceRefIds, sourceIds) || !hasKnownRefs(state.proofRefIds, proofIds)) {
+          errors.push(`unexplained U2 ${criterion} for ${candidate.id ?? "<missing>"}`);
+        }
+      } else {
+        errors.push(`invalid U2 ${criterion} disposition for ${candidate.id ?? "<missing>"}`);
+      }
+    }
+    if (candidate.class === "ordinary" && sources.some((ref) => ref.path?.includes("stress_fixtures") || ref.path?.includes("storybook/fixtures"))) {
+      errors.push(`ordinary scenario uses stress data ${candidate.id ?? "<missing>"}`);
+    }
+    if (candidate.id === "scenario.state-duplicate-labels") {
+      const examples = candidate.duplicateLabelExamples ?? [];
+      if (examples.length < 2 || new Set(examples.map((example) => example.label)).size !== 1 ||
+          new Set(examples.map((example) => example.identity)).size !== examples.length) {
+        errors.push("duplicate-label fixture identities are not distinct");
+      }
+    }
+  }
+
+  const brand = inventory.brandReferences;
+  const requiredRoleIds = ["body", "descriptor", "caption", "application-copy", "hero", "link", "focus", "artwork"];
+  const requiredAssetFamilies = [
+    "assets.light-lockups-and-marks",
+    "assets.dark-lockups-and-marks",
+    "assets.favicon-variants",
+    "assets.supplied-web-fonts-and-licenses",
+  ];
+  const requiredBrandContracts = [
+    "brand-contract.identity-language",
+    "brand-contract.operation-value-truth",
+    "brand-contract.dark-light-system",
+  ];
+  if (!brand) return [...errors, "brand crosswalk"];
+  const brandRoles = brand.roles ?? [];
+  const roleIds = brandRoles.map((role) => role.roleId ?? "");
+  if (new Set(roleIds).size !== roleIds.length) errors.push("duplicate brand role identity");
+  for (const roleId of requiredRoleIds) {
+    if (!roleIds.includes(roleId)) errors.push(`missing approved brand role ${roleId}`);
+  }
+  for (const role of brandRoles) {
+    const sourceRefs = role.sourceRefs ?? [];
+    const proofRefs = role.proofRefs ?? [];
+    const sourceIds = new Set(sourceRefs.map((ref) => ref.id ?? ""));
+    const proofIds = new Set(proofRefs.map((ref) => ref.id ?? ""));
+    if (!role.consumer?.trim() || !role.job?.trim() || !role.laterOwner?.trim() || !role.proofGap?.trim() ||
+        !role.currentStatus?.toLowerCase().includes("reference-only") || !sourceRefs.length || !proofRefs.length ||
+        !role.consumerRefs?.length || !role.jobIds?.length) {
+      errors.push(`missing brand role consumer, proof, or later owner ${role.roleId ?? "<missing>"}`);
+    }
+    const sourcePaths = new Set(sourceRefs.map((ref) => ref.path ?? ""));
+    const knownJobIds = new Set(surfaces.map((surface) => surface.jobId ?? ""));
+    for (const consumerPath of role.consumerRefs ?? []) {
+      if (!sourcePaths.has(consumerPath)) errors.push(`unlinked brand consumer ${consumerPath} for ${role.roleId ?? "<missing>"}`);
+    }
+    for (const jobId of role.jobIds ?? []) {
+      if (!knownJobIds.has(jobId)) errors.push(`unknown brand consumer job ${jobId} for ${role.roleId ?? "<missing>"}`);
+    }
+    for (const reference of [...sourceRefs, ...proofRefs]) {
+      const source = reference.path ? sourcesForInventory[reference.path] : undefined;
+      if (!reference.path || reference.path.startsWith("/") || reference.path.split(/[\\/]/).includes("..") ||
+          !source || !reference.locator || !source.includes(reference.locator)) {
+        errors.push(`invalid brand role source ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
+      }
+    }
+    for (const proof of proofRefs) {
+      if (!proof.kind?.includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim() ||
+          proof.owner !== proof.path?.split("/").at(-1)) errors.push(`wrong brand proof owner ${role.roleId ?? "<missing>"}`);
+    }
+    const u3 = role.u3Criteria ?? {};
+    if (["empty", "loading", "error", "populated", "overflow", "long-text"].some((key) => !u3[key]) ||
+        Object.keys(u3).some((key) => !["empty", "loading", "error", "populated", "overflow", "long-text"].includes(key))) {
+      errors.push(`missing U3 criteria for ${role.roleId ?? "<missing>"}`);
+    }
+    for (const [criterion, state] of Object.entries(u3)) {
+      const refsKnown = (ids: string[] | undefined, known: Set<string>) => Array.isArray(ids) && ids.length > 0 && ids.every((id) => known.has(id));
+      if (state.status === "mapped") {
+        if (!state.meaning?.trim() || !refsKnown(state.sourceRefIds, sourceIds) || !refsKnown(state.proofRefIds, proofIds)) errors.push(`unproven U3 ${criterion} for ${role.roleId}`);
+      } else if (state.status === "not_applicable") {
+        if (!state.reason?.trim() || !refsKnown(state.sourceRefIds, sourceIds) || !refsKnown(state.proofRefIds, proofIds)) errors.push(`unexplained U3 ${criterion} for ${role.roleId}`);
+      } else errors.push(`invalid U3 ${criterion} for ${role.roleId}`);
+    }
+  }
+  const families = brand.assetFamilies ?? [];
+  const familyIds = families.map((family) => family.id ?? "");
+  for (const requiredId of requiredAssetFamilies) if (!familyIds.includes(requiredId)) errors.push(`missing brand asset family ${requiredId}`);
+  if (new Set(familyIds).size !== familyIds.length) errors.push("duplicate brand asset family identity");
+  for (const family of families) {
+    const refs = family.sourceRefs ?? [];
+    if (!family.paths?.length || !refs.length) errors.push(`incomplete brand asset family ${family.id ?? "<missing>"}`);
+    for (const reference of refs) {
+      const source = reference.path ? sourcesForInventory[reference.path] : undefined;
+      if (!source || !reference.locator || !source.includes(reference.locator)) errors.push(`invalid asset source ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
+    }
+    for (const assetPath of family.paths ?? []) {
+      const filename = assetPath.split("/").at(-1) ?? "";
+      if (!assetPath.startsWith("brand/assets/") || assetPath.split("/").includes("..") ||
+          !existsSync(resolve(root, assetPath)) ||
+          !(sources["brand/assets/README.md"]?.includes(filename) || sources["brand/brand.json"]?.includes(filename))) {
+        errors.push(`missing or unreferenced brand asset ${assetPath}`);
+      }
+    }
+  }
+  const knownAssetPaths = new Set(families.flatMap((family) => family.paths ?? []));
+  for (const role of brandRoles) {
+    for (const assetPath of role.assetPaths ?? []) {
+      if (!knownAssetPaths.has(assetPath)) errors.push(`unlinked brand role asset ${assetPath} for ${role.roleId ?? "<missing>"}`);
+    }
+  }
+  const contracts = brand.contracts ?? [];
+  const contractIds = contracts.map((contract) => contract.id ?? "");
+  for (const requiredId of requiredBrandContracts) if (!contractIds.includes(requiredId)) errors.push(`missing brand contract ${requiredId}`);
+  for (const contract of contracts) {
+    if (!contract.topic?.trim() || !contract.consumerJobs?.length || !contract.laterOwners?.length ||
+        !contract.sourceRefs?.length || !contract.proofRefs?.length) errors.push(`incomplete brand contract ${contract.id ?? "<missing>"}`);
+    for (const reference of [...(contract.sourceRefs ?? []), ...(contract.proofRefs ?? [])]) {
+      const source = reference.path ? sourcesForInventory[reference.path] : undefined;
+      if (!source || !reference.locator || !source.includes(reference.locator)) errors.push(`invalid brand contract reference ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
+    }
+    for (const proof of contract.proofRefs ?? []) {
+      if (!proof.kind?.includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim()) errors.push(`incomplete brand contract proof ${contract.id ?? "<missing>"}`);
+    }
+  }
+
+  const carry = inventory.carryDispositions ?? [];
+  const requiredCarryIds = [
+    "seed008.drawer-title-overlap",
+    "seed008.dense-typography",
+    "seed008.redaction-empty-copy",
+    "seed008.screenshot-provenance",
+    "seed008.degraded-timeline",
+    "adm06.descriptorless-intent",
+    "proof-scope.local-only",
+  ];
+  const carryIds = carry.map((entry) => entry.id ?? "");
+  if (new Set(carryIds).size !== carryIds.length) errors.push("duplicate carry disposition identity");
+  for (const requiredId of requiredCarryIds) if (!carryIds.includes(requiredId)) errors.push(`missing carry disposition ${requiredId}`);
+  for (const entry of carry) {
+    if (!entry.id || !entry.status?.trim() || !entry.disposition?.trim() || !entry.laterOwners?.length ||
+        !entry.sourceRefs?.length || !entry.proofGap?.trim()) errors.push(`incomplete carry disposition ${entry.id ?? "<missing>"}`);
+    for (const reference of [...(entry.sourceRefs ?? []), ...(entry.proofRefs ?? [])]) {
+      const source = reference.path ? sourcesForInventory[reference.path] : undefined;
+      if (!reference.path || reference.path.startsWith("/") || reference.path.split(/[\\/]/).includes("..") ||
+          !source || !reference.locator || !source.includes(reference.locator)) {
+        errors.push(`invalid carry reference ${reference.path ?? "<missing>"}#${reference.locator ?? "<missing>"}`);
+      }
+    }
+    for (const proof of entry.proofRefs ?? []) {
+      if (!proof.kind?.includes("owner") || !proof.owner?.trim() || !proof.limitation?.trim() ||
+          proof.owner !== proof.path?.split("/").at(-1)) errors.push(`wrong carry proof owner ${entry.id}`);
+    }
+  }
   return errors;
 }
 
@@ -475,6 +766,57 @@ test("ordinary scenario mapping rejects missing source, proof, return, and ordin
   const stressSubstitution = structuredClone(inventory);
   stressSubstitution.scenarios[0].class = "stress";
   assert.ok(semanticInventoryErrors(stressSubstitution, fixture, semanticSources).includes("Acme #4521 must remain ordinary selection data"));
+});
+
+test("brand crosswalk maps every approved role, asset family, and later owner without copying tokens", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  assert.deepEqual(semanticInventoryErrors(inventory, fixture, semanticSources), []);
+
+  const missingRole = structuredClone(inventory);
+  missingRole.brandReferences.roles = missingRole.brandReferences.roles.filter((role: BrandRole) => role.roleId !== "artwork");
+  assert.ok(semanticInventoryErrors(missingRole, fixture, semanticSources).includes("missing approved brand role artwork"));
+
+  const missingAsset = structuredClone(inventory);
+  missingAsset.brandReferences.assetFamilies = missingAsset.brandReferences.assetFamilies.filter((family: { id?: string }) => family.id !== "assets.favicon-variants");
+  assert.ok(semanticInventoryErrors(missingAsset, fixture, semanticSources).includes("missing brand asset family assets.favicon-variants"));
+
+  const wrongOwner = structuredClone(inventory);
+  wrongOwner.brandReferences.roles[0].proofRefs[0].owner = "unrelated-owner.exs";
+  assert.ok(semanticInventoryErrors(wrongOwner, fixture, semanticSources).includes("wrong brand proof owner body"));
+
+  const unsafeAsset = structuredClone(inventory);
+  unsafeAsset.brandReferences.assetFamilies[0].paths[0] = "brand/assets/../../mix.exs";
+  assert.ok(semanticInventoryErrors(unsafeAsset, fixture, semanticSources).some((error) => error.includes("missing or unreferenced brand asset")));
+
+  const missingCarry = structuredClone(inventory);
+  missingCarry.carryDispositions = missingCarry.carryDispositions.filter((entry: CarryDisposition) => entry.id !== "seed008.screenshot-provenance");
+  assert.ok(semanticInventoryErrors(missingCarry, fixture, semanticSources).includes("missing carry disposition seed008.screenshot-provenance"));
+});
+
+test("named scenarios reject missing state links, duplicate-label identities, unsafe paths, and wrong proof owners", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+
+  const missingScenario = structuredClone(inventory);
+  missingScenario.scenarios = missingScenario.scenarios.filter((candidate: SemanticScenario) => candidate.id !== "scenario.state-empty");
+  assert.ok(semanticInventoryErrors(missingScenario, fixture, semanticSources).includes("missing named scenario scenario.state-empty"));
+
+  const missingState = structuredClone(inventory);
+  delete missingState.scenarios[0].stateCriteria.empty;
+  assert.ok(semanticInventoryErrors(missingState, fixture, semanticSources).includes("missing U2 criteria for scenario.acme-4521-investigation"));
+
+  const repeatedIdentity = structuredClone(inventory);
+  repeatedIdentity.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-duplicate-labels").duplicateLabelExamples[1].identity = "synthetic_change(1)";
+  assert.ok(semanticInventoryErrors(repeatedIdentity, fixture, semanticSources).includes("duplicate-label fixture identities are not distinct"));
+
+  const unsafePath = structuredClone(inventory);
+  unsafePath.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty").sourceRefs[0].path = "../mix.exs";
+  assert.ok(semanticInventoryErrors(unsafePath, fixture, semanticSources).some((error) => error.includes("invalid named scenario reference")));
+
+  const wrongOwner = structuredClone(inventory);
+  wrongOwner.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty").proofRefs[0].owner = "unrelated-owner.exs";
+  assert.ok(semanticInventoryErrors(wrongOwner, fixture, semanticSources).includes("wrong or incomplete scenario proof owner for scenario.state-empty"));
 });
 
 test("all independently declared operator routes and HTTP seams have semantic identities", () => {

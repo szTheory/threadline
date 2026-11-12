@@ -697,6 +697,1501 @@
       ]
     }
   ],
+  "brandReferences": {
+    "contracts": [
+      {
+        "id": "brand-contract.identity-language",
+        "topic": "Name, voice and domain vocabulary",
+        "consumerJobs": [
+          "Presentation",
+          "shared shell/header/logo",
+          "mapped Admin jobs and maintainer docs"
+        ],
+        "laterOwners": [
+          "Phase 250 first investigation",
+          "Phase 251 remaining inspection",
+          "Phase 252 operations",
+          "Phase 253 package/docs/inclusive acceptance"
+        ],
+        "sourceRefs": [
+          {
+            "id": "brand-language-book",
+            "path": "brand/BRAND.md",
+            "locator": "audit trail library"
+          },
+          {
+            "id": "brand-language-json",
+            "path": "brand/brand.json",
+            "locator": "\"Threadline Admin\""
+          },
+          {
+            "id": "brand-language-consumer",
+            "path": "lib/threadline/operator_surface/presentation.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Presentation"
+          },
+          {
+            "id": "brand-contract.identity-language-consumer-1",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          },
+          {
+            "id": "brand-contract.identity-language-consumer-2",
+            "path": "lib/threadline/operator_surface/components/logo.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.Logo"
+          },
+          {
+            "id": "brand-contract.identity-language-consumer-3",
+            "path": "lib/threadline/operator_surface/fonts.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Fonts"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-language-owner",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural reference coverage only; no runtime copy adoption or whole-product language review is claimed."
+          }
+        ]
+      },
+      {
+        "id": "brand-contract.operation-value-truth",
+        "topic": "Operation words, value truth, redaction and history vocabulary",
+        "consumerJobs": [
+          "Presentation",
+          "Timeline",
+          "transaction detail",
+          "row history",
+          "exports",
+          "redaction policy",
+          "retention"
+        ],
+        "laterOwners": [
+          "Phase 250 investigation",
+          "Phase 251 inspection",
+          "Phase 252 operations",
+          "Phase 253 complete reconciliation"
+        ],
+        "sourceRefs": [
+          {
+            "id": "brand-operation-rule",
+            "path": "brand/brand.json",
+            "locator": "\"operationRule\""
+          },
+          {
+            "id": "brand-operation-presentation",
+            "path": "lib/threadline/operator_surface/presentation.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Presentation"
+          },
+          {
+            "id": "brand-operation-timeline",
+            "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.TimelineLive"
+          },
+          {
+            "id": "brand-contract.operation-value-truth-consumer-1",
+            "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryComponent"
+          },
+          {
+            "id": "brand-contract.operation-value-truth-consumer-2",
+            "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.ExportStatusLive"
+          },
+          {
+            "id": "brand-contract.operation-value-truth-consumer-3",
+            "path": "lib/threadline/operator_surface/controllers/export_controller.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Controllers.ExportController"
+          },
+          {
+            "id": "brand-contract.operation-value-truth-consumer-4",
+            "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.PolicyRedactionLive"
+          },
+          {
+            "id": "brand-contract.operation-value-truth-consumer-5",
+            "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RetentionHistoryLive"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-operation-owner",
+            "kind": "existing-proof-owner",
+            "path": "test/threadline/operator_surface/presentation_test.exs",
+            "locator": "test \"labels known operations uppercase and unknown operations safely\"",
+            "owner": "presentation_test.exs",
+            "limitation": "Existing operation-label owner only; not a whole-product approved-brand or rendered color receipt."
+          }
+        ]
+      },
+      {
+        "id": "brand-contract.dark-light-system",
+        "topic": "Dark, Light and System behavior",
+        "consumerJobs": [
+          "ThemeController",
+          "SurfaceHeader and shared shell",
+          "theme-aware host layout and favicon"
+        ],
+        "laterOwners": [
+          "Phase 250 theme flow and first rendered roles",
+          "Phase 253 inclusive integration and package acceptance"
+        ],
+        "sourceRefs": [
+          {
+            "id": "brand-theme-book",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-theme-controller",
+            "path": "lib/threadline/operator_surface/controllers/theme_controller.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Controllers.ThemeController"
+          },
+          {
+            "id": "brand-theme-header",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          },
+          {
+            "id": "brand-theme-host",
+            "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/page_controller.ex",
+            "locator": "defmodule ThreadlinePhoenixWeb.PageController"
+          },
+          {
+            "id": "brand-contract.dark-light-system-consumer-1",
+            "path": "lib/threadline/operator_surface/style/01_tokens.css",
+            "locator": "--tl-focus"
+          },
+          {
+            "id": "brand-contract.dark-light-system-consumer-2",
+            "path": "lib/threadline/operator_surface/fonts.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Fonts"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-theme-owner",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+            "locator": "test(\"theme preference, effective cascade and reduced motion are distinct observed facts\"",
+            "owner": "operator-route-states.spec.ts",
+            "limitation": "Existing browser owner only; no browser run or fresh theme, visual, or accessibility receipt is claimed."
+          }
+        ]
+      }
+    ],
+    "assetFamilies": [
+      {
+        "id": "assets.light-lockups-and-marks",
+        "paths": [
+          "brand/assets/logo/threadline-lockup-light.svg",
+          "brand/assets/logo/threadline-mark-light.svg",
+          "brand/assets/logo/threadline-lockup-light-2048.png"
+        ],
+        "sourceRefs": [
+          {
+            "id": "light-assets-readme",
+            "path": "brand/assets/README.md",
+            "locator": "logo/threadline-lockup-light.svg"
+          },
+          {
+            "id": "light-assets-brand-json",
+            "path": "brand/brand.json",
+            "locator": "assets/logo/threadline-lockup-light.svg"
+          }
+        ]
+      },
+      {
+        "id": "assets.dark-lockups-and-marks",
+        "paths": [
+          "brand/assets/logo/threadline-lockup-dark.svg",
+          "brand/assets/logo/threadline-mark-dark.svg",
+          "brand/assets/logo/threadline-lockup-dark-2048.png"
+        ],
+        "sourceRefs": [
+          {
+            "id": "dark-assets-readme",
+            "path": "brand/assets/README.md",
+            "locator": "logo/threadline-lockup-dark.svg"
+          },
+          {
+            "id": "dark-assets-brand-json",
+            "path": "brand/brand.json",
+            "locator": "assets/logo/threadline-lockup-dark.svg"
+          }
+        ]
+      },
+      {
+        "id": "assets.favicon-variants",
+        "paths": [
+          "brand/assets/icon/favicon.svg",
+          "brand/assets/icon/favicon-light.svg",
+          "brand/assets/icon/favicon-dark.svg",
+          "brand/assets/icon/favicon.ico",
+          "brand/assets/icon/favicon-32-light.png",
+          "brand/assets/icon/favicon-16-light.png"
+        ],
+        "sourceRefs": [
+          {
+            "id": "favicon-assets-readme",
+            "path": "brand/assets/README.md",
+            "locator": "icon/favicon-light.svg"
+          },
+          {
+            "id": "favicon-assets-brand-json",
+            "path": "brand/brand.json",
+            "locator": "assets/icon/favicon-dark.svg"
+          }
+        ]
+      },
+      {
+        "id": "assets.supplied-web-fonts-and-licenses",
+        "paths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/FamiljenGrotesk[wght].ttf",
+          "brand/assets/fonts/variable/Geist[wght].ttf",
+          "brand/assets/fonts/static/IBMPlexMono-Regular.ttf",
+          "brand/assets/fonts/OFL-FamiljenGrotesk.txt",
+          "brand/assets/fonts/OFL-Geist.txt",
+          "brand/assets/fonts/OFL-IBMPlexMono.txt"
+        ],
+        "sourceRefs": [
+          {
+            "id": "font-assets-readme",
+            "path": "brand/assets/README.md",
+            "locator": "fonts/web/fonts.css"
+          },
+          {
+            "id": "font-assets-brand-json",
+            "path": "brand/brand.json",
+            "locator": "\"FamiljenGrotesk[wght].ttf\""
+          },
+          {
+            "id": "geist-license-brand-json",
+            "path": "brand/brand.json",
+            "locator": "\"file\": \"OFL-Geist.txt\""
+          },
+          {
+            "id": "ibm-license-brand-json",
+            "path": "brand/brand.json",
+            "locator": "\"file\": \"OFL-IBMPlexMono.txt\""
+          }
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "roleId": "body",
+        "consumer": "lib/threadline/operator_surface/presentation.ex",
+        "job": "Reading operator guidance and audit records across Admin jobs.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-body",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"body\""
+          },
+          {
+            "id": "brand-consumer-body",
+            "path": "lib/threadline/operator_surface/presentation.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Presentation"
+          },
+          {
+            "id": "brand-book-body",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-consumer-body-3",
+            "path": "lib/threadline/operator_surface/fonts.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Fonts"
+          },
+          {
+            "id": "brand-consumer-body-4",
+            "path": "lib/threadline/operator_surface/style/01_tokens.css",
+            "locator": "--tl-focus"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-body",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/Geist[wght].ttf",
+          "brand/assets/fonts/static/IBMPlexMono-Regular.ttf",
+          "brand/assets/fonts/OFL-Geist.txt",
+          "brand/assets/fonts/OFL-IBMPlexMono.txt"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The body source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The body source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The body source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved body role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-body",
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The body source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The body source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-body"
+            ],
+            "proofRefIds": [
+              "brand-map-body"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/fonts.ex",
+          "lib/threadline/operator_surface/presentation.ex",
+          "lib/threadline/operator_surface/style/01_tokens.css"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.operator-actor-inspection",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status",
+          "job.operator-redaction-inspection",
+          "job.operator-retention-operations",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-theme-preference"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "descriptor",
+        "consumer": "lib/threadline/operator_surface/components/surface_header.ex",
+        "job": "Identifying Threadline Admin and its audit trail library descriptor.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-descriptor",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"descriptor\""
+          },
+          {
+            "id": "brand-consumer-descriptor",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          },
+          {
+            "id": "brand-book-descriptor",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-descriptor",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/FamiljenGrotesk[wght].ttf",
+          "brand/assets/fonts/OFL-FamiljenGrotesk.txt"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The descriptor source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The descriptor source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The descriptor source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved descriptor role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-descriptor",
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The descriptor source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The descriptor source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-descriptor"
+            ],
+            "proofRefIds": [
+              "brand-map-descriptor"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/components/surface_header.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.operator-actor-inspection",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status",
+          "job.operator-redaction-inspection",
+          "job.operator-retention-operations",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-theme-preference"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "caption",
+        "consumer": "lib/threadline/operator_surface/live/timeline_live.ex",
+        "job": "Reading Timeline timestamps and table metadata.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-caption",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"caption\""
+          },
+          {
+            "id": "brand-consumer-caption",
+            "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.TimelineLive"
+          },
+          {
+            "id": "brand-book-caption",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-consumer-caption-3",
+            "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.TransactionLive"
+          },
+          {
+            "id": "brand-consumer-caption-4",
+            "path": "lib/threadline/operator_surface/live/row_history_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryLive"
+          },
+          {
+            "id": "brand-consumer-caption-5",
+            "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryComponent"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-caption",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/Geist[wght].ttf",
+          "brand/assets/fonts/static/IBMPlexMono-Regular.ttf",
+          "brand/assets/fonts/OFL-Geist.txt",
+          "brand/assets/fonts/OFL-IBMPlexMono.txt"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The caption source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The caption source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The caption source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved caption role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-caption",
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The caption source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The caption source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-caption"
+            ],
+            "proofRefIds": [
+              "brand-map-caption"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/live/row_history_component.ex",
+          "lib/threadline/operator_surface/live/row_history_live.ex",
+          "lib/threadline/operator_surface/live/timeline_live.ex",
+          "lib/threadline/operator_surface/live/transaction_live.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.operator-actor-inspection",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "application-copy",
+        "consumer": "lib/threadline/operator_surface/live/transaction_live.ex",
+        "job": "Reading detail, history and audit-change copy.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-application_copy",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"application-copy\""
+          },
+          {
+            "id": "brand-consumer-application_copy",
+            "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.TransactionLive"
+          },
+          {
+            "id": "brand-book-application_copy",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-consumer-application_copy-3",
+            "path": "lib/threadline/operator_surface/live/row_history_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryLive"
+          },
+          {
+            "id": "brand-consumer-application_copy-4",
+            "path": "lib/threadline/operator_surface/live/row_history_component.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RowHistoryComponent"
+          },
+          {
+            "id": "brand-consumer-application_copy-5",
+            "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.ExportStatusLive"
+          },
+          {
+            "id": "brand-consumer-application_copy-6",
+            "path": "lib/threadline/operator_surface/controllers/export_controller.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Controllers.ExportController"
+          },
+          {
+            "id": "brand-consumer-application_copy-7",
+            "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.PolicyRedactionLive"
+          },
+          {
+            "id": "brand-consumer-application_copy-8",
+            "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.RetentionHistoryLive"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-application_copy",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/Geist[wght].ttf",
+          "brand/assets/fonts/OFL-Geist.txt"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The application-copy source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The application-copy source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The application-copy source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved application-copy role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-application_copy",
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The application-copy source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The application-copy source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-application_copy"
+            ],
+            "proofRefIds": [
+              "brand-map-application_copy"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/controllers/export_controller.ex",
+          "lib/threadline/operator_surface/live/export_status_live.ex",
+          "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+          "lib/threadline/operator_surface/live/retention_history_live.ex",
+          "lib/threadline/operator_surface/live/row_history_component.ex",
+          "lib/threadline/operator_surface/live/row_history_live.ex",
+          "lib/threadline/operator_surface/live/transaction_live.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.operator-export-response",
+          "job.operator-export-status",
+          "job.operator-redaction-inspection",
+          "job.operator-retention-operations"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "hero",
+        "consumer": "lib/threadline/operator_surface/live/start_live.ex",
+        "job": "Finding the primary investigation identity and summary.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-hero",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"hero\""
+          },
+          {
+            "id": "brand-consumer-hero",
+            "path": "lib/threadline/operator_surface/live/start_live.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Live.StartLive"
+          },
+          {
+            "id": "brand-book-hero",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-hero",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/fonts/web/fonts.css",
+          "brand/assets/fonts/variable/FamiljenGrotesk[wght].ttf",
+          "brand/assets/fonts/OFL-FamiljenGrotesk.txt"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The hero source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The hero source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The hero source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved hero role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-hero",
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The hero source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The hero source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-hero"
+            ],
+            "proofRefIds": [
+              "brand-map-hero"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/live/start_live.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.operator-export-status",
+          "job.operator-coverage-readiness"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "link",
+        "consumer": "lib/threadline/operator_surface/components/surface_header.ex",
+        "job": "Following navigation, source, return and recovery links.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-link",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"link\""
+          },
+          {
+            "id": "brand-consumer-link",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          },
+          {
+            "id": "brand-book-link",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-link",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The link source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The link source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The link source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved link role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-link",
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The link source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The link source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-link"
+            ],
+            "proofRefIds": [
+              "brand-map-link"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/components/surface_header.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status",
+          "job.operator-retention-operations"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "focus",
+        "consumer": "lib/threadline/operator_surface/style/01_tokens.css",
+        "job": "Locating keyboard focus in shared controls.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-focus",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"focus\""
+          },
+          {
+            "id": "brand-consumer-focus",
+            "path": "lib/threadline/operator_surface/style/01_tokens.css",
+            "locator": "--tl-focus"
+          },
+          {
+            "id": "brand-book-focus",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-consumer-focus-3",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-focus",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The focus source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The focus source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The focus source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved focus role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-focus",
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The focus source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The focus source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-focus"
+            ],
+            "proofRefIds": [
+              "brand-map-focus"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "lib/threadline/operator_surface/components/surface_header.ex",
+          "lib/threadline/operator_surface/style/01_tokens.css"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.operator-actor-inspection",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status",
+          "job.operator-redaction-inspection",
+          "job.operator-retention-operations",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-theme-preference"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      },
+      {
+        "roleId": "artwork",
+        "consumer": "lib/threadline/operator_surface/components/logo.ex",
+        "job": "Identifying the mark and lockup in the shell and host layout.",
+        "currentStatus": "reference-only; approved roles are not migrated into runtime tokens by Phase 249",
+        "laterOwner": "Phase 250 role-to-runtime foundation and first-flow proof; Phase 253 whole-package acceptance",
+        "sourceRefs": [
+          {
+            "id": "brand-role-artwork",
+            "path": "brand/brand.json",
+            "locator": "\"id\": \"artwork\""
+          },
+          {
+            "id": "brand-consumer-artwork",
+            "path": "lib/threadline/operator_surface/components/logo.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.Logo"
+          },
+          {
+            "id": "brand-book-artwork",
+            "path": "brand/BRAND.md",
+            "locator": "Dark is the default theme."
+          },
+          {
+            "id": "brand-consumer-artwork-3",
+            "path": "lib/threadline/operator_surface/components/surface_header.ex",
+            "locator": "defmodule Threadline.OperatorSurface.Components.SurfaceHeader"
+          },
+          {
+            "id": "brand-consumer-artwork-4",
+            "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/page_controller.ex",
+            "locator": "defmodule ThreadlinePhoenixWeb.PageController"
+          }
+        ],
+        "proofRefs": [
+          {
+            "id": "brand-map-artwork",
+            "kind": "existing-proof-owner",
+            "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+            "locator": "test(\"brand crosswalk maps every approved role, asset family, and later owner without copying tokens\"",
+            "owner": "operator-route-evidence.test.ts",
+            "limitation": "Structural mapping owner only; no approved runtime role, served-font, rendered contrast, browser, or accessibility acceptance is claimed."
+          }
+        ],
+        "assetPaths": [
+          "brand/assets/logo/threadline-lockup-light.svg",
+          "brand/assets/logo/threadline-mark-light.svg",
+          "brand/assets/logo/threadline-lockup-dark.svg",
+          "brand/assets/logo/threadline-mark-dark.svg",
+          "brand/assets/icon/favicon.svg",
+          "brand/assets/icon/favicon-light.svg",
+          "brand/assets/icon/favicon-dark.svg",
+          "brand/assets/icon/favicon.ico",
+          "brand/assets/icon/favicon-32-light.png",
+          "brand/assets/icon/favicon-16-light.png"
+        ],
+        "u3Criteria": {
+          "empty": {
+            "status": "not_applicable",
+            "reason": "The artwork source-to-consumer map does not implement a empty rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          },
+          "loading": {
+            "status": "not_applicable",
+            "reason": "The artwork source-to-consumer map does not implement a loading rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          },
+          "error": {
+            "status": "not_applicable",
+            "reason": "The artwork source-to-consumer map does not implement a error rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          },
+          "populated": {
+            "status": "mapped",
+            "meaning": "The approved artwork role points to this existing consumer; the reference does not claim runtime migration.",
+            "sourceRefIds": [
+              "brand-role-artwork",
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          },
+          "overflow": {
+            "status": "not_applicable",
+            "reason": "The artwork source-to-consumer map does not implement a overflow rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          },
+          "long-text": {
+            "status": "not_applicable",
+            "reason": "The artwork source-to-consumer map does not implement a long-text rendered state; its route owner and Phase 250/253 own that acceptance.",
+            "sourceRefIds": [
+              "brand-consumer-artwork"
+            ],
+            "proofRefIds": [
+              "brand-map-artwork"
+            ]
+          }
+        },
+        "consumerRefs": [
+          "examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/page_controller.ex",
+          "lib/threadline/operator_surface/components/logo.ex",
+          "lib/threadline/operator_surface/components/surface_header.ex"
+        ],
+        "jobIds": [
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.acme-4521-investigation",
+          "job.operator-actor-inspection",
+          "job.operator-coverage-readiness",
+          "job.operator-evidence-review",
+          "job.operator-export-status",
+          "job.operator-redaction-inspection",
+          "job.operator-retention-operations",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-export-response",
+          "job.operator-theme-preference"
+        ],
+        "proofGap": "No approved-role runtime migration proof is claimed here; these paths map existing consumers only."
+      }
+    ]
+  },
+  "carryDispositions": [
+    {
+      "id": "seed008.drawer-title-overlap",
+      "status": "deferred",
+      "disposition": "Keep drawer/title overlap for Phase 251 inspection and Phase 253 inclusive acceptance; no Phase 249 rendered claim.",
+      "laterOwners": [
+        "Phase 251",
+        "Phase 253"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-drawer-context",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        },
+        {
+          "id": "carry-drawer-research",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "Historical feedback is a triage trigger; reviewed current rendered replacement is still owned by later acceptance."
+    },
+    {
+      "id": "seed008.dense-typography",
+      "status": "deferred",
+      "disposition": "Carry dense typography to Phase 250 role migration and Phase 253 complete acceptance.",
+      "laterOwners": [
+        "Phase 250",
+        "Phase 253"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-type-context",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        },
+        {
+          "id": "carry-type-research",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "Approved font source and existing embedded runtime fonts are reference inputs only; served-font/rendered proof remains future work."
+    },
+    {
+      "id": "seed008.redaction-empty-copy",
+      "status": "deferred",
+      "disposition": "Carry Redaction empty-state wording to Phase 251 inspection and Phase 253 inclusive acceptance.",
+      "laterOwners": [
+        "Phase 251",
+        "Phase 253"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-redaction-context",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        },
+        {
+          "id": "carry-redaction-research",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-RESEARCH.md",
+          "locator": "Carry SEED-008 findings explicitly: drawer/title overlap to 251/253, dense typography to 250/253, Redaction empty copy to 251/253."
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "No copy or rendered Redaction state was changed or newly accepted in Phase 249."
+    },
+    {
+      "id": "seed008.screenshot-provenance",
+      "status": "historical-provenance",
+      "disposition": "Retain old screenshot failures as provenance until reviewed replacements exist; do not blindly regenerate or run the retired paid critic.",
+      "laterOwners": [
+        "Phase 250",
+        "Phase 251",
+        "Phase 252",
+        "Phase 253"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-screenshot-context",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+          "locator": "Historical screenshot failures remain provenance until reviewed replacements;"
+        },
+        {
+          "id": "carry-screenshot-research",
+          "path": ".planning/research/v1.48-SUMMARY.md",
+          "locator": "do not automatically regenerate old-baseline screenshots or revive retired critic tooling."
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "Historical captures do not establish current rendered UI; reviewed replacement receipts are not part of this plan."
+    },
+    {
+      "id": "seed008.degraded-timeline",
+      "status": "evidence-state",
+      "disposition": "Keep degraded Timeline as an evidence state in the existing route map, not as a new route.",
+      "laterOwners": [
+        "Phase 250",
+        "Phase 251"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-timeline-context",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",
+          "locator": "Degraded Timeline is an evidence state, not a new route."
+        },
+        {
+          "id": "carry-timeline-prior",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md",
+          "locator": "the degraded Timeline state"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "carry-timeline-owner",
+          "kind": "existing-structural-owner",
+          "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+          "locator": "test(\"semantic identities and source ownership survive reordered declarations; malformed mappings fail\"",
+          "owner": "operator-route-evidence.test.ts",
+          "limitation": "Structural route/state mapping only; no fresh browser or rendered receipt is claimed."
+        }
+      ],
+      "proofGap": "The state remains attached to existing route ownership; no new route or fresh visual proof is implied."
+    },
+    {
+      "id": "adm06.descriptorless-intent",
+      "status": "unresolved-flagged-unverified",
+      "disposition": "Keep spec-less autonomous recall and descriptorless flagged-unverified intent unresolved; do not invent check descriptors or silently turn the prohibition green.",
+      "laterOwners": [
+        "Independent Plan 249-04 judgment",
+        "Phase verification"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-adm06-plan3",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
+          "locator": "spec-less autonomous-recall and descriptorless flagged-unverified intent claims as unresolved"
+        },
+        {
+          "id": "carry-adm06-probe",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md",
+          "locator": "descriptorless flags or asking for routine human UAT."
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "The prior classifier rollup remains unresolved; bounded independent judgment must record its limits without rewriting the flags."
+    },
+    {
+      "id": "proof-scope.local-only",
+      "status": "scope-limited",
+      "disposition": "Current evidence is focused local Node and ExUnit checks; canonical/full-repeat/browser/hosted/release claims remain unmade.",
+      "laterOwners": [
+        "Phase verification",
+        "Phase 253 release readiness"
+      ],
+      "sourceRefs": [
+        {
+          "id": "carry-scope-plan",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md",
+          "locator": "no full canonical/flake/browser runner"
+        },
+        {
+          "id": "carry-scope-history",
+          "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",
+          "locator": "No root-wide, canonical, full-repeat, browser, hosted, or release checks were run"
+        }
+      ],
+      "proofRefs": [],
+      "proofGap": "This work cannot establish hosted CI, fresh browser/a11y/visual acceptance, canonical checks, release readiness, or human sign-off."
+    }
+  ],
   "scenarios": [
     {
       "id": "scenario.acme-4521-investigation",
@@ -752,13 +2247,1379 @@
       "stateCriteria": {
         "empty": {"status": "not_applicable", "reason": "This ordinary selection follows a seeded reply; the zero-match result is a separate named state fixture.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-db"]},
         "loading": {"status": "not_applicable", "reason": "The scenario selects persisted seed data; pending navigation is a separate route-state journey.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-correlation"]},
-        "error_unavailable": {"status": "not_applicable", "reason": "The ordinary seeded close succeeds; unavailable and recovery states use named stress fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-db"]},
+        "error": {"status": "not_applicable", "reason": "The ordinary seeded close succeeds; unavailable and recovery states use named stress fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-db"]},
         "populated": {"status": "mapped", "meaning": "The matching ticket reply, actor, correlation, action and captured change form the ordinary investigation chain.", "sourceRefIds": ["scenario-4521-db-contract", "scenario-4521-correlation"], "proofRefIds": ["proof-4521-db", "proof-4521-return"]},
         "partial": {"status": "not_applicable", "reason": "This selection maps the complete seeded close event; absent fields and partial payloads are separate state cases.", "sourceRefIds": ["scenario-4521-db-contract"], "proofRefIds": ["proof-4521-db"]},
-        "overflow_boundary": {"status": "not_applicable", "reason": "The ordinary reply is the normal investigation example; long-content and pagination boundaries use separate fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-return"]},
-        "zero_one_many": {"status": "not_applicable", "reason": "The scenario is a direct identity lookup, not a result-count stress selection; named empty and many fixtures own those counts.", "sourceRefIds": ["scenario-4521-ticket"], "proofRefIds": ["proof-4521-db"]},
-        "long_text_unicode_duplicate_label": {"status": "not_applicable", "reason": "The redacted internal note is not a long-text or Unicode sample; named stress fixtures own those values and duplicate labels.", "sourceRefIds": ["scenario-4521-redaction"], "proofRefIds": ["proof-4521-db"]}
+        "overflow": {"status": "not_applicable", "reason": "The ordinary reply is the normal investigation example; long-content and pagination boundaries use separate fixtures.", "sourceRefIds": ["scenario-4521-write"], "proofRefIds": ["proof-4521-return"]},
+        "zero-one-many": {"status": "not_applicable", "reason": "The scenario is a direct identity lookup, not a result-count stress selection; named empty and many fixtures own those counts.", "sourceRefIds": ["scenario-4521-ticket"], "proofRefIds": ["proof-4521-db"]},
+        "long-text": {"status": "not_applicable", "reason": "The redacted internal note is not a long-text or Unicode sample; named stress fixtures own those values and duplicate labels.", "sourceRefIds": ["scenario-4521-redaction"], "proofRefIds": ["proof-4521-db"]}
       }
+    },
+    {
+      "id": "scenario.acme-4518-reply-close-delete",
+      "name": "Acme #4518 reply, close, then capture-only reply deletion",
+      "class": "ordinary",
+      "jobId": "job.acme-4518-delete-investigation",
+      "selection": {
+        "resetCommand": "mix demo.reset",
+        "ticket": "acme/#4518",
+        "routeIds": [
+          "route.timeline",
+          "route.transaction",
+          "route.row"
+        ]
+      },
+      "identity": {
+        "organization": "acme",
+        "ticket": 4518,
+        "closer": "Manifest.user_id(:closer)",
+        "deleter": "Manifest.user_id(:deleter)",
+        "replyId": "resolved from captured reply insert at runtime",
+        "action": "ticket_replied_and_closed",
+        "delete": "later capture-only delete, no AuditAction"
+      },
+      "clocks": {
+        "closeEvent": "Manifest.last_tuesday() plus one hour",
+        "deleteEvent": "Manifest.last_tuesday() plus two hours",
+        "recordedTime": "physical recording time is distinct"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.acme-4518-reply-close-delete.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
+          "locator": "@hero_delete_number 4518"
+        },
+        {
+          "id": "src.acme-4518-reply-close-delete.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+          "locator": "defp seed_acme_delete(ctx) do"
+        },
+        {
+          "id": "src.acme-4518-reply-close-delete.3",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"#4518 closes with a reply before the later capture-only deletion\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.acme-4518-reply-close-delete.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+          "locator": "request_id: \"demo-seed-4518-reply\""
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.acme-4518-reply-close-delete.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"#4518 closes with a reply before the later capture-only deletion\"",
+          "owner": "demo_contract_test.exs",
+          "limitation": "DB contract owner for exact event order and separate actors; no browser acceptance."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "populated": {
+          "status": "mapped",
+          "meaning": "The reply insert and ticket close precede a later capture-only delete by a different actor.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.2"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Acme #4518 reply, close, then capture-only reply deletion: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.acme-4518-reply-close-delete.1"
+          ],
+          "proofRefIds": [
+            "proof.acme-4518-reply-close-delete.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.globex-2001-ordinary-close",
+      "name": "Globex #2001 ordinary reply-and-close sample",
+      "class": "ordinary",
+      "jobId": "job.globex-2001-investigation",
+      "selection": {
+        "resetCommand": "mix demo.reset",
+        "ticket": "globex/#2001",
+        "routeIds": [
+          "route.timeline",
+          "route.transaction",
+          "route.row"
+        ]
+      },
+      "identity": {
+        "organization": "globex",
+        "actor": "support@globex.example.com",
+        "ticket": 2001,
+        "requestId": "demo-seed-globex-close",
+        "action": "ticket_replied_and_closed"
+      },
+      "clocks": {
+        "eventTime": "Support.days_ago_timestamp(3) applied before capture to both writes",
+        "recordedTime": "physical recording time remains distinct"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.globex-2001-ordinary-close.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+          "locator": "defp seed_globex_close_sample(ctx) do"
+        },
+        {
+          "id": "src.globex-2001-ordinary-close.2",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"reply and ticket close snapshots match the represented days-ago event\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.globex-2001-ordinary-close.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+          "locator": "ticket = upsert_ticket!(globex, 2001, agent, \"open\")"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.globex-2001-ordinary-close.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"reply and ticket close snapshots match the represented days-ago event\"",
+          "owner": "demo_contract_test.exs",
+          "limitation": "DB contract owner for Globex organization, actor and row snapshots; no fresh UI receipt."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "populated": {
+          "status": "mapped",
+          "meaning": "The seed captures the reply and ticket update for Globex and its support actor.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Globex #2001 ordinary reply-and-close sample: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.globex-2001-ordinary-close.1"
+          ],
+          "proofRefIds": [
+            "proof.globex-2001-ordinary-close.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.offboarded-co-retention-boundary",
+      "name": "Offboarded Co backdated retention and empty-scope boundary",
+      "class": "boundary",
+      "jobId": "job.offboarded-retention-boundary",
+      "selection": {
+        "resetCommand": "mix demo.reset",
+        "evidenceRun": "walk-retention-offboarded-co",
+        "routeIds": [
+          "route.retention",
+          "route.timeline"
+        ]
+      },
+      "identity": {
+        "organization": "offboarded-co",
+        "retentionRun": "Manifest.evidence_run_id(:offboarded_retention)",
+        "boundary": "90-day history; 60-day cutoff; earliest other-org fixture is 21 days old",
+        "outcome": "other organizations survive; offboarded-co audit scope is empty",
+        "lifecycle": "not an account-departure lifecycle"
+      },
+      "clocks": {
+        "cutoffInvariant": "21 < 60 < 90 days",
+        "recordedTime": "retention evidence and captured rows retain physical recording time"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.offboarded-co-retention-boundary.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex",
+          "locator": "@retention_purge_cutoff_days_before_epoch 60"
+        },
+        {
+          "id": "src.offboarded-co-retention-boundary.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex",
+          "locator": "@org_y_backdate_days 90"
+        },
+        {
+          "id": "src.offboarded-co-retention-boundary.3",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"offboarded-co audit footprint purged with manifest retention evidence\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.offboarded-co-retention-boundary.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex",
+          "locator": "@evidence_run_offboarded \"walk-retention-offboarded-co\""
+        },
+        {
+          "id": "fixture.offboarded-co-retention-boundary.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex",
+          "locator": "@earliest_other_org_epoch_offset_days 21"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.offboarded-co-retention-boundary.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+          "locator": "test \"offboarded-co audit footprint purged with manifest retention evidence\"",
+          "owner": "demo_contract_test.exs",
+          "limitation": "DB contract owner for empty post-purge scope and retained run evidence, not general retention or departure behavior."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "mapped",
+          "meaning": "The explicit purge leaves the Offboarded Co audit scope empty while its run evidence remains addressable.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.3"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "populated": {
+          "status": "mapped",
+          "meaning": "The named retention evidence records the represented purge boundary and outcome.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Offboarded Co backdated retention and empty-scope boundary: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.offboarded-co-retention-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.offboarded-co-retention-boundary.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-empty",
+      "name": "Synthetic empty audit result",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "storyId": "state.empty",
+        "fixtureKey": "empty",
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureId": "state.empty",
+        "result": "zero synthetic rows, distinct from unavailable or denied"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic only; no DB event or recording time"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-empty.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "defp state_data(\"state.empty\", _cases) do"
+        },
+        {
+          "id": "src.state-empty.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"empty\" => \"state.empty\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-empty.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"empty\" => \"state.empty\""
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-empty.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for this synthetic story; not mounted-route/browser proof."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "mapped",
+          "meaning": "The story builder returns zero rows and an explicit empty-state summary.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Synthetic empty audit result: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.state-empty.1"
+          ],
+          "proofRefIds": [
+            "proof.state-empty.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-export-failed",
+      "name": "Seeded failed export job",
+      "class": "stress",
+      "jobId": "job.exports-failed-state",
+      "selection": {
+        "catalog": "demo seed plus named export route-state journey",
+        "fixtureId": "export_id(failed)",
+        "resetCommand": "mix demo.reset"
+      },
+      "identity": {
+        "status": "failed",
+        "actor": "Manifest.user_id(:admin)",
+        "query": "ticket_replies",
+        "distinction": "separate from pending, running, expired and unavailable"
+      },
+      "clocks": {
+        "eventTime": "epoch-relative job anchors",
+        "recordedTime": "seed run clock; not a new export mutation"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-export-failed.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex",
+          "locator": "id: export_id(\"failed\")"
+        },
+        {
+          "id": "src.state-export-failed.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex",
+          "locator": "status: \"failed\""
+        },
+        {
+          "id": "src.state-export-failed.3",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "locator": "test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-export-failed.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex",
+          "locator": "id: export_id(\"failed\")"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-export-failed.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "locator": "test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\"",
+          "owner": "operator-route-states.spec.ts",
+          "limitation": "Existing E2E owner for seeded state names; this plan does not run browser tests."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "error": {
+          "status": "mapped",
+          "meaning": "The seeded job has an explicit failed status distinct from preparing, expired and unavailable outcomes.",
+          "sourceRefIds": [
+            "src.state-export-failed.2"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Seeded failed export job: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.state-export-failed.1"
+          ],
+          "proofRefIds": [
+            "proof.state-export-failed.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-permission-denied",
+      "name": "Synthetic permission-denied state",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "storyId": "state.permission-denied",
+        "fixtureKey": "permission_denied",
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureId": "state.permission-denied",
+        "capability": "audit:read",
+        "distinction": "synthetic story only; not host authorization behavior"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic only; no persisted event"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-permission-denied.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "defp permission_denied_story do"
+        },
+        {
+          "id": "src.state-permission-denied.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"permission_denied\" => \"state.permission-denied\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-permission-denied.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"permission_denied\" => %{"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-permission-denied.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for synthetic denial; not an authorization integration or browser receipt."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "error": {
+          "status": "mapped",
+          "meaning": "The synthetic story names audit:read denial without implying the host authorization callback was exercised.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Synthetic permission-denied state: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.state-permission-denied.1"
+          ],
+          "proofRefIds": [
+            "proof.state-permission-denied.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-pagination-boundary",
+      "name": "Synthetic final-page pagination boundary",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "storyId": "state.pagination-boundary",
+        "fixtureKey": "pagination_boundary",
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureId": "state.pagination-boundary",
+        "meaning": "terminal page has no next page and has a previous page"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic only; no DB event"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-pagination-boundary.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "defp state_data(\"state.pagination-boundary\", _cases) do"
+        },
+        {
+          "id": "src.state-pagination-boundary.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"pagination_boundary\" => %{"
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-pagination-boundary.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"pagination_boundary\" => %{"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-pagination-boundary.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for the pagination fixture; not route pagination/browser acceptance."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "overflow": {
+          "status": "mapped",
+          "meaning": "This named fixture represents the final-page boundary and absent next-page transition.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Synthetic final-page pagination boundary: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.state-pagination-boundary.1"
+          ],
+          "proofRefIds": [
+            "proof.state-pagination-boundary.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-long-content",
+      "name": "Synthetic long identifier and long audit text",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "fixtureKeys": [
+          "long_id",
+          "long_string"
+        ],
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureIds": [
+          "long_id",
+          "long_string"
+        ],
+        "meaning": "synthetic stress data, not customer data"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic only; no DB event"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-long-content.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "long_string:"
+        },
+        {
+          "id": "src.state-long-content.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"long_string\" =>"
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-long-content.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"long_id\" =>"
+        },
+        {
+          "id": "fixture.state-long-content.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"long_string\" =>"
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-long-content.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for long strings; not rendered truncation acceptance."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "overflow": {
+          "status": "mapped",
+          "meaning": "The long identifier and sentence are named sources for content-boundary stress selection.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Synthetic long identifier and long audit text: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        },
+        "long-text": {
+          "status": "mapped",
+          "meaning": "The long-string fixture provides extended synthetic audit prose.",
+          "sourceRefIds": [
+            "src.state-long-content.1"
+          ],
+          "proofRefIds": [
+            "proof.state-long-content.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-unicode",
+      "name": "Synthetic Unicode and locale-sensitive text",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "fixtureKey": "non_ascii",
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureId": "non_ascii",
+        "meaning": "contains accented Latin text and 東京; identity is the fixture key"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic only; no stored event or recording time"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-unicode.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "non_ascii: \"Zoë Ångström reviewed 東京 retention proof\""
+        },
+        {
+          "id": "src.state-unicode.2",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"non_ascii\" => \"Actor Zoe Nunez compared subject 東京-42 and reason Revision reçue à 09:45.\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-unicode.1",
+          "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+          "locator": "\"non_ascii\" => \"Actor Zoe Nunez compared subject 東京-42 and reason Revision reçue à 09:45.\""
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-unicode.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for Unicode data; not served-font or glyph coverage proof."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "populated": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: this criterion is covered by this scenario’s linked source and proof.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "not_applicable",
+          "reason": "Synthetic Unicode and locale-sensitive text: result count variety stays distinct unless mapped here.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        },
+        "long-text": {
+          "status": "mapped",
+          "meaning": "The named fixture includes Unicode; served-font and glyph behavior remain later runtime acceptance.",
+          "sourceRefIds": [
+            "src.state-unicode.1"
+          ],
+          "proofRefIds": [
+            "proof.state-unicode.1"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scenario.state-duplicate-labels",
+      "name": "Synthetic repeated operation labels with distinct change identities",
+      "class": "stress",
+      "jobId": "job.state-fixture-catalog",
+      "selection": {
+        "catalog": "PhoenixStorybook dev/test catalog",
+        "storyId": "state.many",
+        "fixtureKey": "many",
+        "databaseReset": "not a DB seed"
+      },
+      "identity": {
+        "fixtureId": "state.many",
+        "operationLabel": "insert",
+        "identityRule": "row-index-derived IDs remain distinct when labels repeat"
+      },
+      "clocks": {
+        "fixtureClock": "synthetic values, not DB-recorded event time"
+      },
+      "sourceRefs": [
+        {
+          "id": "src.state-duplicate-labels.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "rows = Enum.map(1..25, &synthetic_change(&1, \"insert\"))"
+        },
+        {
+          "id": "src.state-duplicate-labels.2",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "id: \"chg_00000000-0000-4000-8000-00000000#{padded}\""
+        }
+      ],
+      "fixtureRefs": [
+        {
+          "id": "fixture.state-duplicate-labels.1",
+          "path": "lib/threadline/operator_surface/stress_fixtures.ex",
+          "locator": "{\"state.many\", \"state.many\""
+        }
+      ],
+      "proofRefs": [
+        {
+          "id": "proof.state-duplicate-labels.1",
+          "kind": "existing-proof-owner",
+          "path": "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+          "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
+          "owner": "storybook_stories_test.exs",
+          "limitation": "Story catalog owner for repeated labels; no rendered sort or browser interaction is claimed."
+        }
+      ],
+      "stateCriteria": {
+        "empty": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: zero matches belong to the named empty fixture when not mapped here.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "loading": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: this is selected data, not an in-flight LiveView request.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "error": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: failed, denied and unavailable outcomes have separate fixture owners.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "populated": {
+          "status": "mapped",
+          "meaning": "Repeated insert labels retain distinct synthetic change IDs derived from their row indices.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "partial": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: this selection does not model an omitted subset of its represented fields.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "overflow": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: long-content or terminal-page behavior is separate unless mapped here.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "zero-one-many": {
+          "status": "mapped",
+          "meaning": "The many story returns a change list and retains per-row identities for repeated labels.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        },
+        "long-text": {
+          "status": "not_applicable",
+          "reason": "Synthetic repeated operation labels with distinct change identities: long and Unicode data stay with their named fixture identities unless mapped here.",
+          "sourceRefIds": [
+            "src.state-duplicate-labels.1"
+          ],
+          "proofRefIds": [
+            "proof.state-duplicate-labels.1"
+          ]
+        }
+      },
+      "duplicateLabelExamples": [
+        {
+          "label": "insert",
+          "identity": "synthetic_change(1)"
+        },
+        {
+          "label": "insert",
+          "identity": "synthetic_change(2)"
+        }
+      ]
     }
   ]
 }
