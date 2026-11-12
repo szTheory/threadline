@@ -89,8 +89,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Selected"
 
       theme_buttons =
-        html
-        |> Regex.scan(~r/<button\b[^>]*name="theme"[^>]*>.*?<\/button>/s)
+        Regex.scan(~r/<button\b[^>]*name="theme"[^>]*>.*?<\/button>/s, html)
         |> Enum.map(&List.first/1)
 
       assert length(theme_buttons) == 3
@@ -105,7 +104,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       assert Enum.count(theme_buttons, &String.contains?(&1, ~s|aria-pressed="true"|)) == 1
-      assert Enum.any?(theme_buttons, &String.contains?(&1, ~s|value="system" aria-pressed="true"|))
+
+      assert Enum.any?(theme_buttons, fn button ->
+               String.contains?(button, ~s|value="system"|) and
+                 String.contains?(button, ~s|aria-pressed="true"|)
+             end)
+
       refute html =~ ~s|Apply theme|
       refute html =~ ~s|type="radio"|
       refute html =~ ~s|onclick=|
