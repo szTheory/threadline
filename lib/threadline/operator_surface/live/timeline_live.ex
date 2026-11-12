@@ -75,7 +75,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:query_error, false)
         |> assign(:unknown_table_attempted, false)
         |> assign(:future_window_empty, false)
-        |> assign(:unfiltered_search?, false)
         |> assign(:base_path, nil)
         |> assign(:timeline_path, nil)
         |> assign(:match_count, 0)
@@ -99,7 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:base_path, base_path)
         |> assign(:timeline_path, timeline_path)
 
-      if params == %{} and not socket.assigns.unfiltered_search? do
+      if params == %{} do
         from = DateTime.utc_now() |> DateTime.add(-Helpers.default_window_hours() * 3600, :second)
         to = DateTime.utc_now()
 
@@ -117,12 +116,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         filters_raw = FilterParams.filters_raw_from_params(params)
         filter_query = build_canonical_query(filters_raw)
 
+        filter_query =
+          if filter_query == "" and Map.get(params, "from") == "", do: "from=", else: filter_query
+
         search_url =
           if filter_query == "", do: timeline_path, else: "#{timeline_path}?#{filter_query}"
 
         socket =
           socket
-          |> assign(:unfiltered_search?, false)
           |> assign(:filters_raw, filters_raw)
           |> assign(:filter_query, filter_query)
           |> assign(:search_url, search_url)
@@ -377,14 +378,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("apply", %{"filter" => raw}, socket) do
-      query = build_canonical_query(raw)
+      query =
+        case build_canonical_query(raw) do
+          "" -> "from="
+          query -> query
+        end
 
-      socket = assign(socket, :unfiltered_search?, query == "")
-
-      path =
-        if query == "",
-          do: socket.assigns.timeline_path,
-          else: "#{socket.assigns.timeline_path}?#{query}"
+      path = "#{socket.assigns.timeline_path}?#{query}"
 
       {:noreply, push_patch(socket, to: path)}
     end
