@@ -154,10 +154,20 @@
         {"id":"source-transaction-9","path":"examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts","locator":"test(\"opens an authorized transaction with separate action and row evidence\""},
         {"id":"source-route-transaction-9","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"handle_event(\"next-page\", _, socket) do","kind":"production-source"},
         {"id":"source-route-transaction-10","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"copy_label=\"Copy transaction id\"","kind":"production-source"},
-        {"id":"source-route-transaction-11","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"JS.push_focus() |> JS.patch(row_history_path)","kind":"production-source"}
+        {"id":"source-route-transaction-11","path":"lib/threadline/operator_surface/live/transaction_live.ex","locator":"JS.push_focus() |> JS.patch(row_history_path)","kind":"production-source"},
+        {"id":"source-txn-state-empty","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"Case 3: renders no-row-change state when bundle.changes is empty\""},
+        {"id":"source-txn-state-not-found","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"Case 1: renders explicit not-found state for missing transaction ID\""},
+        {"id":"source-txn-state-unavailable","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"renders a recoverable unavailable state when transaction reads fail\""},
+        {"id":"source-txn-state-populated","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"labels the before and after sides of each field change\""},
+        {"id":"source-txn-state-long","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"diff cells truncate long values and expose a gated copy bound to the full value (D-04)\""}
       ],
       "proofRefs": [
-        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts","locator":"test(\"starts at Home, applies a Timeline query, and opens its transaction\"","owner":"operator-timeline-investigation-flow.spec.ts","limitation":"The test owns a separate synthetic correlated-post journey; it is not run in this plan.","id":"proof-transaction-1"}
+        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts","locator":"test(\"starts at Home, applies a Timeline query, and opens its transaction\"","owner":"operator-timeline-investigation-flow.spec.ts","limitation":"The test owns a separate synthetic correlated-post journey; it is not run in this plan.","id":"proof-transaction-1"},
+        {"id":"proof-txn-state-empty","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"Case 3: renders no-row-change state when bundle.changes is empty\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-txn-state-not-found","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"Case 1: renders explicit not-found state for missing transaction ID\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-txn-state-unavailable","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"renders a recoverable unavailable state when transaction reads fail\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-txn-state-populated","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"labels the before and after sides of each field change\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-txn-state-long","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"diff cells truncate long values and expose a gated copy bound to the full value (D-04)\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."}
       ],
       "access": {"authentication":"Host my_authorize_fn requires a current authenticated operator; absent or unmatched users are rejected.","capability":"Admins are allowed; organization-bound support users receive the host support_read_only capability for this read surface.","organizationScope":"Organization-bound support reads are filtered by the host organization scope; unsupported query contexts return no rows.","supportDisposition":"read_only_scoped"},
       "actions": ["Inspect action, context, and row changes","Copy transaction, request, correlation, and supported diff values","Load older or newer transaction changes","Open a row-history drawer at the change capture time and restore focus on close"],
@@ -165,14 +175,14 @@
       "surfaceType": "liveview",
       "routePattern": "/transactions/:id",
       "uiCoverage": {
-        "empty": {"disposition":"mapped","description":"No result state and validation feedback on the Home lookup.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "loading": {"disposition":"mapped","description":"Navigation and lookup can be pending while destination identity is preserved.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "error": {"disposition":"mapped","description":"Invalid lookup and degraded health remain distinct from a successful result.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "populated": {"disposition":"mapped","description":"Acme #4521 is the ordinary seeded investigation source.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "partial": {"disposition":"mapped","description":"The route records supported scope and missing-result distinctions.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "overflow": {"disposition":"mapped","description":"History navigation retains a safe return path and bounded rows.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "zero-one-many": {"disposition":"mapped","description":"Empty, single-result, and multiple-result outcomes remain distinct.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]},
-        "long-text": {"disposition":"mapped","description":"Long identifiers and labels retain their route and return context.","sourceRefIds":["source-transaction-3"],"proofRefIds":["proof-transaction-1"]}
+        "empty": {"disposition":"mapped","description":"A found transaction with no row-level changes captured shows the dedicated empty state and audit-readiness next step.","sourceRefIds":["source-txn-state-empty"],"proofRefIds":["proof-txn-state-empty"]},
+        "loading": {"disposition":"not_applicable","reason":"Transaction detail reads load synchronously within handle_params; this route has no separate loading panel, so no loading state is claimed.","sourceRefIds":["source-transaction-3"]},
+        "error": {"disposition":"mapped","description":"Not-found and unavailable transaction branches use separate copy; read failure offers Retry and Timeline.","sourceRefIds":["source-txn-state-not-found","source-txn-state-unavailable"],"proofRefIds":["proof-txn-state-not-found","proof-txn-state-unavailable"]},
+        "populated": {"disposition":"mapped","description":"A valid transaction displays its actor/action header and captured field changes; #4521 remains the ordinary seeded example.","sourceRefIds":["source-txn-state-populated"],"proofRefIds":["proof-txn-state-populated"]},
+        "partial": {"disposition":"not_applicable","reason":"The transaction renderer has no partial-result branch: it shows a complete bundle, a no-row-change result, or not-found/unavailable feedback.","sourceRefIds":["source-transaction-3"]},
+        "overflow": {"disposition":"not_applicable","reason":"The route has page controls, but no existing high-volume proof establishes its overflow behavior; no overflow acceptance is claimed.","sourceRefIds":["source-route-transaction-9"]},
+        "zero-one-many": {"disposition":"not_applicable","reason":"The renderer distinguishes no changes from a populated list; no one-versus-many count state is asserted.","sourceRefIds":["source-transaction-3"]},
+        "long-text": {"disposition":"mapped","description":"Long diff values are truncated for display while gated copy targets the full value.","sourceRefIds":["source-txn-state-long"],"proofRefIds":["proof-txn-state-long"]}
       }
     },
     {
@@ -194,11 +204,27 @@
         {"id":"source-row-10","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"direct first-class row-history route opens without a transaction first\""},
         {"id":"source-row-11","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"Timeline-origin row history preserves committed filters and safe return\""},
         {"id":"source-route-row-11","path":"lib/threadline/operator_surface/live/row_history_live.ex","locator":"copy_label=\"Copy row id\"","kind":"production-source"},
-        {"id":"source-route-row-12","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"handle_event(\"update-as-of\", %{\"as_of\" => as_of_str}, socket) do","kind":"production-source"}
+        {"id":"source-route-row-12","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"handle_event(\"update-as-of\", %{\"as_of\" => as_of_str}, socket) do","kind":"production-source"},
+        {"id":"source-row-state-empty","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"for change <- @history do"},
+        {"id":"source-row-state-loading","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"def update(assigns, socket) do"},
+        {"id":"source-row-state-error","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"unmapped table renders mapped-schema error without raising\""},
+        {"id":"source-row-state-outage","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"direct row-history connection failure offers retry and a safe Timeline return\""},
+        {"id":"source-row-state-populated","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"first-class row-history route renders its semantic shell without a transaction id\""},
+        {"id":"source-row-state-before-horizon","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"snapshot before audit horizon names the row snapshot and next action\""},
+        {"id":"source-row-state-deleted","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"deleted snapshot state names the row snapshot and next action\""},
+        {"id":"source-row-state-overflow","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders all 250 change rows for a 250-change record (D-16: drawer stays unbounded)\""},
+        {"id":"source-row-state-count","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"for change <- @history do"},
+        {"id":"source-row-state-long","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"defp snapshot_rows(snapshot) do"}
       ],
       "proofRefs": [
         {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"Home record lookup reaches first-class row history\"","owner":"operator-earned-flows.spec.ts","limitation":"Scenario owner resolves the record key dynamically; this plan does not run the browser test.","id":"proof-row-1"},
-        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"direct first-class row-history route opens without a transaction first\"","owner":"operator-earned-flows.spec.ts","limitation":"Direct-entry scenario owner only; not a fresh lifecycle receipt.","id":"proof-row-2"}
+        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"direct first-class row-history route opens without a transaction first\"","owner":"operator-earned-flows.spec.ts","limitation":"Direct-entry scenario owner only; not a fresh lifecycle receipt.","id":"proof-row-2"},
+        {"id":"proof-row-state-error","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"unmapped table renders mapped-schema error without raising\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-row-state-outage","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"direct row-history connection failure offers retry and a safe Timeline return\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-row-state-populated","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"first-class row-history route renders its semantic shell without a transaction id\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-row-state-before-horizon","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"snapshot before audit horizon names the row snapshot and next action\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-row-state-deleted","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"deleted snapshot state names the row snapshot and next action\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-row-state-overflow","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders all 250 change rows for a 250-change record (D-16: drawer stays unbounded)\"","owner":"row_history_component_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."}
       ],
       "access": {"authentication":"Host my_authorize_fn requires a current authenticated operator; absent or unmatched users are rejected.","capability":"Admins are allowed; organization-bound support users receive the host support_read_only capability for this read surface.","organizationScope":"Organization-bound support reads are filtered by the host organization scope; unsupported query contexts return no rows.","supportDisposition":"read_only_scoped"},
       "actions": ["Open row history directly or from a supported origin","Copy the row identifier","Choose an as-of timestamp and navigate between snapshots","Retry history loading","Return to the safe origin context"],
@@ -206,14 +232,14 @@
       "surfaceType": "liveview",
       "routePattern": "/rows/:table/:record_id",
       "uiCoverage": {
-        "empty": {"disposition":"mapped","description":"No result state and validation feedback on the Home lookup.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-1"]},
-        "loading": {"disposition":"mapped","description":"Navigation and lookup can be pending while destination identity is preserved.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "error": {"disposition":"mapped","description":"Invalid lookup and degraded health remain distinct from a successful result.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "populated": {"disposition":"mapped","description":"Acme #4521 is the ordinary seeded investigation source.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "partial": {"disposition":"mapped","description":"The route records supported scope and missing-result distinctions.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "overflow": {"disposition":"mapped","description":"History navigation retains a safe return path and bounded rows.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "zero-one-many": {"disposition":"mapped","description":"Empty, single-result, and multiple-result outcomes remain distinct.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]},
-        "long-text": {"disposition":"mapped","description":"Long identifiers and labels retain their route and return context.","sourceRefIds":["source-row-3"],"proofRefIds":["proof-row-2"]}
+        "empty": {"disposition":"not_applicable","reason":"The component loops over available history rows but renders no separate empty-history message; no tested empty-history route state is claimed.","sourceRefIds":["source-row-state-empty"]},
+        "loading": {"disposition":"not_applicable","reason":"The LiveComponent loads history and snapshot synchronously in update; no separate loading panel is rendered.","sourceRefIds":["source-row-state-loading"]},
+        "error": {"disposition":"mapped","description":"Schema errors and read outages have separate error behavior; outages offer Retry and Timeline return.","sourceRefIds":["source-row-state-error","source-row-state-outage"],"proofRefIds":["proof-row-state-error","proof-row-state-outage"]},
+        "populated": {"disposition":"mapped","description":"Captured values are sorted into key/value rows in the first-class row-history route.","sourceRefIds":["source-row-state-populated"],"proofRefIds":["proof-row-state-populated"]},
+        "partial": {"disposition":"mapped","description":"Before-horizon and deleted snapshots explain the selected-time boundary and next action.","sourceRefIds":["source-row-state-before-horizon","source-row-state-deleted"],"proofRefIds":["proof-row-state-before-horizon","proof-row-state-deleted"]},
+        "overflow": {"disposition":"mapped","description":"The shared history component renders all 250 change rows for the existing large-record contract.","sourceRefIds":["source-row-state-overflow"],"proofRefIds":["proof-row-state-overflow"]},
+        "zero-one-many": {"disposition":"not_applicable","reason":"The history list has no count-specific 0/1/many state or existing count-state owner.","sourceRefIds":["source-row-state-count"]},
+        "long-text": {"disposition":"not_applicable","reason":"No dedicated long-text proof exists for this row-history surface; later long-content acceptance remains with its named fixture owner.","sourceRefIds":["source-row-state-long"]}
       }
     },
     {
@@ -232,10 +258,27 @@
         {"id":"source-drawer-7","path":"lib/threadline/operator_surface/router.ex","locator":"live(\"/transactions/:id/history/:table/:record_id\","},
         {"id":"source-drawer-8","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def scope_operator_query(query, _scope, _context), do: where(query, [], false)"},
         {"id":"source-drawer-9","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"transaction-origin row history returns to the same transaction\""},
-        {"id":"source-drawer-10","path":"examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts","locator":"test(\"keeps row-history drawer dialog semantics and visible focus\""}
+        {"id":"source-drawer-10","path":"examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts","locator":"test(\"keeps row-history drawer dialog semantics and visible focus\""},
+        {"id":"source-drawer-state-empty","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"for change <- @history do"},
+        {"id":"source-drawer-state-loading","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"def update(assigns, socket) do"},
+        {"id":"source-drawer-state-error","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders error when schema is missing\""},
+        {"id":"source-drawer-state-parent-error","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"unavailable transaction parent does not read or render child row history\""},
+        {"id":"source-drawer-state-populated","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"uses explicit close and history paths when supplied\""},
+        {"id":"source-drawer-state-before-horizon","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"snapshot before audit horizon names the row snapshot and next action\""},
+        {"id":"source-drawer-state-deleted","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"deleted snapshot state names the row snapshot and next action\""},
+        {"id":"source-drawer-state-overflow","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders all 250 change rows for a 250-change record (D-16: drawer stays unbounded)\""},
+        {"id":"source-drawer-state-count","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"for change <- @history do"},
+        {"id":"source-drawer-state-long","path":"lib/threadline/operator_surface/live/row_history_component.ex","locator":"defp snapshot_rows(snapshot) do"}
       ],
       "proofRefs": [
-        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"transaction-origin row history returns to the same transaction\"","owner":"operator-earned-flows.spec.ts","limitation":"Scenario owner only; no browser run is claimed by this plan.","id":"proof-drawer-1"}
+        {"kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"transaction-origin row history returns to the same transaction\"","owner":"operator-earned-flows.spec.ts","limitation":"Scenario owner only; no browser run is claimed by this plan.","id":"proof-drawer-1"},
+        {"id":"proof-drawer-state-error","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders error when schema is missing\"","owner":"row_history_component_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-parent-error","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/transaction_live_test.exs","locator":"test \"unavailable transaction parent does not read or render child row history\"","owner":"transaction_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-populated","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"uses explicit close and history paths when supplied\"","owner":"row_history_component_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-before-horizon","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"snapshot before audit horizon names the row snapshot and next action\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-deleted","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/live/row_history_live_test.exs","locator":"test \"deleted snapshot state names the row snapshot and next action\"","owner":"row_history_live_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-overflow","kind":"renderer-contract-owner","path":"test/threadline/operator_surface/row_history_component_test.exs","locator":"test \"renders all 250 change rows for a 250-change record (D-16: drawer stays unbounded)\"","owner":"row_history_component_test.exs","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."},
+        {"id":"proof-drawer-state-return","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","locator":"test(\"transaction-origin row history returns to the same transaction\"","owner":"operator-earned-flows.spec.ts","limitation":"Existing source-test owner only; this plan does not run a browser or claim fresh route acceptance."}
       ],
       "access": {"authentication":"Host my_authorize_fn requires a current authenticated operator; absent or unmatched users are rejected.","capability":"Admins are allowed; organization-bound support users receive the host support_read_only capability for this read surface.","organizationScope":"Organization-bound support reads are filtered by the host organization scope; unsupported query contexts return no rows.","supportDisposition":"read_only_scoped"},
       "actions": ["Open transaction-scoped row history","Set an as-of time","Close history and return to the same transaction"],
@@ -243,14 +286,14 @@
       "surfaceType": "liveview",
       "routePattern": "/transactions/:id/history/:table/:record_id",
       "uiCoverage": {
-        "empty": {"disposition":"mapped","description":"No result state and validation feedback on the Home lookup.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "loading": {"disposition":"mapped","description":"Navigation and lookup can be pending while destination identity is preserved.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "error": {"disposition":"mapped","description":"Invalid lookup and degraded health remain distinct from a successful result.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "populated": {"disposition":"mapped","description":"Acme #4521 is the ordinary seeded investigation source.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "partial": {"disposition":"mapped","description":"The route records supported scope and missing-result distinctions.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "overflow": {"disposition":"mapped","description":"History navigation retains a safe return path and bounded rows.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "zero-one-many": {"disposition":"mapped","description":"Empty, single-result, and multiple-result outcomes remain distinct.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]},
-        "long-text": {"disposition":"mapped","description":"Long identifiers and labels retain their route and return context.","sourceRefIds":["source-drawer-3"],"proofRefIds":["proof-drawer-1"]}
+        "empty": {"disposition":"not_applicable","reason":"The drawer child loops over history but has no separate empty-history message or tested empty drawer state.","sourceRefIds":["source-drawer-state-empty"]},
+        "loading": {"disposition":"not_applicable","reason":"The drawer child loads history and snapshot synchronously in update; no pending drawer state is rendered.","sourceRefIds":["source-drawer-state-loading"]},
+        "error": {"disposition":"mapped","description":"Child schema errors and parent failures are distinct: child errors render within the drawer, while a failed parent suppresses it.","sourceRefIds":["source-drawer-state-error","source-drawer-state-parent-error"],"proofRefIds":["proof-drawer-state-error","proof-drawer-state-parent-error"]},
+        "populated": {"disposition":"mapped","description":"Transaction-origin row history opens the drawer and its close link returns to the same transaction.","sourceRefIds":["source-drawer-state-populated"],"proofRefIds":["proof-drawer-state-populated","proof-drawer-state-return"]},
+        "partial": {"disposition":"mapped","description":"Before-horizon and deleted snapshots show their distinct next actions inside the shared history drawer.","sourceRefIds":["source-drawer-state-before-horizon","source-drawer-state-deleted"],"proofRefIds":["proof-drawer-state-before-horizon","proof-drawer-state-deleted"]},
+        "overflow": {"disposition":"mapped","description":"The history drawer renders all 250 change rows for the existing large-record contract.","sourceRefIds":["source-drawer-state-overflow"],"proofRefIds":["proof-drawer-state-overflow"]},
+        "zero-one-many": {"disposition":"not_applicable","reason":"The drawer has no count-specific 0/1/many state or count-state proof.","sourceRefIds":["source-drawer-state-count"]},
+        "long-text": {"disposition":"not_applicable","reason":"No dedicated long-text proof exists for this drawer; the named stress fixture remains a separate source of future rendered acceptance.","sourceRefIds":["source-drawer-state-long"]}
       }
     },
     {
@@ -2711,7 +2754,8 @@
           "id": "src.state-empty.2",
           "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
           "locator": "\"empty\" => \"state.empty\""
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -2728,8 +2772,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for this synthetic story; not mounted-route/browser proof."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "mapped",
@@ -2761,16 +2807,7 @@
             "proof.state-empty.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Synthetic empty audit result: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-empty.1"
-          ],
-          "proofRefIds": [
-            "proof.state-empty.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic empty audit result: this selection does not model an omitted subset of its represented fields.",
@@ -2848,7 +2885,8 @@
           "id": "src.state-export-failed.3",
           "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
           "locator": "test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\""
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -2865,8 +2903,10 @@
           "locator": "test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\"",
           "owner": "operator-route-states.spec.ts",
           "limitation": "Existing E2E owner for seeded state names; this plan does not run browser tests."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -2898,16 +2938,7 @@
             "proof.state-export-failed.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Seeded failed export job: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-export-failed.1"
-          ],
-          "proofRefIds": [
-            "proof.state-export-failed.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Seeded failed export job: this selection does not model an omitted subset of its represented fields.",
@@ -2979,7 +3010,8 @@
           "id": "src.state-permission-denied.2",
           "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
           "locator": "\"permission_denied\" => \"state.permission-denied\""
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -2996,8 +3028,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for synthetic denial; not an authorization integration or browser receipt."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -3029,16 +3063,7 @@
             "proof.state-permission-denied.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Synthetic permission-denied state: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-permission-denied.1"
-          ],
-          "proofRefIds": [
-            "proof.state-permission-denied.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic permission-denied state: this selection does not model an omitted subset of its represented fields.",
@@ -3109,7 +3134,8 @@
           "id": "src.state-pagination-boundary.2",
           "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
           "locator": "\"pagination_boundary\" => %{"
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -3126,8 +3152,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for the pagination fixture; not route pagination/browser acceptance."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -3159,16 +3187,7 @@
             "proof.state-pagination-boundary.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Synthetic final-page pagination boundary: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-pagination-boundary.1"
-          ],
-          "proofRefIds": [
-            "proof.state-pagination-boundary.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic final-page pagination boundary: this selection does not model an omitted subset of its represented fields.",
@@ -3244,7 +3263,8 @@
           "id": "src.state-long-content.2",
           "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
           "locator": "\"long_string\" =>"
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -3266,8 +3286,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for long strings; not rendered truncation acceptance."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -3299,16 +3321,7 @@
             "proof.state-long-content.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Synthetic long identifier and long audit text: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-long-content.1"
-          ],
-          "proofRefIds": [
-            "proof.state-long-content.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic long identifier and long audit text: this selection does not model an omitted subset of its represented fields.",
@@ -3378,7 +3391,8 @@
           "id": "src.state-unicode.2",
           "path": "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
           "locator": "\"non_ascii\" => \"Actor Zoe Nunez compared subject 東京-42 and reason Revision reçue à 09:45.\""
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -3395,8 +3409,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for Unicode data; not served-font or glyph coverage proof."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -3428,16 +3444,7 @@
             "proof.state-unicode.1"
           ]
         },
-        "populated": {
-          "status": "not_applicable",
-          "reason": "Synthetic Unicode and locale-sensitive text: this criterion is covered by this scenario’s linked source and proof.",
-          "sourceRefIds": [
-            "src.state-unicode.1"
-          ],
-          "proofRefIds": [
-            "proof.state-unicode.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic Unicode and locale-sensitive text: this selection does not model an omitted subset of its represented fields.",
@@ -3509,7 +3516,8 @@
           "id": "src.state-duplicate-labels.2",
           "path": "lib/threadline/operator_surface/stress_fixtures.ex",
           "locator": "id: \"chg_00000000-0000-4000-8000-00000000#{padded}\""
-        }
+        },
+        {"id":"baseline-ordinary-4521","path":"examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","locator":"@hero_close_number 4521"}
       ],
       "fixtureRefs": [
         {
@@ -3526,8 +3534,10 @@
           "locator": "test \"data-display stories cover the UI-SPEC minimum with representative ugly data\"",
           "owner": "storybook_stories_test.exs",
           "limitation": "Story catalog owner for repeated labels; no rendered sort or browser interaction is claimed."
-        }
+        },
+        {"id":"baseline-proof-ordinary-4521","kind":"renderer-contract-owner","path":"examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","locator":"test \"#4521 row and reply snapshots match the represented close event\"","owner":"demo_contract_test.exs","limitation":"Existing Plan 249-03 database contract owner; comparison does not replace this selected stress fixture or prove its route UI."}
       ],
+      "ordinaryBaseline": {"scenarioId":"scenario.acme-4521-investigation","sourceRefId":"baseline-ordinary-4521","proofRefId":"baseline-proof-ordinary-4521","selectionRole":"comparison-only","limitation":"Compare against a separately selected populated ordinary investigation; do not replace this stress fixture or claim its rendered behavior."},
       "stateCriteria": {
         "empty": {
           "status": "not_applicable",
@@ -3559,16 +3569,7 @@
             "proof.state-duplicate-labels.1"
           ]
         },
-        "populated": {
-          "status": "mapped",
-          "meaning": "Repeated insert labels retain distinct synthetic change IDs derived from their row indices.",
-          "sourceRefIds": [
-            "src.state-duplicate-labels.1"
-          ],
-          "proofRefIds": [
-            "proof.state-duplicate-labels.1"
-          ]
-        },
+        "populated": {"status":"mapped","meaning":"Comparison only: the ordinary #4521 baseline has a populated captured reply-close transaction; this selection remains its named stress fixture.","sourceRefIds":["baseline-ordinary-4521"],"proofRefIds":["baseline-proof-ordinary-4521"]},
         "partial": {
           "status": "not_applicable",
           "reason": "Synthetic repeated operation labels with distinct change identities: this selection does not model an omitted subset of its represented fields.",

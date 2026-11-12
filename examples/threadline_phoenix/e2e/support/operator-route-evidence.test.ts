@@ -40,6 +40,9 @@ const semanticSourcePaths = [
   "test/fixtures/operator_surface/route-inventory.json",
   "examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs",
   "test/threadline/operator_surface/controllers/export_controller_test.exs",
+  "test/threadline/operator_surface/transaction_live_test.exs",
+  "test/threadline/operator_surface/live/row_history_live_test.exs",
+  "test/threadline/operator_surface/row_history_component_test.exs",
   "brand/BRAND.md",
   "brand/brand.json",
   "brand/assets/README.md",
@@ -149,6 +152,13 @@ type SemanticScenario = {
   };
   clocks?: { eventTime?: string; recordedTime?: string; [key: string]: unknown };
   duplicateLabelExamples?: Array<{ label?: string; identity?: string }>;
+  ordinaryBaseline?: {
+    scenarioId?: string;
+    sourceRefId?: string;
+    proofRefId?: string;
+    selectionRole?: string;
+    limitation?: string;
+  };
   fixtureRefs?: SemanticReference[];
   sourceRefs?: SemanticReference[];
   proofRefs?: SemanticReference[];
@@ -215,6 +225,45 @@ const expectedSupportDisposition: Record<string, string> = {
   "seam.exports.changes-json": "admin_only",
   "seam.exports.changes-ndjson": "admin_only",
   "seam.exports.download-job_id": "admin_only",
+};
+type RouteCoverageRule = {
+  disposition: "mapped" | "not_applicable";
+  sourceRefIds: string[];
+  proofRefIds?: string[];
+  descriptionIncludes?: string;
+  reasonIncludes?: string;
+};
+const routeSpecificCoverage: Record<string, Record<string, RouteCoverageRule>> = {
+  "route.transaction": {
+    empty: { disposition: "mapped", sourceRefIds: ["source-txn-state-empty"], proofRefIds: ["proof-txn-state-empty"], descriptionIncludes: "no row-level changes captured" },
+    loading: { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "load synchronously" },
+    error: { disposition: "mapped", sourceRefIds: ["source-txn-state-not-found", "source-txn-state-unavailable"], proofRefIds: ["proof-txn-state-not-found", "proof-txn-state-unavailable"], descriptionIncludes: "not-found and unavailable" },
+    populated: { disposition: "mapped", sourceRefIds: ["source-txn-state-populated"], proofRefIds: ["proof-txn-state-populated"], descriptionIncludes: "valid transaction displays" },
+    partial: { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "no partial-result branch" },
+    overflow: { disposition: "not_applicable", sourceRefIds: ["source-route-transaction-9"], reasonIncludes: "no existing high-volume proof" },
+    "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-transaction-3"], reasonIncludes: "no one-versus-many count state" },
+    "long-text": { disposition: "mapped", sourceRefIds: ["source-txn-state-long"], proofRefIds: ["proof-txn-state-long"], descriptionIncludes: "long diff values" },
+  },
+  "route.row": {
+    empty: { disposition: "not_applicable", sourceRefIds: ["source-row-state-empty"], reasonIncludes: "no separate empty-history message" },
+    loading: { disposition: "not_applicable", sourceRefIds: ["source-row-state-loading"], reasonIncludes: "loads history and snapshot synchronously" },
+    error: { disposition: "mapped", sourceRefIds: ["source-row-state-error", "source-row-state-outage"], proofRefIds: ["proof-row-state-error", "proof-row-state-outage"], descriptionIncludes: "schema errors and read outages" },
+    populated: { disposition: "mapped", sourceRefIds: ["source-row-state-populated"], proofRefIds: ["proof-row-state-populated"], descriptionIncludes: "captured values are sorted" },
+    partial: { disposition: "mapped", sourceRefIds: ["source-row-state-before-horizon", "source-row-state-deleted"], proofRefIds: ["proof-row-state-before-horizon", "proof-row-state-deleted"], descriptionIncludes: "before-horizon and deleted snapshots" },
+    overflow: { disposition: "mapped", sourceRefIds: ["source-row-state-overflow"], proofRefIds: ["proof-row-state-overflow"], descriptionIncludes: "all 250 change rows" },
+    "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-row-state-count"], reasonIncludes: "no count-specific 0/1/many state" },
+    "long-text": { disposition: "not_applicable", sourceRefIds: ["source-row-state-long"], reasonIncludes: "no dedicated long-text proof" },
+  },
+  "route.drawer": {
+    empty: { disposition: "not_applicable", sourceRefIds: ["source-drawer-state-empty"], reasonIncludes: "no separate empty-history message" },
+    loading: { disposition: "not_applicable", sourceRefIds: ["source-drawer-state-loading"], reasonIncludes: "loads history and snapshot synchronously" },
+    error: { disposition: "mapped", sourceRefIds: ["source-drawer-state-error", "source-drawer-state-parent-error"], proofRefIds: ["proof-drawer-state-error", "proof-drawer-state-parent-error"], descriptionIncludes: "child schema errors and parent failures" },
+    populated: { disposition: "mapped", sourceRefIds: ["source-drawer-state-populated"], proofRefIds: ["proof-drawer-state-populated"], descriptionIncludes: "transaction-origin row history" },
+    partial: { disposition: "mapped", sourceRefIds: ["source-drawer-state-before-horizon", "source-drawer-state-deleted"], proofRefIds: ["proof-drawer-state-before-horizon", "proof-drawer-state-deleted"], descriptionIncludes: "before-horizon and deleted snapshots" },
+    overflow: { disposition: "mapped", sourceRefIds: ["source-drawer-state-overflow"], proofRefIds: ["proof-drawer-state-overflow"], descriptionIncludes: "all 250 change rows" },
+    "zero-one-many": { disposition: "not_applicable", sourceRefIds: ["source-drawer-state-count"], reasonIncludes: "no count-specific 0/1/many state" },
+    "long-text": { disposition: "not_applicable", sourceRefIds: ["source-drawer-state-long"], reasonIncludes: "no dedicated long-text proof" },
+  },
 };
 
 function semanticInventoryErrors(
@@ -337,6 +386,29 @@ function semanticInventoryErrors(
         }
       } else {
         errors.push(`invalid ${criterion} state coverage disposition for ${surface.routeId ?? "<missing>"}`);
+      }
+    }
+    if (["route.transaction", "route.row", "route.drawer"].includes(surface.routeId ?? "")) {
+      for (const [criterion, entry] of Object.entries(coverage)) {
+        if (/home lookup/i.test(entry.description ?? "")) {
+          errors.push(`Home-only U1 state description for ${surface.routeId} ${criterion}`);
+        }
+      }
+      for (const [criterion, rule] of Object.entries(routeSpecificCoverage[surface.routeId ?? ""] ?? {})) {
+        const entry = coverage[criterion];
+        if (entry?.disposition !== rule.disposition) {
+          errors.push(`incorrect route-specific U1 disposition for ${surface.routeId} ${criterion}`);
+        }
+        if (rule.sourceRefIds.some((id) => !entry?.sourceRefIds?.includes(id)) ||
+            (rule.proofRefIds ?? []).some((id) => !entry?.proofRefIds?.includes(id))) {
+          errors.push(`missing route-specific U1 source/proof owner for ${surface.routeId} ${criterion}`);
+        }
+        if (rule.descriptionIncludes && !entry?.description?.toLowerCase().includes(rule.descriptionIncludes)) {
+          errors.push(`incorrect route-specific U1 description for ${surface.routeId} ${criterion}`);
+        }
+        if (rule.reasonIncludes && !entry?.reason?.toLowerCase().includes(rule.reasonIncludes)) {
+          errors.push(`incorrect route-specific U1 not-applicable reason for ${surface.routeId} ${criterion}`);
+        }
       }
     }
   }
@@ -536,6 +608,30 @@ function semanticInventoryErrors(
       } else {
         errors.push(`invalid U2 ${criterion} disposition for ${candidate.id ?? "<missing>"}`);
       }
+    }
+    if (candidate.class === "stress") {
+      const baselineLink = candidate.ordinaryBaseline;
+      const ordinary = scenarios.find((scenario) => scenario.id === baselineLink?.scenarioId);
+      const baselineSource = sources.find((reference) => reference.id === baselineLink?.sourceRefId);
+      const baselineProof = proofs.find((reference) => reference.id === baselineLink?.proofRefId);
+      const ordinarySource = ordinary?.sourceRefs?.some((reference) =>
+        reference.path === baselineSource?.path && reference.locator === baselineSource?.locator,
+      );
+      const ordinaryProof = ordinary?.proofRefs?.some((reference) =>
+        reference.path === baselineProof?.path && reference.locator === baselineProof?.locator,
+      );
+      if (!baselineLink || ordinary?.class !== "ordinary" || baselineLink.selectionRole !== "comparison-only" ||
+          !baselineLink.limitation?.trim() || !baselineSource || !baselineProof || !ordinarySource || !ordinaryProof) {
+        errors.push(`missing ordinary comparison baseline for ${candidate.id ?? "<missing>"}`);
+      }
+      const populated = stateCriteria.populated;
+      if (populated?.status !== "mapped" || !populated.meaning?.toLowerCase().includes("comparison") ||
+          !populated.sourceRefIds?.includes(baselineLink?.sourceRefId ?? "") ||
+          !populated.proofRefIds?.includes(baselineLink?.proofRefId ?? "")) {
+        errors.push(`stress populated state does not map ordinary comparison baseline for ${candidate.id ?? "<missing>"}`);
+      }
+    } else if (candidate.ordinaryBaseline) {
+      errors.push(`ordinary scenario has a stress comparison baseline ${candidate.id ?? "<missing>"}`);
     }
     if (candidate.class === "ordinary" && sources.some((ref) => ref.path?.includes("stress_fixtures") || ref.path?.includes("storybook/fixtures"))) {
       errors.push(`ordinary scenario uses stress data ${candidate.id ?? "<missing>"}`);
@@ -817,6 +913,29 @@ test("named scenarios reject missing state links, duplicate-label identities, un
   const wrongOwner = structuredClone(inventory);
   wrongOwner.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty").proofRefs[0].owner = "unrelated-owner.exs";
   assert.ok(semanticInventoryErrors(wrongOwner, fixture, semanticSources).includes("wrong or incomplete scenario proof owner for scenario.state-empty"));
+
+  const missingBaseline = structuredClone(inventory);
+  const missingBaselineScenario = missingBaseline.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
+  delete missingBaselineScenario.ordinaryBaseline;
+  missingBaselineScenario.sourceRefs = missingBaselineScenario.sourceRefs.filter((reference: SemanticReference) => reference.id !== "baseline-ordinary-4521");
+  missingBaselineScenario.proofRefs = missingBaselineScenario.proofRefs.filter((reference: SemanticReference) => reference.id !== "baseline-proof-ordinary-4521");
+  missingBaselineScenario.stateCriteria.populated = {
+    status: "not_applicable",
+    reason: "The populated view is covered by this stress fixture's linked source and proof.",
+    sourceRefIds: ["src.state-empty.1"],
+    proofRefIds: ["proof.state-empty.1"],
+  };
+  assert.ok(semanticInventoryErrors(missingBaseline, fixture, semanticSources).includes("missing ordinary comparison baseline for scenario.state-empty"));
+
+  const contradictoryPopulated = structuredClone(inventory);
+  const contradictoryScenario = contradictoryPopulated.scenarios.find((candidate: SemanticScenario) => candidate.id === "scenario.state-empty");
+  contradictoryScenario.stateCriteria.populated = {
+    status: "not_applicable",
+    reason: "The populated view is covered by this stress fixture's linked source and proof.",
+    sourceRefIds: ["src.state-empty.1"],
+    proofRefIds: ["proof.state-empty.1"],
+  };
+  assert.ok(semanticInventoryErrors(contradictoryPopulated, fixture, semanticSources).includes("stress populated state does not map ordinary comparison baseline for scenario.state-empty"));
 });
 
 test("all independently declared operator routes and HTTP seams have semantic identities", () => {
@@ -879,4 +998,9 @@ test("semantic identities and source ownership survive reordered declarations; m
   const missingResourceOwner = structuredClone(inventory);
   missingResourceOwner.resourceDispositions[0].sourceRefs[0].locator = "missing brand asset owner";
   assert.ok(semanticInventoryErrors(missingResourceOwner, fixture, semanticSources).some((error) => error.startsWith("invalid resource locator")));
+
+  const homeOnlyTransactionState = structuredClone(inventory);
+  homeOnlyTransactionState.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.transaction").uiCoverage.empty.description =
+    "No result state and validation feedback on the Home lookup.";
+  assert.ok(semanticInventoryErrors(homeOnlyTransactionState, fixture, semanticSources).includes("Home-only U1 state description for route.transaction empty"));
 });
