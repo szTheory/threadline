@@ -1683,10 +1683,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "anchor": "href={@base_path || \"#\"} aria-label=\"Threadline Admin home\">",
           "kind": "control",
-          "anchor": "href={@base_path || \"#\"} aria-label=\"Threadline operator home\">",
-          "occurrence": 1
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/components/surface_header.ex"
         }
       ],
       "exclusion": ""
@@ -1800,10 +1800,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
+          "anchor": "href={Helpers.transaction_path(@base_path, change.transaction_id, @filters_raw, @filter_query == \"from=\")} class=\"tl-button tl-button--compact tl-button--secondary\" data-testid=\"transaction-link\">",
           "kind": "control",
-          "anchor": "href={\"#{@base_path}/transactions/#{change.transaction_id}\"} class=\"tl-button tl-button--compact tl-button--secondary\" data-testid=\"transaction-link\">",
-          "occurrence": 1
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex"
         }
       ],
       "exclusion": ""
@@ -1878,10 +1878,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "anchor": "href={@transaction_return_path} class=\"tl-button tl-button--secondary\">",
           "kind": "control",
-          "anchor": "href={\"#{surface_root(@base_path)}/transactions/#{@failed_id}\"} class=\"tl-button tl-button--secondary\">",
-          "occurrence": 1
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
         }
       ],
       "exclusion": ""
@@ -1891,10 +1891,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "anchor": "navigate={@timeline_return_path} class=\"tl-button tl-button--secondary\">",
           "kind": "control",
-          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
-          "occurrence": 3
+          "occurrence": 3,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
         }
       ],
       "exclusion": ""
@@ -1930,10 +1930,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "anchor": "href={timeline_correlation_path(surface_root(@base_path), correlation_id, @timeline_context_query)} class=\"tl-link tl-link--deep\" title=\"View correlated changes in Timeline\">",
           "kind": "control",
-          "anchor": "href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class=\"tl-link tl-link--deep\" title=\"View correlated changes in Timeline\">",
-          "occurrence": 1
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
         }
       ],
       "exclusion": ""
@@ -1956,10 +1956,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "anchor": "navigate={@timeline_return_path} class=\"tl-button tl-button--secondary\">",
           "kind": "control",
-          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
-          "occurrence": 1
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
         }
       ],
       "exclusion": ""
@@ -1969,10 +1969,10 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "anchor": "navigate={@timeline_return_path} class=\"tl-button tl-button--secondary\">",
           "kind": "control",
-          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
-          "occurrence": 2
+          "occurrence": 2,
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex"
         }
       ],
       "exclusion": ""
@@ -5394,6 +5394,45 @@
           "kind": "control",
           "anchor": "phx-disable-with=\"Starting prune…\"",
           "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase250.fonts-brand-boundaries",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Phase250 fonts and brand boundaries\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase250.docs-paired-logo",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"loads the paired README artwork and switches the measured sidebar logo with body.dark\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase250.docs-favicon",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"keeps the local favicon independent from application body theme\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts"
         }
       ],
       "exclusion": ""

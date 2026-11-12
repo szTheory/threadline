@@ -2093,6 +2093,21 @@
       "id": "control.phase242.retention.submit",
       "kind": "control",
       "label": "retention-history phx-disable-with=\"Starting prune…\""
+    },
+    {
+      "id": "state.phase250.fonts-brand-boundaries",
+      "kind": "state",
+      "label": "Phase250 fonts and brand boundaries"
+    },
+    {
+      "id": "state.phase250.docs-paired-logo",
+      "kind": "state",
+      "label": "loads the paired README artwork and switches the measured sidebar logo with body.dark"
+    },
+    {
+      "id": "state.phase250.docs-favicon",
+      "kind": "state",
+      "label": "keeps the local favicon independent from application body theme"
     }
   ]
 }
