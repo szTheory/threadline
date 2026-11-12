@@ -95,6 +95,24 @@ test("semantic inventory additions preserve the established voting identities an
   );
 });
 
+test("semantic brand references stay source-linked without copying token values or hashes", () => {
+  const checkedIn = JSON.parse(readFileSync(resolve(repositoryRoot, "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json"), "utf8"));
+  const crosswalk = checkedIn.brandReferences;
+  assert.ok(crosswalk, "expected the approved brand references in the semantic inventory");
+  assert.equal(checkedIn.brandCrosswalk, undefined, "keep one brand-reference inventory, not a parallel crosswalk registry");
+  assert.deepEqual(
+    crosswalk.roles.map((role: { roleId: string }) => role.roleId).sort(),
+    ["application-copy", "artwork", "body", "caption", "descriptor", "focus", "hero", "link"].sort(),
+  );
+  assert.deepEqual(
+    crosswalk.assetFamilies.map((family: { id: string }) => family.id).sort(),
+    ["assets.dark-lockups-and-marks", "assets.favicon-variants", "assets.light-lockups-and-marks", "assets.supplied-web-fonts-and-licenses"].sort(),
+  );
+  const serialized = JSON.stringify(crosswalk);
+  assert.doesNotMatch(serialized, /#[0-9a-f]{6}\b/i, "brand role references must not duplicate color values");
+  assert.doesNotMatch(serialized, /sha256|contrast\s*:\s*\d/i, "brand role references must not duplicate hashes or contrast values");
+});
+
 test("renamed file or title no longer satisfies the expected identity", () => {
   const discovered = projects.map((project) => identity(project));
   const executed = parseExecuted(report());
