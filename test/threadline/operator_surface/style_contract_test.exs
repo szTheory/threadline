@@ -826,7 +826,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-timeline-fact__label", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-timeline-fact__value", [
@@ -834,17 +834,19 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     assert_selector_contains(base, ".tl-timeline-fact__detail", [
-      "font-size: var(--tl-font-size-label);"
+      "font-size: var(--tl-font-size-sm);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-metadata);"
     ])
 
     assert_selector_contains(base, ".tl-filter-group__legend", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-utility-group__label", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-change__summary", [
@@ -1081,19 +1083,43 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   test "operator typography defaults stay readable and dense text is opt-in" do
     src = StyleSource.read!()
+    base = selector_block!(src, ".threadline-ui")
+    light = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
+    system = system_lane_block!(src)
 
     for token <- [
           "--tl-font-size-xs: 12px;",
           "--tl-font-size-sm: 13px;",
           "--tl-font-size-dense: 13px;",
           "--tl-font-size-body: 16px;",
-          "--tl-font-size-label: 14px;",
-          "--tl-font-size-ui: 15px;",
-          "--tl-font-size-heading: 20px;",
-          "--tl-font-size-title: 24px;",
-          "--tl-font-size-display: 32px;"
+          "--tl-font-size-label: 12px;",
+          "--tl-font-size-ui: 16px;",
+          "--tl-font-size-heading: 28px;",
+          "--tl-font-size-title: 28px;",
+          "--tl-font-size-display: 32px;",
+          "--tl-line-body: 1.55;",
+          "--tl-line-label: 1.2;",
+          "--tl-line-heading: 1.2;",
+          "--tl-line-metadata: 1.4;",
+          "--tl-line-mono: 1.5;"
         ] do
       assert String.contains?(src, token), "missing readable typography token #{token}"
+    end
+
+    for token <- [
+          ~s(--tl-font-family: "Threadline Geist", "Inter", system-ui,),
+          ~s(--tl-font-heading: "Threadline Familjen Grotesk", "Threadline Geist",),
+          ~s(--tl-font-mono: "Threadline IBM Plex Mono", "JetBrains Mono", ui-monospace,)
+        ] do
+      assert String.contains?(base, token), "missing private font fallback chain #{token}"
+    end
+
+    refute Regex.match?(~r/--tl-font-(?:family|heading|mono):\s*;/, src),
+           "font variables must not resolve to an empty host value"
+
+    for lane <- [light, system] do
+      refute Regex.match?(~r/--tl-font-(?:family|heading|mono):/, lane),
+             "light and System lanes must inherit the readable base font roles"
     end
 
     assert String.contains?(src, "--tl-pad-page: var(--tl-space-4);")
@@ -1103,14 +1129,45 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".threadline-ui", ["font-size: var(--tl-font-size-body);"])
 
-    assert_exact_selector_contains(src, ".tl-button", ["font-size: var(--tl-font-size-label);"])
+    assert_exact_selector_contains(src, ".tl-button", [
+      "font-family: var(--tl-font-family);",
+      "font-size: var(--tl-font-size-body);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-body);"
+    ])
+
     assert_exact_selector_contains(src, ".tl-chip", ["font-size: var(--tl-font-size-label);"])
 
     assert_exact_selector_contains(src, ".tl-toolbar__field", [
       "font-size: var(--tl-font-size-label);"
     ])
 
-    assert_exact_selector_contains(src, ".tl-value", ["font-size: var(--tl-font-size-label);"])
+    assert_exact_selector_contains(src, ".tl-value", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-dense);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-mono);",
+      "overflow-wrap: anywhere;"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-timeline-fact__detail", [
+      "font-size: var(--tl-font-size-sm);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-metadata);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-policy__table", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-dense);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-mono);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-secondary-ref", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-label);",
+      "overflow-wrap: anywhere;"
+    ])
 
     assert_selector_contains(src, ".tl-table--compact th,\n  .tl-table--compact td", [
       "font-size: var(--tl-font-size-dense);"
@@ -1134,7 +1191,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(tokens, "--tl-color-paper: var(--tl-color-paper);")
     refute String.contains?(tokens, "--tl-color-ink: var(--tl-color-ink);")
 
-    assert String.contains?(tokens, "--tl-font-size-label: 14px;")
+    assert String.contains?(tokens, "--tl-font-size-label: 12px;")
     assert String.contains?(tokens, "--tl-control-height: 40px;")
 
     assert_selector_contains(src, ".tl-shell-nav:has(.tl-shell-nav__disclosure[open])", [
@@ -1144,7 +1201,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".tl-button", [
       "min-height: var(--tl-hit-area);",
-      "font-size: var(--tl-font-size-label);"
+      "font-size: var(--tl-font-size-body);"
     ])
 
     assert_exact_selector_contains(src, ".tl-toolbar__control", ["width: 100%;"])
@@ -1561,7 +1618,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-font-family:",
           "--tl-font-mono:",
           "--tl-font-size-body: 16px;",
-          "--tl-font-size-label: 14px;",
+          "--tl-font-size-label: 12px;",
           "--tl-font-size-dense: 13px;",
           "--tl-color-bg: var(--tl-color-threadline-black);",
           "--tl-color-surface: var(--tl-color-graphite);",

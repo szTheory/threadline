@@ -12,23 +12,26 @@
     --tl-space-10: 40px;
     --tl-space-12: 48px;
 
-    --tl-font-family: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --tl-font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --tl-font-family: "Threadline Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tl-font-heading: "Threadline Familjen Grotesk", "Threadline Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tl-font-mono: "Threadline IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     --tl-font-size-xs: 12px;
     --tl-font-size-sm: 13px;
     --tl-font-size-dense: 13px;
     --tl-font-size-body: 16px;
-    --tl-font-size-label: 14px;
-    --tl-font-size-ui: 15px;
-    --tl-font-size-heading: 20px;
-    --tl-font-size-title: 24px;
+    --tl-font-size-label: 12px;
+    --tl-font-size-ui: 16px;
+    --tl-font-size-heading: 28px;
+    --tl-font-size-title: 28px;
     --tl-font-size-display: 32px;
-    --tl-line-body: 1.5;
-    --tl-line-label: 1.4;
+    --tl-line-body: 1.55;
+    --tl-line-label: 1.2;
     --tl-line-heading: 1.2;
+    --tl-line-metadata: 1.4;
+    --tl-line-mono: 1.5;
     --tl-line-display: 1.15;
     --tl-weight-regular: 400;
-    --tl-weight-medium: 500;
+    --tl-weight-medium: 600;
     --tl-weight-strong: 600;
     /* Letter-spacing scale: caps labels track wider, display tracks tighter. */
     --tl-tracking-caps: 0.12em;
