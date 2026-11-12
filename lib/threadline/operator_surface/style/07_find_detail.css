@@ -28,8 +28,8 @@
 
   .tl-value--redacted {
     border-radius: var(--tl-radius-sm);
-    background: var(--tl-color-warning-bg);
-    color: var(--tl-color-warning-text);
+    background: var(--tl-color-op-redacted-bg);
+    color: var(--tl-color-op-redacted-text);
     padding: 0 var(--tl-space-1);
   }
 

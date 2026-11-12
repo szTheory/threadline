@@ -220,7 +220,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".tl-topbar__brand-logo",
-          ".tl-topbar__brand-wordmark",
+          ".tl-topbar__brand-lockups",
           ".tl-shell-nav",
           ".tl-shell-nav__toggle",
           ".tl-shell-nav__panel",
@@ -252,10 +252,66 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "flex: 0 0 var(--tl-brand-logo-width);"
     ])
 
-    assert_selector_contains(topbar_section, ".tl-topbar__brand-wordmark", [
-      "font-family: var(--tl-font-family);",
-      "font-weight: var(--tl-weight-strong);"
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-lockups", [
+      "display: inline-flex;",
+      "align-items: center;"
     ])
+  end
+
+  test "phase 250 supplied lockups follow explicit and System theme precedence at safe sizes" do
+    src = StyleSource.read!()
+
+    assert_selector_contains(src, ".threadline-ui .tl-topbar__brand-logo--light", [
+      "display: none;"
+    ])
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    system_light =
+      src
+      |> String.split("@media (prefers-color-scheme: light) {")
+      |> Enum.drop(1)
+      |> Enum.join("@media (prefers-color-scheme: light) {")
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    refute Regex.match?(~r/(?:^|\n)\s*\.tl-topbar__brand-logo--light\s*\{/, src)
+    assert src =~ "--tl-brand-logo-width: 132px;"
+    assert src =~ "--tl-brand-logo-width-desktop: 148px;"
+
+    # Source viewBox width 7252.3 and spool mark bounds -1664.3..-553.11.
+    for width <- [132.0, 148.0] do
+      assert width >= 96
+      assert width * (1664.3 - 553.11) / 7252.3 >= 16
+    end
   end
 
   test "phase 139 home orientation primitives stay scoped token-backed" do
@@ -1244,7 +1300,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       # MEASURE muted-soft on surface and surface-raised, but no uniform lane-root
       # darkening reaches 4.5:1 on surface-raised (#EEF3FA) without collapsing the
       # disabled/active read: the value needed (~#636F85) is perceptually adjacent
-      # to --tl-color-muted (#3B4762, the ACTIVE secondary text), which would break
+      # to --tl-color-muted (#56647E, the ACTIVE secondary text), which would break
       # the "disabled looks disabled" affordance. Per D-04 the disabled rows ONLY
       # are downgraded to "exempt — documented" at a non-text legibility floor
       # (>= 3.0), citing WCAG 1.4.3 inactive controls. No other contrast row is
@@ -1446,7 +1502,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     # The frozen dark focus-ring catalog (unchanged values).
     assert String.contains?(
              src,
-             "--tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
+             "--tl-focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
            )
   end
 
@@ -1599,14 +1655,14 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
 
     for token <- [
-          "--tl-color-op-insert-bg: var(--tl-color-success-bg);",
-          "--tl-color-op-insert-text: var(--tl-color-success-text);",
-          "--tl-color-op-update-bg: var(--tl-color-info-bg);",
-          "--tl-color-op-update-text: var(--tl-color-info-text);",
-          "--tl-color-op-delete-bg: var(--tl-color-danger-bg);",
-          "--tl-color-op-delete-text: var(--tl-color-danger);"
+          "--tl-color-op-insert-bg: #10332B;",
+          "--tl-color-op-insert-text: #5AE0A2;",
+          "--tl-color-op-update-bg: #14284F;",
+          "--tl-color-op-update-text: #8DB4FF;",
+          "--tl-color-op-delete-bg: #3A1B23;",
+          "--tl-color-op-delete-text: #FF8585;"
         ] do
-      assert String.contains?(src, token), "missing phase 144 operation token #{token}"
+      assert String.contains?(src, token), "missing approved operation token #{token}"
     end
   end
 

@@ -19,7 +19,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <a class="tl-skip-link" href="#tl-main">Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
-        <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline operator home">
+        <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline Admin home">
           <Threadline.OperatorSurface.Components.Logo.compact />
         </a>
         <div class="tl-topbar__status">

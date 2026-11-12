@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Components.SurfaceHeader
 
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
+    @root Path.expand("../../..", __DIR__)
 
     test "renders grouped rail IA and preserved header affordances" do
       html = render_header()
@@ -13,15 +14,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert nav_root_count(html) == 1
       assert html =~ ~s|href="/audit"|
       assert html =~ ~s|class="tl-topbar__brand"|
-      assert html =~ ~s|aria-label="Threadline operator home"|
-      assert html =~ ~s|class="tl-topbar__brand-logo"|
-      assert html =~ ~s|class="tl-topbar__brand-wordmark"|
-      assert html =~ ~s|>Threadline</text>|
-      assert html =~ ~s|aria-hidden="true"|
-      assert html =~ ~s|focusable="false"|
-      refute html =~ ~s|tl-topbar__brand-mark|
-      refute html =~ ~s|tl-topbar__brand-text|
-      refute html =~ ~s|role="img"|
+      assert html =~ ~s|aria-label="Threadline Admin home"|
+      assert Regex.scan(~r/aria-label="Threadline Admin home"/, html) |> length() == 1
+      assert_supplied_logo_pair(html)
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-shell"|
       assert html =~ ~s|aria-label="Audit navigation"|
@@ -60,6 +55,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       for page <- [:timeline, :coverage, :evidence, :policy, :retention, :exports] do
         assert html =~ ~s|data-testid="operator-nav-#{page}"|
+      end
+    end
+
+    test "supplied lockups preserve source geometry and colors without duplicate names" do
+      html = render_header()
+
+      for {variant, filename} <- [
+            {"dark", "threadline-lockup-dark.svg"},
+            {"light", "threadline-lockup-light.svg"}
+          ] do
+        source = File.read!(Path.join([@root, "brand", "assets", "logo", filename]))
+        rendered = rendered_logo!(html, variant)
+
+        assert rendered["attributes"] =~ ~s|aria-hidden="true"|
+        assert rendered["attributes"] =~ ~s|focusable="false"|
+        refute rendered["attributes"] =~ ~s|role="img"|
+        refute rendered["body"] =~ "<title>"
+        assert source_view_box(source) == rendered_view_box(rendered["attributes"])
+        assert source_paths(source) == rendered_paths(rendered["body"])
+        assert length(rendered_paths(rendered["body"])) == 3
       end
     end
 
@@ -245,10 +260,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp assert_preserved_affordances(html) do
       assert html =~ ~s|class="tl-topbar__brand" href="/audit"|
+      assert html =~ ~s|aria-label="Threadline Admin home"|
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|
     end
+
+    defp assert_supplied_logo_pair(html) do
+      assert length(
+               Regex.scan(
+                 ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--dark"/,
+                 html
+               )
+             ) == 1
+
+      assert length(
+               Regex.scan(
+                 ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--light"/,
+                 html
+               )
+             ) == 1
+
+      assert html =~ ~s|class="tl-topbar__brand-lockups"|
+    end
+
+    defp rendered_logo!(html, variant) do
+      pattern =
+        ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--#{variant}"(?<attributes>[^>]*)>(?<body>.*?)<\/svg>/s
+
+      case Regex.named_captures(pattern, html) do
+        %{"attributes" => attributes, "body" => body} ->
+          %{"attributes" => attributes, "body" => body}
+
+        nil ->
+          flunk("expected rendered #{variant} lockup in:\n#{html}")
+      end
+    end
+
+    defp source_view_box(source) do
+      Regex.run(~r/<svg[^>]*viewBox="([^"]+)"/, source, capture: :all_but_first)
+      |> List.first()
+    end
+
+    defp rendered_view_box(attributes) do
+      Regex.run(~r/\bviewBox="([^"]+)"/, attributes, capture: :all_but_first)
+      |> List.first()
+    end
+
+    defp source_paths(source),
+      do: Regex.scan(~r/<path\b[^>]*\/>/, source, capture: :first) |> List.flatten()
+
+    defp rendered_paths(body),
+      do: Regex.scan(~r/<path\b[^>]*\/>/, body, capture: :first) |> List.flatten()
 
     defp assert_before(html, first, second) do
       first_index = :binary.match(html, first)
