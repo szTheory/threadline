@@ -19,7 +19,12 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
       doc = File.read!(@manifest)
 
       assert String.contains?(doc, "scenario.acme-4521-investigation")
-      assert String.contains?(doc, "record_id resolved from the seeded ticket_replies change at runtime")
+
+      assert String.contains?(
+               doc,
+               "record_id resolved from the seeded ticket_replies change at runtime"
+             )
+
       assert String.contains?(doc, "AuditAction.inserted_at")
       assert String.contains?(doc, "Do not use stress fixtures as ordinary scenario data")
       assert String.contains?(doc, "Manifest.last_tuesday()")
