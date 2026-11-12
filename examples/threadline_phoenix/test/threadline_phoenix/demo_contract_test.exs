@@ -223,7 +223,6 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         for {table, actor_ref} <- [
               {"organizations", nil},
-              {"users", nil},
               {"org_memberships", admin_ref},
               {"agents", admin_ref}
             ] do
@@ -247,9 +246,9 @@ defmodule ThreadlinePhoenix.DemoContractTest do
           end
         end
 
-        users = Repo.all(User, StorageSchema.repo_opts())
-        memberships = Repo.all(OrgMembership, StorageSchema.repo_opts())
-        agents = Repo.all(Agent, StorageSchema.repo_opts())
+        users = Repo.all(User)
+        memberships = Repo.all(OrgMembership)
+        agents = Repo.all(Agent)
 
         assert users != []
         assert memberships != []
@@ -334,16 +333,17 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     test "all twelve agent2 close snapshots match their events and agent3 owns the earlier role change" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         acme = Repo.get_by!(Organization, slug: "acme")
-        agent2_id = Manifest.user_id(:agent2)
-        agent3_id = Manifest.user_id(:agent3)
+        agent2 = Repo.get_by!(Agent, organization_id: acme.id, display_name: "Agent2")
+        agent3 = Repo.get_by!(Agent, organization_id: acme.id, display_name: "Agent3")
+        agent2_id = to_string(agent2.user_id)
         {:ok, agent2_ref} = ActorRef.new(:user, agent2_id)
         {:ok, backfill_ref} = ActorRef.new(:system, Manifest.actor_id(:trigger_backfill))
 
         agent2_membership =
-          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent2_id)
+          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent2.user_id)
 
         agent3_membership =
-          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent3_id)
+          Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent3.user_id)
 
         assert agent2_membership.role == "agent"
         assert agent3_membership.role == "support"

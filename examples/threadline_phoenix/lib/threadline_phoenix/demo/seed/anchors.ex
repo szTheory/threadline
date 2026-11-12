@@ -97,20 +97,22 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
     closer = Repo.get_by!(Agent, organization_id: acme.id, user_id: closer_id)
     ticket = upsert_ticket!(acme, Manifest.ticket_number(:hero_delete), closer, "open")
 
+    close_at = DateTime.add(Manifest.last_tuesday(), 1, :hour)
     closer_ctx = Support.audit_context(closer_id, request_id: "demo-seed-4518-reply")
 
-    {:ok, %{reply: reply}} =
-      HelpDesk.ticket_replied_and_closed(
+    {:ok, result} =
+      Support.reply_and_close(
         closer_ctx,
         acme,
         ticket,
         %{body: "Reply slated for deletion demo.", internal_note_body: nil},
-        %{status: "open"},
-        []
+        %{status: "closed", closed_at: close_at},
+        close_at
       )
 
+    ctx = Support.put_timestamp(ctx, result.audit_transaction_id, close_at)
     deleter_ctx = Support.audit_context(deleter_id, request_id: "demo-seed-4518-delete")
-    {:ok, :deleted} = HelpDesk.delete_reply(deleter_ctx, acme, reply)
+    {:ok, :deleted} = HelpDesk.delete_reply(deleter_ctx, acme, result.reply)
 
     delete_tx_id =
       Repo.one!(
@@ -118,7 +120,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
           join: ac in assoc(at, :changes),
           where: ac.table_name == "ticket_replies",
           where: ac.op == "delete",
-          where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(reply.id)),
+          where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(result.reply.id)),
           order_by: [desc: at.occurred_at],
           limit: 1,
           select: at.id
@@ -126,9 +128,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
         StorageSchema.repo_opts()
       )
 
-    delete_at =
-      Manifest.last_tuesday()
-      |> DateTime.add(2, :hour)
+    delete_at = DateTime.add(Manifest.last_tuesday(), 2, :hour)
 
     Support.put_timestamp(ctx, delete_tx_id, delete_at)
   end
@@ -141,24 +141,22 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
     Enum.reduce(1..@leaving_agent_tx_count, ctx, fn n, acc ->
       ticket_number = 4600 + n
       ticket = upsert_ticket!(acme, ticket_number, leaving_agent, "open")
+      event_at = DateTime.add(Manifest.last_tuesday(), n, :minute)
 
       {:ok, tx_id} =
         Repo.transaction(fn ->
           Support.set_actor_guc!(leaving_id)
 
           ticket
-          |> Ticket.changeset(%{status: "closed", closed_at: Manifest.epoch()})
+          |> Ticket.changeset(%{status: "closed", closed_at: event_at})
+          |> Support.stamp_update(event_at)
           |> Repo.update!()
 
           Support.stamp_org_meta!(acme)
           Support.current_audit_transaction_id!()
         end)
 
-      ts =
-        Manifest.last_tuesday()
-        |> DateTime.add(n, :minute)
-
-      Support.put_timestamp(acc, tx_id, ts)
+      Support.put_timestamp(acc, tx_id, event_at)
     end)
   end
 
@@ -328,16 +326,18 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
   # D-05 test asserts no org_memberships appear in-window. D-13's ≥1 UPDATE is
   # satisfied by ticket/ticket_replies in-window updates from stories 1 and 2.
   # Note: org_memberships uses default trigger (after-only, no changed_from) — honest D-09.
-  # Uses agent2 who has "agent" role, flipping them to "support" (guaranteed change).
+  # Uses agent3 who has "agent" role, flipping them to "support" (guaranteed change).
   defp seed_variety_membership_role_change(ctx, acme, _support_agent) do
     backfill_id = Manifest.actor_id(:trigger_backfill)
-    agent2_id = to_string(Map.fetch!(ctx.users, :agent2).id)
+    agent3_id = to_string(Map.fetch!(ctx.users, :agent3).id)
 
-    # Find agent2's membership in acme (role = "agent" by default)
-    membership = Repo.get_by(OrgMembership, organization_id: acme.id, user_id: agent2_id)
+    # Find agent3's membership in acme (role = "agent" by default)
+    membership = Repo.get_by(OrgMembership, organization_id: acme.id, user_id: agent3_id)
 
     # Only attempt if membership exists and role is still "agent" — idempotent on re-seed
     if membership && membership.role != "support" do
+      role_change_at = DateTime.add(Manifest.epoch(), -7, :day)
+
       {:ok, tx_id} =
         Repo.transaction(fn ->
           Support.set_actor_guc!(backfill_id, :system)
@@ -345,6 +345,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
           # Flip to "support" — guaranteed different from "agent" so Ecto sends SQL UPDATE
           membership
           |> OrgMembership.changeset(%{role: "support"})
+          |> Support.stamp_update(role_change_at)
           |> Repo.update!()
 
           Support.stamp_org_meta!(acme)
@@ -352,8 +353,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
         end)
 
       # Backdated past epoch — outside 24h window (D-05 constraint)
-      ts = DateTime.add(Manifest.epoch(), -7, :day)
-      Support.put_timestamp(ctx, tx_id, ts)
+      Support.put_timestamp(ctx, tx_id, role_change_at)
     else
       ctx
     end
