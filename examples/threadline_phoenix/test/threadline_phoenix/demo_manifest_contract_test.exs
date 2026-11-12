@@ -46,15 +46,15 @@ defmodule ThreadlinePhoenix.DemoManifestContractTest do
              "expected DEMO-MANIFEST.md to include \"?from=2030\""
     end
 
-    test "DEMO-MANIFEST.md references the one-command seed story without --profile flags" do
+    test "DEMO-MANIFEST.md distinguishes clean reset from direct in-place seeding" do
       doc = File.read!(@manifest)
 
-      assert String.contains?(doc, "mix demo.reset && mix demo.seed"),
-             "expected DEMO-MANIFEST.md to include \"mix demo.reset && mix demo.seed\""
+      assert String.contains?(doc, "`mix demo.reset` is the one-command clean setup")
+      assert String.contains?(doc, "truncates and seeds")
+      assert String.contains?(doc, "`mix demo.seed` is a separate, guarded in-place operation")
+      assert String.contains?(doc, "repeated effects")
 
-      assert String.contains?(doc, "--profile") == false or
-               String.contains?(doc, "no `--profile`"),
-             "expected DEMO-MANIFEST.md to document that no --profile flag is used"
+      refute String.contains?(doc, "mix demo.reset && mix demo.seed")
     end
 
     test "DEMO-MANIFEST.md notes the Coverage deferred state as Phase 138 owned" do

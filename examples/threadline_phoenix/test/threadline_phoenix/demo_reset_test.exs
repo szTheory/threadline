@@ -10,6 +10,7 @@ defmodule ThreadlinePhoenix.DemoResetTest do
   alias Threadline.StorageSchema
 
   @app_dir Path.expand("../..", __DIR__)
+  @e2e_runner Path.expand("../../e2e/run-e2e.sh", __DIR__)
 
   # Cold `MIX_ENV=prod mix compile` (~30s measured on this machine, 2026-08-30)
   # is paid once here, in `setup_all`, rather than inside the per-test 60s
@@ -67,6 +68,25 @@ defmodule ThreadlinePhoenix.DemoResetTest do
     end)
   end
 
+  test "E2E clean setup resets once without a second seed command" do
+    runner = File.read!(@e2e_runner)
+    [_, after_migrate] = String.split(runner, "mix ecto.migrate --quiet", parts: 2)
+    [setup_region, _] = String.split(after_migrate, ~s|cd "$E2E_DIR"|, parts: 2)
+
+    assert demo_setup_commands(setup_region) == ["mix demo.reset"]
+
+    duplicate_seed =
+      String.replace(
+        setup_region,
+        "mix demo.reset\n",
+        "mix demo.reset\nmix demo.seed\n",
+        global: false
+      )
+
+    assert demo_setup_commands(duplicate_seed) == ["mix demo.reset", "mix demo.seed"]
+    refute demo_setup_commands(duplicate_seed) == ["mix demo.reset"]
+  end
+
   test "assert_dev_or_allowed!/1 raises in prod without DEMO_ALLOW_RESET=1" do
     prev = System.get_env("DEMO_ALLOW_RESET")
 
@@ -107,5 +127,10 @@ defmodule ThreadlinePhoenix.DemoResetTest do
 
     assert exit_code != 0
     assert output =~ "DEMO_ALLOW_RESET"
+  end
+
+  defp demo_setup_commands(setup_region) do
+    Regex.scan(~r/^mix demo\.(?:reset|seed)(?:[ \t]+.*)?$/m, setup_region)
+    |> Enum.map(&List.first/1)
   end
 end
