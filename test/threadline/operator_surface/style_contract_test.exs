@@ -1188,7 +1188,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".tl-secondary-ref", [
       "font-family: var(--tl-font-mono);",
-      "font-size: var(--tl-font-size-label);",
+      "font-size: var(--tl-font-size-dense);",
+      "line-height: var(--tl-line-mono);",
       "overflow-wrap: anywhere;"
     ])
 
