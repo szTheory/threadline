@@ -26,3 +26,18 @@ Do not add caches, dependencies, concurrency or broader tests merely to appear f
 ## Required final update
 
 Record what ultimately shipped locally, what remains blocked/deferred, which proposed improvements were actually used, and any comparable before/after timings. Keep the consumed full-repeat grant, current browser/zoom limits, pending live REL-01 and absent push/version/publication authority explicit. Link this record in the final user-facing outcome; do not claim this retrospective or the milestone is complete while authorized delivery remains unfinished.
+
+
+## Plan08 findings retained during continuation
+
+The parent continuation completed the actual default/blocked/disabled font, controlled-copy, native-theme and strict same-materialization browser checks. Independent source/copy/security and screenshot review found four bounded warnings, all corrected and independently confirmed. Phase goal verification and later phases remain pending at this entry.
+
+Actual rendered checks caught existing CSS specificity that kept IDs at12px despite the source role check, legacy3px focus, missing in-drawer copy, inherited topbar clipping, and overemphasized filter/metric cards. The remedies stayed in existing components/CSS owners; no new package, API or backend state was added. Source-only role tests were insufficient for computed styles, and screenshots supplied judgment that geometry-only checks had missed.
+
+Several failures were our verification setup: stale/invented selectors and headings, a closed mobile navigation disclosure, an invalid UUID long-key route, an unscripted legacy preview, a1ms transition on a test color probe, response fulfillment changing Chromium's loopback-network classification, actual Node resolution differing from asdf's reported path, and Python/JavaScript setup mistakes. Preserve these as process costs. Probe the actual target/selector/geometry and emitted code once before a composite gate. Use a document policy to test font blocking without intercepting the real local document; keep failure conditions and production behavior intact.
+
+A fresh after browser run initially left the earlier unaccepted canonical pointer selected. That was caught before independent acceptance: the old pointer/capsules were preserved and the private runner now requires this invocation's newly selected canonical after. Fresh output alone is not fresh acceptance identity.
+
+The cross-phase gate found coupled migration contracts missed by narrower plan tests: two radio assertions and seven control anchors/two semantic locators/three new test declarations. Stable IDs, independent scanners and negative controls were retained. After attributed correction, the same27 root owners passed436 tests, nine isolated example owners passed69 tests and32 Node cases passed. These are selected regression results, not a new full-root/canonical/browser matrix. Run the relevant inventory/semantic gates earlier when markup or signatures move.
+
+The interrupted worker's real exit1 and unavailable usage remain honest. The parent continuation also spent substantial time on diagnosis, review and coordination. No comparable measured speedup is established by the takeover; avoid describing it as one. Reuse completed independent judgment for delta confirmations instead of restarting a whole audit, retain one external acceptance owner, and keep final public evidence compact.
