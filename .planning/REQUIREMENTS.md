@@ -16,9 +16,9 @@
 
 ### Jobs and representative scenarios
 
-- [ ] **ADM-05**: Every existing Admin route, job, meaningful state and unique supported action is mapped to its owning shared renderer and executable proof or a reasoned unsupported/not-applicable disposition.
-- [ ] **ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities.
-- [ ] **ADM-07**: Normal examples are separate from named empty, failed, denied, boundary, long-content, Unicode and duplicate-label cases; existing calendar/reset drift and relevant SEED-008 findings receive explicit dispositions.
+- [x] **ADM-05**: Every existing Admin route, job, meaningful state and unique supported action is mapped to its owning shared renderer and executable proof or a reasoned unsupported/not-applicable disposition.
+- [x] **ADM-06**: Ordinary fictional help-desk scenarios have internally consistent organizations, actors, records, actions, transactions, chronology and return paths while retaining stable private fixture identities.
+- [x] **ADM-07**: Normal examples are separate from named empty, failed, denied, boundary, long-content, Unicode and duplicate-label cases; existing calendar/reset drift and relevant SEED-008 findings receive explicit dispositions.
 
 ### Approved identity and language
 
@@ -85,9 +85,9 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-02 | Phase 248 | Complete |
 | ADM-03 | Phase 248 | Complete |
 | ADM-04 | Phase 248 | Complete |
-| ADM-05 | Phase 249 | Pending |
-| ADM-06 | Phase 249 | Pending |
-| ADM-07 | Phase 249 | Pending |
+| ADM-05 | Phase 249 | Complete |
+| ADM-06 | Phase 249 | Complete |
+| ADM-07 | Phase 249 | Complete |
 | ADM-08 | Phase 250 | Pending |
 | ADM-09 | Phase 250 | Pending |
 | ADM-10 | Phase 250 | Pending |

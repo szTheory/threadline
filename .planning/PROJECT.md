@@ -32,7 +32,9 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 **Canonical inputs:** `brand/BRAND.md`, `brand/brand.json`, `brand/assets/README.md`, `.planning/research/2026-11-10-brand-admin/milestone-proposal.md`, its independent review, `.planning/conventions/research-verification-and-efficiency.md`, and `.planning/REQUIREMENTS.md`.
 
-**Baseline:** this planning checkout starts at current main `d35b9422`, package 1.1.0 and v1.47 complete. The retained 31-file candidate is preserved and not yet ported; the new `brand/` source is deliberately imported without changing old `brandbook/` consumers. Phase numbering continues at 248 after 247.1.
+**Local progress (2026-11-12):** Phases248 and249 are independently complete; Phase250 brand foundation and the first whole investigation is next. No runtime brand adoption, hosted closure, package version change or publication is claimed by that local completion.
+
+**Baseline at initialization:** this planning checkout starts at current main `d35b9422`, package 1.1.0 and v1.47 complete. The retained 31-file candidate is preserved and not yet ported; the new `brand/` source is deliberately imported without changing old `brandbook/` consumers. Phase numbering continues at 248 after 247.1.
 
 ## Prior shipped milestone: v1.46 Operator UI Refinement (2026-10-11)
 
@@ -654,6 +656,9 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 ### Validated
 
+- [x] **ADM-01–04 (Phase248)** — Locally reconciled current candidate, fail-closed mount and bounded compatible advisory/test remediation with source-bound evidence and independent verification. Hosted/live issue and full canonical/toolchain limits remain explicit.
+- [x] **ADM-05–07 (Phase249)** — Supported jobs/states/renderers/proof owners, coherent original captured-row chronology and separate ordinary/stress/boundary selections, with reference-only approved-brand ownership. Independently verified48/48; rendered adoption remains later scope.
+
 - [x] **REL-02..04, SUP-01..04, CI-01..04, DEBT-01/02 (v1.47)** — Release-PR refresh, fetch retries and Hex pin; SHA-pinned actions, grouped Dependabot, tiered audit gate and deps-health classification; browser timing, per-project browser split (median 461 s), lane-scoped contract tests, partition ratio ≤ 1.15 and hang-proof partitions; debt register closeout and critic retirement. Verified across Phases 244–247.1. REL-01 is deferred-with-trigger. See `.planning/milestones/v1.47-REQUIREMENTS.md` and `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
 - [x] **UIB/UIS/UII/UIO/UIA/UIV (v1.46)** — All 26 approved operator-refinement requirements across source-bound preview, readable investigation, continuity/recovery, authorized operations, accessibility, browser verification, and candidate review evidence. Verified across Phases 238–243; UIV-02/03 are satisfied with explicit visual-evidence limits. See `.planning/milestones/v1.46-REQUIREMENTS.md` and `.planning/milestones/v1.46-MILESTONE-AUDIT.md`.
 - [x] **API-04 and API-07 (Phase 231)** — `Threadline` is the one documented read API (`Threadline.Query`/`Threadline.Investigation` hidden, `Threadline.Query.timeline_query/1` the single escape hatch, facade-only doc-contract scanner); the capture schemas no longer declare an Ecto association to the semantics schema, with `transaction.action` hydrated by a hidden batched helper so every reader keeps the same shape.
@@ -766,7 +771,7 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 ### Active
 
-- All **ADM-01–ADM-34** requirements in `.planning/REQUIREMENTS.md` are approved v1.48 scope and start pending.
+- **ADM-08–ADM-34** in `.planning/REQUIREMENTS.md` remain the approved active v1.48 scope. ADM01–07 are locally validated in phases248/249; routine implementation continues without renewed scope approval.
 - **REL-01** is carried unchanged from v1.47 to the first natural release; it remains separately observable and cannot be closed by local readiness.
 
 ### Out of Scope
@@ -837,6 +842,9 @@ Standing research, verification, dependency and CI/CD policy: [Research and deli
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| One semantic inventory for ordinary/stress selection and proof ownership | Separate fixture identity, meaningful states, actual renderers and proof kinds without another registry or false acceptance claims | ✓ Phase249; current source/claim review and lifecycle controls |
+| Stamp fictional business time before capture; retain host authentication materialization | Trigger snapshots must match represented events without backdating unaudited Sigra registration/password/confirmation | ✓ Phase249 domain and authentication contracts; public API unchanged |
+| Keep approved-brand mapping referential until coordinated runtime migration | Role/asset authority and later proof owners are useful without certifying unseen rendering or copying constants | ✓ Phase249 reference contract; runtime adoption starts250 |
 | Trigger-backed capture (not application-hook-based) | Harder to bypass than PaperTrail-style opt-in; correctness is the core value | ✓ Validated (Phase 1) |
 | Carbonite vs custom (Phase 1 gate) | Carbonite metadata path uses patterns incompatible with D-06; Threadline needs D-05 schema | ✓ Path B: custom `TriggerSQL` (see archived gate-01-01.md) |
 | Separate capture vs. semantics models | Actions ≠ changes; transactions ≠ requests; collapsing them is how prior art created gaps | ✓ Good (design principle) |
@@ -921,9 +929,9 @@ Standing research, verification, dependency and CI/CD policy: [Research and deli
 | Before/after comparisons are labeled limited when render inputs differ | Different assets, fixtures, route/state, or environment cannot establish pixel equivalence; visual evidence must state its actual comparison boundary. | ✓ Validated (v1.46, UIV-02; explicitly disclosed) |
 | Disconnected operator mutations wait for fresh server-rendered state and are never replayed automatically | Retention and export actions have consequences; native disabled semantics and persisted-state confirmation prevent accidental duplicate writes. | ✓ Validated (v1.46, Phase 242; browser checks and required CI) |
 | Investigation state stays paired with the result it describes during pending navigation and recovery | Operators must not mistake old rows for a new query or lose scope on a pivot; document navigation is treated as navigation rather than a speculative in-place mixed state. | ✓ Validated (v1.46, Phases 239–240) |
-| Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | — Pending (v1.48, D-1) |
-| Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | — Pending (v1.48, D-2) |
-| Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
+| Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | ✓ Local correction and independent verification in Phase248; remote/live status remains separate |
+| Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | Queued separately; outside approved v1.48 Admin scope |
+| Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | Queued separately; this milestone does not raise the support floor |
 | Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
 | Release prose lives under `## Unreleased` in the landing PR; the release workflow dates it (v1.47) | Removes the separate CHANGELOG-dating PR; a stale release PR is refreshed with a CI-triggering token | ✓ Mechanism observed live (#101, REL-02); ⚠️ REL-01 next-release clause pending |
@@ -954,4 +962,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-11-10 after approved v1.48 Threadline Admin milestone initialization; package remains 1.1.0 pending a separately authorized release.*
+*Last updated: 2026-11-12 after independently verified Phase249; Phase250 startup continues under the approved v1.48 scope. Package remains1.1.0; release authority is separate.*

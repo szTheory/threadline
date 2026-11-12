@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.48
-current_phase: 249
-current_phase_name: Map jobs, scenarios and the brand contract
-status: verifying
-stopped_at: Phase249 required gates passed; independent goal verification next
-last_updated: "2026-11-12T06:52:23.279860Z"
+current_phase: 250
+current_phase_name: Brand foundation and first whole investigation
+status: planning
+stopped_at: Phase 249 complete, ready to plan Phase 250
+last_updated: "2026-11-12T07:20:28.019Z"
 last_activity: 2026-11-12
-last_activity_desc: Phase249 all planned work and required gates complete; goal verification pending
-state_head: f77596b08980a9dee3c548e690d720bd675abe7a
+last_activity_desc: Phase 249 complete, transitioned to Phase 250
+state_head: 1ad9c1b4fdadc6f89069b130a749eb2035c5cfe8
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
   completed_plans: 8
-  percent: 17
+  percent: 33
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -25,28 +25,31 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 See: `.planning/PROJECT.md` (updated 2026-11-10 for approved v1.48 initialization)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 249 — Map jobs, scenarios and the brand contract
+**Current focus:** Phase 250 — Brand foundation and first whole investigation
 
 ## Current Position
 
-Phase: 249 (Map jobs, scenarios and the brand contract) — VERIFYING
-Plan: 4 of 4
-Status: Verifying Phase 249
-Last activity: 2026-11-12 — All Phase 249 plans integrated and focused merged checks passed
+Phase: 250 — Brand foundation and first whole investigation
+Plan: Not started
+Status: Ready to discuss and plan
+Last activity: 2026-11-12 — Phase 249 complete, transitioned to Phase 250
 
-Progress: [██░░░░░░░░] 17% — 1 of 6 phases complete; 8 of 8 currently planned plans complete.
+Progress: [███░░░░░░░] 33% — 2 of 6 phases complete; 8 of 8 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phase248 is independently verified complete. All four Phase249 plans are GSD-bound, merged and removed. Automated task validation is complete; all fourteen planned threats are closed without risk acceptance. The UI audit is code/reference-only with known later-owned findings. Formal review is clean after scenario-class, identity and versioned evidence-lifecycle corrections; all three findings have fixed dispositions. Current Node and lifecycle controls pass, unchanged example chronology/reset evidence remains applicable, and the scoped prior/current regression group passes. Three claim-boundary intents have explicit bounded automated judgments while descriptorless non-authoritative flags and the ADM06 taxonomy gap remain visible. Independent goal verification is the remaining Phase249 gate; ADM05–07 remain incomplete until its owning status passes. No user action is needed.
+**Current diagnosis and dispatch:** Phases248 and249 are independently complete. Phase249 passed48/48 unique truths and the owning GSD status accepted passed before phase.complete; all four executors were merged/removed. ADM01–07 are locally complete. Named source/DB contracts, all fourteen threat mitigations, code/reference UI assessment, clean formal review, closed three-finding disposition and scoped regression are recorded in the phase artifacts. Descriptorless non-authoritative flags and the ADM06 taxonomy gap remain explicit; no rendered-brand or external acceptance is inferred. Next is Phase250 discussion/planning using the completed private foundation/adversarial preparation, current approved brand and current Phase249 fixtures/map. No user action is needed for routine work.
 
-**Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now running for focused249 checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original249–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
+**Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
 **Release truth:** Package remains 1.1.0. Carried REL-01 stays pending until the first natural release PR proves its original live clause; local readiness cannot close it. No version bump, residual-risk acceptance or publication/merge authority is inferred from v1.48 approval.
 
 
 **Phase248 completion warnings:** GSD's path heuristic reported four inline command/brace-list references in248-02-SUMMARY as missing files; all referenced test files exist and were exercised, so these are parser false positives, not source gaps. Its REL-01 traceability warning concerns a deliberately carried v1.47 live-release obligation, not a missing v1.48 ADM row;34/34ADM requirements remain mapped once. Keep REL-01 separate and pending without adding unapproved milestone scope.
 
+
+
+**Phase249 completion warnings:** The GSD path heuristic treated five inline verification command strings in summaries as missing files; their actual test/runner paths exist and were exercised, so these are parser false positives. REL-01 remains a deliberately carried v1.47 live-release obligation outside the34 ADM traceability rows. No missing source or new requirement is inferred; preserve its separate pending trigger.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -518,6 +521,12 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 | deferred_items (v1.41 close 2026-09-24) | Phase 205 deferred-items.md (archived v1.41) — 1 entries (D-205-01 clean_checkout_contract_test temp-dir collision) | acknowledged in-file (status: acknowledged). |
 
 ## Accumulated Context
+
+### Recent Phase249 decisions
+
+- Keep the existing semantic inventory and stable private identities; ordinary, stress and retention-boundary selections retain distinct source/proof meanings.
+- Stamp business row values before triggers capture them; Sigra authentication rows retain real host materialization and normal credentials.
+- Brand references and bounded automated judgments do not become rendered, human or remote acceptance. Versioned requirements evidence survives completion/archive without depending on traceability status.
 
 ### Pending Todos
 
@@ -1244,12 +1253,12 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 
 ## Session Continuity
 
-**Last session:** 2026-11-10T23:23:21Z
-**Stopped at:** Phase 248 complete, ready to plan Phase 249
-**Resume file:** `.planning/ROADMAP.md`; `.planning/REQUIREMENTS.md`; `.planning/research/v1.48-SUMMARY.md`
+**Last session:** 2026-11-12T07:26:45.066435Z
+**Stopped at:** Phase249 complete; Phase250 discussion/planning startup active
+**Resume file:** None; current roadmap/requirements and versioned v1.48 research remain the next-phase inputs.
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
-- **Current gates and next actor:** The orchestrator continues preparation. Before executor dispatch it must re-resolve supported isolation in the active checkout and stop dispatch if unavailable; no silent opt-out from configured worktrees. Phase 248 owns #61/#90 and fail-closed mount remedies; unresolved affected acceptance/release gates remain stopped without risk acceptance. No user action is needed for routine initialization or preparation.
+- **Current gates and next actor:** The orchestrator continues Phase250 under the original autonomous scope. Phases248/249 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.
 - **Evidence freshness:** `brand/` is the deliberately imported approved source; old `brandbook/` runtime consumers remain until migration. The retained 31-edit candidate and dated main/CI/advisory/browser receipts are comparison inputs; Phase 248 re-establishes current applicable evidence. `research/SUMMARY.md` is historical; use the v1.48 synthesis above.
 - **Carried release clause:** REL-01 retains its original first-natural-release proof and remains pending if live publication is not performed under actual authority; local release readiness cannot satisfy it. See `.planning/REQUIREMENTS.md` → Carried release gate.
 
@@ -1282,7 +1291,7 @@ The following entries preserve historical session activity and do not override t
 
 ## Operator Next Steps
 
-- The agent completes Phase249 independent goal verification and accounting, then continues phases250–253 under the original autonomous request. No user action is needed while authorized work remains active.
+- The agent continues phases250–253 after independently completed Phase249 under the original autonomous request. No user action is needed while authorized work remains active.
 - Preserve consumed full-repeat grants, all failed receipts and external/publication limits. Stop only task-owned PostgreSQL before an actual user pause after owned checks finish.
 
 ## Restart Recovery (2026-10-10)

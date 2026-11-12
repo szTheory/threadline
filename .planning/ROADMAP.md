@@ -41,7 +41,7 @@ The approved identity is `brand/BRAND.md` (edition 2026-11-03, approved 2026-11-
 Granularity is `coarse`; the six approved delivery boundaries remain intact because each completes a distinct existing user workflow or prerequisite. Phase IDs are sequential, continuing after completed Phase 247.1.
 
 - [x] **Phase 248: Reconcile the base and safety/proof ownership** - A preserved current-main candidate has fail-closed access and trustworthy affected verification. (completed 2026-11-11)
-- [ ] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership.
+- [x] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership. (completed 2026-11-12)
 - [ ] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes.
 - [ ] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design.
 - [ ] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs.
@@ -147,12 +147,12 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,one complete,eight currently planned plans,eight complete plans. Phase249 isolated execution now proceeds under the original autonomous scope.
+Execution order:248→249→250→251→252→253. Phase248 is verified complete (15/15 truths,ADM01–04), all four plans are GSD-reconciled, and the accepted plain repeat passed. The automated transparency judgment remains visibly non-authoritative; external receipts and publication stay unclaimed. Totals:six phases,two complete,eight currently planned plans,eight complete plans. Phase250 discussion/planning now proceeds under the original autonomous scope.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
-| 249. Map jobs, scenarios and the brand contract | 4/4 | In Progress | - |
+| 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 0/0 | Pending | - |
 | 251. Complete investigation and inspection screens | 0/0 | Pending | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
@@ -160,4 +160,4 @@ Execution order:248→249→250→251→252→253. Phase248 is verified complete
 
 ## Next
 
-All four Phase249 plans are integrated and the final independent mapping review is clean. Required phase gates and scoped regression are complete; independent goal verification is the remaining gate before advancing. Focused merged Node and example seed/doc/reset checks pass. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.
+Phase249 is independently complete at48/48 unique truths, with clean current formal review and no open review findings. Continue Phase250 brand foundation and the first whole investigation; reuse approved current brand, coherent fixtures and the existing private foundation/adversarial preparation. No user acknowledgment is needed. Preserve full-repeat, external action and publication authority limits.
