@@ -50,7 +50,7 @@ Completed rows below link the current plan-level proof and its limits; remaining
 | 06.2 | 6 | ADM-13/16; shared typed loading/meaning and accepted/completed controls | C23, C08 | T-250-11, T-250-12 | passed assigned scope; phase-wide acceptance pending ([summary](250-06-SUMMARY.md)) |
 | 07.1 | 7 | ADM-13/16/17; exact values/UTC/count/missing/unavailable transaction | C04, C24 | T-250-13, T-250-14 | pending execution |
 | 07.2 | 7 | ADM-13/16/17; exact history/exception/full-ID/return/corpus contracts | C25, C08 | T-250-13, T-250-14 | pending execution |
-| 08.1 | 8 | ADM-08–14/16/17; controlled clipboard/fonts/theme/responsive and matching after | C04, C26, C27, C28, C02, C29 | T-250-15, T-250-16 | pending execution |
+| 08.1 | 8 | ADM-08–14/16/17; controlled clipboard/fonts/theme/responsive and matching after | C04, C26, C27, C28, C02, C29 | T-250-15, T-250-16 | affected automated proof passed; independent acceptance pending ([evidence](250-PAIR-EVIDENCE.md)) |
 | 08.2 | 8 | ADM-08–14/16/17; current parent review, pair identity and honest evidence limits | C30, C08 | T-250-15, T-250-16 | pending execution |
 
 ## Command Catalog and Failing Direction
