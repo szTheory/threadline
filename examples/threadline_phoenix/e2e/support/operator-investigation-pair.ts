@@ -1060,6 +1060,41 @@ export function assertInvestigationPair(before: unknown, after: unknown) {
   return { matched: true as const, pairId: `${b.pairId}/${a.pairId}`, materializationSha256: b.materializationSha256 };
 }
 
+export type InvestigationReviewBinding = {
+  readonly reviewedRevision: string;
+  readonly beforeCandidateId: string;
+  readonly beforeHalfSha256: string;
+  readonly afterFile: string;
+  readonly afterSha256: string;
+  readonly servingSource: SourceIdentity;
+  readonly additionalRuntimeSources: InvestigationHalf["additionalRuntimeSources"];
+};
+
+// This checks custody and disposition, not the quality of independent judgment.
+export function assertInvestigationReview(value: unknown, expected: InvestigationReviewBinding) {
+  const review: any = value;
+  if (review?.schemaVersion !== 1 || review.status !== "accepted" ||
+      !/^[a-f0-9]{40}$/.test(review.reviewedRevision ?? "") ||
+      !validDigest(review.beforeHalfSha256) || !validDigest(review.afterSha256) ||
+      JSON.stringify(review.binding) !== JSON.stringify(expected) ||
+      review.reviewedRevision !== expected.reviewedRevision ||
+      review.beforeHalfSha256 !== expected.beforeHalfSha256 || review.afterSha256 !== expected.afterSha256) {
+    throw new Error("Independent review is missing, unaccepted or bound to different source/capture bytes");
+  }
+  const roles = ["source-copy-security", "visual"];
+  if (!Array.isArray(review.reviewers) || review.reviewers.length !== roles.length ||
+      roles.some((role) => review.reviewers.filter((r: any) => r.role === role && r.status === "passed" &&
+        typeof r.artifact?.file === "string" && validDigest(r.artifact.sha256)).length !== 1)) {
+    throw new Error("Independent source/copy/security and visual review artifacts are required");
+  }
+  if (!Array.isArray(review.findings) || review.findings.some((finding: any) =>
+    !["low", "medium", "high", "critical"].includes(finding.severity) ||
+    (["high", "critical"].includes(finding.severity) && finding.disposition !== "resolved"))) {
+    throw new Error("Independent review contains an unresolved high/critical finding or invalid disposition");
+  }
+  return { reviewIdentityMatched: true as const, judgment: "independent reviewer artifacts; identity check only" };
+}
+
 export function verifyBeforeReceipt() {
   const root = pairRoot();
   const candidateId = process.env.THREADLINE_PHASE250_PAIR_CANDIDATE;
@@ -1353,7 +1388,32 @@ function main() {
       const after = JSON.parse(afterBytes.toString("utf8"));
       if (afterPtr.pairId !== after.pairId) throw new Error("Canonical after pointer identity does not match its capsule");
       assertInvestigationCaptureFiles(root, after);
-      return assertInvestigationPair(before, after);
+      const matched = assertInvestigationPair(before, after);
+      if (argument === undefined) return matched;
+      if (argument !== "--require-review") throw new Error("Unknown pair option");
+      const receipt = readAppReceipt();
+      const current = await assertLivePair(receipt);
+      if (JSON.stringify(current.servingSource) !== JSON.stringify(after.server.servingSource) ||
+          JSON.stringify(current.additionalRuntimeSources) !== JSON.stringify(after.additionalRuntimeSources)) {
+        throw new Error("After capture is stale for the current runtime source");
+      }
+      const candidate = readJson<any>(resolve(root, `candidates/${candidateId}/candidate.json`));
+      const review = JSON.parse(readContainedRegularFile(root, "review/current.json").toString("utf8"));
+      const identity = assertInvestigationReview(review, {
+        reviewedRevision: after.server.sourceHeadAtStart,
+        beforeCandidateId: candidateId,
+        beforeHalfSha256: candidate.half.sha256,
+        afterFile: afterPtr.file,
+        afterSha256: afterPtr.sha256,
+        servingSource: after.server.servingSource,
+        additionalRuntimeSources: after.additionalRuntimeSources,
+      });
+      for (const reviewer of review.reviewers) {
+        if (sha256(readContainedRegularFile(root, reviewer.artifact.file)) !== reviewer.artifact.sha256) {
+          throw new Error("Independent review artifact bytes do not match their receipt");
+        }
+      }
+      return { ...matched, ...identity };
     }
     throw new Error("Usage: operator-investigation-pair.ts check-before|candidate-check <id>|pair|browser-begin <gate>|browser-check <gate>");
   };

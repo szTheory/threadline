@@ -11,6 +11,7 @@ import {
   assertInvestigationCaptureFiles,
   assertFreshBrowserReport,
   assertInvestigationPair,
+  assertInvestigationReview,
   assertLaunchedSourceFreshness,
   assertListenerIdentity,
   assertServingCheckout,
@@ -607,4 +608,28 @@ test("after proof rejects absent or altered additional runtime provenance while 
   const altered = makePair();
   (altered.after as any).additionalRuntimeSources.test.files["lib/threadline/operator_surface/live/timeline_live/helpers.ex"].bytes += 1;
   assert.throws(() => assertInvestigationPair(altered.before, altered.after), /additional runtime/i);
+});
+
+
+test("independent review binds exact source and capture bytes with both judgment artifacts", () => {
+  const after = makeHalf("after");
+  const binding = {
+    reviewedRevision: "a".repeat(40), beforeCandidateId: "baseline-correction-test",
+    beforeHalfSha256: hash("b"), afterFile: "captures/after/attempt/half.json", afterSha256: hash("c"),
+    servingSource: after.server.servingSource, additionalRuntimeSources: after.additionalRuntimeSources,
+  };
+  const review = { schemaVersion: 1, status: "accepted", binding, reviewedRevision: binding.reviewedRevision,
+    beforeHalfSha256: binding.beforeHalfSha256, afterSha256: binding.afterSha256, findings: [],
+    reviewers: ["source-copy-security", "visual"].map((role) => ({ role, status: "passed", artifact: { file: `review/${role}.md`, sha256: hash("d") } })),
+  };
+  assert.equal(assertInvestigationReview(review, binding).reviewIdentityMatched, true);
+  for (const field of ["reviewedRevision", "beforeHalfSha256", "afterSha256"] as const) {
+    const changed = structuredClone(review); changed.binding[field] = field === "reviewedRevision" ? "f".repeat(40) : hash("f");
+    assert.throws(() => assertInvestigationReview(changed, binding), /different source\/capture/);
+  }
+  const missing = structuredClone(review); missing.reviewers.pop();
+  assert.throws(() => assertInvestigationReview(missing, binding), /artifacts are required/);
+  assert.throws(() => assertInvestigationReview({ ...review, status: "pending" }, binding), /unaccepted/);
+  assert.throws(() => assertInvestigationReview({ ...review, findings: [{ severity: "high", disposition: "open" }] }, binding), /unresolved high/);
+  assert.equal(assertInvestigationReview({ ...review, findings: [{ severity: "high", disposition: "resolved" }] }, binding).reviewIdentityMatched, true);
 });
