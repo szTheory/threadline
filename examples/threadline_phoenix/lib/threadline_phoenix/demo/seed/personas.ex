@@ -29,20 +29,22 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
   @spec run(map()) :: map()
   def run(ctx) do
     password = Manifest.demo_seed_password()
-    orgs = upsert_orgs()
+    setup_ts = DateTime.add(Manifest.epoch(), -21, :day)
+    orgs = upsert_orgs(setup_ts)
     users = upsert_users(password)
     users = upsert_extra_users(users, password)
     ctx = Map.merge(ctx, %{orgs: orgs, users: users})
     seed_memberships(ctx)
   end
 
-  defp upsert_orgs do
+  defp upsert_orgs(setup_ts) do
     Map.new(@org_specs, fn {slug, name, _} ->
       id = Manifest.org_id(slug)
 
       org =
         %Organization{id: id}
         |> Organization.changeset(%{slug: Manifest.org_slug(slug), name: name})
+        |> Support.stamp_insert(setup_ts)
         |> Repo.insert!(
           on_conflict: {:replace, [:slug, :name, :updated_at]},
           conflict_target: :id
@@ -105,8 +107,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
         {:ok, tx_id} =
           Repo.transaction(fn ->
             Support.set_actor_guc!(admin_id, :admin)
-            ensure_membership!(org, admin_id, "support")
-            ensure_agent!(org, admin_id, "Admin")
+            ensure_membership!(org, admin_id, "support", setup_ts)
+            ensure_agent!(org, admin_id, "Admin", setup_ts)
             Support.current_audit_transaction_id()
           end)
 
@@ -128,8 +130,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
         {:ok, tx_id} =
           Repo.transaction(fn ->
             Support.set_actor_guc!(admin_id, :admin)
-            ensure_membership!(org, user_id, role)
-            ensure_agent!(org, user_id, display_name(key))
+            ensure_membership!(org, user_id, role, setup_ts)
+            ensure_agent!(org, user_id, display_name(key), setup_ts)
             Support.current_audit_transaction_id()
           end)
 
@@ -138,7 +140,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
     end)
   end
 
-  defp ensure_membership!(%Organization{} = org, user_id, role) do
+  defp ensure_membership!(%Organization{} = org, user_id, role, setup_ts) do
     case Repo.get_by(OrgMembership, organization_id: org.id, user_id: user_id) do
       %OrgMembership{} = membership ->
         membership
@@ -146,11 +148,12 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
       nil ->
         %OrgMembership{organization_id: org.id, user_id: user_id}
         |> OrgMembership.changeset(%{role: role})
+        |> Support.stamp_insert(setup_ts)
         |> Repo.insert!()
     end
   end
 
-  defp ensure_agent!(%Organization{} = org, user_id, display_name) do
+  defp ensure_agent!(%Organization{} = org, user_id, display_name, setup_ts) do
     case Repo.get_by(Agent, organization_id: org.id, user_id: user_id) do
       %Agent{} = agent ->
         agent
@@ -158,6 +161,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Personas do
       nil ->
         %Agent{organization_id: org.id, user_id: user_id}
         |> Agent.changeset(%{display_name: display_name})
+        |> Support.stamp_insert(setup_ts)
         |> Repo.insert!()
     end
   end

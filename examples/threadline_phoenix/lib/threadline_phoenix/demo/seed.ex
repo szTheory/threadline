@@ -29,7 +29,7 @@ defmodule ThreadlinePhoenix.Demo.Seed do
     Reset.with_demo_lock(fn ->
       :rand.seed(:exsss, {1, 2, 3})
 
-      ctx = %{timestamps: %{}}
+      ctx = %{timestamps: %{}, run_now: DateTime.utc_now(:second)}
 
       ctx =
         ctx
