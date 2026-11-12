@@ -492,6 +492,269 @@ defmodule ThreadlinePhoenix.DemoContractTest do
     end
   end
 
+  describe "Globex ordinary close snapshot" do
+    test "reply and ticket close snapshots match the represented days-ago event" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        globex = Repo.get_by!(Organization, slug: "globex")
+        ticket = Repo.get_by!(Ticket, organization_id: globex.id, number: 2001)
+        event_at = DateTime.add(Manifest.epoch(), -3, :day)
+        {ticket_change, close_tx} = captured_change("tickets", "update", ticket.id)
+
+        {reply_change, reply_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "ticket_replies",
+              where: ac.op == "insert",
+              where: fragment("?->>'ticket_id' = ?", ac.data_after, ^to_string(ticket.id)),
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        action = Repo.get!(AuditAction, close_tx.action_id, StorageSchema.repo_opts())
+
+        assert ticket.status == "closed"
+        assert DateTime.compare(ticket.closed_at, event_at) == :eq
+        assert DateTime.compare(ticket.updated_at, event_at) == :eq
+        assert ticket_change.data_after["closed_at"] == snapshot_timestamp(event_at)
+        assert ticket_change.data_after["updated_at"] == snapshot_timestamp(event_at)
+        assert reply_change.data_after["inserted_at"] == snapshot_timestamp(event_at)
+        assert reply_change.data_after["updated_at"] == snapshot_timestamp(event_at)
+        assert reply_tx.id == close_tx.id
+        assert DateTime.compare(close_tx.occurred_at, event_at) == :eq
+        assert close_tx.actor_ref == %ActorRef{type: :user, id: Manifest.user_id(:support_globex)}
+        assert action.name == "ticket_replied_and_closed"
+        assert action.request_id == "demo-seed-globex-close"
+        assert DateTime.compare(action.inserted_at, event_at) == :gt
+      end)
+    end
+  end
+
+  describe "D-12 current-window story snapshots" do
+    test "each story preserves its single run clock, operation order, actor and row snapshots" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        acme = Repo.get_by!(Organization, slug: "acme")
+        globex = Repo.get_by!(Organization, slug: "globex")
+        support = Repo.get_by!(Agent, organization_id: acme.id, display_name: "Acme Support")
+        closer_id = Manifest.user_id(:closer)
+        support_id = Manifest.user_id(:support_acme)
+        zendesk_id = Manifest.actor_id(:zendesk_sync)
+        job_id = Manifest.actor_id(:oban_retention_purge)
+        backfill_id = Manifest.actor_id(:trigger_backfill)
+
+        sync_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5005)
+        {sync_insert, sync_tx} = captured_change("tickets", "insert", sync_ticket.id)
+        run_now = DateTime.add(sync_tx.occurred_at, 6, :hour)
+        assert run_now.microsecond == {0, 0}
+
+        assert sync_insert.data_after["inserted_at"] ==
+                 snapshot_timestamp(DateTime.add(run_now, -6, :hour))
+
+        assert sync_insert.data_after["updated_at"] ==
+                 snapshot_timestamp(DateTime.add(run_now, -6, :hour))
+
+        assert sync_tx.actor_ref == %ActorRef{type: :service_account, id: zendesk_id}
+
+        reply_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5001)
+
+        {reply_insert, reply_insert_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "ticket_replies",
+              where: ac.op == "insert",
+              where: fragment("?->>'ticket_id' = ?", ac.data_after, ^to_string(reply_ticket.id)),
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        reply_id = reply_insert.table_pk["id"]
+        {reply_update, reply_update_tx} = captured_change("ticket_replies", "update", reply_id)
+        reply_insert_at = DateTime.add(run_now, -1, :hour)
+        reply_update_at = DateTime.add(run_now, -55, :minute)
+        assert reply_insert.data_after["inserted_at"] == snapshot_timestamp(reply_insert_at)
+        assert reply_insert.data_after["updated_at"] == snapshot_timestamp(reply_insert_at)
+        assert reply_update.data_after["updated_at"] == snapshot_timestamp(reply_update_at)
+        assert DateTime.compare(reply_insert_tx.occurred_at, reply_insert_at) == :eq
+        assert DateTime.compare(reply_update_tx.occurred_at, reply_update_at) == :eq
+        assert reply_insert_tx.actor_ref == %ActorRef{type: :service_account, id: zendesk_id}
+        assert reply_update_tx.actor_ref == %ActorRef{type: :user, id: closer_id}
+
+        reopen_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5002)
+
+        reopen_updates =
+          Repo.all(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "tickets",
+              where: ac.op == "update",
+              where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(reopen_ticket.id)),
+              order_by: at.occurred_at,
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        assert length(reopen_updates) == 2
+        [{reopen_change, reopen_tx}, {reassign_change, reassign_tx}] = reopen_updates
+        reopen_at = DateTime.add(run_now, -2, :hour)
+        reassign_at = DateTime.add(run_now, -110, :minute)
+        assert reopen_change.data_before["status"] == "closed"
+        assert reopen_change.data_after["status"] == "open"
+        assert is_nil(reopen_change.data_after["closed_at"])
+        assert reopen_change.data_after["updated_at"] == snapshot_timestamp(reopen_at)
+        assert DateTime.compare(reopen_tx.occurred_at, reopen_at) == :eq
+        assert reopen_tx.actor_ref == %ActorRef{type: :job, id: job_id}
+        assert reassign_change.data_after["status"] == "in_progress"
+        assert reassign_change.data_after["assignee_id"] == to_string(support.id)
+        assert reassign_change.data_after["updated_at"] == snapshot_timestamp(reassign_at)
+        assert DateTime.compare(reassign_tx.occurred_at, reassign_at) == :eq
+        assert reassign_tx.actor_ref == %ActorRef{type: :user, id: support_id}
+        assert reopen_ticket.status == "in_progress"
+        assert DateTime.compare(reopen_ticket.updated_at, reassign_at) == :eq
+
+        reply_delete_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5003)
+
+        {spam_insert, spam_insert_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "ticket_replies",
+              where: ac.op == "insert",
+              where:
+                fragment("?->>'ticket_id' = ?", ac.data_after, ^to_string(reply_delete_ticket.id)),
+              where: fragment("?->>'body' = ?", ac.data_after, ^"Spam reply to be removed."),
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        {spam_delete, spam_delete_tx} =
+          captured_change("ticket_replies", "delete", spam_insert.table_pk["id"])
+
+        spam_insert_at = DateTime.add(run_now, -4, :hour)
+        spam_delete_at = DateTime.add(run_now, -225, :minute)
+        assert spam_insert.data_after["inserted_at"] == snapshot_timestamp(spam_insert_at)
+        assert spam_insert.data_after["updated_at"] == snapshot_timestamp(spam_insert_at)
+        assert spam_delete.data_before["inserted_at"] == snapshot_timestamp(spam_insert_at)
+        assert spam_delete.data_after == nil
+        assert DateTime.compare(spam_insert_tx.occurred_at, spam_insert_at) == :eq
+        assert DateTime.compare(spam_delete_tx.occurred_at, spam_delete_at) == :eq
+        assert spam_insert_tx.actor_ref == %ActorRef{type: :anonymous, id: nil}
+        assert spam_delete_tx.actor_ref == %ActorRef{type: :user, id: closer_id}
+
+        {ticket_5004_insert, ticket_5004_insert_tx} =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: ac.table_name == "tickets",
+              where: ac.op == "insert",
+              where: fragment("?->>'number' = ?", ac.data_after, ^"5004"),
+              where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(acme.id)),
+              select: {ac, at}
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        {ticket_5004_delete, ticket_5004_delete_tx} =
+          captured_change("tickets", "delete", ticket_5004_insert.table_pk["id"])
+
+        setup_at = DateTime.add(Manifest.epoch(), -21, :day)
+        ticket_delete_at = DateTime.add(run_now, -5, :hour)
+        assert is_nil(ticket_5004_insert_tx.actor_ref)
+        assert ticket_5004_insert.data_after["inserted_at"] == snapshot_timestamp(setup_at)
+        assert ticket_5004_insert.data_after["updated_at"] == snapshot_timestamp(setup_at)
+        assert ticket_5004_delete.data_before["inserted_at"] == snapshot_timestamp(setup_at)
+        assert DateTime.compare(ticket_5004_delete_tx.occurred_at, ticket_delete_at) == :eq
+        assert ticket_5004_delete_tx.actor_ref == %ActorRef{type: :system, id: backfill_id}
+        assert is_nil(Repo.get_by(Ticket, organization_id: acme.id, number: 5004))
+
+        stale_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5006)
+        {stale_change, stale_tx} = captured_change("tickets", "update", stale_ticket.id)
+        stale_at = DateTime.add(run_now, -210, :minute)
+        assert stale_change.data_after["closed_at"] == snapshot_timestamp(stale_at)
+        assert stale_change.data_after["updated_at"] == snapshot_timestamp(stale_at)
+        assert DateTime.compare(stale_tx.occurred_at, stale_at) == :eq
+        assert stale_tx.actor_ref == %ActorRef{type: :job, id: job_id}
+        assert DateTime.compare(stale_ticket.closed_at, stale_at) == :eq
+        assert DateTime.compare(stale_ticket.updated_at, stale_at) == :eq
+
+        backfill_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5007)
+        {backfill_change, backfill_tx} = captured_change("tickets", "update", backfill_ticket.id)
+        backfill_at = DateTime.add(run_now, -165, :minute)
+        assert backfill_change.data_after["updated_at"] == snapshot_timestamp(backfill_at)
+        assert DateTime.compare(backfill_tx.occurred_at, backfill_at) == :eq
+        assert backfill_tx.actor_ref == %ActorRef{type: :system, id: backfill_id}
+
+        anonymous_ticket = Repo.get_by!(Ticket, organization_id: acme.id, number: 5008)
+
+        {anonymous_insert, anonymous_tx} =
+          captured_change("tickets", "insert", anonymous_ticket.id)
+
+        anonymous_at = DateTime.add(run_now, -330, :minute)
+        assert anonymous_insert.data_after["inserted_at"] == snapshot_timestamp(anonymous_at)
+        assert anonymous_insert.data_after["updated_at"] == snapshot_timestamp(anonymous_at)
+        assert DateTime.compare(anonymous_tx.occurred_at, anonymous_at) == :eq
+        assert anonymous_tx.actor_ref == %ActorRef{type: :anonymous, id: nil}
+
+        assert Repo.get_by!(Ticket, organization_id: globex.id, number: 2001).status == "closed"
+      end)
+    end
+  end
+
+  describe "ordinary filler snapshots" do
+    test "Acme and Globex filler insert/update/delete histories share each event instant" do
+      Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+        for {slug, first_number} <- [{"acme", 5009}, {"globex", 2002}] do
+          organization = Repo.get_by!(Organization, slug: slug)
+          rows = filler_rows(organization.id, first_number)
+          grouped = Enum.group_by(rows, fn {_change, transaction} -> transaction.id end)
+
+          assert map_size(grouped) > 0, "expected #{slug} filler change snapshots"
+
+          for changes <- Map.values(grouped) do
+            assert length(changes) == 2
+            transaction = elem(hd(changes), 1)
+            [{insert, _}] = Enum.filter(changes, fn {change, _} -> change.op == "insert" end)
+
+            [{changed, _}] =
+              Enum.filter(changes, fn {change, _} -> change.op in ["update", "delete"] end)
+
+            event_at = transaction.occurred_at
+
+            assert transaction.actor_ref.type == :user
+            assert insert.data_after["inserted_at"] == snapshot_timestamp(event_at)
+            assert insert.data_after["updated_at"] == snapshot_timestamp(event_at)
+
+            case changed.op do
+              "update" ->
+                assert changed.data_after["updated_at"] == snapshot_timestamp(event_at)
+
+                if changed.data_after["status"] == "closed" do
+                  assert changed.data_after["closed_at"] == snapshot_timestamp(event_at)
+                end
+
+              "delete" ->
+                assert changed.data_before["inserted_at"] == snapshot_timestamp(event_at)
+                assert changed.data_before["updated_at"] == snapshot_timestamp(event_at)
+            end
+          end
+
+          ops = Enum.frequencies_by(rows, fn {change, _} -> change.op end)
+          assert ops["insert"] > 0
+          assert ops["update"] > 0
+          assert ops["delete"] > 0
+
+          assert Enum.any?(rows, fn {change, _} ->
+                   change.op == "update" and change.data_after["status"] == "closed"
+                 end)
+        end
+      end)
+    end
+  end
+
   describe "SEED-02 idempotency and SEED-04 reset recovery" do
     test "double demo.reset keeps heroes and semantic fingerprint stable" do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
@@ -522,6 +785,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
         assert second.acme_slug == first.acme_slug
         assert second.org_count == first.org_count
         assert second.acme_ticket_count == first.acme_ticket_count
+        assert second == first
 
         assert length(
                  Threadline.Evidence.list_subject_ref_history("retention_run", subject_ref,
@@ -758,14 +1022,67 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
   defp semantic_fingerprint do
     acme = Repo.get_by!(Organization, slug: "acme")
+    globex = Repo.get_by!(Organization, slug: "globex")
+    offboarded = Repo.get_by!(Organization, slug: "offboarded-co")
+    agent2 = Repo.get_by!(Agent, organization_id: acme.id, display_name: "Agent2")
+    agent3 = Repo.get_by!(Agent, organization_id: acme.id, display_name: "Agent3")
 
     %{
       org_count: Repo.aggregate(Organization, :count, :id),
       acme_ticket_count:
         Repo.aggregate(from(t in Ticket, where: t.organization_id == ^acme.id), :count),
+      globex_ticket_count:
+        Repo.aggregate(from(t in Ticket, where: t.organization_id == ^globex.id), :count),
       ticket_4521_number: Repo.get_by!(Ticket, organization_id: acme.id, number: 4521).number,
-      acme_slug: acme.slug
+      ticket_4518_status: Repo.get_by!(Ticket, organization_id: acme.id, number: 4518).status,
+      globex_2001_status: Repo.get_by!(Ticket, organization_id: globex.id, number: 2001).status,
+      acme_slug: acme.slug,
+      agent2_role:
+        Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent2.user_id).role,
+      agent3_role:
+        Repo.get_by!(OrgMembership, organization_id: acme.id, user_id: agent3.user_id).role,
+      acme_filler_ops:
+        filler_rows(acme.id, 5009) |> Enum.frequencies_by(fn {change, _} -> change.op end),
+      globex_filler_ops:
+        filler_rows(globex.id, 2002) |> Enum.frequencies_by(fn {change, _} -> change.op end),
+      offboarded_ticket_count:
+        Repo.aggregate(from(t in Ticket, where: t.organization_id == ^offboarded.id), :count),
+      offboarded_audit_changes: Seed.RetentionTail.org_y_audit_change_count(offboarded.id)
     }
+  end
+
+  defp captured_change(table, op, row_id) do
+    Repo.one!(
+      from(ac in AuditChange,
+        join: at in assoc(ac, :transaction),
+        where: ac.table_name == ^table,
+        where: ac.op == ^op,
+        where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(row_id)),
+        select: {ac, at}
+      ),
+      StorageSchema.repo_opts()
+    )
+  end
+
+  defp filler_rows(organization_id, first_number) do
+    Repo.all(
+      from(ac in AuditChange,
+        join: at in assoc(ac, :transaction),
+        where: ac.table_name == "tickets",
+        where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(organization_id)),
+        select: {ac, at}
+      ),
+      StorageSchema.repo_opts()
+    )
+    |> Enum.filter(fn {change, _transaction} ->
+      row = change.data_after || change.data_before
+
+      case row["number"] do
+        number when is_integer(number) -> number >= first_number
+        number when is_binary(number) -> String.to_integer(number) >= first_number
+        _ -> false
+      end
+    end)
   end
 
   defp snapshot_timestamp(%DateTime{} = timestamp) do
