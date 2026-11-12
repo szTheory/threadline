@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import {
   appendFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   realpathSync,
@@ -23,7 +24,9 @@ const expectedAction = "ticket_replied_and_closed";
 const expectedCorrelation = "walk-acme-4521-close";
 const expectedDatabase = "threadline_phoenix_testp250pair";
 const expectedPartition = "p250pair";
-const protectedPort = 60025;
+const expectedSystemId = "7706932079119234489";
+const forbiddenAppPorts = new Set([5432, 60025]);
+const digestPattern = /^[a-f0-9]{64}$/;
 
 const styleFiles = [
   "01_tokens.css", "02_base_shell.css", "03_page_home.css", "04_controls.css",
@@ -197,18 +200,31 @@ function assertMaterialization(value: Materialization): void {
   }
   const [action] = value.snapshot.actions as Array<Record<string, any>>;
   const [transaction] = value.snapshot.transactions as Array<Record<string, any>>;
-  if (action.name !== expectedAction || action.correlation_id !== expectedCorrelation ||
-      transaction.action_id !== action.id || transaction.actor_ref?.id !== action.actor_ref?.id) {
+  const actionTime = Date.parse(action.inserted_at);
+  const eventTime = Date.parse(transaction.occurred_at);
+  if (action.name !== expectedAction || action.correlation_id !== expectedCorrelation || action.actor_ref?.type !== "user" ||
+      !action.id || !action.actor_ref?.id || !Number.isFinite(actionTime) || !Number.isFinite(eventTime) || actionTime === eventTime ||
+      transaction.action_id !== action.id || transaction.actor_ref?.id !== action.actor_ref?.id || !transaction.id) {
     throw new Error("Pair materialization does not identify the selected Acme close action and transaction");
   }
   const byTable = new Map(value.snapshot.changes.map((change: any) => [change.table_name, change]));
   const reply: any = byTable.get("ticket_replies");
   const ticket: any = byTable.get("tickets");
-  if (!reply || !ticket || reply.transaction_id !== transaction.id || ticket.transaction_id !== transaction.id ||
+  if (!reply || !ticket || reply.op !== "insert" || ticket.op !== "update" || reply.transaction_id !== transaction.id || ticket.transaction_id !== transaction.id ||
+      !reply.id || !ticket.id || reply.table_pk?.id !== reply.data_after?.id || ticket.table_pk?.id !== ticket.data_after?.id ||
+      reply.captured_at !== transaction.occurred_at || ticket.captured_at !== transaction.occurred_at ||
       reply.data_after?.body !== "Thanks — we're closing this out." || reply.data_after?.internal_note_body !== "[REDACTED]" ||
       ticket.data_after?.number !== 4521 || ticket.data_after?.status !== "closed" ||
       ticket.data_after?.closed_at !== "2026-05-26T14:30:00") {
     throw new Error("Pair materialization is missing the expected redacted reply or ticket close state");
+  }
+  const changeIds = value.snapshot.changes.map((change: any) => change.id);
+  const validRowHashes = (rows: readonly { id: string; sha256: string }[], id: string) =>
+    rows.length === 1 && rows[0]?.id === id && digestPattern.test(rows[0].sha256);
+  if (new Set(changeIds).size !== 2 ||
+      !validRowHashes(value.snapshot.ticket_row_hashes, ticket.table_pk.id) ||
+      !validRowHashes(value.snapshot.reply_row_hashes, reply.table_pk.id)) {
+    throw new Error("Pair materialization is missing unique changes or the selected subject-row fingerprints");
   }
   const serialized = JSON.stringify(value);
   if (serialized.includes(canary) || !/^[a-f0-9]{64}$/.test(value.sha256)) {
@@ -219,7 +235,8 @@ function assertMaterialization(value: Materialization): void {
 function readAppReceipt(): AppReceipt {
   const receipt = readJson<AppReceipt>(appReceiptPath());
   if (receipt.status !== "ready" || receipt.database !== expectedDatabase || receipt.pair_partition !== expectedPartition ||
-      receipt.port === protectedPort || receipt.db_port !== 60025 || receipt.db_host !== "127.0.0.1" ||
+      !Number.isInteger(receipt.port) || receipt.port < 1 || receipt.port > 65535 || forbiddenAppPorts.has(receipt.port) ||
+      receipt.db_port !== 60025 || receipt.db_host !== "127.0.0.1" || receipt.pg_system_id !== expectedSystemId ||
       receipt.url !== `http://127.0.0.1:${receipt.port}` || receipt.materialization !== materializationPath()) {
     throw new Error("Parent app receipt does not match the preserved pair service identity");
   }
@@ -244,9 +261,9 @@ function inspectOwnedListener(receipt: AppReceipt) {
   const cwdOutput = execFileSync("lsof", ["-a", "-p", String(receipt.pid), "-d", "cwd", "-Fn"], { encoding: "utf8" }).trim();
   const actualCwd = cwdOutput.split("\n").find((line) => line.startsWith("n"))?.slice(1);
   const expectedCwd = appWorkingDirectory(receipt);
-  if (listener.split("\n", 1)[0] !== `p${receipt.pid}` || !actualCwd || realpathSync(actualCwd) !== realpathSync(expectedCwd)) {
-    throw new Error("The recorded app PID does not own the expected HTTP listener and retained serving checkout");
-  }
+  assertServingCheckout(receipt.checkout);
+  if (!actualCwd) throw new Error("The recorded app PID has no discoverable working directory");
+  assertListenerIdentity(receipt.pid, listener, actualCwd, expectedCwd);
   return { actualCwd, listener };
 }
 
@@ -254,8 +271,25 @@ function appWorkingDirectory(receipt: AppReceipt): string {
   return resolve(receipt.checkout, "examples/threadline_phoenix");
 }
 
+export function assertServingCheckout(checkout: string): string {
+  if (!isAbsolute(checkout)) throw new Error("Retained serving checkout must be an absolute path");
+  try {
+    return realpathSync(checkout);
+  } catch {
+    throw new Error("Retained serving checkout is missing or unavailable");
+  }
+}
+
+export function assertListenerIdentity(pid: number, listener: string, actualCwd: string, expectedCwd: string): void {
+  if (!Number.isInteger(pid) || pid <= 0 || listener.split("\n", 1)[0] !== `p${pid}` ||
+      !isAbsolute(actualCwd) || !isAbsolute(expectedCwd) ||
+      realpathSync(actualCwd) !== realpathSync(expectedCwd)) {
+    throw new Error("The recorded app PID does not own the expected HTTP listener and retained serving checkout");
+  }
+}
+
 async function assertLivePair(receipt = readAppReceipt()) {
-  if (realpathSync(receipt.checkout) === realpathSync(repoRoot)) throw new Error("The serving app and test source checkout must be distinct");
+  if (assertServingCheckout(receipt.checkout) === realpathSync(repoRoot)) throw new Error("The serving app and test source checkout must be distinct");
   const listener = inspectOwnedListener(receipt);
   const response = await fetch(`${receipt.url}/users/log_in`, { signal: AbortSignal.timeout(5000) });
   if (response.status !== 200) throw new Error(`Retained app readiness returned HTTP ${response.status}`);
@@ -473,7 +507,8 @@ export async function captureInvestigationHalf(
   const actual = checkMaterialization();
   const receipt = readAppReceipt();
   const live = await assertLivePair(receipt);
-  if (actual.sha256 !== materialization.sha256 || receipt.port === protectedPort || process.env.MIX_TEST_PARTITION !== expectedPartition) {
+  if (actual.sha256 !== materialization.sha256 || forbiddenAppPorts.has(receipt.port) ||
+      process.env.MIX_TEST_PARTITION !== expectedPartition || process.pid === receipt.pid) {
     throw new Error("Pair materialization, protected port, or assigned partition differs from the parent binding");
   }
   await page.waitForFunction(() => document.querySelector("[data-phx-main]")?.classList.contains("phx-connected") === true);
@@ -527,39 +562,104 @@ export async function captureInvestigationHalf(
   assertNoCanaryLeak(canary, output, serialized);
   atomicWriteFile(output, serialized);
   if (canonical) atomicWriteFile(resolveContainedPath(root, `captures/${half}/canonical.json`), JSON.stringify({ file: relative(root, output), sha256: sha256(serialized), pairId }, null, 2) + "\n");
-  appendInvocation({ type: "pair-capture", half, pairId, canonical, materializationSha256: materialization.sha256, output: relative(root, output), status: "passed" });
+  appendInvocation({
+    type: "pair-capture", half, pairId, canonical, materializationSha256: materialization.sha256,
+    output: relative(root, output), runnerPid: process.pid, testCheckout: repoRoot,
+    appPid: receipt.pid, appCheckout: receipt.checkout, appCwd: live.listener.actualCwd, status: "passed",
+  });
   return manifest;
 }
 
+function validDigest(value: unknown): value is string {
+  return typeof value === "string" && digestPattern.test(value);
+}
+
+function validAssetIdentity(value: any): boolean {
+  return validDigest(value?.sha256) && Number.isInteger(value?.bytes) && value.bytes > 0;
+}
+
+function capturedFileBelongsToHalf(file: unknown, half: "before" | "after"): boolean {
+  if (typeof file !== "string" || !file || isAbsolute(file) || /^[A-Za-z]:[\\/]/.test(file)) return false;
+  const parts = file.split(/[\\/]+/);
+  return parts[0] === "captures" && parts[1] === half && !parts.includes("..") && !parts.includes(".");
+}
+
+function validSourceIdentity(value: any): boolean {
+  if (!value?.files || typeof value.files !== "object" || Array.isArray(value.files) || Object.keys(value.files).length === 0) return false;
+  return Object.entries(value.files).every(([path, asset]: [string, any]) => Boolean(path) && validAssetIdentity(asset));
+}
+
+function validBrowserCondition(condition: any, browser: any): boolean {
+  return condition?.project === browser.project && condition?.browser === browser.version &&
+    condition?.playwright === browser.playwright && condition?.reducedMotion === true &&
+    condition?.browserZoom === "unverified" && condition?.viewport?.width === 1280 &&
+    condition?.viewport?.height === 900 && condition?.viewport?.dpr === 1;
+}
+
 function validateHalf(value: any, expectedHalf: "before" | "after") {
-  if (!value || value.schemaVersion !== 1 || value.half !== expectedHalf || !value.canonical ||
-      !value.pairId || !/^[a-f0-9]{64}$/.test(value.materializationSha256) ||
-      value.selected?.database !== expectedDatabase || value.selected?.partition !== expectedPartition ||
-      value.selected?.httpPort === protectedPort || !value.selected?.actionId || !value.selected?.transactionId ||
-      !Array.isArray(value.selected.changeIds) || value.selected.changeIds.length !== 2 ||
-      !value.selected.replyId || !value.selected.ticketId || !value.selected.actorId ||
-      !value.selected.eventTime || !value.selected.actionInsertedAt ||
-      value.server?.pid <= 0 || value.server?.port !== value.selected.httpPort ||
-      !value.testSource?.files || !value.server?.servingSource?.files ||
+  const selected = value?.selected;
+  const browser = value?.browser;
+  const journey = value?.journey;
+  const route = typeof journey?.timelineUrl === "string" ? new URL(journey.timelineUrl, "http://127.0.0.1") : null;
+  const routeKeys = route ? [...route.searchParams.keys()].sort().join(",") : "";
+  if (!value || value.schemaVersion !== 1 || value.half !== expectedHalf || value.canonical !== true ||
+      typeof value.pairId !== "string" || !value.pairId || !validDigest(value.materializationSha256) ||
+      !Number.isFinite(Date.parse(value.capturedAt)) || selected?.database !== expectedDatabase || selected?.partition !== expectedPartition ||
+      !Number.isInteger(selected?.httpPort) || selected.httpPort < 1 || selected.httpPort > 65535 || forbiddenAppPorts.has(selected.httpPort) ||
+      !selected?.actionId || selected.actionName !== expectedAction || !selected?.transactionId ||
+      !Array.isArray(selected.changeIds) || selected.changeIds.length !== 2 || new Set(selected.changeIds).size !== 2 ||
+      !selected?.replyId || !selected?.ticketId || !selected?.actorId ||
+      !Number.isFinite(Date.parse(selected.eventTime)) || !Number.isFinite(Date.parse(selected.actionInsertedAt)) ||
+      Date.parse(selected.eventTime) === Date.parse(selected.actionInsertedAt) ||
+      !Number.isInteger(value.server?.pid) || value.server.pid <= 0 || value.server?.port !== selected.httpPort ||
+      !/^[a-f0-9]{40}$/.test(value.server?.sourceHeadAtStart ?? "") ||
+      !validSourceIdentity(value.testSource) || !validSourceIdentity(value.server?.servingSource) ||
       !sameSource(value.testSource, value.server.servingSource) ||
-      value.browser?.project !== "desktop-chromium" || !value.browser?.version ||
+      browser?.project !== "desktop-chromium" || !browser.version || !browser.playwright ||
+      !journey || journey.actionId !== selected.actionId || journey.transactionId !== selected.transactionId ||
+      JSON.stringify([...(journey.changeIds ?? [])].sort()) !== JSON.stringify([...selected.changeIds].sort()) ||
+      journey.replyId !== selected.replyId || journey.ticketId !== selected.ticketId || journey.actorId !== selected.actorId ||
+      journey.eventTime !== selected.eventTime || journey.actionInsertedAt !== selected.actionInsertedAt ||
+      journey.copyValue !== selected.replyId || journey.copyStatus !== "Copied." || journey.keyboardActivation !== true ||
+      journey.filtersRestored !== true || !route || route.pathname !== "/audit/timeline" || routeKeys !== "correlation_id,from,table,to" ||
+      route.searchParams.get("from") !== "2020-01-01T00:00" || route.searchParams.get("to") !== "2099-01-01T00:00" ||
+      route.searchParams.get("table") !== "ticket_replies" || route.searchParams.get("correlation_id") !== expectedCorrelation ||
       !Array.isArray(value.captures) || value.captures.length !== 2 ||
       !Array.isArray(value.systemObservations) || value.systemObservations.length !== 2) {
     throw new Error(`Invalid or incomplete ${expectedHalf} investigation half`);
   }
-  const ids = new Set(value.captures.map((capture: any) => capture.id));
+  const ids = new Set(value.captures.map((capture: any) => capture?.id));
   if (ids.size !== 2 || !ids.has("timeline-restored-dark") || !ids.has("timeline-restored-light")) {
     throw new Error(`${expectedHalf} half lacks matching dark/light shell and content captures`);
   }
   for (const capture of value.captures) {
-    if (!capture.route?.startsWith("/audit/timeline?") || capture.condition?.browserZoom !== "unverified" ||
-        !capture.shell?.sha256 || !capture.content?.sha256 || !capture.observation?.sha256 ||
-        capture.assets?.fontFaceCount !== embeddedFonts.length || Object.keys(capture.assets.fonts ?? {}).length !== embeddedFonts.length ||
-        !capture.assets.stylesheetSha256 || !capture.assets.inlineScriptSha256 || !capture.assets.svgMarkupSha256 ||
-        capture.condition?.effectiveTheme !== (capture.id.endsWith("dark") ? "dark" : "light") ||
-        capture.condition?.reducedMotion !== true || capture.condition?.viewport?.width !== 1280 ||
-        capture.condition?.viewport?.height !== 900 || capture.condition?.viewport?.dpr !== 1) {
+    const theme = capture.id.endsWith("dark") ? "dark" : "light";
+    const fontNames = Object.keys(capture.assets?.fonts ?? {}).sort();
+    if (!capture.route || capture.route !== journey.timelineUrl || capture.state !== "filtered-timeline-return" ||
+        !validBrowserCondition(capture.condition, browser) || capture.condition.preference !== theme ||
+        capture.condition.mountedTheme !== theme || capture.condition.effectiveTheme !== theme || capture.condition.systemScheme !== "dark" ||
+        !capturedFileBelongsToHalf(capture.shell?.file, expectedHalf) || !validAssetIdentity(capture.shell) ||
+        !capturedFileBelongsToHalf(capture.content?.file, expectedHalf) || !validAssetIdentity(capture.content) ||
+        !capturedFileBelongsToHalf(capture.observation?.file, expectedHalf) || !validAssetIdentity(capture.observation) ||
+        capture.assets?.fontFaceCount !== embeddedFonts.length ||
+        JSON.stringify(fontNames) !== JSON.stringify(embeddedFonts.map(([, , file]) => file).sort()) ||
+        !validDigest(capture.assets?.stylesheetSha256) || !validDigest(capture.assets?.inlineScriptSha256) ||
+        !validDigest(capture.assets?.svgMarkupSha256) || !Number.isInteger(capture.assets?.svgCount) || capture.assets.svgCount <= 0 ||
+        !Object.values(capture.assets.fonts).every((font: any) => validAssetIdentity(font))) {
       throw new Error(`${expectedHalf} half has incomplete or incomparable browser/source/assets evidence`);
+    }
+  }
+  const expectedSystemIds = ["system-dark", "system-light"];
+  for (const [index, observation] of value.systemObservations.entries()) {
+    const system = index === 0 ? "dark" : "light";
+    if (observation.id !== expectedSystemIds[index] || !capturedFileBelongsToHalf(observation.file, expectedHalf) ||
+        !validDigest(observation.sha256) || observation.condition?.project !== browser.project ||
+        observation.condition?.browser !== browser.version || observation.condition?.playwright !== browser.playwright ||
+        observation.condition?.preference !== "system" || observation.condition?.mountedTheme !== "system" ||
+        observation.condition?.effectiveTheme !== system || observation.condition?.systemScheme !== system ||
+        observation.condition?.reducedMotion !== true || observation.condition?.browserZoom !== "unverified" ||
+        observation.condition?.viewport?.width !== 1280 || observation.condition?.viewport?.height !== 900 || observation.condition?.viewport?.dpr !== 1) {
+      throw new Error(`${expectedHalf} half lacks matched dark/light system-preference observations`);
     }
   }
   return value;
@@ -568,6 +668,7 @@ function validateHalf(value: any, expectedHalf: "before" | "after") {
 export function assertInvestigationPair(before: unknown, after: unknown) {
   const b: any = validateHalf(before, "before");
   const a: any = validateHalf(after, "after");
+  if (b.pairId === a.pairId) throw new Error("Before and after captures must have distinct pair identities");
   const keys = ["database", "partition", "httpPort", "actionId", "actionName", "transactionId", "replyId", "ticketId", "actorId", "eventTime", "actionInsertedAt"] as const;
   for (const key of keys) if (b.selected[key] !== a.selected[key]) throw new Error(`Pair mismatch: selected.${key}`);
   if (JSON.stringify([...b.selected.changeIds].sort()) !== JSON.stringify([...a.selected.changeIds].sort()) ||
@@ -590,10 +691,14 @@ export function assertInvestigationPair(before: unknown, after: unknown) {
 export function verifyBeforeReceipt() {
   const root = pairRoot();
   const pointer = readJson<{ file: string; sha256: string; pairId: string }>(resolve(root, "captures/before/canonical.json"));
+  if (!capturedFileBelongsToHalf(pointer.file, "before") || !validDigest(pointer.sha256) || !pointer.pairId) {
+    throw new Error("Canonical before pointer has invalid custody or digest metadata");
+  }
   const file = resolveContainedPath(root, pointer.file);
   const bytes = readFileSync(file);
   if (sha256(bytes) !== pointer.sha256) throw new Error("Canonical before capsule digest does not match its file");
   const before = validateHalf(JSON.parse(bytes.toString("utf8")), "before");
+  if (pointer.pairId !== before.pairId) throw new Error("Canonical before pointer identity does not match its capsule");
   const live = checkMaterialization();
   const receipt = readAppReceipt();
   const custody = inspectOwnedListener(receipt);
@@ -615,12 +720,34 @@ export async function capturePhase250GateObservation(
   const root = pairRoot();
   const receipt = readAppReceipt();
   const live = await assertLivePair(receipt);
+  if (info.project.name !== "desktop-chromium" || process.pid === receipt.pid) {
+    throw new Error("Phase250 browser observations require the selected desktop project and a separate test process");
+  }
   const condition = await observeCondition(page, browser, info);
   const assets = await pageAssetIdentity(page, receipt.checkout);
   const id = `${gate}-${randomUUID()}`;
   const outputDir = resolve(root, "gates", gate);
   mkdirSync(outputDir, { recursive: true, mode: 0o700 });
-  const observation = { gate, id, route: new URL(page.url()).pathname + new URL(page.url()).search, condition, assets, source: { serving: live.servingSource, test: live.testSource }, observedAt: now() };
+  const shellPath = resolveContainedPath(outputDir, `${id}-shell.png`);
+  const contentPath = resolveContainedPath(outputDir, `${id}-content.png`);
+  await page.locator(".threadline-ui").first().screenshot({ path: shellPath, animations: "disabled", scale: "css" });
+  await page.locator("#tl-main").screenshot({
+    path: contentPath,
+    animations: "disabled",
+    scale: "css",
+    mask: [page.locator("time"), page.locator('[data-dynamic="true"]')],
+    maskColor: condition.effectiveTheme === "light" ? "#F8FAFC" : "#0B1020",
+  });
+  const shellBytes = readFileSync(shellPath);
+  const contentBytes = readFileSync(contentPath);
+  assertNoCanaryLeak(canary, shellPath, shellBytes);
+  assertNoCanaryLeak(canary, contentPath, contentBytes);
+  const imageIdentity = (file: string, bytes: Buffer) => ({ file: relative(root, file), sha256: sha256(bytes), bytes: bytes.byteLength });
+  const observation = {
+    gate, id, route: new URL(page.url()).pathname + new URL(page.url()).search, condition, assets,
+    shell: imageIdentity(shellPath, shellBytes), content: imageIdentity(contentPath, contentBytes),
+    source: { serving: live.servingSource, test: live.testSource }, observedAt: now(),
+  };
   const file = resolveContainedPath(outputDir, `${id}.json`);
   const serialized = `${JSON.stringify(observation, null, 2)}\n`;
   assertNoCanaryLeak(canary, file, serialized);
@@ -673,7 +800,8 @@ export async function browserBegin(gateValue: string) {
     report: relative(root, safeReport),
     pairId: before.pairId,
     materializationSha256: before.materializationSha256,
-    app: { pid: receipt.pid, port: receipt.port, sourceHeadAtStart: receipt.source_head },
+    app: { pid: receipt.pid, port: receipt.port, checkout: receipt.checkout, cwd: live.listener.actualCwd, sourceHeadAtStart: receipt.source_head },
+    executor: { pid: process.pid, checkout: repoRoot },
     servingSource: live.servingSource,
     testSource: live.testSource,
   };
@@ -706,38 +834,26 @@ function flattenPlaywrightReport(value: any): PlaywrightResult[] {
   return output;
 }
 
-function latestInvocation(root: string, gate: Gate) {
-  const directory = resolve(root, "browser-invocations");
-  const current = readJson<{ path: string; nonce: string }>(resolve(directory, `${gate}-current.json`));
-  const path = resolveContainedPath(root, current.path);
-  const invocation = readJson<any>(path);
-  const reportPath = process.env.THREADLINE_PHASE250_BROWSER_REPORT;
-  if (!reportPath || !isAbsolute(reportPath) || relative(root, resolve(reportPath)) !== invocation.report) throw new Error("Browser report path does not match the current fresh invocation");
-  if (current.nonce !== invocation.nonce) throw new Error("Current browser invocation pointer does not match its receipt");
-  return { path, invocation, reportPath: resolveContainedPath(root, invocation.report) };
+export function assertFreshBrowserReport(reportPath: string, startedAtValue: string, nowMs = Date.now()): void {
+  const startedAt = Date.parse(startedAtValue);
+  if (!isAbsolute(reportPath) || !Number.isFinite(startedAt) || startedAt > nowMs + 1_000 ||
+      nowMs - startedAt > 30 * 60_000 || !existsSync(reportPath)) {
+    throw new Error("Playwright report is absent or stale for this browser-begin receipt");
+  }
+  const reportStat = lstatSync(reportPath);
+  if (!reportStat.isFile() || reportStat.isSymbolicLink() || reportStat.mtimeMs + 5_000 < startedAt) {
+    throw new Error("Playwright report is not a fresh regular file for this browser-begin receipt");
+  }
 }
 
-export async function browserCheck(gateValue: string) {
+export function validateBrowserReport(gateValue: string, report: any) {
   validateGate(gateValue);
   const gate = gateValue;
-  const root = pairRoot();
-  const { path, invocation, reportPath } = latestInvocation(root, gate);
-  if (Date.now() - Date.parse(invocation.startedAt) > 30 * 60_000 || !existsSync(reportPath)) throw new Error("Playwright report is absent or stale for this browser-begin receipt");
-  const before = verifyBeforeReceipt();
-  const receipt = readAppReceipt();
-  const live = await assertLivePair(receipt);
-  if (before.pairId !== invocation.pairId || before.materializationSha256 !== invocation.materializationSha256 ||
-      receipt.pid !== invocation.app.pid || receipt.port !== invocation.app.port ||
-      !sameSource(live.servingSource, invocation.servingSource) || !sameSource(live.testSource, invocation.testSource)) {
-    throw new Error("Browser report source, app or materialization custody changed after browser-begin");
-  }
-  const reportBytes = readFileSync(reportPath);
-  let report: any;
-  try { report = JSON.parse(reportBytes.toString("utf8")); } catch { throw new Error("Malformed Playwright JSON report"); }
-  if (!report || report.errors?.length || !report.stats || typeof report.stats.expected !== "number" ||
+  if (!report || !Array.isArray(report.errors) || report.errors.length !== 0 || !report.stats ||
+      typeof report.stats.startTime !== "string" || !Number.isFinite(Date.parse(report.stats.startTime)) ||
+      typeof report.stats.duration !== "number" || typeof report.stats.expected !== "number" ||
       typeof report.stats.unexpected !== "number" || typeof report.stats.skipped !== "number" ||
-      typeof report.stats.flaky !== "number" || typeof report.stats.interrupted !== "number" ||
-      typeof report.stats.didNotRun !== "number") throw new Error("Malformed or error-bearing Playwright report");
+      typeof report.stats.flaky !== "number") throw new Error("Malformed or error-bearing Playwright report");
   const actual = flattenPlaywrightReport(report);
   const expected = gateTitles[gate];
   if (actual.length !== expected.length) throw new Error(`Gate ${gate} has ${actual.length} result rows, expected ${expected.length}`);
@@ -753,9 +869,49 @@ export async function browserCheck(gateValue: string) {
   }
   if (seen.size !== expected.length || expected.some((title) => !seen.has(title)) ||
       report.stats.expected !== expected.length || report.stats.unexpected !== 0 || report.stats.skipped !== 0 ||
-      report.stats.flaky !== 0 || report.stats.interrupted !== 0 || report.stats.didNotRun !== 0) {
+      report.stats.flaky !== 0) {
     throw new Error(`Playwright summary statistics do not match the exact ${gate} gate case set`);
   }
+  return actual.map(({ title, projectName, results }) => ({ title, projectName, status: results[0]!.status, retry: results[0]!.retry }));
+}
+
+function latestInvocation(root: string, gate: Gate) {
+  const directory = resolve(root, "browser-invocations");
+  const current = readJson<{ path: string; nonce: string }>(resolve(directory, `${gate}-current.json`));
+  const path = resolveContainedPath(root, current.path);
+  const invocation = readJson<any>(path);
+  const reportPath = process.env.THREADLINE_PHASE250_BROWSER_REPORT;
+  const invocationPath = `browser-invocations/${gate}-${current.nonce}.json`;
+  const expected = gateTitles[gate].map((title) => ({ project: "desktop-chromium", title }));
+  if (current.path !== invocationPath || current.nonce !== invocation.nonce || invocation.gate !== gate ||
+      JSON.stringify(invocation.expected) !== JSON.stringify(expected)) {
+    throw new Error("Current browser invocation pointer or exact gate identity does not match its receipt");
+  }
+  if (!reportPath || !isAbsolute(reportPath) || relative(root, resolve(reportPath)) !== invocation.report) throw new Error("Browser report path does not match the current fresh invocation");
+  return { path, invocation, reportPath: resolveContainedPath(root, invocation.report) };
+}
+
+export async function browserCheck(gateValue: string) {
+  validateGate(gateValue);
+  const gate = gateValue;
+  const root = pairRoot();
+  const { path, invocation, reportPath } = latestInvocation(root, gate);
+  assertFreshBrowserReport(reportPath, invocation.startedAt);
+  const before = verifyBeforeReceipt();
+  const receipt = readAppReceipt();
+  const live = await assertLivePair(receipt);
+  if (before.pairId !== invocation.pairId || before.materializationSha256 !== invocation.materializationSha256 ||
+      receipt.pid !== invocation.app.pid || receipt.port !== invocation.app.port ||
+      realpathSync(receipt.checkout) !== realpathSync(invocation.app.checkout) ||
+      realpathSync(live.listener.actualCwd) !== realpathSync(invocation.app.cwd) ||
+      realpathSync(repoRoot) !== realpathSync(invocation.executor.checkout) || process.pid === receipt.pid ||
+      !sameSource(live.servingSource, invocation.servingSource) || !sameSource(live.testSource, invocation.testSource)) {
+    throw new Error("Browser report source, app or materialization custody changed after browser-begin");
+  }
+  const reportBytes = readFileSync(reportPath);
+  let report: any;
+  try { report = JSON.parse(reportBytes.toString("utf8")); } catch { throw new Error("Malformed Playwright JSON report"); }
+  const actual = validateBrowserReport(gate, report);
   const verified = {
     schemaVersion: 1,
     verified: true,
@@ -764,7 +920,7 @@ export async function browserCheck(gateValue: string) {
     reportSha256: sha256(reportBytes),
     invocationSha256: sha256(readFileSync(path)),
     source: { serving: live.servingSource, test: live.testSource },
-    results: actual.map(({ title, projectName, results }) => ({ title, projectName, status: results[0]!.status, retry: results[0]!.retry })),
+    results: actual,
     checkedAt: now(),
   };
   const pathOut = resolveContainedPath(root, `browser-invocations/${gate}-${invocation.nonce}-verified.json`);
