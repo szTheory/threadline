@@ -80,6 +80,7 @@ defmodule Threadline.OperatorSurface.FontsTest do
     table_name = selector_block!(src, ".tl-policy__table")
     record_id = selector_block!(src, ".tl-secondary-ref")
     code_role = selector_block!(src, ".tl-code")
+    focus_role = selector_block!(src, ".threadline-ui summary:focus-visible")
 
     assert tokens =~ ~s(--tl-font-family: "Threadline Geist",)
     assert tokens =~ ~s(--tl-font-mono: "Threadline IBM Plex Mono",)
@@ -121,6 +122,10 @@ defmodule Threadline.OperatorSurface.FontsTest do
     assert table_name =~ "font-size: var(--tl-font-size-dense);"
     assert table_name =~ "font-weight: var(--tl-weight-regular);"
     assert table_name =~ "line-height: var(--tl-line-mono);"
+
+    assert focus_role =~ "outline: 2px solid var(--tl-color-border-focus);"
+    assert focus_role =~ "outline-offset: 2px;"
+    assert focus_role =~ "box-shadow: none;"
 
     assert code_role =~ "font-size: var(--tl-font-size-dense);"
     assert code_role =~ "line-height: var(--tl-line-mono);"

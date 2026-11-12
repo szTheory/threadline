@@ -1416,7 +1416,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> String.split("}")
       |> List.first()
 
-    assert String.contains?(focus_block, "box-shadow: var(--tl-focus-ring);")
+    assert String.contains?(focus_block, "outline: 2px solid var(--tl-color-border-focus);")
+    assert String.contains?(focus_block, "outline-offset: 2px;")
+    assert String.contains?(focus_block, "box-shadow: none;")
 
     refute Regex.match?(~r/\.threadline-ui\s+\*\s*\{[^}]*outline:\s*none/s, src),
            "blanket focus outline removal is forbidden"
@@ -1442,36 +1444,31 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "background: var(--tl-chip-dot);")
   end
 
-  test "phase 168 focus ring clears non-text 3:1 per mode with halo reported only" do
+  test "approved 2px focus clears non-text 3:1 in every mode without relying on translucent decoration" do
     src = StyleSource.read!()
-
+    dark_block = selector_block!(src, ".threadline-ui")
     light_block = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
     system_block = system_lane_block!(src)
 
-    for {mode, block} <- [{"light", light_block}, {"system", system_block}] do
+    for {mode, block} <- [{"dark", dark_block}, {"light", light_block}, {"system", system_block}] do
       map = color_tokens(block)
+      assert block =~ "--tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);"
 
-      # WCAG 2.1 SC 1.4.11 — non-text contrast 3:1 (NOT 4.5). The load-bearing
-      # affordance is the OPAQUE 1px border-focus edge; controls sit on both
-      # surface and surface-raised.
+      # The actual opaque edge carries the same non-text 3:1 requirement on
+      # both surfaces. A low-alpha version of that color is a negative control,
+      # never a substitute for the focused edge.
+      hex = String.trim_leading(map["--tl-color-border-focus"], "#")
+      [r, g, b] = for <<part::binary-size(2) <- hex>>, do: String.to_integer(part, 16)
+
       for bg_token <- ["--tl-color-surface", "--tl-color-surface-raised"] do
         assert contrast_ratio(map["--tl-color-border-focus"], map[bg_token]) >= 3.0,
-               "#{mode}: 1px border-focus edge must clear non-text 3:1 on #{bg_token}"
+               "#{mode}: opaque focus edge must clear non-text 3:1 on #{bg_token}"
+
+        decoration = composite({r, g, b, 0.15}, map[bg_token])
+
+        refute contrast_ratio(decoration, map[bg_token]) >= 3.0,
+               "#{mode}: translucent decoration must not carry the focus pass"
       end
-
-      # The 3px translucent halo (rgba first shadow layer) is composited and
-      # REPORTED, never carrying the pass — a low-alpha halo (here ~1.4:1) would
-      # otherwise mask a focus failure (Anti-Pattern: halo masking). The halo alpha
-      # is parsed from the ACTUAL --tl-focus-ring source in this lane (not a
-      # hardcoded literal) so the assertion tracks source and cannot silently rot.
-      halo_over_surface = composite(focus_ring_halo!(block), map["--tl-color-surface"])
-      halo_ratio = contrast_ratio(halo_over_surface, map["--tl-color-surface"])
-
-      assert is_float(halo_ratio),
-             "#{mode}: focus halo ratio is computed and reportable (value=#{halo_ratio})"
-
-      refute halo_ratio >= 3.0,
-             "#{mode}: the translucent halo alone must NOT reach 3:1 — the opaque edge carries the pass"
     end
   end
 
@@ -1569,7 +1566,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "light coverage table default surface override missing"
   end
 
-  test "phase 168 dark phase-143 contrast + focus guards remain byte-stable" do
+  test "dark contrast baseline and approved focus geometry remain explicit" do
     src = StyleSource.read!()
 
     # The dark contrast baseline and dark focus guard consume only opaque hex /
@@ -1580,10 +1577,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "color-scheme: dark;")
     assert String.contains?(src, "--tl-focus-ring:")
 
-    # The frozen dark focus-ring catalog (unchanged values).
+    # Approved Phase250 focus geometry; the dark color baseline remains intact.
     assert String.contains?(
              src,
-             "--tl-focus-ring: 0 0 0 3px rgba(79, 140, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
+             "--tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);"
            )
   end
 
@@ -2147,20 +2144,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end)
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
     |> Map.new()
-  end
-
-  # Parse the first rgba(...) layer (the translucent halo) out of the
-  # `--tl-focus-ring` box-shadow declaration in a lane block. Used so the focus
-  # halo assertion derives from source rather than a duplicated literal.
-  defp focus_ring_halo!(block) do
-    [_match, r, g, b, a] =
-      Regex.run(
-        ~r/--tl-focus-ring:[^;]*?rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/,
-        block
-      )
-
-    {String.to_integer(r), String.to_integer(g), String.to_integer(b),
-     String.to_float(normalize_alpha(a))}
   end
 
   defp parse_color_value("#" <> _ = hex), do: hex
