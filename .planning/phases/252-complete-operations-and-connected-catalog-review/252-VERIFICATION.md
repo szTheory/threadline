@@ -1,11 +1,12 @@
 ---
 phase: 252-complete-operations-and-connected-catalog-review
-verified: 2026-11-13T14:11:05Z
+verified: 2026-11-13T14:20:42Z
 status: passed
 score: 39/39 must-haves verified
 covered_files:
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
+  - .planning/STATE.md
   - .planning/conventions/research-verification-and-efficiency.md
   - .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-PLAN.md
   - .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-SUMMARY.md
@@ -46,7 +47,7 @@ covered_files:
   - test/threadline/operator_surface/live/retention_history_live_test.exs
   - test/threadline/retention/pruner_test.exs
   - test/threadline/retention_test.exs
-covered_digest: "v4:sha256:1d2ee39a290ea7b63b9566440956ba967c4ab37c8ed6d309721de28e896ecf66"
+covered_digest: "v4:sha256:0c321003bcad6f9b303e392f6bbc011b0fe78eb9eb582de60c645610d9e4fb9e"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -61,9 +62,9 @@ re_verification:
 # Phase 252: Complete operations and connected catalog review — Verification Report
 
 **Phase Goal:** Operators complete permitted Export and Retention jobs safely through the new interface, and maintainers can review shared production patterns in the connected PhoenixStorybook catalog.
-**Verified:** 2026-11-13T14:11:05Z
+**Verified:** 2026-11-13T14:20:42Z
 **Status:** passed
-**Re-verification:** Yes — the single width-smoke evidence gap was closed by the exact existing five-case browser run; all other truth judgments were carried forward with bounded integrity checks.
+**Re-verification:** Yes — the single width-smoke evidence gap was closed by the exact existing five-case browser run; all other truth judgments were carried forward with bounded integrity checks. This final refresh covers only parent integration records and tracked planning state.
 
 ## Goal Achievement
 
@@ -170,11 +171,11 @@ The nine locked D-01–D-09 decisions are honored. Export remains scoped immedia
 
 ## Human Verification Required
 
-None. Product assessments use the project's autonomous review policy; no routine maintainer UAT or engine-flag acknowledgment is being requested. The missing contracted-width evidence is a bounded automated case run, not an open-ended human judgment.
+None. Product assessments use the project's autonomous review policy; no routine maintainer UAT or engine-flag acknowledgment is being requested. The contracted-width case run is complete and was verified in the bounded re-verification above.
 
 ## Gaps Summary
 
-The phase's Export, Retention, inventory, mounted mutation, and shared catalog outcomes are supported at their stated boundaries. The initial contracted-width evidence gap is closed by the current five-case receipt. The test invocation captured planning HEAD `bde3df6a3d319892fc991ff1793798984d3efbf5`, while runtime source is `74fe8df2b2520868d464eca93054492fc93a2cad`; current source hashes match the invocation and changes after 74fe are planning-only. The ordinary materialization is unchanged and after-04 remains the selected capture. The outcome is Phase252 goal acceptance only; it does not authorize Phase253 completion, hosted/release acceptance, or publication.
+The phase's Export, Retention, inventory, mounted mutation, and shared catalog outcomes are supported at their stated boundaries. The initial contracted-width evidence gap is closed by the current five-case receipt. The test invocation captured planning HEAD `bde3df6a3d319892fc991ff1793798984d3efbf5`, while runtime source is `74fe8df2b2520868d464eca93054492fc93a2cad`; current source hashes match the invocation and changes after 74fe are planning-only. The ordinary materialization is unchanged and after-04 remains the selected capture. The outcome is Phase252 goal acceptance only; it does not authorize Phase253 completion, hosted/release acceptance, or publication. REL-01 remains pending.
 
 ## Bounded Re-verification — Contracted-Width Gap Closure
 
@@ -182,7 +183,11 @@ The parent ran exactly the existing two Operations render cases plus the 320px, 
 
 The initial `gaps_found` report is preserved byte-for-byte in a private retained copy (SHA-256 `d9180f912560fa344e60d94057009e07ed46b052fa86daa8f2b66511d0c1731c`) with its initial digest `v4:sha256:186ad1dca5e5948b6c45e890b43ebfee78a0e0717d4af61a05a4d14a743f705`. This is a bounded re-verification of that gap only. No source/security/UI audit, broad test run, new screenshot, or unrelated judgment was repeated.
 
+## Final Record and Integration Refresh
+
+The integrated checkout is at `ce74fa52925cc24df158b9f79ceb97e6db275f16`. The only five post-verdict phase/retrospective record diffs are the normal completion writebacks to the 252-04 summary, review disposition, UAT, validation, and run retrospective. The supported merge and SDK phase completion now reconcile all four plans and ADM-23–25; the project state, roadmap, and requirements reflect local Phase252 completion and Phase253 as next. Parent corrected the custom progress text. Production source remains at runtime `74fe8df2b2520868d464eca93054492fc93a2cad`; no product source changed. This refresh binds those records and the current state in the new canonical digest. All source/security/UI/browser findings, three descriptorless flags, two unclassified edges, and external-action/resource limits remain as previously assessed.
+
 ---
 
-**Verified:** 2026-11-13T14:11:05Z  
+**Verified:** 2026-11-13T14:20:42Z  
 **Verifier:** independent phase verifier
