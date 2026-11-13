@@ -33,7 +33,7 @@ Evidence labels snapshot recording time, retains selected latest versus append-o
 
 [Pair evidence](251-PAIR-EVIDENCE.md) records current exact single-case retries-disabled passes, a coupled three-case affected batch, eight matched inspection images per half and two matched Home images per half. Audit materialization is unchanged. Initial97 owning tests passed; the review correction gate passed155/156 with one outdated fixture expectation, followed by a passed bounded18-case policy retest. Existing32 Node controls, warnings-as-errors compile and named format passed. No full-root repeat is claimed.
 
-[Review disposition](251-REVIEW-DISPOSITION.md) links clean40-file source review,14-threat secured audit with zero risk acceptance and22/24 UI review. Actual review caught and corrected the zero-config/deployed semantic bug and Home typography mismatch; its badge/citation errors were checked against evidence and corrected. Existing shared palette and uncaptured broad error/zoom/inclusive evidence remain explicit Phase253 work. Engine flags retain their actual unresolved statuses. Independent whole-phase goal verification remains pending, so requirements are not completed by this plan summary.
+[Review disposition](251-REVIEW-DISPOSITION.md) links clean40-file source review,14-threat secured audit with zero risk acceptance and22/24 UI review. Actual review caught and corrected the zero-config/deployed semantic bug and Home typography mismatch; its badge/citation errors were checked against evidence and corrected. Existing shared palette and uncaptured broad error/zoom/inclusive evidence remain explicit Phase253 work. Engine flags retain their actual unresolved statuses. Independent whole-phase goal verification subsequently passed63/63 truths and all six requirements; requirement completion is reconciled by the phase owner, not inferred from this plan summary.
 
 ## Deviations and lessons
 
@@ -41,4 +41,4 @@ The [bounded continuation](251-04-BOUNDARY-CONTINUATION.md) retains wrong-checko
 
 ## Self-Check: PASSED
 
-Current source/capture/report identities and scoped outcomes were reconciled; independent review findings have dispositions. This completes the plan's implementation/review tasks, not the pending phase goal check or release readiness. No user action is needed.
+Current source/capture/report identities and scoped outcomes were reconciled; independent review findings have dispositions. This completes the plan's implementation/review tasks, and its independent phase goal check; release readiness remains separate. No user action is needed.
