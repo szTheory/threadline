@@ -36,7 +36,7 @@ defmodule Threadline.PersonaRoutingDocContractTest do
     read_rel!(["README.md"])
     |> String.split("## Start here", parts: 2)
     |> Enum.at(1, "")
-    |> String.split("## Evidence plane", parts: 2)
+    |> String.split("## Check audit coverage and operations", parts: 2)
     |> hd()
   end
 

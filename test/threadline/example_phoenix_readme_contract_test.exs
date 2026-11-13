@@ -14,6 +14,8 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
     doc = read!(@readme_path)
 
     assert String.contains?(doc, "maintained, repository-only proof")
+    assert String.contains?(doc, "Threadline Admin")
+    assert String.contains?(doc, ~s|<a id="mounted-operator-boundary"></a>|)
     assert contains_normalized?(doc, "It is not a second installation guide")
     assert String.contains?(doc, "current `sigra-reference` lane")
     assert String.contains?(doc, "without claiming that arbitrary Sigra")
@@ -51,6 +53,10 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   end
 
   test "relative-link validation rejects missing paths and anchors" do
+    for anchor <- ["evidence-plane", "operator-surface", "threadline-admin"] do
+      assert :ok == validate_target(@readme_path, "../../README.md##{anchor}")
+    end
+
     assert {:error, :missing_path} ==
              validate_target(@readme_path, "../../guides/not-a-guide.md")
 
@@ -182,20 +188,28 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   end
 
   defp heading_anchors(content) do
-    content
-    |> String.split("\n")
-    |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
-    |> Enum.map(fn heading ->
-      heading
-      |> String.replace(~r/^\#{1,6}\s+/, "")
-      |> String.replace(~r/`([^`]*)`/, "\\1")
-      |> String.downcase()
-      |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
-      |> String.trim()
-      |> String.replace(~r/\s+/, "-")
-      |> String.replace(~r/-+/, "-")
-    end)
-    |> MapSet.new()
+    headings =
+      content
+      |> String.split("\n")
+      |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
+      |> Enum.map(fn heading ->
+        heading
+        |> String.replace(~r/^\#{1,6}\s+/, "")
+        |> String.replace(~r/`([^`]*)`/, "\\1")
+        |> String.downcase()
+        |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
+        |> String.trim()
+        |> String.replace(~r/\s+/, "-")
+        |> String.replace(~r/-+/, "-")
+      end)
+      |> MapSet.new()
+
+    explicit =
+      Regex.scan(~r/<a id="([^"]+)"><\/a>/, content, capture: :all_but_first)
+      |> List.flatten()
+      |> MapSet.new()
+
+    MapSet.union(headings, explicit)
   end
 
   defp contains_normalized?(doc, snippet) do
