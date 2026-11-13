@@ -14,6 +14,7 @@ progress:
   completed_phases: 3
   total_plans: 16
   completed_plans: 16
+  percent: 50
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
