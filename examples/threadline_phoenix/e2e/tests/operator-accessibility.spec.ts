@@ -1487,6 +1487,44 @@ test.describe("operator accessibility baseline", () => {
     });
   });
 
+  test("Phase253 forced colors preserve focus and operation meaning", async ({ page }, testInfo) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await page.goto("/audit/timeline");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const apply = page.getByRole("button", { name: "Apply", exact: true });
+    await apply.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expectNonObscuredFocused(apply, page);
+    const focus = await apply.evaluate((el) => {
+      const css = getComputedStyle(el);
+      return { active: document.activeElement === el, forcedColors: matchMedia("(forced-colors: active)").matches, outlineStyle: css.outlineStyle, outlineWidth: parseFloat(css.outlineWidth), outlineColor: css.outlineColor };
+    });
+    expect(focus.active).toBe(true);
+    expect(focus.forcedColors).toBe(true);
+    expect(focus.outlineStyle).not.toBe("none");
+    expect(focus.outlineWidth).toBeGreaterThanOrEqual(1);
+    expect(focus.outlineColor).not.toBe("rgba(0, 0, 0, 0)");
+    await discoverTransactionAndRowHistory(page);
+    const operation = page.locator(".tl-change__op").first();
+    await expect(operation).toBeVisible();
+    await expect(operation).toHaveText(/insert|update|delete/i);
+    await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const failed = page.locator("#retention-runs tr").filter({ hasText: "Failed" }).locator(".tl-chip").first();
+    await expect(failed).toHaveText("Failed");
+    await expect(failed).toBeVisible();
+    const shape = await failed.evaluate((el) => {
+      const css = getComputedStyle(el);
+      return { borderStyle: css.borderTopStyle, borderWidth: parseFloat(css.borderTopWidth), borderColor: css.borderTopColor, forcedColorAdjust: css.forcedColorAdjust };
+    });
+    expect(shape.borderStyle).not.toBe("none");
+    expect(shape.borderWidth).toBeGreaterThanOrEqual(1);
+    expect(shape.borderColor).not.toBe("rgba(0, 0, 0, 0)");
+    expect(shape.forcedColorAdjust).toBe("auto");
+    await testInfo.attach("phase253-forced-colors-after-only-observation", { body: Buffer.from(JSON.stringify({ focus, shape, clock: new Date().toISOString() })), contentType: "application/json" });
+  });
+
   test("renders status and verdict chips with text labels and non-color shape", async ({
     page,
   }) => {
