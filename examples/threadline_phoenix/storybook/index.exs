@@ -13,4 +13,5 @@ defmodule ThreadlinePhoenixWeb.Storybook.Index do
   def entry("data_display"), do: [name: "Data Display", index: 5]
   def entry("groups"), do: [name: "Groups", index: 6]
   def entry("patterns"), do: [name: "Patterns", index: 7]
+  def entry("operations"), do: [name: "Operations", index: 8]
 end

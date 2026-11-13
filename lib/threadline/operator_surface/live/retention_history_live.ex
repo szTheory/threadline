@@ -14,10 +14,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Phoenix.LiveView.JS
     alias Threadline.Governance.RetentionRun
+    alias Threadline.OperatorSurface.Live.RetentionHistoryLive.Components
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
-    alias Threadline.Retention.Pruner
+    alias Threadline.Retention.{Policy, Pruner}
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
@@ -35,6 +36,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket =
         socket
         |> assign(:base_path, nil)
+        |> assign(:preview_state, :idle)
+        |> assign(:preview, nil)
+        |> assign(:preview_request, nil)
         |> assign(:prune_modal_open, false)
         |> assign(:prune_confirmation_error, nil)
         |> assign(:prune_submitting, false)
@@ -82,7 +86,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     #      BEFORE triggering — an audit-insert failure must abort the prune so
     #      there is never an unaudited operator-triggered deletion; audit runs only after
     #      a valid `secure_compare`, so a forged token still records nothing;
-    #   5. trigger the real backend (`Pruner.trigger/0`) once the action is on
+    #   5. trigger only the server-held preview target via `Pruner.trigger_if_target/1` once the action is on
     #      the audit trail;
     #   6. fail closed — the default path on ANY mismatch is refusal, no prune.
     def handle_event("prune_now", _params, %{assigns: %{prune_submitting: true}} = socket) do
@@ -98,16 +102,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       typed = confirm_param(params)
 
       with :ok <- authorize_prune(socket),
+           {:ok, preview} <- confirmed_preview(socket),
            canonical <- @canonical_policy_name,
            true <- Plug.Crypto.secure_compare(typed, canonical),
-           {:ok, _action} <- audit_prune(socket, canonical),
-           :ok <- Pruner.trigger() do
+           :ok <- authorize_prune(socket),
+           {:ok, _action} <- audit_prune(socket, canonical, preview.target),
+           :ok <- Pruner.trigger_if_target(preview.target) do
         # The pruner acknowledges only after the queued row is persisted. Read it
         # back so the operator follows persisted state rather than a flash claim.
         Process.send_after(self(), :refresh, 500)
 
         {:noreply,
          socket
+         |> clear_preview()
          |> load_runs()
          |> assign(:prune_modal_open, false)
          |> assign(:prune_confirmation_error, nil)
@@ -116,16 +123,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:error, :not_started} ->
           {:noreply,
            socket
+           |> clear_preview()
            |> put_flash(:error, "Retention runtime is unavailable. Refresh and try again.")}
+
+        {:error, :acceptance_unknown} ->
+          Process.send_after(self(), :refresh, 500)
+
+          {:noreply,
+           socket
+           |> clear_preview()
+           |> load_runs()
+           |> put_flash(
+             :error,
+             "The prune request could not be confirmed. It may still be queued. Refresh the history before making another deliberate request."
+           )}
 
         {:error, :unavailable} ->
           {:noreply,
            socket
+           |> clear_preview()
            |> put_flash(:error, "Prune could not be queued. Refresh the history and try again.")}
 
         {:error, :audit_failed} ->
           {:noreply,
            socket
+           |> clear_preview()
            |> put_flash(
              :error,
              "Prune could not start because its audit record could not be saved."
@@ -134,6 +156,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:error, :unauthorized} ->
           {:noreply,
            socket
+           |> clear_preview()
            |> assign(:prune_modal_open, false)
            |> assign(:prune_confirmation_error, nil)
            |> put_flash(
@@ -154,6 +177,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           # Fail closed on any unexpected backend response.
           {:noreply,
            socket
+           |> clear_preview()
            |> assign(:prune_modal_open, false)
            |> assign(:prune_confirmation_error, nil)
            |> put_flash(
@@ -163,23 +187,124 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    def handle_event("open_prune_modal", _params, socket) do
-      {:noreply,
-       socket
-       |> assign(:prune_modal_open, true)
-       |> assign(:prune_confirmation_error, nil)}
+    def handle_event("preview_retention", _params, socket) do
+      socket = clear_preview(socket)
+
+      with :ok <- authorize_prune(socket),
+           {:ok, target, policy} <- preview_inputs(socket) do
+        request = make_ref()
+        socket = assign(socket, preview_state: :loading, preview_request: request)
+        read_socket = socket
+
+        {:noreply,
+         start_async(socket, {:retention_preview, request}, fn ->
+           with {:ok, ^target, ^policy} <- preview_inputs(read_socket),
+                :ok <- authorize_prune(read_socket) do
+             result =
+               Threadline.Retention.purge(
+                 repo: target.repo,
+                 storage_schema: target.storage_schema,
+                 sleep_ms: target.sleep_ms,
+                 dry_run: true
+               )
+
+             case result do
+               %{dry_run: true, deleted_changes: changes, deleted_transactions: transactions}
+               when is_integer(changes) and changes >= 0 and is_integer(transactions) and
+                      transactions >= 0 ->
+                 {:ok,
+                  %{
+                    result: result,
+                    target: target,
+                    policy: policy,
+                    generated_at: DateTime.utc_now(:microsecond)
+                  }}
+
+               _ ->
+                 {:error, :unavailable}
+             end
+           else
+             _ -> {:error, :unavailable}
+           end
+         end)}
+      else
+        _ -> {:noreply, preview_failed(socket)}
+      end
     end
 
-    def handle_event("close_prune_modal", _params, socket) do
-      {:noreply,
-       socket
-       |> assign(:prune_modal_open, false)
-       |> assign(:prune_confirmation_error, nil)}
+    def handle_event("open_prune_modal", _params, socket) do
+      with :ok <- authorize_prune(socket), {:ok, _preview} <- confirmed_preview(socket) do
+        {:noreply, assign(socket, prune_modal_open: true, prune_confirmation_error: nil)}
+      else
+        _ -> {:noreply, preview_failed(socket)}
+      end
     end
+
+    def handle_event("close_prune_modal", _params, socket),
+      do: {:noreply, clear_preview(socket)}
 
     def handle_event("refresh_runs", _params, socket) do
       {:noreply, load_runs(socket)}
     end
+
+    def handle_async({:retention_preview, request}, outcome, socket) do
+      if socket.assigns.preview_request == request do
+        with {:ok, {:ok, preview}} <- outcome,
+             {:ok, target, policy} <- preview_inputs(socket),
+             true <- preview.target == target and preview.policy == policy,
+             :ok <- authorize_prune(socket) do
+          {:noreply,
+           assign(socket, preview_state: :ready, preview: preview, preview_request: nil)}
+        else
+          _ -> {:noreply, preview_failed(socket)}
+        end
+      else
+        {:noreply, socket}
+      end
+    end
+
+    defp preview_inputs(socket) do
+      with {:ok, target} <- Pruner.target_snapshot(),
+           true <-
+             target.repo == resolve_repo(socket) and target.storage_schema == StorageSchema.get(),
+           %{enabled: true} = policy <-
+             Policy.resolve!(Application.get_env(:threadline, :retention) || []) do
+        {:ok, target, policy}
+      else
+        _ -> {:error, :unavailable}
+      end
+    rescue
+      _ -> {:error, :unavailable}
+    end
+
+    defp confirmed_preview(%{assigns: %{preview_state: :ready, preview: preview}} = socket) do
+      with {:ok, target, policy} <- preview_inputs(socket),
+           true <- preview.target == target and preview.policy == policy do
+        {:ok, preview}
+      else
+        _ -> {:error, :unavailable}
+      end
+    end
+
+    defp confirmed_preview(_socket), do: {:error, :unavailable}
+
+    defp clear_preview(socket) do
+      socket =
+        case socket.assigns[:preview_request] do
+          nil -> socket
+          request -> cancel_async(socket, {:retention_preview, request})
+        end
+
+      assign(socket,
+        preview: nil,
+        preview_state: :idle,
+        preview_request: nil,
+        prune_modal_open: false,
+        prune_confirmation_error: nil
+      )
+    end
+
+    defp preview_failed(socket), do: socket |> clear_preview() |> assign(:preview_state, :error)
 
     def handle_info(:load_runs, socket) do
       {:noreply, load_runs(socket)}
@@ -230,6 +355,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:actions>
             </UI.Page.page_header>
 
+            <div class="tl-stack tl-stack--stack">
             <section class="tl-card" data-testid="retention-scope">
               <p class="tl-card__body"><%= @prune_copy.scope_explanation %></p>
             </section>
@@ -239,6 +365,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
             <div :if={Phoenix.Flash.get(@flash, :info)} class="tl-alert tl-alert--success" role="status">
               <%= Phoenix.Flash.get(@flash, :info) %>
+            </div>
+
+            <Components.retention_preview preview={@preview} state={@preview_state} />
+            <div class="tl-page__actions">
+              <button type="button" class="tl-button tl-button--secondary" phx-click="preview_retention" disabled={@preview_state == :loading or @prune_submitting} data-tl-mutating data-tl-server-disabled={if(@preview_state == :loading or @prune_submitting, do: "true", else: "false")} phx-disable-with="Generating preview…">Preview retention</button>
+              <button :if={@preview_state == :ready} type="button" class="tl-button tl-button--secondary" phx-click={JS.push_focus(to: "button[phx-click='preview_retention']") |> JS.push("open_prune_modal")} disabled={@prune_submitting}>Review and confirm</button>
             </div>
 
             <%= case @runs_state do %>
@@ -259,27 +391,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <UI.Data.empty_state variant="never" role="status">
                   <:title>No retention runs</:title>
                   A run will appear here after a confirmed prune or scheduled retention operation.
-                  <:actions>
-                    <button
-                      type="button"
-                      class="tl-button tl-button--secondary"
-                      phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
-                    >
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                      <%= @prune_copy.open_label %>
-                    </button>
-                  </:actions>
+
                 </UI.Data.empty_state>
               <% :loaded -> %>
-                <.run_history
+                <Components.run_history
                   retention_summary={@retention_summary}
                   retention_actions={@retention_actions}
-                  prune_copy={@prune_copy}
                   runs={@streams.runs}
                   runs_count={@runs_count}
                   default_limit={@default_limit}
                 />
             <% end %>
+
+            </div>
 
             <%!-- Type-to-confirm modal. The operator types the
                   policy NAME (the object's own identifier) to confirm; the
@@ -290,6 +414,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.prune_modal
               :if={@prune_modal_open}
               prune_copy={@prune_copy}
+              preview={@preview}
               submitting={@prune_submitting}
               confirmation_error={@prune_confirmation_error}
             />
@@ -303,113 +428,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    attr(:retention_summary, :map, required: true)
-    attr(:retention_actions, :map, required: true)
-    attr(:prune_copy, :map, required: true)
-    attr(:runs, :any, required: true)
-    attr(:runs_count, :integer, required: true)
-    attr(:default_limit, :integer, required: true)
-
-    defp run_history(assigns) do
-      ~H"""
-              <section class="tl-summary-grid" aria-label="Retention window health">
-                <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Latest run</span>
-                  <strong class="tl-card__metric"><%= @retention_summary.latest_status %></strong>
-                </div>
-                <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Latest completed run</span>
-                  <strong class="tl-card__metric"><%= @retention_summary.latest_completed %></strong>
-                </div>
-                <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Rows deleted in recent runs</span>
-                  <strong class="tl-card__metric"><%= @retention_summary.total_deleted %></strong>
-                </div>
-                <div class="tl-card--metric" data-status={if @retention_summary.failure_count > 0, do: "danger"}>
-                  <span class="tl-card__metric-label">Failures</span>
-                  <strong class="tl-card__metric">
-                    <%= if @retention_summary.first_failed_dom_id do %>
-                      <a href={"##{@retention_summary.first_failed_dom_id}"} class="tl-link tl-link--deep"><%= @retention_summary.failure_count %></a>
-                    <% else %>
-                      <%= @retention_summary.failure_count %>
-                    <% end %>
-                  </strong>
-                </div>
-              </section>
-
-              <%!-- Signal-to-chrome rule: no status alert and no
-              "destructive action" self-label here. The stat cards above already carry
-              latest status + failure count (with a danger state and a deep link), and
-              the type-to-confirm prune modal delivers the destructive warning at the
-              point of action — restating either as banner prose is chrome. --%>
-              <div class="tl-page__actions">
-                <button
-                  type="button"
-                  class="tl-button tl-button--secondary"
-                  phx-click={JS.push_focus() |> JS.push("open_prune_modal")}
-                >
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
-                  <%= @prune_copy.open_label %>
-                </button>
-              </div>
-
-              <%!-- Retention is a recent-only, low-volume view, not a keyset pager.
-                    Report the actual rendered count
-                    (never over-claim against a short table) and, when the cap is hit,
-                    interpolate the real @default_limit rather than a hardcoded literal. --%>
-              <p class="tl-status" role="status" aria-live="polite">
-                <%= if @runs_count >= @default_limit do %>
-                  Showing the most recent <%= @default_limit %> retention runs (newest first).
-                <% else %>
-                  Showing the most recent <%= @runs_count %> <%= if @runs_count == 1, do: "retention run", else: "retention runs" %> (newest first).
-                <% end %>
-              </p>
-              <div class="tl-table-wrap" data-testid="retention-runs-table">
-                <UI.Data.data_table
-                  class="tl-table--retention tl-table--compact tl-table--sticky"
-                  stream={@runs}
-                  tbody_id="retention-runs"
-                  row_id={fn {dom_id, _run} -> dom_id end}
-                  row_status={fn {_dom_id, run} -> run.status end}
-                  data-testid="retention-runs-table-el"
-                >
-                  <:col :let={{_dom_id, run}} label="Run">
-                    <UI.Display.ref value={"retention_run/#{run.id}"} kind="actor" copy_label="Copy retention run id" />
-                  </:col>
-                  <:col :let={{_dom_id, run}} label="Status">
-                    <span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span>
-                  </:col>
-                  <:col :let={{_dom_id, run}} label="Deleted Rows"><%= count_label(run.deleted_count) %></:col>
-                  <:col :let={{_dom_id, run}} label="Duration"><%= duration_label(run.duration_ms) %></:col>
-                  <:col :let={{_dom_id, run}} label="Outcome">
-                    <%= if run.status == "failed" do %>
-                      <span class="tl-retention-failure">
-                        <%= failure_summary(run) %>
-                      </span>
-                    <% else %>
-                      <span class="tl-muted">No additional outcome details</span>
-                    <% end %>
-                  </:col>
-                  <:col :let={{_dom_id, run}} label="Date">
-                    <%= if run.started_at do %>
-                      <time datetime={Presentation.exact_time(run.started_at)} title={Presentation.exact_time(run.started_at)}>
-                        <%= Presentation.human_time(run.started_at) %>
-                      </time>
-                    <% else %>
-                      <span class="tl-muted">Not started</span>
-                    <% end %>
-                  </:col>
-                  <:action :let={{_dom_id, _run}}>
-                    <.link :if={@retention_actions.evidence_path} navigate={@retention_actions.evidence_path} class="tl-button tl-button--compact tl-button--secondary">
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-                      Review evidence
-                    </.link>
-                  </:action>
-                </UI.Data.data_table>
-              </div>
-      """
-    end
-
+    attr(:preview, :map, required: true)
     attr(:prune_copy, :map, required: true)
     attr(:submitting, :boolean, required: true)
     attr(:confirmation_error, :string, default: nil)
@@ -422,6 +441,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <%= @prune_copy.scope_explanation %>
                 To confirm, type the policy name “<%= @prune_copy.policy_name %>” exactly. This action cannot be undone.
               </p>
+              <Components.retention_preview preview={@preview} state={:ready} />
               <form phx-submit="prune_now" class="tl-form">
                 <label class="tl-field">
                   <span class="tl-field__label">Type the policy name “<code><%= @prune_copy.policy_name %></code>” to confirm</span>
@@ -490,11 +510,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Audit the operator's request only after authorization and confirmation
     # succeed, and before starting the prune. The backend records completed
     # deletion totals only after the purge succeeds.
-    defp audit_prune(socket, policy_name) do
+    defp audit_prune(socket, policy_name, target) do
       case socket.assigns[:threadline_actor_ref] do
         %ActorRef{} = actor ->
           if ActorRef.identifiable?(actor) do
-            record_prune_action(socket, actor, policy_name)
+            record_prune_action(target, actor, policy_name)
           else
             {:error, :audit_failed}
           end
@@ -506,12 +526,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       _ -> {:error, :audit_failed}
     end
 
-    defp record_prune_action(socket, actor, policy_name) do
+    defp record_prune_action(target, actor, policy_name) do
       case Threadline.record_action(:"retention.pruned",
-             repo: resolve_repo(socket),
+             repo: target.repo,
              actor: actor,
              comment: "Operator-triggered retention prune for policy #{policy_name}",
-             storage_schema: StorageSchema.get()
+             storage_schema: target.storage_schema
            ) do
         {:ok, action} -> {:ok, action}
         {:error, _reason} -> {:error, :audit_failed}
@@ -588,12 +608,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       latest_completed = Enum.find(runs, &(&1.status == "completed"))
       first_failed = Enum.find(runs, &(&1.status == "failed"))
 
+      finished_runs = Enum.filter(runs, &(&1.status in ["completed", "failed"]))
+
+      recorded_counts =
+        Enum.flat_map(finished_runs, fn run ->
+          if is_nil(run.deleted_count), do: [], else: [run.deleted_count]
+        end)
+
       %{
         latest_status: Presentation.status_label(run.status),
         latest_at: run.started_at,
         latest_completed_at: latest_completed && latest_completed.completed_at,
         healthy?: failure_count == 0 and run.status == "completed",
-        total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
+        total_deleted: if(recorded_counts == [], do: nil, else: Enum.sum(recorded_counts)),
+        missing_deletion_counts: length(finished_runs) - length(recorded_counts),
         failure_count: failure_count,
         first_failed_dom_id: first_failed && "runs-#{first_failed.id}"
       }
@@ -605,7 +633,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         latest_at: nil,
         latest_completed_at: nil,
         healthy?: false,
-        total_deleted: 0,
+        total_deleted: nil,
+        missing_deletion_counts: 0,
         failure_count: 0,
         first_failed_dom_id: nil
       }
@@ -618,6 +647,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         latest_completed: latest_completed_label(runs_summary.latest_completed_at),
         healthy?: runs_summary.healthy?,
         total_deleted: runs_summary.total_deleted,
+        missing_deletion_counts: runs_summary.missing_deletion_counts,
         failure_count: runs_summary.failure_count,
         first_failed_dom_id: runs_summary.first_failed_dom_id
       }
@@ -644,26 +674,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       }
     end
 
-    defp safe_failure_category("prune_error"), do: "prune error"
-    defp safe_failure_category("invalid_policy"), do: "invalid policy"
-    defp safe_failure_category("disabled"), do: "policy disabled"
-    defp safe_failure_category("Abandoned"), do: "abandoned"
-    defp safe_failure_category(_), do: "prune error"
-
-    defp failure_summary(run) do
-      deleted = run.deleted_count || 0
-      noun = if deleted == 1, do: "row was", else: "rows were"
-
-      "Retention prune failed (#{safe_failure_category(run.error_message)}). #{deleted} #{noun} deleted before the failure. Review this run and resolve the reported category before starting another prune."
-    end
-
     defp latest_completed_label(nil), do: "No completed run yet"
     defp latest_completed_label(%DateTime{} = value), do: Presentation.human_time(value)
-
-    defp count_label(nil), do: "No rows deleted"
-    defp count_label(value), do: value
-
-    defp duration_label(nil), do: "No duration yet"
-    defp duration_label(value), do: "#{value}ms"
   end
 end

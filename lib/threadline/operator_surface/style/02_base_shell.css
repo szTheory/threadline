@@ -117,7 +117,7 @@
   .tl-topbar {
     position: sticky;
     top: 0;
-    z-index: var(--tl-z-toast);
+    z-index: var(--tl-z-header);
     min-height: var(--tl-header-height-mobile);
     display: flex;
     flex-wrap: wrap;
@@ -215,7 +215,7 @@
   .tl-shell-nav {
     position: sticky;
     top: var(--tl-header-height-mobile);
-    z-index: calc(var(--tl-z-toast) - 1);
+    z-index: calc(var(--tl-z-header) - 1);
     background: var(--tl-color-surface-tint);
     border-bottom: 1px solid var(--tl-color-border);
     font-size: var(--tl-font-size-label);

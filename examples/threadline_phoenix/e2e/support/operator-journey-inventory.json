@@ -436,7 +436,9 @@
         {"id":"source-exports-7","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def my_export_authorize_fn(%{assigns: assigns}) do"},
         {"id":"source-exports-8","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\""},
         {"id":"source-exports-9","path":"examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts","locator":"test(\"keeps export and retention journeys readable across themes, widths, and a live reconnect\""},
-        {"id":"source-route-exports-9","path":"lib/threadline/operator_surface/live/export_status_live.ex","locator":"\"queue_timeline_export_context\"","kind":"production-source"}
+        {"id":"source-route-exports-9","path":"lib/threadline/operator_surface/live/export_status_live.ex","locator":"\"queue_timeline_export_context\"","kind":"production-source"},
+        {"id":"source-exports-catalog","path":"examples/threadline_phoenix/storybook/operations/exports.story.exs","locator":"ExportStatusLive.Components.job_history"},
+        {"id":"source-exports-shared-history","path":"lib/threadline/operator_surface/live/export_status_live/components.ex","locator":"def job_history(assigns)"}
       ],
       "proofRefs": [
         {"id":"proof-exports-1","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Exports seeded pending, failed, completed, unavailable and invalid context stay distinct\"","owner":"operator-route-states.spec.ts","limitation":"Proof owner locator only; this plan does not run browser tests or claim a fresh mounted-route, accessibility, or visual receipt."},
@@ -499,7 +501,7 @@
       "id": "route.retention",
       "routeId": "route.retention",
       "jobId": "job.operator-retention-operations",
-      "job": "Review retention run history and request an authorized prune",
+      "job": "Preview configured-store retention, deliberately confirm and inspect recorded outcomes",
       "journeyOrder": null,
       "renderer": {"module":"Threadline.OperatorSurface.Live.RetentionHistoryLive","path":"lib/threadline/operator_surface/live/retention_history_live.ex","locator":"defmodule Threadline.OperatorSurface.Live.RetentionHistoryLive"},
       "sourceRefs": [
@@ -510,14 +512,21 @@
         {"id":"source-retention-6","path":"lib/threadline/operator_surface/live/retention_history_live.ex","locator":"handle_event(\"open_prune_modal\", _params, socket) do"},
         {"id":"source-retention-7","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def my_policy_authorize_fn(%{assigns: assigns}) do"},
         {"id":"source-retention-8","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Retention confirmation focus and cancel preserve state; Chromium touch navigation works\""},
-        {"id":"source-retention-9","path":"examples/threadline_phoenix/e2e/tests/operator-features.spec.ts","locator":"test(\"retention history shows the full run lifecycle\""}
+        {"id":"source-retention-9","path":"examples/threadline_phoenix/e2e/tests/operator-features.spec.ts","locator":"test(\"retention history shows the full run lifecycle\""},
+        {"id":"source-retention-preview","path":"lib/threadline/operator_surface/live/retention_history_live.ex","locator":"handle_event(\"preview_retention\", _params, socket) do"},
+        {"id":"source-retention-preview-completion","path":"lib/threadline/operator_surface/live/retention_history_live.ex","locator":"handle_async({:retention_preview, request}, outcome, socket) do"},
+        {"id":"source-retention-target-guard","path":"lib/threadline/operator_surface/live/retention_history_live.ex","locator":"Pruner.trigger_if_target(preview.target)"},
+        {"id":"source-retention-catalog","path":"examples/threadline_phoenix/storybook/operations/retention.story.exs","locator":"Components.run_history"},
+        {"id":"source-retention-shared-history","path":"lib/threadline/operator_surface/live/retention_history_live/components.ex","locator":"def run_history(assigns)"},
+        {"id":"source-retention-shared-preview","path":"lib/threadline/operator_surface/live/retention_history_live/components.ex","locator":"def retention_preview(assigns)"},
+        {"id":"source-retention-no-replay","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Phase252 Retention preview requires fresh deliberate confirmation after reconnect\""}
       ],
       "proofRefs": [
-        {"id":"proof-retention-1","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Retention confirmation focus and cancel preserve state; Chromium touch navigation works\"","owner":"operator-route-states.spec.ts","limitation":"Proof owner locator only; this plan does not run browser tests or claim a fresh mounted-route, accessibility, or visual receipt."},
+        {"id":"proof-retention-1","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Phase252 Retention preview requires fresh deliberate confirmation after reconnect\"","owner":"operator-route-states.spec.ts","limitation":"Explicit private owned-mutation lane observes unchanged audit/run rows while offline and after reconnect, then one deliberate typed confirmation and recorded run. Focus/cancel has its separate source-retention-8 owner. This does not claim hosted, native clipboard or full-suite proof."},
         {"id":"proof-retention-2","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-features.spec.ts","locator":"test(\"retention history shows the full run lifecycle\"","owner":"operator-features.spec.ts","limitation":"Proof owner locator only; this plan does not run browser tests or claim a fresh mounted-route, accessibility, or visual receipt."}
       ],
       "access": {"authentication":"Host my_authorize_fn requires a current authenticated operator; absent or unmatched users are rejected.","capability":"Retention shares the host policy authorization callback and is unavailable to support readers.","organizationScope":"Retention mutations and history are not available to organization-scoped support readers in this host.","supportDisposition":"unavailable"},
-      "actions": ["Refresh retention runs","Open, cancel, and confirm the prune dialog","Inspect run outcomes"],
+      "actions": ["Refresh retention runs","Preview read-only consequences","Open, cancel, and confirm a server-held preview","Inspect recorded run outcomes"],
       "states": ["Loading retention runs","No run history","Loaded run lifecycle","Busy or disabled prune action","Denied or failed mutation and successful outcome"],
       "surfaceType": "liveview",
       "routePattern": "/policy/retention",
@@ -728,7 +737,11 @@
       "sourceRefs": [
         {"id":"conditional-route","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"if Application.compile_env(:threadline_phoenix, :dev_routes)"},
         {"id":"catalog-mount","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"live_storybook(\"/dev/storybook\""},
-        {"id":"dependency-boundary","path":"examples/threadline_phoenix/mix.exs","locator":"{:phoenix_storybook, \"~> 1.2.0\", only: [:dev, :test]}"}
+        {"id":"dependency-boundary","path":"examples/threadline_phoenix/mix.exs","locator":"{:phoenix_storybook, \"~> 1.2.0\", only: [:dev, :test]}"},
+        {"id":"operations-branch","path":"examples/threadline_phoenix/storybook/index.exs","locator":"entry(\"operations\")"},
+        {"id":"operations-exports","path":"examples/threadline_phoenix/storybook/operations/exports.story.exs","locator":"ExportStatusLive.Components.job_history"},
+        {"id":"operations-retention","path":"examples/threadline_phoenix/storybook/operations/retention.story.exs","locator":"Components.run_history"},
+        {"id":"operations-pure-fixtures","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex","locator":"def operations_retention(scene)"}
       ]
     },
     {

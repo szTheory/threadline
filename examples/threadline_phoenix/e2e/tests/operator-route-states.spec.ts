@@ -1,7 +1,7 @@
 import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
 import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { installControlledClipboard, login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
@@ -11,7 +11,8 @@ import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-
 // Passing this suite means observed states have source-bound evidence. Existing
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
-test.beforeEach(async ({}, info) => {
+test.beforeEach(async ({ page }, info) => {
+  if (process.env.THREADLINE_E2E_EVIDENCE === "1" || process.env.THREADLINE_PHASE252_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
   if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme" &&
       info.title === "theme preference, effective cascade and reduced motion are distinct observed facts" &&
       info.project.name === "desktop-chromium") return;
@@ -1403,12 +1404,16 @@ for (const input of ["pointer", "Enter", "Space"] as const) {
 test("Retention confirmation focus and cancel preserve state; Chromium touch navigation works", async ({ page, browser }, info) => {
   await login(page);
   await page.goto("/audit/policy/retention");
-  const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+  const preview = page.getByRole("button", { name: "Preview retention", exact: true });
+  const open = page.getByRole("button", { name: "Review and confirm", exact: true });
+  const prepare = async () => { await preview.click(); await expect(page.getByTestId("retention-preview")).toBeVisible(); };
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const revisionMarker = page.locator("[data-tl-mutation-revision]");
   await expect(revisionMarker).toHaveAttribute("data-tl-mutation-revision", /.+/);
-  const initialRows = await page.locator("#retention-runs tbody tr").count();
-  await prune.focus();
+  const initialRows = await page.locator("#retention-runs tr").count();
+  expect(initialRows).toBeGreaterThan(0);
+  await prepare();
+  await open.focus();
   await page.keyboard.press("Enter");
   const dialog = page.locator("#prune-confirm-focus");
   await expect(dialog).toBeVisible();
@@ -1423,33 +1428,58 @@ test("Retention confirmation focus and cancel preserve state; Chromium touch nav
   await dialog.getByRole("button", { name: "Prune now", exact: true }).click();
   await expect(dialog).toBeVisible();
   await expect(confirmation).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
   for (let tab = 0; tab < 4; tab += 1) {
     await page.keyboard.press("Tab");
     await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   }
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
-  await expect(prune).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(preview).toBeFocused();
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
   await expect(page.getByText("Prune request accepted", { exact: false })).toHaveCount(0);
 
-  await prune.click();
+  await prepare();
+  await open.click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Keep audit data", exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(prune).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(preview).toBeFocused();
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
 
   const touchContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 }, hasTouch: true, reducedMotion: "reduce", colorScheme: info.project.name.endsWith("light") ? "light" : "dark" });
   try {
     const touch = await touchContext.newPage();
+    await installControlledClipboard(touch);
     await login(touch);
     await touch.goto("/audit");
     const toggle = touch.locator(".tl-shell-nav__toggle");
     await expect(toggle).toBeVisible();
     await toggle.tap();
     await expect(touch.locator(".tl-shell-nav__panel")).toBeVisible();
+    await touch.goto("/audit/policy/retention");
+    await expect(touch.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await touch.getByRole("button", { name: "Preview retention", exact: true }).tap();
+    await expect(touch.getByTestId("retention-preview")).toBeVisible();
+    await touch.getByRole("button", { name: "Review and confirm", exact: true }).tap();
+    const touchDialog = touch.getByRole("dialog");
+    await expect(touchDialog).toBeVisible();
+    await touchDialog.evaluate((dialog) => {
+      for (const element of [dialog, ...dialog.querySelectorAll("*")]) {
+        if (/auto|scroll/.test(getComputedStyle(element).overflowY) && element.scrollHeight > element.clientHeight) element.scrollTop = 0;
+      }
+    });
+    const heading = touchDialog.getByRole("heading", { name: "Prune retained audit data?", exact: true });
+    await expect(heading).toBeVisible();
+    expect(await heading.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const painted = document.elementFromPoint(box.x + box.width / 2, box.y + 4);
+      return painted !== null && (element === painted || element.contains(painted));
+    })).toBe(true);
+    await touchDialog.getByRole("button", { name: "Keep audit data", exact: true }).tap();
+    await expect(touchDialog).toBeHidden();
   } finally { await touchContext.close(); }
 });
 
@@ -1887,4 +1917,101 @@ test("Phase251 Evidence recorded provenance", async ({ page, browser }) => {
     await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(support.locator("#tl-main")).toContainText("Evidence is unavailable in this support lane");
   } finally { await context.close(); }
+});
+
+
+type Phase252MutationState = {
+  database: string; requests: number; changes: number; transactions: number;
+  active: number; run_rows: { id: string; status: string; deleted_count: number | null; started_at: string | null; completed_at: string | null }[];
+  request_rows: { id: string; actor_ref: { type: string; id: string }; inserted_at: string }[];
+};
+
+function phase252MutationState(): Phase252MutationState {
+  const expectedOrigin = "http://127.0.0.1:60154";
+  if (process.env.DB_HOST !== "127.0.0.1" || process.env.DB_PORT !== "60025" || process.env.MIX_TEST_PARTITION !== "p252mutation" || process.env.THREADLINE_PHASE252_MUTATION_APP_URL !== expectedOrigin || new URL(process.env.E2E_BASE_URL ?? "http://invalid").origin !== expectedOrigin) {
+    throw new Error("Phase252 destructive proof requires the exact owned p252mutation database and app origin; no fallback");
+  }
+  const receipt = JSON.parse(readFileSync("/private/tmp/threadline-252-mutation-app.json", "utf8"));
+  if (receipt.status !== "ready" || receipt.url !== expectedOrigin || receipt.database !== "threadline_phoenix_testp252mutation" || receipt.port !== 60154) throw new Error("Mutation app custody is not ready");
+  const sql = `SELECT jsonb_build_object(
+    'database',current_database(),
+    'requests',(SELECT count(*) FROM threadline.audit_actions WHERE name='retention.pruned'),
+    'changes',(SELECT count(*) FROM threadline.audit_changes),
+    'transactions',(SELECT count(*) FROM threadline.audit_transactions),
+    'active',(SELECT count(*) FROM threadline.threadline_retention_runs WHERE status IN ('queued','running')),
+    'run_rows',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',id,'status',status,'deleted_count',deleted_count,'started_at',started_at,'completed_at',completed_at) ORDER BY id),'[]'::jsonb) FROM threadline.threadline_retention_runs),
+    'request_rows',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',id,'actor_ref',actor_ref,'inserted_at',inserted_at) ORDER BY id),'[]'::jsonb) FROM threadline.audit_actions WHERE name='retention.pruned'))::text;`;
+  const value = JSON.parse(execFileSync(process.env.THREADLINE_PHASE252_PSQL ?? "psql", ["-X", "-h", "127.0.0.1", "-p", "60025", "-d", "threadline_phoenix_testp252mutation", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql], { encoding: "utf8", env: { ...process.env, PGUSER: "postgres", PGPASSWORD: "postgres" } }).trim());
+  if (value.database !== "threadline_phoenix_testp252mutation") throw new Error("Wrong observed mutation database");
+  return value;
+}
+
+test("Phase252 Retention preview requires fresh deliberate confirmation after reconnect", async ({ page }) => {
+  test.skip(process.env.THREADLINE_PHASE252_MUTATION_APP_URL !== "http://127.0.0.1:60154", "Explicit owned mutation-fixture lane only");
+  const proofDir = resolve(process.env.THREADLINE_PHASE252_PROOF_DIR ?? "/invalid");
+  if (!proofDir.startsWith("/private/tmp/private252mutationevidence/") || !existsSync(proofDir) || !statSync(proofDir).isDirectory()) throw new Error("Parent-owned fresh mutation proof directory required");
+  const proofFile = join(proofDir, "retention-no-replay.json");
+  if (existsSync(proofFile)) throw new Error("Preserve the previous mutation proof invocation");
+  const facts: { at: string; stage: string; state: Phase252MutationState }[] = [];
+  const mark = (stage: string) => { const state = phase252MutationState(); facts.push({ at: new Date().toISOString(), stage, state }); writeFileSync(proofFile, `${JSON.stringify({ kind: "owned-mutation-fixture", facts }, null, 2)}\n`); return state; };
+  const before = mark("fixture-before-login");
+  expect(before.active).toBe(0); expect(before.changes).toBeGreaterThan(0); expect(before.transactions).toBeGreaterThan(0); expect(before.run_rows.length).toBeGreaterThan(0);
+  let blockReconnect = false;
+  let connections = 0;
+  await page.routeWebSocket(/\/live\/websocket/, (socket) => { connections += 1; if (blockReconnect) socket.close(); else socket.connectToServer(); });
+  await login(page); await page.goto("/audit/policy/retention");
+  const liveRoot = page.locator("[data-phx-main]");
+  await expect(liveRoot).toHaveClass(/phx-connected/);
+  const revision = page.locator("[data-tl-mutation-revision]");
+  await expect(revision).toHaveAttribute("data-tl-mutation-revision", /.+/);
+  const originalRevision = await revision.getAttribute("data-tl-mutation-revision");
+  const prepare = async () => { await page.getByRole("button", { name: "Preview retention", exact: true }).click(); await expect(page.getByTestId("retention-preview")).toBeVisible(); await page.getByRole("button", { name: "Review and confirm", exact: true }).click(); await expect(page.getByRole("dialog")).toBeVisible(); };
+  await prepare();
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).fill("default");
+  blockReconnect = true;
+  await page.evaluate(() => (window as any).liveSocket.disconnect());
+  await expect(liveRoot).toHaveClass(/phx-(loading|error|client-error)/);
+  await expect(page.locator(".tl-reconnect-banner")).toBeVisible();
+  const submit = page.getByRole("button", { name: "Prune now", exact: true });
+  await expect(submit).toBeDisabled();
+  const box = await submit.boundingBox(); expect(box).toBeTruthy();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).focus();
+  await page.keyboard.press("Enter");
+  expect(mark("offline-pointer-enter")).toEqual(before);
+  blockReconnect = false;
+  const previousConnections = connections;
+  await page.evaluate(() => (window as any).liveSocket.connect());
+  await expect(liveRoot).toHaveClass(/phx-connected/);
+  await expect.poll(() => connections).toBeGreaterThan(previousConnections);
+  await expect.poll(() => revision.getAttribute("data-tl-mutation-revision")).not.toBe(originalRevision);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  // A bounded observation window checks delayed replay as well as the first reconnect frame.
+  const until = Date.now() + 1_000;
+  while (Date.now() < until) { expect(phase252MutationState()).toEqual(before); await page.waitForTimeout(100); }
+  expect(mark("reconnected-without-replay")).toEqual(before);
+  await prepare();
+  expect(phase252MutationState()).toEqual(before);
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).fill("default");
+  expect(phase252MutationState()).toEqual(before);
+  await page.getByRole("button", { name: "Prune now", exact: true }).click();
+  await expect.poll(() => phase252MutationState().requests).toBe(before.requests + 1);
+  await expect.poll(() => phase252MutationState().run_rows.length).toBe(before.run_rows.length + 1);
+  const originalIds = new Set(before.run_rows.map((run) => run.id));
+  await expect.poll(() => phase252MutationState().run_rows.find((run) => !originalIds.has(run.id))?.status).toBe("completed");
+  const after = mark("fresh-deliberate-completed");
+  const run = after.run_rows.find((candidate) => !originalIds.has(candidate.id))!;
+  expect(run.deleted_count).toBeGreaterThan(0);
+  expect((before.changes - after.changes) + (before.transactions - after.transactions)).toBe(run.deleted_count);
+  expect(after.changes).toBeLessThan(before.changes);
+  expect(after.requests).toBe(before.requests + 1);
+  const requestIds = new Set(before.request_rows.map((request) => request.id));
+  const request = after.request_rows.find((candidate) => !requestIds.has(candidate.id))!;
+  expect(request.actor_ref.type).toBe("user");
+  expect(request.actor_ref.id).toBeTruthy();
+  const row = page.locator(`#runs-${run.id}`);
+  await expect(row.getByText("Completed", { exact: true })).toBeVisible();
+  await expect(row.locator("td[data-label='Deleted Rows']")).toHaveText(String(run.deleted_count));
+  expect(run.started_at).toBeTruthy(); expect(run.completed_at).toBeTruthy();
 });
