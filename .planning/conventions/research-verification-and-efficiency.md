@@ -255,3 +255,6 @@ On hosts with typed agent dispatch, the agent already receives its role persona.
 
 
 Read mandatory review inputs in bounded, individually complete sections. A successful command whose output is truncated does not establish that the reviewer saw the missing tail. Phase253's UI checker approved the visible contract but flagged Registry Safety as absent even though it existed after the truncated portion. Re-read the exact missing section and withdraw the false finding; do not implement a duplicate to satisfy it. Keep the actual useful clarification, preserve the original limitation and avoid another whole audit.
+
+
+For multiple package assertions over one unchanged candidate, prefer one freshly built archive fixture per test-module invocation and pass its immutable entries explicitly. Preserve populated premises, exact-byte checks, negative controls and per-invocation cleanup; inspect whether any test mutates source before sharing the fixture. Do not persist across runs. Phase253 measured the same29 selected contracts at19.8→2.9suite seconds (21.634→4.319managed wall seconds); metadata-only selections now also prepare the archive, and CI-wide benefit remains unmeasured.
