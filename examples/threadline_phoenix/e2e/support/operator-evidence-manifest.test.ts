@@ -411,7 +411,9 @@ if [[ "$1" == "-t" ]]; then cat ${JSON.stringify(pidFile)}; elif [[ "$1" == "-a"
   execFileSync("git", ["add", "examples/threadline_phoenix/priv/threadline_exports/tracked.txt"], { cwd: root });
   writeFileSync(join(root, ".gitignore"), "examples/threadline_phoenix/priv/threadline_exports/*\nunrelated.tmp\n");
   writeFileSync(join(root, "unrelated.tmp"), "retain unrelated generated data");
-  const overrides = { THREADLINE_E2E_EVIDENCE: "0", MIX_TEST_PARTITION: "", THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "0" };
+  const bashEnv = join(root, "runner-shell-env");
+  writeFileSync(bashEnv, 'kill() { if [[ "$1" == "-0" && "${FAKE_PRUNER_MARKER:-}" == "missing" ]]; then return 1; fi; builtin kill "$@"; }\n');
+  const overrides = { THREADLINE_E2E_EVIDENCE: "0", MIX_TEST_PARTITION: "", THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "0", BASH_ENV: bashEnv };
   for (const theme of ["", "system"]) {
     writeFileSync(join(example, "priv/threadline_exports/generated.csv"), "generated export");
     const result = run({ ...overrides, THREADLINE_E2E_THEME: theme }, ["operator-shell-home.spec.ts", "--grep", "home"]);
@@ -458,41 +460,37 @@ test("runner proof forwards ordinary and System/light named arguments without a 
   }
 });
 
-test("both preview stop entrypoints reject invalid or unowned processes without signalling", (t) => {
-  const { root, env, run } = runnerFixture(t);
+test("both preview stop entrypoints preserve state when receipt validation refuses", (t) => {
+  const { root, run, sentinel } = runnerFixture(t);
   const state = join(root, "preview.json");
-  const signal = join(root, "signal-called");
-  const preload = join(root, "signal-mock.cjs");
-  writeFileSync(preload, `process.kill=(pid,sig)=>{require('node:fs').writeFileSync(${JSON.stringify(signal)},JSON.stringify([pid,sig]));return true;};`);
-  const bin = join(root, "bin");
-  writeFileSync(join(bin, "lsof"), '#!/usr/bin/env bash\nexit 1\n');
-  chmodSync(join(bin, "lsof"), 0o755);
-  for (const args of [["--stop-preview"], []]) for (const pid of [0, 1, 777777]) {
-    writeFileSync(state, JSON.stringify({pid,url:"http://127.0.0.1:4109",partition:"operator_stop",database:"threadline_phoenix_testoperator_stop"}));
-    const result = run({ THREADLINE_E2E_PREVIEW_STATE:state, THREADLINE_E2E_STOP_PREVIEW:args.length ? "0":"1", NODE_OPTIONS:`--require=${preload}` }, args);
-    assert.notEqual(result.status, 0, `accepted unowned PID ${pid}`);
-    assert.ok(existsSync(state), "failed ownership check removed state");
-    assert.ok(!existsSync(signal), "failed ownership check sent signal");
+  const validator = join(root, "stop-validator-called");
+  const tsx = join(root, "examples/threadline_phoenix/e2e/node_modules/.bin/tsx");
+  // This is the runner-to-validator seam. Actual process/custody refusal is
+  // exercised by operator-preview-receipt.test.ts, not this controlled CLI.
+  writeFileSync(tsx, '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$VALIDATOR_SENTINEL"\nexit 86\n');
+  for (const args of [["--stop-preview"], []]) {
+    writeFileSync(state, "untrusted state remains unchanged");
+    writeFileSync(validator, "");
+    const result = run({ THREADLINE_E2E_PREVIEW_STATE: state, THREADLINE_E2E_STOP_PREVIEW: args.length ? "0" : "1", VALIDATOR_SENTINEL: validator }, args);
+    assert.equal(result.status, 86);
+    assert.equal(readFileSync(state, "utf8"), "untrusted state remains unchanged");
+    assert.equal(readFileSync(validator, "utf8").trim(), `${join(root, "examples/threadline_phoenix/e2e/support/operator-preview-receipt.ts")} --stop ${state}`);
+    assert.equal(existsSync(sentinel), false, "stop must not enter reset/start lifecycle");
   }
 });
 
-test("owned preview stop checks cwd, loopback listener and database on both entrypoints", (t) => {
-  const {root, run} = runnerFixture(t);
-  const state=join(root,"preview.json"), signal=join(root,"signal-called"), preload=join(root,"signal-mock.cjs"), bin=join(root,"bin");
-  writeFileSync(preload, `process.kill=(pid,sig)=>{require('node:fs').writeFileSync(${JSON.stringify(signal)},JSON.stringify([pid,sig]));return true;};`);
-  writeFileSync(join(bin,"lsof"), '#!/usr/bin/env bash\ncase "$*" in\n*"-d cwd"*) printf "p777777\\nn%s\\n" "$FAKE_CWD" ;;\n*"-sTCP:LISTEN"*) printf "p777777\\nn%s\\n" "$FAKE_LISTENER" ;;\n*) printf "p777777\\nn127.0.0.1:55001->127.0.0.1:5432\\n" ;;\nesac\n');
-  chmodSync(join(bin,"lsof"),0o755);
-  const good={THREADLINE_E2E_PREVIEW_STATE:state,NODE_OPTIONS:`--require=${preload}`,FAKE_CWD:join(root,"examples/threadline_phoenix"),FAKE_LISTENER:"127.0.0.1:4109",FAKE_EXISTING_DB:"threadline_phoenix_testoperator_stop"};
-  for(const args of [["--stop-preview"],[]]) {
-    const mode={THREADLINE_E2E_STOP_PREVIEW:args.length ? "0":"1"};
-    for(const override of [{FAKE_CWD:"/unrelated"},{FAKE_LISTENER:"*:4109"},{FAKE_LISTENER:"127.0.0.1:4110"},{FAKE_EXISTING_DB:"production"},{DB_HOST:"remote.invalid"}]) {
-      writeFileSync(state,JSON.stringify({pid:777777,url:"http://127.0.0.1:4109",partition:"operator_stop",database:"threadline_phoenix_testoperator_stop"}));
-      const result=run({...good,...mode,...override},args);
-      assert.notEqual(result.status,0);assert.ok(existsSync(state));assert.ok(!existsSync(signal));
-    }
-    const result=run({...good,...mode},args);
-    assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(readFileSync(signal,"utf8")),[777777,"SIGTERM"]);assert.ok(!existsSync(state));
-    unlinkSync(signal);
+test("both preview stop entrypoints return the actual receipt validator result", (t) => {
+  const { root, run, sentinel } = runnerFixture(t);
+  const state = join(root, "preview.json");
+  const validator = join(root, "stop-validator-called");
+  const tsx = join(root, "examples/threadline_phoenix/e2e/node_modules/.bin/tsx");
+  writeFileSync(tsx, '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$VALIDATOR_SENTINEL"\nexit "$FAKE_VALIDATOR_STATUS"\n');
+  for (const args of [["--stop-preview"], []]) for (const status of [0, 23]) {
+    writeFileSync(validator, "");
+    const result = run({ THREADLINE_E2E_PREVIEW_STATE: state, THREADLINE_E2E_STOP_PREVIEW: args.length ? "0" : "1", VALIDATOR_SENTINEL: validator, FAKE_VALIDATOR_STATUS: String(status) }, args);
+    assert.equal(result.status, status, result.stderr);
+    assert.equal(readFileSync(validator, "utf8").trim(), `${join(root, "examples/threadline_phoenix/e2e/support/operator-preview-receipt.ts")} --stop ${state}`);
+    assert.equal(existsSync(sentinel), false);
   }
 });
 
