@@ -60,9 +60,9 @@ status: "bounded-delta-confirmed"
 
 # Phase 252 — UI Review
 
-**Audited:** 2026-11-13  
-**Baseline:** Approved [252-UI-SPEC.md](252-UI-SPEC.md), signed-off `brand/` identity, and Phase 251’s accepted shell. The frozen source manifest was reviewed at `e79f7837e6e9817e739933c85d9579f436f42446`; the actual current runtime/pixels are bound to `7cca0a1830949c31fec4a90d2719ef1f0fcb4056`. The manifest records only a later test-predicate/planning change after the runtime revision.  
-**Screenshots:** Existing selected PNGs inspected directly; this review created no captures.  
+**Audited:** 2026-11-13
+**Baseline:** Approved [252-UI-SPEC.md](252-UI-SPEC.md), signed-off `brand/` identity, and Phase 251’s accepted shell. The frozen source manifest was reviewed at `e79f7837e6e9817e739933c85d9579f436f42446`; the actual current runtime/pixels are bound to `7cca0a1830949c31fec4a90d2719ef1f0fcb4056`. The manifest records only a later test-predicate/planning change after the runtime revision.
+**Screenshots:** Existing selected PNGs inspected directly; this review created no captures.
 **Interaction captures:** The supplied after selection includes Retention preview and open-confirmation views, including top and initial-focus/scroll positions. The confirmation token is empty and neither action was clicked. No live error/loading/zero-preview action state, cancel/submit result, zoom, native clipboard, or hosted state was visually captured.
 
 ## Evidence boundaries
@@ -182,7 +182,7 @@ The initial score and findings above are preserved as the review of source/runti
 | 5. Spacing | 2/4 | 4/4 | A local existing-token stack now separates the scope, preview action, and history groups in the current paired screenshots. |
 | 6. Experience Design | 2/4 | 3/4 | The mobile heading has a passing real-browser hit test, and focus/cancel behavior remains covered; live error/loading/zoom states remain unpictured. |
 
-**Initial overall (preserved): 16/24. Current bounded score: 22/24.**  
+**Initial overall (preserved): 16/24. Current bounded score: 22/24.**
 **Delta verdict:** all five initial findings are resolved in the changed scope; no open finding remains from this bounded UI review. This does not claim unpictured state coverage or whole-phase goal completion.
 
 ### Finding Disposition

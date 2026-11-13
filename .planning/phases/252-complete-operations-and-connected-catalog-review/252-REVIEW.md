@@ -48,9 +48,9 @@ status: clean
 
 # Phase 252: Code Review Report
 
-**Reviewed:** 2026-11-13T13:17:12Z  
-**Depth:** deep, with bounded delta confirmation  
-**Files Reviewed:** 20 unique source/test files  
+**Reviewed:** 2026-11-13T13:17:12Z
+**Depth:** deep, with bounded delta confirmation
+**Files Reviewed:** 20 unique source/test files
 **Status:** clean for source review
 
 ## Summary
@@ -100,6 +100,6 @@ The initial `:partial` fixture contained only a pending run but borrowed the ord
 
 ---
 
-_Reviewed: 2026-11-13T13:17:12Z_  
-_Reviewer: the agent (gsd-code-reviewer)_  
+_Reviewed: 2026-11-13T13:17:12Z_
+_Reviewer: the agent (gsd-code-reviewer)_
 _Depth: deep; bounded delta from `e79f7837`_
