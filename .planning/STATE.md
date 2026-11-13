@@ -4,16 +4,16 @@ milestone: v1.48
 current_phase: 253
 current_phase_name: Inclusive integration, docs, package and release readiness
 status: executing
-stopped_at: Phase253 reviewed candidate and durable recovery evidence ready for supported integration
-last_updated: "2026-11-13T21:42:12.088650+00:00"
+stopped_at: Phase253 integrated; final independent goal and evidence-custody assessment active
+last_updated: "2026-11-13T21:44:57.329Z"
 last_activity: 2026-11-13
-last_activity_desc: Closing local reviews and restart recovery complete; integration and final verifier next
-state_head: 0c5afdbc8b1e6cba0b9daa1e0929b7dc8ba496eb
+last_activity_desc: Integrated local253 source; original real2x and exactCI acceptance remain pending
+state_head: 5c66e4846492cc625757b307a95f382bfadb7209
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 36
-  completed_plans: 24
+  completed_plans: 33
   percent: 83
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
@@ -35,13 +35,13 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 Phase: 253 (Inclusive integration, docs, package and release readiness) — EXECUTING
 Plan: supported integration and final independent assessment (12 plans/21tasks; no new executor)
 Status: Executing Phase 253
-Last activity: 2026-11-13 — Phase 253 execution started
+Last activity: 2026-11-13
 
-Progress: [████████░░] 83% — 5 of 6 phases complete; 24 of 36 planned plans complete.
+Progress: [████████░░] 83% — 5 of 6 phases complete; 33 of 36 local plan contributions complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Active execution:** The one supported dependent context `agent-p253-01-1794587847` contains the reviewed Phase253 source and all local records. Parent continued it after the original standalone worker ended1; no replacement executor was launched. Local plans01/04/05/06/07/08/09/10/12 have materialized their work and named proof with explicit limits;02/03 remain pending real2x/requiredCI and11 final assessment/external boundary is active. Source review is clean, security24/24mitigations/noopenrisk and UI20/24. Restart deleted private old evidence/cluster; source/reports/JUnit survived, new fixture is explicitly different, and current recovery checks/captures/archive/offline cluster were SHA-verified into parent `.planning/tmp/253-recovery/` before cleanup. Both owned services stopped cleanly; caches remain. Supported integration then independent goal/fingerprint is next. No phase/milestone acceptance, external authority or raw-packet restoration is inferred. No user action is needed for this local work.
+**Active execution:** The one supported dependent context was merged and removed through the declared GSD adapter; reviewed Phase253 source and local records are now in this parent checkout. Parent continued it after the original standalone worker ended1; no replacement executor was launched. Local plans01/04/05/06/07/08/09/10/12 have materialized their work and named proof with explicit limits;02/03 remain pending real2x/requiredCI and11 final assessment/external boundary is active. Source review is clean, security24/24mitigations/noopenrisk and UI20/24. Restart deleted private old evidence/cluster; source/reports/JUnit survived, new fixture is explicitly different, and current recovery checks/captures/archive/offline cluster were SHA-verified into parent `.planning/tmp/253-recovery/` before cleanup. Both owned services stopped cleanly; caches remain. Integration is complete; independent goal/fingerprint is next. No phase/milestone acceptance, external authority or raw-packet restoration is inferred. No user action is needed for this local work.
 
 **Current diagnosis and dispatch:** Phases248–252 are independently complete. Phase252 delivers exact-target authorized Retention preview/confirmation and persisted outcomes, actor-owned Export boundaries and connected pure Operations catalog. Its final independent goal is39/39 truths/three requirements, source clean, security12/12 mitigated with0 open/no accepted risk, UI22/24 and fresh current catalog widths. [Verification](phases/252-complete-operations-and-connected-catalog-review/252-VERIFICATION.md), [evidence](phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md) and [disposition](phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md) preserve initial findings, the stale-width gap, corrected receipts and actual limits. Supported manifest cleanup merged the one dependent context with no warnings, stopped only its two owned apps cleanly and removed five cache links with targets preserved. Phase253 has11 initially accepted plans plus a bounded corrective quality plan,21 tasks total, complete requirement/decision coverage, approved UI contract and actual probe records. Prepared owned253 databases are migrated and ordinary fixture seeded; implementation starts with runner-only real-Pruner readiness and stale Retention entry probes, then inclusive/font/captures, bounded current docs, actual package/acceptance, independent review and final goal. One continuing dependent GSD context avoids repeated intake; local readiness precedes a concrete external CI/push decision. Required full-root repeat remains consumed/stopped; no native clipboard, foreground, hosted dispatch, push/version/merge/publication authority is inferred. No user action is needed for continuing authorized local work.
 
@@ -104,7 +104,7 @@ The accepted [Phase253 context](phases/253-inclusive-integration-docs-package-an
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase253 closing packet ready; original worker terminal, parent-owned supported integration/final verification next
+**Stopped at:** Phase253 source integrated; original worker terminal and child removed; independent final verification active
 **Resume file:** .planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-01-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.

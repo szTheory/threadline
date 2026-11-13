@@ -183,12 +183,12 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 5. Maintainers receive migration notes, evidence limits, measured CI/CD conclusions and a truthful package/release recommendation that keeps unresolved safety/proof gates and REL-01 visible; local readiness grants no version bump, risk acceptance, merge or publication authority and cannot complete the live next-release clause.
 **Plans**: 11 initially accepted plans plus one bounded corrective quality plan (12 plans,21 tasks). Pending zoom/CI acceptance remains explicit; source-ready independent local work continues in the same context.
 **Wave 1**
-- [ ] 253-01 — Runner-only worker readiness and mounted blank confirmation
-- [ ] 253-04 — README discovery and contracts
-- [ ] 253-05 — Package/module/mount-guide prose
-- [ ] 253-06 — Current brand authority and historical provenance
-- [ ] 253-07 — Architecture/integration/evaluator guides
-- [ ] 253-08 — Migration and legacy-font guidance
+- [x] 253-01 — Runner-only worker readiness and mounted blank confirmation
+- [x] 253-04 — README discovery and contracts
+- [x] 253-05 — Package/module/mount-guide prose
+- [x] 253-06 — Current brand authority and historical provenance
+- [x] 253-07 — Architecture/integration/evaluator guides
+- [x] 253-08 — Migration and legacy-font guidance
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 253-02 — Remaining Retention selector migrations
@@ -197,13 +197,13 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [ ] 253-03 — Inclusive jobs, headline font and matched captures
 
 **Wave 4 — local corrective quality**
-- [ ] 253-12 — Preserve behavior while closing the actual strict-lint gate
+- [x] 253-12 — Preserve behavior while closing the actual strict-lint gate
 
 **Wave 5 — local package/acceptance**
-- [ ] 253-09 — Current route acceptance and package readiness
+- [x] 253-09 — Current route acceptance and package readiness
 
 **Wave 6 — independent reviews after local candidate preparation**
-- [ ] 253-10 — Independent reviews and acceptance records
+- [x] 253-10 — Independent reviews and acceptance records
 
 **Wave 7 — final verification and real external boundary**
 - [ ] 253-11 — Final goal and concrete external CI decision
@@ -216,7 +216,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of36 planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 initially accepted plans plus corrective Plan12/21tasks and complete9requirement/14decision coverage; local implementation and package verification are active in the preserved context; nine local plan contributions are materialized with explicit evidence limits;02/03 remain pending real-zoom/required-CI and11 final assessment/external decision. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-six planned plans,twenty-four complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;33 of36 local plan contributions are materialized and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 initially accepted plans plus corrective Plan12/21tasks and complete9requirement/14decision coverage; reviewed source and current package evidence are integrated in the parent; nine local plan contributions are materialized with explicit evidence limits;02/03 remain pending real-zoom/required-CI and11 final assessment/external decision. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-six planned plans,thirty-three local plan contributions. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -225,7 +225,7 @@ Execution order:248→249→250→251→252→253. Phases248–252 are independe
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
-| 253. Inclusive integration, docs, package and release readiness | 0/12 | Executing; child integration pending | - |
+| 253. Inclusive integration, docs, package and release readiness | 9/12 local | Integrated; final verification and realzoom/CI pending | - |
 
 ## Next
 

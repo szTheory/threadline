@@ -129,3 +129,8 @@ The interrupted standalone executor spent333.83seconds on12commands/640250output
 
 **Impact:** Measure actual duplicate work/critical path and stop redundant intake; do not infer token savings or end-to-end speedups from payload size.
 **Source:** ../../research/2026-11-12-autonomous-run-retrospective.md;253-EXECUTION.md.
+
+
+## Estimate calibration at extraction
+
+The canonical parent rebuild returned factor3,7samples,confidencehigh,clampedtrue/appliedtrue. This is the installed estimate-vs-actual calibration over eligible completed phases; it is not a measured speedup or a fabricated token count for this run. Current unknown actual token values remain null. Parent state writeback was hand-checked because the handler dropped the activity description; bespoke phase progress remains5of6/83percent, with9local253plan contributions and3pending.
