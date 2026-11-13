@@ -21,6 +21,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:record_id, record_id)
         |> assign_new(:close_path, fn -> assigns[:base_path] end)
         |> assign_new(:return_label, fn -> "Timeline" end)
+        |> assign_new(:context_lost?, fn -> false end)
         |> assign_new(:history_path, fn ->
           "#{assigns[:base_path]}/history/#{encode_segment(table)}/#{encode_segment(record_id)}"
         end)
@@ -98,6 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           :base_path,
           :close_path,
           :return_label,
+          :context_lost?,
           :history_path,
           :threadline_schemas,
           :repo,
@@ -148,6 +150,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Close
             </.link>
           </div>
+
+          <p :if={assigns[:context_lost?]} class="tl-alert tl-alert--warning" role="status" data-testid="timeline-context-loss">
+            Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.
+          </p>
 
           <%= if @error do %>
             <div class="tl-empty tl-empty--error" role="alert">

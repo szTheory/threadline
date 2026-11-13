@@ -280,6 +280,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       )
     end
 
+    test "unsupported retained row-history intent is disclosed without inventing a direct-entry warning",
+         %{conn: conn} do
+      for query <- [
+            "origin=timeline&unsupported_only=private-value",
+            "origin=unknown&correlation_id=private-value"
+          ] do
+        {:ok, lv, _html} = live(conn, "/audit/rows/users/context-row?#{query}")
+
+        assert has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+
+        assert has_element?(lv, ~s(a[href="/audit/timeline"]))
+      end
+
+      for query <- ["", "?origin=timeline&from="] do
+        {:ok, lv, _html} = live(conn, "/audit/rows/users/context-row#{query}")
+
+        refute has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+      end
+    end
+
     test "invalid timeline filters discard the entire retained context", %{conn: conn} do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
@@ -292,7 +320,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: captured_at
       })
 
-      assert {:ok, _lv, html} =
+      assert {:ok, lv, html} =
                live(
                  conn,
                  "/audit/rows/users/row-invalid-context?origin=timeline&table=users&actor_kind=service&actor_id=sync-42&private_scope=secret"
@@ -302,6 +330,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|href="/audit/rows/users/row-invalid-context?as_of=|
       refute html =~ "actor_kind"
       refute html =~ "private_scope"
+
+      assert has_element?(
+               lv,
+               "[role=status]",
+               "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+             )
     end
 
     test "explicit empty from marker survives row-history as-of changes", %{conn: conn} do

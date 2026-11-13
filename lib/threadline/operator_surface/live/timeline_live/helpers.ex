@@ -126,6 +126,57 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def safe_row_history_path(_base_path, _change, _schemas, _filters_raw, _preserve_empty_from?),
       do: nil
 
+    @timeline_filter_keys ~w(from to table_schema table actor_kind actor_id correlation_id)
+    @unsupported_filters "These Timeline filters are not supported. Update the filters before applying them."
+
+    # Validate the original UI/stored input before normalization can discard it.
+    # The shared parser deliberately keeps its unknown-key-dropping contract.
+    @doc false
+    def validate_ui_filter_input(%{} = params) do
+      cond do
+        not Enum.all?(params, fn {key, value} -> is_binary(key) and is_binary(value) end) ->
+          {:error, @unsupported_filters}
+
+        map_size(params) > 0 and map_size(Map.take(params, @timeline_filter_keys)) == 0 ->
+          {:error, @unsupported_filters}
+
+        true ->
+          with {:ok, filters} <- FilterParams.parse(params),
+               :ok <- validate_timeline_filters(filters) do
+            {:ok, filters}
+          else
+            {:error, message} -> {:error, message}
+            _ -> {:error, @unsupported_filters}
+          end
+      end
+    end
+
+    def validate_ui_filter_input(_params), do: {:error, @unsupported_filters}
+
+    @doc false
+    def retained_timeline_context(%{} = params) do
+      case params["origin"] do
+        "timeline" ->
+          filter_params = Map.drop(params, ["origin", "as_of"])
+
+          with {:ok, _filters} <- validate_ui_filter_input(filter_params) do
+            query = FilterParams.canonical_query(filter_params)
+            query = if query == "" and filter_params["from"] == "", do: "from=", else: query
+            {:timeline, query}
+          else
+            _ -> {:lost, ""}
+          end
+
+        origin when origin in [nil, ""] ->
+          {:default, ""}
+
+        _ ->
+          {:lost, ""}
+      end
+    end
+
+    def retained_timeline_context(_params), do: {:lost, ""}
+
     @doc false
     def timeline_filter_query(%{} = params) do
       if params["origin"] == "timeline" do
@@ -163,7 +214,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp validate_timeline_filters(filters) do
       Query.validate_timeline_filters!(filters)
     rescue
-      ArgumentError -> :error
+      error in ArgumentError -> {:error, error.message}
     end
 
     defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do
@@ -423,6 +474,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp filter_label(key), do: key
 
     @doc false
+    def invalid_filter_message(@unsupported_filters), do: @unsupported_filters
+
     def invalid_filter_message(message) do
       target = invalid_filter_target(message)
 

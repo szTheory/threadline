@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { installControlledClipboard, login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
@@ -1644,4 +1644,90 @@ test("Timeline pagination appends the next page without changing the applied sea
   });
   expect(rowMotion.animationName).toBe("none");
   expect(rowMotion.animationDelay.split(",").every((delay) => Number.parseFloat(delay) === 0)).toBe(true);
+});
+
+
+test("Phase251 Timeline and saved-view guards", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const message = "These Timeline filters are not supported. Update the filters before applying them.";
+  await page.goto("/audit/timeline?unsupported_only=private-value");
+  await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
+  await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+
+  const original = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=walk-acme-4521-close";
+  await page.goto(original);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+  await page.locator("#filter-correlation-id").fill("phase251-no-match");
+  await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
+  await page.reload();
+  await expect(page.locator("#filter-correlation-id")).toHaveValue("phase251-no-match");
+  await page.goBack();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+  await page.goForward();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
+  await page.goto(original);
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  let drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+  const name = `Phase251 saved selection ${randomUUID()}`;
+  await drawer.locator("#save-view-form").getByLabel("Saved search name").fill(name);
+  await drawer.getByRole("button", { name: "Save search", exact: true }).click();
+  const apply = drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true });
+  await expect(apply).toBeVisible();
+  const id = await apply.getAttribute("phx-value-id");
+  expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+  // Mutate only the fresh UI-owned fixture, never shared business data.
+  const partition = process.env.MIX_TEST_PARTITION ?? "";
+  expect(partition).toMatch(/^(?:\d+|p251pair)?$/);
+  expect(process.env.THREADLINE_E2E).toBe("1");
+  if (partition === "p251pair") {
+    expect(new URL(page.url()).origin).toBe("http://127.0.0.1:60152");
+    expect(process.env.DB_HOST).toBe("127.0.0.1");
+    expect(process.env.DB_PORT).toBe("60025");
+  }
+  const sql = (statement: string) => execFileSync("psql", [
+    "-X", "-h", process.env.DB_HOST ?? "localhost", "-p", process.env.DB_PORT ?? "5432",
+    "-U", "postgres", "-d", `threadline_phoenix_test${partition}`, "-v", "ON_ERROR_STOP=1", "-At", "-c", statement,
+  ], { env: { ...process.env, PGPASSWORD: "postgres" }, encoding: "utf8", stdio: "pipe" });
+  try {
+    for (const invalid of [{ unsupported_only: "private-value" }, { correlation_id: ["private-value"] }]) {
+      const payload = JSON.stringify(invalid).replaceAll("'", "''");
+      const updated = sql(`UPDATE threadline.threadline_saved_views SET filters = '${payload}'::jsonb WHERE id = '${id}'::uuid RETURNING id`).trim();
+      expect(updated).toContain(id!);
+      await page.reload();
+      await page.getByRole("button", { name: "Filters", exact: true }).click();
+      drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+      await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
+      await expect(drawer.getByRole("alert").filter({ hasText: message })).toBeVisible();
+      expect(new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
+    }
+    sql(`UPDATE threadline.threadline_saved_views SET filters = '{}'::jsonb WHERE id = '${id}'::uuid`);
+    await page.reload();
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
+    await expect.poll(() => new URL(page.url()).search).toBe("?from=");
+    await page.reload();
+    await expect.poll(() => new URL(page.url()).search).toBe("?from=");
+    await expectNoHorizontalOverflow(page);
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await drawer.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
+    const confirmation = page.getByRole("dialog", { name: "Delete saved search", exact: true });
+    const keep = confirmation.getByRole("button", { name: "Keep saved search", exact: true });
+    await expect(keep).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(confirmation.getByRole("button", { name: "Delete search", exact: true })).toBeFocused();
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.installed)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(confirmation).toBeHidden();
+    await expect(drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+  } finally {
+    sql(`DELETE FROM threadline.threadline_saved_views WHERE id = '${id}'::uuid`);
+  }
 });

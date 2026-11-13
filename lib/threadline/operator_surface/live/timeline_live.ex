@@ -88,6 +88,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
       params = preserve_explicit_empty_from(params, uri_parsed.query)
+      params = Map.drop(params, ["origin", "as_of"])
       # Timeline is mounted at "<surface>/timeline"; strip the suffix so base_path
       # stays the surface root for cross-surface links (exports, coverage, actors,
       # transactions). timeline_path is the timeline's own path for self-patches.
@@ -114,7 +115,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          |> assign(:search_url, timeline_path)
          |> push_patch(to: "#{timeline_path}?#{query_string}", replace: true)}
       else
-        filters_raw = FilterParams.filters_raw_from_params(params)
+        # Keep invalid scalar input editable without rendering lists/maps as form values.
+        display_params = Map.filter(params, fn {_key, value} -> is_binary(value) end)
+        filters_raw = FilterParams.filters_raw_from_params(display_params)
         filter_query = build_canonical_query(filters_raw)
 
         filter_query =
@@ -130,8 +133,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> assign(:search_url, search_url)
           |> assign(:saved_search_error, nil)
 
-        with {:ok, filters} <- FilterParams.parse(params),
-             :ok <- safe_validate(filters) do
+        with {:ok, filters} <- Helpers.validate_ui_filter_input(params) do
           {:noreply, load_filtered_page(socket, filters)}
         else
           {:error, message} -> {:noreply, filter_error(socket, message)}
@@ -316,17 +318,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, socket}
 
         view ->
-          query = build_canonical_query(view.filters)
+          case Helpers.validate_ui_filter_input(view.filters) do
+            {:ok, _filters} ->
+              query = build_canonical_query(view.filters)
+              query = if query == "", do: "from=", else: query
 
-          path =
-            if query == "",
-              do: socket.assigns.timeline_path,
-              else: "#{socket.assigns.timeline_path}?#{query}"
+              {:noreply,
+               socket
+               |> assign(:saved_search_error, nil)
+               |> push_patch(to: "#{socket.assigns.timeline_path}?#{query}")}
 
-          {:noreply,
-           socket
-           |> assign(:saved_search_error, nil)
-           |> push_patch(to: path)}
+            {:error, _reason} ->
+              saved_search_error(
+                socket,
+                "These Timeline filters are not supported. Update the filters before applying them."
+              )
+          end
       end
     end
 
@@ -393,19 +400,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("apply", %{"filter" => raw}, socket) do
-      query =
-        case build_canonical_query(raw) do
-          "" -> "from="
-          query -> query
-        end
+      case Helpers.validate_ui_filter_input(raw) do
+        {:ok, _filters} ->
+          query =
+            case build_canonical_query(raw) do
+              "" -> "from="
+              query -> query
+            end
 
-      path = "#{socket.assigns.timeline_path}?#{query}"
+          {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
 
-      {:noreply, push_patch(socket, to: path)}
+        {:error, message} ->
+          {:noreply, filter_error(socket, message)}
+      end
     end
 
     def handle_event("apply", _params, socket) do
-      {:noreply, push_patch(socket, to: socket.assigns.timeline_path)}
+      {:noreply,
+       filter_error(
+         socket,
+         "These Timeline filters are not supported. Update the filters before applying them."
+       )}
     end
 
     def handle_event(
@@ -543,6 +558,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
             match_count={@match_count}
+            form_error={@form_error}
             coverage={assigns[:threadline_coverage]}
             timeline_path={@timeline_path}
           />
@@ -577,7 +593,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           newer_event={nil}
         />
         <UI.Data.empty_state
-          :if={not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
+          :if={is_nil(@form_error) and not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
           variant={Helpers.timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
           icon={Helpers.timeline_empty_icon(@filters_raw, @future_window_empty)}
@@ -605,6 +621,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           actor_ref={assigns[:threadline_actor_ref]}
           saved_views={@saved_views}
+          saved_search_error={if is_nil(@pending_delete_view), do: @saved_search_error, else: nil}
           search_url={@search_url}
           form_error={@form_error}
           base_path={@base_path}
@@ -616,9 +633,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
-        <div :if={@saved_search_error && is_nil(@pending_delete_view)} class="tl-alert tl-alert--error" role="alert">
-          <%= @saved_search_error %>
-        </div>
         <.saved_search_delete_modal
           :if={@pending_delete_view}
           view={@pending_delete_view}
@@ -657,9 +671,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp canonical_filters(filters_raw) do
-      filters_raw
-      |> build_canonical_query()
-      |> URI.decode_query()
+      case build_canonical_query(filters_raw) do
+        "" -> %{"from" => ""}
+        query -> URI.decode_query(query)
+      end
     end
 
     defp mutation_revision do
@@ -738,13 +753,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.any?(fn {_key, value} ->
         match?(%DateTime{}, value) and DateTime.compare(value, now) == :gt
       end)
-    end
-
-    defp safe_validate(filters) do
-      Threadline.Query.validate_timeline_filters!(filters)
-      :ok
-    rescue
-      e in ArgumentError -> {:error, e.message}
     end
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)

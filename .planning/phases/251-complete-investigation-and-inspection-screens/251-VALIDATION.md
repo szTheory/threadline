@@ -159,3 +159,7 @@ All phase behaviors have automated verification. Independent agent review covers
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** Pending execution and Nyquist audit
+
+## Plan01 local acceptance
+
+Plan01 completed its bounded source/live/browser/changed-state gates:253 selected ExUnit tests,32 Node cases, exactly two retries-disabled mounted cases, warnings-as-errors compile and named format; ten actual viewport captures per matched half. See [Plan01 summary](251-01-SUMMARY.md) and [pair evidence](251-PAIR-EVIDENCE.md). Initial failed setup and browser attempts remain retained. Independent phase-wide code/security/UI/goal gates are pending, so this does not change whole-phase validation status.

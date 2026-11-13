@@ -53,7 +53,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
-      timeline_context_query = timeline_context_query(uri_parsed.query)
+
+      {context_state, retained_query} =
+        Helpers.retained_timeline_context(safe_decode_query(uri_parsed.query || ""))
+
+      timeline_context_query = if context_state == :timeline, do: retained_query, else: nil
       # Extract base path up to /transactions/:id
       base_path =
         case Regex.run(~r/(.*\/transactions\/[^\/]+)/, uri_parsed.path) do
@@ -65,6 +69,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         socket
         |> assign(:base_path, base_path)
         |> assign(:timeline_context_query, timeline_context_query)
+        |> assign(:context_lost?, context_state == :lost)
         |> assign(
           :timeline_return_path,
           timeline_return_path(surface_root(base_path), timeline_context_query)
@@ -132,6 +137,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         script
         main_class="tl-page tl-container"
       >
+        <p :if={assigns[:context_lost?] == true and @live_action != :history} class="tl-alert tl-alert--warning" role="status" data-testid="timeline-context-loss">
+          Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.
+        </p>
         <%= if @not_found do %>
           <div class="tl-transaction tl-short-content">
             <UI.Page.page_header
@@ -221,6 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             base_path={@base_path}
             close_path={@transaction_return_path}
             return_label="transaction"
+            context_lost?={assigns[:context_lost?] || false}
             history_path={history_path(@base_path, @history_table, @history_record_id, @timeline_context_query)}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
@@ -567,41 +576,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp timeline_context_query(nil), do: nil
-
-    defp timeline_context_query(query) when is_binary(query) do
-      query_params = safe_decode_query(query)
-
-      if query_params["origin"] == "timeline" do
-        with {:ok, filters} <- FilterParams.parse(query_params),
-             :ok <- validate_timeline_filters(filters) do
-          filters_raw = FilterParams.filters_raw_from_params(query_params)
-          filter_query = FilterParams.canonical_query(filters_raw)
-
-          if filter_query == "" and Map.get(query_params, "from") == "" do
-            "from="
-          else
-            filter_query
-          end
-        else
-          _ -> nil
-        end
-      end
-    end
-
-    defp timeline_context_query(_query), do: nil
-
     defp safe_decode_query(query) do
       URI.decode_query(query)
     rescue
       ArgumentError -> %{}
-    end
-
-    defp validate_timeline_filters(filters) do
-      Threadline.Query.validate_timeline_filters!(filters)
-      :ok
-    rescue
-      ArgumentError -> :error
     end
 
     defp timeline_return_path(base_path, nil), do: "#{base_path}/timeline"

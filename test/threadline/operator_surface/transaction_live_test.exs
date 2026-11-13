@@ -141,10 +141,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Transaction Not Found"
     end
 
+    test "lost retained context is disclosed on a loaded transaction but direct defaults remain quiet",
+         %{conn: conn} do
+      txn =
+        Repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+
+      for query <- [
+            "origin=timeline&unsupported_only=private-value",
+            "origin=unknown&correlation_id=private-value"
+          ] do
+        {:ok, lv, _html} = live(conn, "/audit/transactions/#{txn.id}?#{query}")
+
+        assert has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+
+        assert has_element?(lv, ~s(a[href="/audit/timeline"]))
+      end
+
+      for query <- ["", "?origin=timeline&from="] do
+        {:ok, lv, _html} = live(conn, "/audit/transactions/#{txn.id}#{query}")
+
+        refute has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+      end
+    end
+
     test "rejects malformed Timeline return context on a missing transaction", %{conn: conn} do
       uuid = Ecto.UUID.generate()
 
-      assert {:ok, _lv, html} =
+      assert {:ok, lv, html} =
                live(
                  conn,
                  "/audit/transactions/#{uuid}?origin=timeline&actor_kind=service&actor_id=sync-42&private_scope=secret"
@@ -154,6 +191,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "actor_kind"
       refute html =~ "service"
       refute html =~ "private_scope"
+
+      assert has_element?(
+               lv,
+               "[role=status]",
+               "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+             )
     end
 
     test "renders the not-found state for a malformed transaction id", %{conn: conn} do

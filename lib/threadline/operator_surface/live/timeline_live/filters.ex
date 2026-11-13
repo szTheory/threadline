@@ -63,10 +63,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:coverage, :map, default: nil)
     attr(:timeline_path, :string, required: true)
 
+    attr(:form_error, :any, default: nil)
+
     def timeline_command(assigns) do
       assigns =
         assigns
-        |> assign(:window, Helpers.filter_window_summary(assigns.filters_raw))
+        |> assign(
+          :window,
+          if is_nil(assigns.form_error) do
+            Helpers.filter_window_summary(assigns.filters_raw)
+          else
+            %{
+              label: "Not applied",
+              detail: "Correct the filters before querying.",
+              title: "These filters have not been applied."
+            }
+          end
+        )
         |> assign(:active_filters, Helpers.active_filter_pairs(assigns.filters_raw))
         |> assign(:advanced_filter_count, Helpers.advanced_filter_count(assigns.filters_raw))
 
@@ -82,7 +95,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </p>
           </div>
 
-          <.command_facts window={@window} match_count={@match_count} coverage={@coverage} />
+          <.command_facts window={@window} match_count={@match_count} coverage={@coverage} query_invalid?={not is_nil(@form_error)} />
         </div>
 
         <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
@@ -157,7 +170,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </UI.Form.field_group>
         </form>
 
-        <.active_filter_summary window={@window} active_filters={@active_filters} />
+        <.active_filter_summary window={@window} active_filters={@active_filters} query_invalid?={not is_nil(@form_error)} />
 
       </section>
       """
@@ -175,6 +188,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:filter_query, :string, required: true)
     attr(:export_ready, :boolean, required: true)
     attr(:background_export_ready, :boolean, required: true)
+
+    attr(:saved_search_error, :any, default: nil)
 
     def timeline_filter_drawer(assigns) do
       ~H"""
@@ -248,6 +263,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </p>
           </section>
 
+          <div :if={@saved_search_error} class="tl-alert tl-alert--error" role="alert">
+            <%= @saved_search_error %>
+          </div>
+
           <.saved_views_group actor_ref={@actor_ref} saved_views={@saved_views} />
         </div>
       </UI.Overlay.drawer>
@@ -257,6 +276,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:window, :map, required: true)
     attr(:match_count, :any, required: true)
     attr(:coverage, :map, default: nil)
+
+    attr(:query_invalid?, :boolean, default: false)
 
     defp command_facts(assigns) do
       ~H"""
@@ -270,8 +291,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
         <div class="tl-status tl-timeline-fact">
           <span class="tl-timeline-fact__label">Matching changes</span>
-          <strong class="tl-timeline-fact__value"><%= if is_nil(@match_count), do: "Unknown", else: Helpers.format_count(@match_count) %></strong>
-          <span class="tl-timeline-fact__detail"><%= if is_nil(@match_count), do: "query did not complete", else: "current result set" %></span>
+          <strong class="tl-timeline-fact__value"><%= cond do
+              @query_invalid? -> "Not queried"
+              is_nil(@match_count) -> "Unknown"
+              true -> Helpers.format_count(@match_count)
+            end %></strong>
+          <span class="tl-timeline-fact__detail"><%= cond do
+              @query_invalid? -> "correct the filters first"
+              is_nil(@match_count) -> "query did not complete"
+              true -> "current result set"
+            end %></span>
         </div>
         <div
           class="tl-timeline-fact"
@@ -288,10 +317,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:window, :map, required: true)
     attr(:active_filters, :list, required: true)
 
+    attr(:query_invalid?, :boolean, default: false)
+
     defp active_filter_summary(assigns) do
       ~H"""
-      <section class="tl-filter-summary" aria-label="Active Timeline filters">
-        <strong>Active filters</strong>
+      <section class="tl-filter-summary" aria-label={if @query_invalid?, do: "Requested Timeline filters", else: "Active Timeline filters"}>
+        <strong><%= if @query_invalid?, do: "Requested filters", else: "Active filters" %></strong>
         <span class="tl-chip tl-chip--info" title={@window.title}>Window: <%= @window.label %></span>
         <span class="tl-filter-summary__window"><%= @window.detail %></span>
         <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral tl-filter-summary__filter">
