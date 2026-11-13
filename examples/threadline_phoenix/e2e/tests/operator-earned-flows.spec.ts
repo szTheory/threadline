@@ -812,3 +812,29 @@ test("Phase251 transaction snapshot intent", async ({ page }) => {
   await expectNoHorizontalOverflow(page);
   expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });
+
+
+test("Phase251 narrow history close control", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  await page.goto(seeded.row + "?as_of=not-a-date");
+  await expectLiveViewConnected(page);
+  await page.evaluate(() => document.fonts.ready);
+  const close = page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true });
+  const textLines = await close.evaluate((element) => {
+    const text = Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim() === "Close");
+    if (!text) throw new Error("Close label text is missing");
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return Array.from(range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0).length;
+  });
+  expect(textLines).toBe(1);
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expectPath(page, "/audit/timeline");
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
