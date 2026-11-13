@@ -5,11 +5,10 @@ project: "Threadline"
 generated: "2026-11-13T21:38:59.116313+00:00"
 counts:
   decisions: 3
-  lessons: 6
-  patterns: 3
+  lessons: 7
+  patterns: 4
   surprises: 3
-missing_artifacts:
-  - "253-VERIFICATION.md (final assessment pending at extraction)"
+missing_artifacts: []
 status: retained-local-contributions-phase-pending
 ---
 
@@ -84,6 +83,13 @@ A prior owner pass or broader archive gate does not prove a later changed parser
 **Context:** Independent code/security review found91-case evidence predating the final upgrade contract. A focused current26-case run closed the gap.
 **Source:** 253-SECURITY.md;253-REVIEW.md.
 
+### Recreate comparisons without relabelling history
+
+When raw pixels are lost, historical review reports do not replace retained comparable captures. Use a retained before-source archive and unchanged final source on one identified fixture, producing a new controlled comparison with real asset/font/clock/focus/row identities. Label it new evidence, not restoration or original pre-edit ordering.
+
+**Context:** Final verification found an actual ADM31custody gap. Seven before/final pairs plus three after-only states were captured successfully and independently viewed; the same verifier refreshes only changed evidence. No new source/security audit or broad test suite follows.
+**Source:** 253-VERIFICATION.md;253-PAIR-EVIDENCE.md;253-UI-REVIEW.md.
+
 ## Patterns
 
 ### One immutable archive per invocation
@@ -106,6 +112,13 @@ Use the canonical signed throwaway loopback registry with exact local tarball an
 
 **When to use:** No-fetch local package-consumer proof while ordinaryCI remains pending.
 **Source:** 253-09-SUMMARY.md;253-PACKAGE-READINESS.md.
+
+### Seal immutable proof separately from mutable services
+
+Hash source archives, snapshots, completed logs/receipts and PNGs into a dedicated proof seal. Keep database/build/cache lifecycle outside that seal; distinguish historical offline-copy hashes from current logical row equality after a normal database restart.
+
+**When to use:** A durable local test database is reused across bounded evidence passes. PID/cwd/system-identifier ownership guards also need to handle a relative argv data path without signalling an unverified process.
+**Source:** 253-PAIR-EVIDENCE.md;253-EXECUTION.md;durable paired-replay-custody.json and stop receipts.
 
 ## Surprises
 

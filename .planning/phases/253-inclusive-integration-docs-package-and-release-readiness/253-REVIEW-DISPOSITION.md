@@ -24,3 +24,10 @@ The restart deleted all `/private/tmp` evidence and old cluster data. Reports/so
 Final verifier must assess original matched-packet custody loss alongside absent real zoom/exactCI. Static reconciliation retains427generic/34semantic identities and all negative controls; it cannot repair missing runtime or image custody. All18 descriptorless flags and5 unclassified edges remain unresolved/non-authoritative. No enforcement descriptors, native clipboard result, full-root renewal, foreground or publication authority is invented.
 
 Parent acts next on final records/integration and independent goal verification; no maintainer acknowledgment is needed for this local work. ExactcandidateCI and original liveREL01 remain pending.
+
+
+## New-packet-only UI delta3
+
+The original custody gap is addressed by a new complete bounded source comparison: seven before/final pairs and three after-only images, all17actually viewed by the same UI reviewer. It verified60sealed files and876archived source files, confirmed retained visual corrections/current custody, and kept20/24 with real2xF01 blocking. Actual conditions/source/fixture/asset/clock/image limits are in PAIR-EVIDENCE/SAMPLING and paired-comparison-01.json. Original raw loss remains explicit; no old pixels or original pre-edit ordering is fabricated. Before/final source apps and preserved database are now stopped cleanly. No new source/security audit or broad suite ran. Same goal verifier owns the pending changed-evidence assessment.
+
+Current served documentation actually has43local links/0missing; historical42is not the current result. Original2499-file transfer hashes are a past copy verification, not an immutability claim over subsequently restarted PostgreSQL data. The new60-file seal excludes mutable PG/build/cache files; named5table logical row hashes match throughout.

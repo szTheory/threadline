@@ -38,3 +38,26 @@ Source references: [current UI contract](253-UI-SPEC.md), [execution adjustments
 ## Restart and closing-delta custody
 
 The computer restart removed every private `/private/tmp` image/manifests/archive/database referenced above. Earlier actual capture/reviewer observations remain historical, not currently accessible image bytes. Do not relabel regenerated data as the old fixture. Closing source/runtime is `e42d295c910e11918a1df224a1307c369a2a8767`; the durable recovery directory contains `table-captures-01/captures.json` and three actual after-only PNGs, with source/app/CSS/browser/DPR/theme/viewport/default-zoom identity. `table-capture-before.json` and `table-capture-after.json` show exact equality of all five named count/full-row hashes on new cluster7707769565680742764 and new `p253recovery` fixture. This does not establish equivalence to lost pre-restart materialization. The same UI reviewer actually viewed those three new PNGs and closed Retention allocation F03. Original matched-pair review is preserved in253-UI-REVIEW; raw original pixel custody remains unavailable. Real2x remains pending.
+
+
+## New retained paired-source comparison — current custody repair
+
+The original private images remain lost. A **new controlled source comparison** now exists in durable `.planning/tmp/253-recovery/`: before source `9887dc2e6001604b7575f935ffeb12423a7c3e2b` versus final runtime `8c79bd353c26d47558fae33b77f489adbdb0ac84`, whose implementation is unchanged from reviewede42d295c. This is newly created evidence, not restored historical pixels or proof of original pre-edit ordering.
+
+`paired-before-captures-01/captures.json` has seven actual before PNGs; `paired-final-captures-01/captures.json` has seven matching final PNGs and three after-only PNGs. The same UI reviewer actually viewed all17, verified all60sealed files and876archived source files, and confirmed preserved visual fixes/current evidence custody. Score remains20/24; real2x remains blocking. No source/security review or broad runtime/package suite was repeated.
+
+| Matched checkpoint | Actual conditions |
+| --- | --- |
+| ordinary-timeline |1280×900 Dark; committed correlation query/controlled copy; preservation/copy comparison, not seventh typography pair |
+| ordinary-transaction |375×900 Light; ordinary transaction |
+| ordinary-row-history |1280×900 Dark; transaction-origin history/return context |
+| retention-history |1280×900 Dark; populated persisted history |
+| retention-preview |375×900 Light; transient read-only preview |
+| retention-dialog |1280×900 Dark; open blank-token confirmation, actual initial focus |
+| exports-statuses |1280×900 Light; failed/pending/completed statuses and download distinctions |
+
+After-only: forced-color focused Apply; after-navigation settled forced-color Failed status measured against actual Canvas/CanvasText and auto adjustment; Timeline640px intended host at1280 viewport. These are not invented pairs or realzoom proof.
+
+`paired-comparison-01.json` verifies route/checkpoint, actual viewport/DPR1/theme/browser/defaultzoom, font/script bytes, intended-parent width, blank-dialog value/controlled clipboard, PNG digests and unchanged named five-table materialization across four bracketing observations. Before and final actual clocks/preview-generation times differ and are retained; no frozen-clock or pixel-perfect temporal claim. All four embedded WOFF2 faces match source bytes and observed script responses are200/source-identical. Exact readiness snapshots preserve each image's app-receipt digest. Before capsule was archived from retained source and compiled in isolated own builds using existing dependency builds, with no install/fetch/schema/seed change. Both app instances and the owned cluster stopped cleanly after the comparison.
+
+`paired-replay-custody.json` seals60immutable source/archive/receipt/log/image files. Physical PostgreSQL/build/cache files are excluded. The earlier2499-file copy verification remains a historical transfer result; the preserved cluster was normally restarted for this replay, so its physical control/WAL/session files are not falsely claimed immutable. Its system identifier is unchanged, and all five named logical full-row count/hash objects still match. Source and the unrelated maintainer tool-version edit remain unchanged. Same goal verifier now assesses only this changed evidence/normal records before the actual external decision.
