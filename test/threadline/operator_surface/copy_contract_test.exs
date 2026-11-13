@@ -470,7 +470,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp retention_source do
-      source(@retention_live_path)
+      source(@retention_live_path) <>
+        "\n" <> source(Path.rootname(@retention_live_path) <> "/components.ex")
     end
 
     defp source(path), do: File.read!(path)

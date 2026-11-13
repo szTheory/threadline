@@ -13,8 +13,7 @@ defmodule Threadline do
   - **Operations**: export captured changes with `export_csv/2` or `export_json/2`; retention, health and coverage live in their dedicated modules and tasks.
 
   The older names (`history/3`, `row_history/4`, `row_history_page/4`,
-  `actor_window_page/3`, `correlation_bundle_page/3`) remain as deprecated
-  delegates through Threadline 1.x.
+  `actor_window_page/3`, `correlation_bundle_page/3`) remain deprecated through Threadline 1.x.
 
   Each single-subject lookup (`audit_transaction/2`, `transaction_context/2`,
   `incident_bundle/2`) returns `{:ok, value}` or `{:error, :not_found}` and

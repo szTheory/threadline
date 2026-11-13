@@ -253,3 +253,11 @@ The [canonical release receipt](../../tmp/253-recovery/recovery-release-01.json)
 
 **Remaining boundary:** There is no unresolved source finding from these review rounds. The parent owns final integration and evidence reconciliation. Real 200% tab zoom, exact-candidate required CI and REL-01 remain pending; this clean source assessment does not close or waive those gates and grants no external-action authority.
 
+
+## First natural CI repair delta — independent code review
+
+Reviewed 2026-11-13 against `d35b5fa75c82b01dc17fd29efe3c71b3afb9fc59`, frozen `ci-fix-review-input-02.json` (18 source/test/fixture files). All frozen hashes matched. Reviewer: typed `gsd-code-reviewer`, configured Sol/high. Status **clean**, zero critical/warning/info/necessity findings. Read-only review; no tests/apps/DB/network launched by reviewer.
+
+The ordinary investigation executes strict navigation, seeded content/redaction, trusted controlled copy, prior state and filter restoration. Explicit paired captures retain their materialization, database, partition, service, source and receipt safeguards; ordinary execution fabricates no pair receipt. Focus checks retain initial-control focus, forward/reverse containment, visible non-obscured forward focus, Escape dismissal and opener restoration through repeated patches. Existing single-control fixtures cross Phoenix's focus-wrap boundary; accepting the focusable content container is consistent with the installed implementation.
+
+Moved helpers preserve expressions/callers; removed fallback clauses are unreachable under checked call paths. The golden exactly matches current production stylesheet segments. Fixture/contract fixes preserve assertions and negative controls; no skip, warning suppression, size/resource-limit increase or authorization change was introduced. Packet02 only additionally corrects the UI-review-discovered masked dense value expectation14→13. Hosted browser/runtime/latest compiler checks remain pending; no local full-repeat/native clipboard stop is renewed.

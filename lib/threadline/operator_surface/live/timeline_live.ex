@@ -282,7 +282,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           attrs = %{
             name: name,
             actor_ref: ActorRef.to_map(actor_ref),
-            filters: canonical_filters(socket.assigns.filters_raw)
+            filters: Helpers.canonical_filters(socket.assigns.filters_raw)
           }
 
           changeset = SavedView.changeset(attrs)
@@ -673,13 +673,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, assign(socket, :saved_search_error, message)}
     end
 
-    defp canonical_filters(filters_raw) do
-      case build_canonical_query(filters_raw) do
-        "" -> %{"from" => ""}
-        query -> URI.decode_query(query)
-      end
-    end
-
     defp mutation_revision do
       System.unique_integer([:positive, :monotonic])
     end
@@ -736,7 +729,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp future_window_empty?(_filters, count, _socket) when count != 0, do: false
 
     defp future_window_empty?(filters, 0, socket) do
-      if future_leaning_window?(filters) do
+      if Helpers.future_leaning_window?(filters) do
         {:ok, %{count: count}} =
           filters
           |> Keyword.drop([:from, :to])
@@ -746,16 +739,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         false
       end
-    end
-
-    defp future_leaning_window?(filters) do
-      now = DateTime.utc_now()
-
-      filters
-      |> Keyword.take([:from, :to])
-      |> Enum.any?(fn {_key, value} ->
-        match?(%DateTime{}, value) and DateTime.compare(value, now) == :gt
-      end)
     end
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)

@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 253
 current_phase_name: Inclusive integration, docs, package and release readiness
-status: awaiting_external_decision
-stopped_at: Local253 custody repaired and verified; awaiting concrete branch/PR/requiredCI decision
-last_updated: "2026-11-13T22:31:54.196047+00:00"
+status: executing
+stopped_at: Authorized PR105 opened; repairing first natural CI failures
+last_updated: "2026-11-13T23:20:32.355600+00:00"
 last_activity: 2026-11-13
-last_activity_desc: Local253 source/evidence integrated; real2x and exactCI await authorized natural PR
+last_activity_desc: First natural PR CI completed red; scoped fixes and bounded checks active
 state_head: bed69687b7178abe1a0f66ee7bc4d22cd9fdf259
 progress:
   total_phases: 6
@@ -34,14 +34,14 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 Phase: 253 (Inclusive integration, docs, package and release readiness) — EXECUTING
 Plan: 253-11 external checkpoint (12plans/21tasks; local assessment complete)
-Status: Awaiting the concrete external CI decision; Phase253 remains incomplete
+Status: Authorized PR #105 is open; first CI is red and scoped repair is active; Phase253 remains incomplete
 Last activity: 2026-11-13
 
 Progress: [████████░░] 83% — 5 of 6 phases complete; 33 of 36 local plan contributions complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Active execution:** The one supported dependent context was merged and removed through the declared GSD adapter; reviewed Phase253 source and local records are now in this parent checkout. Parent continued it after the original standalone worker ended1; no replacement executor was launched. Local plans01/04/05/06/07/08/09/10/12 have materialized their work and named proof with explicit limits;02/03 remain pending real2x/requiredCI and11 final assessment/external boundary is active. Source review is clean, security24/24mitigations/noopenrisk and UI20/24. Restart deleted private old evidence/cluster; source/reports/JUnit survived, new fixture is explicitly different, and current recovery checks/captures/archive/offline cluster were SHA-verified into parent `.planning/tmp/253-recovery/` before cleanup. Both owned services stopped cleanly; caches remain. Integration is complete; initial independent goal/fingerprint is preserved; its bounded17-image custody remedy is now independently reviewed and closed by the same verifier. Final result is6of9requirements/3of5roadmap truths; only real2x/exactCI remain required proof gaps, with futureREL01separate. No phase/milestone acceptance, external authority or raw-packet restoration is inferred. The maintainer acts next only on the concrete GitHubbranch/PR/requiredCI choice; no human UAT is requested.
+**Active execution:** The maintainer approved the concrete branch/PR/existing-CI action. [PR #105](https://github.com/szTheory/threadline/pull/105) is open on `admin-v1-48-review`. Its first natural CI completed red: source-size/compiler findings, stale owner fixtures/contracts, portable planning references and browser test premises are being repaired as one scoped batch. Earlier clean local reviews are historical evidence, not acceptance of these new failures. Original job logs are retained privately under `.planning/tmp/253-recovery/`; no first-attempt outcome is erased. The parent continues fixes, affected checks and required delta review; no user action is currently needed. No merge/release/publication, renewed full local repeat or native clipboard authority is inferred. Real2x and exact-candidate required CI remain unaccepted until actual receipts establish them.
 
 **Current diagnosis and checkpoint:** Phases248–252 are independently complete. Phase252 delivers exact-target authorized Retention preview/confirmation and persisted outcomes, actor-owned Export boundaries and connected pure Operations catalog. Its final independent goal is39/39 truths/three requirements, source clean, security12/12 mitigated with0 open/no accepted risk, UI22/24 and fresh current catalog widths. [Verification](phases/252-complete-operations-and-connected-catalog-review/252-VERIFICATION.md), [evidence](phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md) and [disposition](phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md) preserve initial findings, the stale-width gap, corrected receipts and actual limits. Supported manifest cleanup merged the one dependent context with no warnings, stopped only its two owned apps cleanly and removed five cache links with targets preserved. Phase253 has11 initially accepted plans plus a bounded corrective quality plan,21 tasks total, complete requirement/decision coverage, approved UI contract and actual probe records. Prepared owned253 databases are migrated and ordinary fixture seeded; implementation starts with runner-only real-Pruner readiness and stale Retention entry probes, then inclusive/font/captures, bounded current docs, actual package/acceptance, independent review and final goal. One continuing dependent GSD context avoids repeated intake; local readiness precedes a concrete external CI/push decision. Required full-root repeat remains consumed/stopped; no native clipboard, foreground, hosted dispatch, push/version/merge/publication authority is inferred. No user action is needed for continuing authorized local work.
 
@@ -104,20 +104,20 @@ The accepted [Phase253 context](phases/253-inclusive-integration-docs-package-an
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase253-11 real external checkpoint; local work complete, user chooses whether to authorize review-branch/PR/CI
+**Stopped at:** Phase253 first natural PR CI is red; authorized scoped repairs and delta review are active
 **Resume file:** .planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-11-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
-- **Current gates and next actor:** Local Phase253 delivery/custody assessment is complete; the maintainer chooses the concrete review-branch/PR/requiredCI action after normal record-hash confirmation. Phases248–252 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.
+- **Current gates and next actor:** The maintainer approved the review branch/ordinary PR/existing CI. PR #105 first run is red; parent continues attributable fixes, affected checks, independent delta review and bounded CI. No user action is needed. Phase253/milestone remain incomplete; consumed local full-repeat/native clipboard stops and separate live REL-01 remain unchanged.
 - **Evidence freshness:** `brand/` is the deliberately imported approved source; old `brandbook/` runtime consumers remain until migration. The retained 31-edit candidate and dated main/CI/advisory/browser receipts are comparison inputs; Phase 248 re-establishes current applicable evidence. `research/SUMMARY.md` is historical; use the v1.48 synthesis above.
 - **Carried release clause:** REL-01 retains its original first-natural-release proof and remains pending if live publication is not performed under actual authority; local release readiness cannot satisfy it. See `.planning/REQUIREMENTS.md` → Carried release gate.
 
 ## Operator Next Steps
 
-Wait for the maintainer's concrete decision on pushing `admin-v1-48-review` and opening an ordinary PR to `szTheory/threadline:main` for existing requiredCI. This is an external-action choice, not human verification. Without that authority keep phase253/milestone incomplete; do not renew local root/zoom/clipboard/foreground limits or start another phase. [CI proposal](phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-PROPOSAL.md) and [verification](phases/253-inclusive-integration-docs-package-and-release-readiness/253-VERIFICATION.md) provide optional detail. Owned services are stopped and durable evidence/data/caches retained. The user acts next after final normal record-hash confirmation.
+Parent completes the focused first-CI repair batch, required changed-source review, normal commit/push and existing required CI on [PR #105](https://github.com/szTheory/threadline/pull/105). Both browser legs and the executed/discovered receipt must vote at the new exact candidate. Preserve first-run failures and explicit limits. No user action is currently needed; no merge/publication/version or renewed local full-repeat authority is inferred. See [CI action record](phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-PROPOSAL.md) and retained retrospective. Owned isolated PostgreSQL is temporarily running for completed affected tests and will stop before any handoff.
 
 ## Retrospective obligation
 
-The maintainer explicitly requested retained lessons. The [autonomous-run retrospective](research/2026-11-12-autonomous-run-retrospective.md) is finalized as a local CI-authority handoff snapshot with actual outcomes, applied improvements, limits and honest measurement; link it at handoff and update after actual authorizedCI. Do not mark the milestone or retrospective complete while authorized delivery remains.
+The maintainer explicitly requested retained lessons. The [autonomous-run retrospective](research/2026-11-12-autonomous-run-retrospective.md) retains the historical local CI-authority snapshot and current first-run repair with actual outcomes, applied improvements, limits and honest measurement; link it at handoff and update after actual authorizedCI. Do not mark the milestone or retrospective complete while authorized delivery remains.
 
 **Phase250 completion note:** Its18 authored threats are closed atASVS1 without risk acceptance. Code review is clean and UI22/24 retains two nonblocking Phase253 observations. GSD’s REL-01 traceability warning concerns the deliberately carried v1.47 live-release clause, not a missing v1.48 ADM row; retain its separate pending natural-release trigger. The docs and previous owned app listeners are stopped with data/captures retained; owned PostgreSQL remains available for authorized251 work.

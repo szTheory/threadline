@@ -2173,6 +2173,21 @@
       "id": "state.phase252.retention-no-replay",
       "kind": "state",
       "label": "operator-route-states.spec.ts test(\"Phase252 Retention preview requires fresh deliberate confirmation after reconnect\""
+    },
+    {
+      "id": "state.phase253.forced-colors",
+      "kind": "state",
+      "label": "operator-accessibility.spec.ts test(\"Phase253 forced colors preserve focus and operation meaning\""
+    },
+    {
+      "id": "state.phase253.served-headlines",
+      "kind": "state",
+      "label": "operator-accessibility.spec.ts test(\"Phase253 page headlines use served heading font\""
+    },
+    {
+      "id": "state.phase253.host-containment",
+      "kind": "state",
+      "label": "operator-responsive-mobile-first.spec.ts test(\"Phase253 intended host parent contains ordinary and retention jobs\""
     }
   ]
 }

@@ -448,7 +448,7 @@
   .tl-topbar {
     position: sticky;
     top: 0;
-    z-index: var(--tl-z-toast);
+    z-index: var(--tl-z-header);
     min-height: var(--tl-header-height-mobile);
     display: flex;
     flex-wrap: wrap;
@@ -546,7 +546,7 @@
   .tl-shell-nav {
     position: sticky;
     top: var(--tl-header-height-mobile);
-    z-index: calc(var(--tl-z-toast) - 1);
+    z-index: calc(var(--tl-z-header) - 1);
     background: var(--tl-color-surface-tint);
     border-bottom: 1px solid var(--tl-color-border);
     font-size: var(--tl-font-size-label);
@@ -989,6 +989,7 @@
   }
 
   .tl-page__title {
+    font-family: var(--tl-font-heading);
     margin: 0 0 var(--tl-space-1);
     font-size: var(--tl-font-size-heading);
     line-height: var(--tl-line-heading);
@@ -1146,6 +1147,38 @@
     font-weight: var(--tl-weight-strong);
   }
 
+
+  /* Retention disclosures are body prose; identifier elision stays on one line
+     inside the existing bounded table scroll owner. */
+  [data-testid="retention-scope"] .tl-card__body {
+    margin: 0;
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+  }
+
+  .tl-table--retention .tl-ref > .tl-secondary-ref {
+    white-space: nowrap;
+  }
+
+  /* Let the already shortened reference use the whole mobile card width. */
+  .tl-table--retention td[data-label="Run"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-testid="retention-preview"] > :where(h2, p, dl),
+  [data-testid="retention-preview"] :where(dt, dd) {
+    margin: 0;
+  }
+
+  [data-testid="retention-preview"] dd + dt {
+    margin-block-start: var(--tl-space-2);
+  }
+
+  .tl-transaction .tl-detail-header__title {
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-family: var(--tl-font-family);
+  }
   .tl-toolbar {
     position: static;
     top: var(--tl-header-height);
@@ -1167,6 +1200,8 @@
 
   /* Investigation results carry the card emphasis; controls remain a quiet tool. */
   .tl-toolbar.tl-timeline-command {
+    container-type: inline-size;
+    container-name: tl-timeline-controls;
     background: transparent;
     border-color: transparent;
     box-shadow: none;
@@ -3844,8 +3879,8 @@
   }
 
   .tl-copy.is-copied {
-    color: var(--tl-color-signal);
-    border-color: var(--tl-color-signal-border);
+    color: var(--tl-color-text);
+    border-color: var(--tl-color-border-strong);
     animation: tl-copy-pulse var(--tl-motion-base) var(--tl-ease-out);
   }
 
@@ -3866,7 +3901,7 @@
   }
 
   .tl-copy-status[data-state="success"] {
-    color: var(--tl-color-signal);
+    color: var(--tl-color-text);
   }
 
   .tl-copy-status[data-state="error"] {
@@ -3875,7 +3910,7 @@
 
   @keyframes tl-copy-pulse {
     from {
-      box-shadow: 0 0 0 0 var(--tl-color-signal-border);
+      box-shadow: 0 0 0 0 var(--tl-color-border-strong);
     }
     to {
       box-shadow: 0 0 0 6px transparent;
@@ -4438,6 +4473,16 @@
 
   /* Desktop dense/operator layer starts at 1280px: full multi-column layout and sticky chrome. */
   @media (min-width: 1280px) {
+    /* Keep the reading columns usable. The existing table wrapper owns
+       horizontal scrolling when their combined minimum exceeds the host. */
+    .tl-table--retention td[data-label="Run"] {
+      min-width: 240px;
+    }
+
+    .tl-table--retention td[data-label="Outcome"] {
+      min-width: 260px;
+    }
+
     .tl-timeline-command__facts {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -4726,6 +4771,20 @@
       animation: none !important;
       transition: none !important;
       transform: none !important;
+    }
+  }
+
+
+  /* A wide viewport can still mount Admin in a narrow host slot. Choose
+     control tracks from their available width without clipping the host.
+     Four desktop track minima plus three gaps require 812px of content. */
+  @container tl-timeline-controls (max-width: 812px) {
+    .tl-timeline-command__summary,
+    .tl-timeline-command__facts,
+    .tl-filter-grid--primary,
+    .tl-filter-grid--advanced,
+    .tl-timeline-command__utilities {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

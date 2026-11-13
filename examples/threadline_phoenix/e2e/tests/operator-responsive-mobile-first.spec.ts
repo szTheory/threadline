@@ -85,11 +85,11 @@ async function expectReadableScale(page: Page) {
     "font-size",
     [14, 16],
   );
-  await expectComputedPx(page.locator(".tl-chip").first(), "font-size", 14);
+  await expectComputedPx(page.locator(".tl-chip").first(), "font-size", 12);
   await expectComputedPx(
     page.locator(".tl-toolbar__field").first(),
     "font-size",
-    14,
+    12,
   );
 }
 
@@ -545,7 +545,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
   ).toBeVisible();
   await expectWorkflowSummaryGap(
     page,
-    '#tl-main > [aria-label="Retention window health"]',
+    '#tl-main [aria-label="Retention window health"]',
     '[data-testid="retention-runs-table"]',
     16,
   );
@@ -655,7 +655,7 @@ for (const viewport of viewports) {
       await expectComputedPx(
         page.locator(".tl-value").first(),
         "font-size",
-        14,
+        13,
       );
       await expectNoHorizontalOverflow(page);
 

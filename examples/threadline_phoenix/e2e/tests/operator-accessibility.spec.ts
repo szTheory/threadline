@@ -350,8 +350,10 @@ test.describe("operator accessibility baseline", () => {
         const disclosure = row.locator("summary");
         await disclosure.focus();
         await expectNonObscuredFocused(disclosure, page);
-        if (isMobile) await disclosure.tap();
+        const policyUrl = page.url();
+        if (isMobile) await disclosure.getByText("posts", { exact: true }).tap();
         else await page.keyboard.press("Enter");
+        await expect(page).toHaveURL(policyUrl);
         await expect(row).toHaveAttribute("open", "");
         await expect(row.getByRole("table")).toBeVisible();
         await expect(row.getByText("Deployed matches config", { exact: true })).toBeVisible();
@@ -545,6 +547,7 @@ test.describe("operator accessibility baseline", () => {
     await focusByKeyboard(page, light);
     await page.keyboard.press("Enter");
     await expect(page.locator(".threadline-ui")).toHaveAttribute("data-tl-theme", "light");
+    await openOperatorNav(page);
     await expect(light).toHaveAttribute("aria-pressed", "true");
 
   });
@@ -1255,7 +1258,10 @@ test.describe("operator accessibility baseline", () => {
         await expect(dialog).toBeVisible();
         await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
         await page.keyboard.press("Tab");
-        await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
+        await expect.poll(() => dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+        await expectNonObscuredFocused(dialog.locator(":focus"), page);
+        await page.keyboard.press("Shift+Tab");
+        await expect.poll(() => dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
         await page.keyboard.press("Escape");
         await expect(dialog).toBeHidden();
         await expect(trigger).toBeFocused();

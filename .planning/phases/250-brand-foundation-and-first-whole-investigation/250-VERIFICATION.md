@@ -151,7 +151,7 @@ The generic GSD key-link scanner did not resolve the 17 plan links because Phoen
 
 | Behavior | Command/evidence | Result | Status |
 |---|---|---|---|
-| Current review identity matches the accepted review bytes | `env PATH="/Users/jon/.asdf/installs/nodejs/22.14.0/bin:$PATH" python3 /private/tmp/threadline-250-08-check-review.py review` | Exit 0; `matched=true`, `reviewIdentityMatched=true`. This checker verifies identity, not reviewer judgment. | PASS |
+| Current review identity matches the accepted review bytes | `env PATH="<node22-bin>:$PATH" python3 /private/tmp/threadline-250-08-check-review.py review` | Exit 0; `matched=true`, `reviewIdentityMatched=true`. This checker verifies identity, not reviewer judgment. | PASS |
 | Whole investigation after-change behavior | Current-source strict-after Playwright receipt bound by `request.json` | One named case passed on first attempt, zero skipped/retried/flaky; four original filters and the actual full copy argument are asserted after UI navigation. | PASS |
 | Default brand font delivery | Bound current-source browser report | 5 passed; 0 skipped/retried/flaky. | PASS |
 | Font opt-out/system fallback | Bound current-source browser report | 1 passed; 0 skipped/retried/flaky. | PASS |

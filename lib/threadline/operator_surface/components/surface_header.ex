@@ -88,6 +88,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
           </section>
+          <.theme_picker base_path={@base_path} theme={@theme} />
+        </div>
+      </nav>
+      """
+    end
+
+    attr(:base_path, :string, required: true)
+    attr(:theme, :string, required: true)
+
+    defp theme_picker(assigns) do
+      ~H"""
           <section
             class="tl-shell-nav__group tl-theme-picker"
             aria-labelledby="tl-shell-nav-theme"
@@ -139,8 +150,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </fieldset>
             </form>
           </section>
-        </div>
-      </nav>
       """
     end
 
@@ -195,8 +204,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp coverage_count(coverage, key) when is_map(coverage), do: Map.get(coverage, key, 0)
-    defp coverage_count(_coverage, _key), do: 0
+    defp coverage_count(coverage, key), do: Map.get(coverage, key, 0)
 
     defp coverage_href(base_path, schema) when is_binary(schema) and schema not in ["", "public"],
       do: "#{base_path}/coverage?" <> URI.encode_query(%{"schema" => schema})

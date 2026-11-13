@@ -5584,6 +5584,45 @@
         }
       ],
       "exclusion": ""
+    },
+    {
+      "id": "state.phase253.forced-colors",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Phase253 forced colors preserve focus and operation meaning\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase253.served-headlines",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Phase253 page headlines use served heading font\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.phase253.host-containment",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Phase253 intended host parent contains ordinary and retention jobs\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
     }
   ],
   "excludedAttributeFamilies": {

@@ -1215,6 +1215,14 @@ defmodule Threadline.RetryNetworkContractTest do
     on_exit(fn -> File.rm_rf!(parent) end)
     File.write!(Path.join(dir, "mix.exs"), source)
 
+    for name <- ~w(threadline-lockup-dark.svg threadline-lockup-light.svg) do
+      relative = Path.join("brand/assets/logo", name)
+      target = Path.join(dir, relative)
+      File.mkdir_p!(Path.dirname(target))
+      File.cp!(Path.join(@repo_root, relative), target)
+      assert File.read!(target) == File.read!(Path.join(@repo_root, relative))
+    end
+
     env = for var <- ~w(MIX_EXS MIX_BUILD_PATH MIX_DEPS_PATH MIX_LOCKFILE), do: {var, nil}
     System.cmd("mix", ["help", "compile"], cd: dir, stderr_to_stdout: true, env: env)
   end

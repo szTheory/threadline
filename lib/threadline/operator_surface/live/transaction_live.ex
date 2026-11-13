@@ -148,29 +148,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.
         </p>
         <%= if @not_found do %>
-          <div class="tl-transaction tl-short-content">
-            <UI.Page.page_header
-              title="Transaction"
-              breadcrumbs={[
-                %{label: "Timeline", href: @timeline_return_path},
-                %{label: "Transaction"}
-              ]}
-            >
-              <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-            </UI.Page.page_header>
-
-            <UI.Data.error_state>
-              <:title>Transaction not found</:title>
-              No transaction is available at this ID. It may not exist or may be outside the records available to your current scope.
-              Return to Timeline and check the transaction id.
-              <:actions>
-                <.link navigate={@timeline_return_path} class="tl-button tl-button--secondary">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
-            </UI.Data.error_state>
-          </div>
+          <.transaction_not_found timeline_return_path={@timeline_return_path} />
         <% else %>
           <%= if @unavailable do %>
             <div class="tl-transaction tl-short-content">
@@ -253,6 +231,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           phx-mounted={JS.focus(to: "##{@history_focus_return_id}") |> JS.push("clear_history_focus_return")}
         />
       </UI.Page.shell>
+      """
+    end
+
+    attr(:timeline_return_path, :string, required: true)
+
+    defp transaction_not_found(assigns) do
+      ~H"""
+          <div class="tl-transaction tl-short-content">
+            <UI.Page.page_header
+              title="Transaction"
+              breadcrumbs={[
+                %{label: "Timeline", href: @timeline_return_path},
+                %{label: "Transaction"}
+              ]}
+            >
+              <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
+            </UI.Page.page_header>
+
+            <UI.Data.error_state>
+              <:title>Transaction not found</:title>
+              No transaction is available at this ID. It may not exist or may be outside the records available to your current scope.
+              Return to Timeline and check the transaction id.
+              <:actions>
+                <.link navigate={@timeline_return_path} class="tl-button tl-button--secondary">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                  Open timeline
+                </.link>
+              </:actions>
+            </UI.Data.error_state>
+          </div>
       """
     end
 

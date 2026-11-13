@@ -146,7 +146,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {:ok, filters}
           else
             {:error, message} -> {:error, message}
-            _ -> {:error, @unsupported_filters}
           end
       end
     end
@@ -615,6 +614,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         "delete" -> "tl-change--delete"
         _ -> nil
       end
+    end
+
+    def canonical_filters(filters_raw) do
+      case FilterParams.canonical_query(filters_raw) do
+        "" -> %{"from" => ""}
+        query -> URI.decode_query(query)
+      end
+    end
+
+    def future_leaning_window?(filters) do
+      now = DateTime.utc_now()
+
+      filters
+      |> Keyword.take([:from, :to])
+      |> Enum.any?(fn {_key, value} ->
+        match?(%DateTime{}, value) and DateTime.compare(value, now) == :gt
+      end)
     end
   end
 end

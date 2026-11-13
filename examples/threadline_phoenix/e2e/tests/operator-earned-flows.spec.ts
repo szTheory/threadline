@@ -127,19 +127,24 @@ test.describe("operator earned-flow browser UAT", () => {
   });
 
   test(investigationTitle, async ({ page, browser }, info) => {
-    const half = process.env.THREADLINE_PHASE250_PAIR_HALF;
-    if (half !== "before" && half !== "after") throw new Error("Selected whole-investigation proof requires an explicit before/after half");
-    const materialization = readInvestigationMaterialization();
-    const snapshot = materialization.snapshot;
-    const [action] = snapshot.actions as Array<Record<string, any>>;
-    const [transaction] = snapshot.transactions as Array<Record<string, any>>;
-    const replyChange = snapshot.changes.find((change: any) => change.table_name === rowTable) as any;
-    const ticketChange = snapshot.changes.find((change: any) => change.table_name === "tickets") as any;
-    expect(transaction.occurred_at).not.toBe(action.inserted_at);
-    expect(replyChange.data_after.body).toBe("Thanks — we're closing this out.");
-    expect(replyChange.data_after.internal_note_body).toBe("[REDACTED]");
-    expect(ticketChange.data_after.status).toBe("closed");
-    expect(ticketChange.data_after.closed_at).toBe("2026-05-26T14:30:00");
+    const pairHalf = process.env.THREADLINE_PHASE250_PAIR_HALF;
+    if (pairHalf !== undefined && pairHalf !== "before" && pairHalf !== "after") {
+      throw new Error("Selected paired capture requires an explicit before/after half");
+    }
+    // Ordinary CI exercises the seeded job; historical capture custody is opt-in.
+    const half = pairHalf ?? "after";
+    const snapshot = pairHalf ? readInvestigationMaterialization().snapshot : undefined;
+    if (snapshot) {
+      const [action] = snapshot.actions as Array<Record<string, any>>;
+      const [transaction] = snapshot.transactions as Array<Record<string, any>>;
+      const replyChange = snapshot.changes.find((change: any) => change.table_name === rowTable) as any;
+      const ticketChange = snapshot.changes.find((change: any) => change.table_name === "tickets") as any;
+      expect(transaction.occurred_at).not.toBe(action.inserted_at);
+      expect(replyChange.data_after.body).toBe("Thanks — we're closing this out.");
+      expect(replyChange.data_after.internal_note_body).toBe("[REDACTED]");
+      expect(ticketChange.data_after.status).toBe("closed");
+      expect(ticketChange.data_after.closed_at).toBe("2026-05-26T14:30:00");
+    }
 
     const timelineUrl = investigationSearch();
     await page.goto(timelineUrl);
@@ -167,6 +172,11 @@ test.describe("operator earned-flow browser UAT", () => {
     const transactionHref = await transactionLink.getAttribute("href");
     expect(transactionHref).not.toBeNull();
     const transactionUrl = new URL(transactionHref!, page.url());
+    const transactionMatch = transactionUrl.pathname.match(/^\/audit\/transactions\/([^/]+)$/);
+    expect(transactionMatch).not.toBeNull();
+    const transaction = snapshot?.transactions[0] as Record<string, any> | undefined ?? {
+      id: transactionMatch![1], occurred_at: eventTime!,
+    };
     expect(transactionUrl.pathname).toBe(`/audit/transactions/${transaction.id}`);
     await transactionLink.click();
     await expect(page).toHaveURL(transactionUrl.toString());
@@ -178,8 +188,23 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(page.getByText("2 tables", { exact: true })).toBeVisible();
     await expect(page.getByText("2 changes", { exact: true })).toBeVisible();
     const actualChangeIds = await transactionRows.evaluateAll((rows) => rows.map((row) => row.id.replace(/^change-/, "")).sort());
-    expect(actualChangeIds).toEqual(snapshot.changes.map((change: any) => change.id).sort());
-    await captureInvestigationCheckpoint(page, browser, info, "transaction", "transaction-detail");
+    if (snapshot) expect(actualChangeIds).toEqual(snapshot.changes.map((change: any) => change.id).sort());
+    expect(new Set(actualChangeIds).size).toBe(2);
+    const changeIdentity = async (table: string) => {
+      const row = transactionRows.filter({ hasText: table });
+      await expect(row).toHaveCount(1);
+      const href = await row.getByTestId("row-history-link").getAttribute("href");
+      expect(href).not.toBeNull();
+      const path = new URL(href!, page.url()).pathname;
+      const prefix = `/audit/transactions/${transaction.id}/history/${table}/`;
+      expect(path.startsWith(prefix)).toBe(true);
+      const id = decodeURIComponent(path.slice(prefix.length));
+      expect(id).toMatch(/^[^/?#]+$/);
+      return { table_pk: { id } };
+    };
+    const replyChange = snapshot?.changes.find((change: any) => change.table_name === rowTable) as any ?? await changeIdentity(rowTable);
+    const ticketChange = snapshot?.changes.find((change: any) => change.table_name === "tickets") as any ?? await changeIdentity("tickets");
+    if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "transaction", "transaction-detail");
 
     const replyRow = transactionRows.filter({ hasText: rowTable });
     await expect(replyRow).toContainText("Thanks — we're closing this out.");
@@ -219,7 +244,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(ticketDrawer.getByText("open", { exact: true })).toBeVisible();
     await expect(ticketDrawer.getByText("closed_at", { exact: true })).toBeVisible();
     await expect(ticketDrawer.getByText("null", { exact: true })).toBeVisible();
-    await captureInvestigationCheckpoint(page, browser, info, "ticket-prior", "prior-ticket-history-snapshot");
+    if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "ticket-prior", "prior-ticket-history-snapshot");
     await ticketDrawer.getByRole("link", { name: "Close", exact: true }).click();
     await expectPath(page, `/audit/transactions/${transaction.id}`);
     await expectLiveViewConnected(page);
@@ -239,7 +264,7 @@ test.describe("operator earned-flow browser UAT", () => {
       await expect(strictHistory).toContainText("Row timeline");
       await expect(strictHistory).toContainText("Thanks — we're closing this out.");
       await expect(strictHistory).toContainText("[REDACTED]");
-      await captureInvestigationCheckpoint(page, browser, info, "reply-history", "transaction-origin-reply-history");
+      if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "reply-history", "transaction-origin-reply-history");
 
       const historyCopy = strictHistory.locator(`.tl-ref button[data-tl-copy="${replyChange.table_pk.id}"]`).first();
       await expect(historyCopy).toBeVisible();
@@ -319,7 +344,7 @@ test.describe("operator earned-flow browser UAT", () => {
         return values.join("\n");
       });
       expect(drawerRendered).not.toContain("synthetic-secret-canary-239-6f71");
-      await captureInvestigationCheckpoint(page, browser, info, "reply-history", "timeline-origin-reply-history");
+      if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "reply-history", "timeline-origin-reply-history");
 
       await drawer.getByRole("link", { name: "Close", exact: true }).click();
       await expectPath(page, "/audit/timeline");
@@ -353,25 +378,28 @@ test.describe("operator earned-flow browser UAT", () => {
       currentUrl.searchParams.get("from") === investigationFrom && currentUrl.searchParams.get("to") === investigationTo &&
       currentUrl.searchParams.get("table") === rowTable && currentUrl.searchParams.get("correlation_id") === closeCorrelation;
     expect(filtersRestored).toBe(true);
-    const journey = {
-      timelineUrl: currentUrl.pathname + currentUrl.search,
-      actionId: action.id,
-      transactionId: transaction.id,
-      changeIds: actualChangeIds,
-      replyId: replyChange.table_pk.id,
-      ticketId: ticketChange.table_pk.id,
-      actorId: action.actor_ref.id,
-      eventTime: transaction.occurred_at,
-      actionInsertedAt: action.inserted_at,
-      copyValue: replyChange.table_pk.id,
-      copyStatus: "Copied.",
-      keyboardActivation: true,
-      filtersRestored,
-      navigationMode: half === "before" ? "legacy-before" : "strict-after",
-      copyContext: half === "before" ? "timeline" : "transaction-history",
-      returnMode: half === "before" ? "browser-back" : "ui-links",
-    };
-    await captureInvestigationHalf(page, browser, info, journey);
+    if (snapshot) {
+      const [action] = snapshot.actions as Array<Record<string, any>>;
+      const journey = {
+        timelineUrl: currentUrl.pathname + currentUrl.search,
+        actionId: action.id,
+        transactionId: transaction.id,
+        changeIds: actualChangeIds,
+        replyId: replyChange.table_pk.id,
+        ticketId: ticketChange.table_pk.id,
+        actorId: action.actor_ref.id,
+        eventTime: transaction.occurred_at,
+        actionInsertedAt: action.inserted_at,
+        copyValue: replyChange.table_pk.id,
+        copyStatus: "Copied.",
+        keyboardActivation: true,
+        filtersRestored,
+        navigationMode: half === "before" ? "legacy-before" : "strict-after",
+        copyContext: half === "before" ? "timeline" : "transaction-history",
+        returnMode: half === "before" ? "browser-back" : "ui-links",
+      };
+      await captureInvestigationHalf(page, browser, info, journey);
+    }
   });
 
   test("Home record lookup reaches first-class row history", async ({

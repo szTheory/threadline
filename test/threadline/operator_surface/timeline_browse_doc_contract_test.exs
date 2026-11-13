@@ -224,9 +224,12 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   test "TransactionLive header contains Timeline breadcrumb root link" do
     src = File.read!(@transaction_lv_path)
 
+    assert src =~ "Helpers.retained_timeline_context"
+    assert src =~ "timeline_return_path(surface_root(base_path), timeline_context_query)"
+
     assert String.contains?(
              src,
-             ~S|%{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"}|
+             ~S|%{label: "Timeline", href: @timeline_return_path}|
            ),
            "expected #{@transaction_lv_path} to root its page_header breadcrumb at Timeline (D-13)"
   end

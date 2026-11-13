@@ -49,16 +49,16 @@ test.describe("Phase 175 UAT — runtime theme picker (real user flow)", () => {
 
     // The picker form is correctly wired to switch the theme: it POSTs to the base-path
     // /theme route with a CSRF token, offers all three lanes with the current one
-    // checked, and exposes an Apply control. (ThemeController persists the choice in the
+    // selected with immediate submit buttons. (ThemeController persists the choice in the
     // session; light/system shell rendering is covered by the desktop-chromium-light lane.)
     const form = await page.evaluate(() => {
       const f = document.querySelector(".tl-theme-picker__form") as HTMLFormElement | null;
       if (!f) return null;
       const csrf = f.querySelector('input[name="_csrf_token"]') as HTMLInputElement | null;
-      const radios = Array.from(
-        f.querySelectorAll('input[name="theme"]'),
-      ) as HTMLInputElement[];
-      const checked = radios.find((r) => r.checked);
+      const options = Array.from(
+        f.querySelectorAll('button[name="theme"]'),
+      ) as HTMLButtonElement[];
+      const selected = options.filter((button) => button.getAttribute("aria-pressed") === "true");
       const apply = Array.from(f.querySelectorAll("button")).some((b) =>
         /apply theme/i.test(b.textContent || ""),
       );
@@ -66,8 +66,10 @@ test.describe("Phase 175 UAT — runtime theme picker (real user flow)", () => {
         action: f.getAttribute("action") || "",
         method: (f.getAttribute("method") || "").toLowerCase(),
         hasCsrf: !!csrf && (csrf.value || "").length > 0,
-        values: radios.map((r) => r.value).sort(),
-        checked: checked ? checked.value : null,
+        values: options.map((button) => button.value).sort(),
+        selected: selected.map((button) => button.value),
+        selectedLabels: selected.map((button) => button.querySelector(".tl-theme-picker__selected")?.textContent),
+        submitTypes: options.map((button) => button.type),
         apply,
       };
     });
@@ -77,8 +79,10 @@ test.describe("Phase 175 UAT — runtime theme picker (real user flow)", () => {
     expect(form!.method).toBe("post");
     expect(form!.hasCsrf).toBe(true);
     expect(form!.values).toEqual(["dark", "light", "system"]);
-    expect(["dark", "light", "system"]).toContain(form!.checked);
-    expect(form!.apply).toBe(true);
+    expect(form!.selected).toEqual([await root(page).getAttribute("data-tl-theme")]);
+    expect(form!.selectedLabels).toEqual([expect.stringContaining("Selected")]);
+    expect(form!.submitTypes).toEqual(["submit", "submit", "submit"]);
+    expect(form!.apply).toBe(false);
   });
 
   test("shell nav is a native <details> that toggles open and closed", async ({
