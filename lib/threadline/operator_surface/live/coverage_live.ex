@@ -51,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    def handle_event("select-schema", %{"schema" => schema}, socket) do
+    def handle_event("select-schema", %{"schema" => schema}, socket) when is_binary(schema) do
       schema =
         case String.trim(to_string(schema)) do
           "" -> "public"
@@ -62,6 +62,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        push_patch(socket,
          to: "#{socket.assigns.base_path}/coverage?#{URI.encode_query(%{"schema" => schema})}"
        )}
+    end
+
+    def handle_event("select-schema", _params, socket) do
+      {:noreply,
+       socket
+       |> assign(:schema_param, "Invalid schema")
+       |> assign(:form_error, "Choose a schema from the list.")
+       |> assign_selected_snapshot(nil, Snapshot.empty(nil))}
     end
 
     def handle_event("refresh", _params, socket) do
@@ -345,6 +353,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
+    defp schema_display(schema) when is_binary(schema), do: schema
+    defp schema_display(_schema), do: "Invalid schema"
+
     defp validate_schema(socket, schema) when is_binary(schema) do
       socket
       |> resolve_repo()
@@ -393,7 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             end
 
           socket
-          |> assign(:schema_param, schema_param)
+          |> assign(:schema_param, schema_display(schema_param))
           |> assign(:available_schemas, schemas)
           |> assign_selected_snapshot(nil, Snapshot.empty(nil))
           |> assign(:form_error, message)
