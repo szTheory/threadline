@@ -251,3 +251,7 @@ These are proof requirements, not claims that tests or browser checks have run d
 - `brand/BRAND.md`, `brand/brand.json`, and `brand/assets/README.md` — approved identity, semantic color and type roles, fonts, and supplied artwork.
 - `lib/threadline/operator_surface/style/01_tokens.css` and `lib/threadline/operator_surface/ui/` — current runtime tokens and shared component owners.
 - Existing route owners: `lib/threadline/operator_surface/live/` — actual Timeline, history, Coverage, Redaction, and Evidence copy/actions/state boundaries.
+
+## Snapshot recovery clarification during Plan02
+
+A malformed nonempty time renders the approved invalid-time alert without a substituted snapshot. Since a native datetime-local field cannot display malformed text, the alert also offers “View latest snapshot” through the existing history route with as_of removed. This is explicit default selection using existing navigation, not a new route/API/query key. Valid field clearing has the same blank intent; Close, retained filters, scope and path identity are preserved. Independent phase-wide UI review confirms the final state.

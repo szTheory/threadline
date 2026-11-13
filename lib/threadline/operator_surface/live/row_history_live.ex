@@ -29,6 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       record_id = params["record_id"]
 
       {origin, context_query} = Helpers.retained_timeline_context(query_params)
+      {as_of, snapshot_invalid?} = snapshot_request(params["as_of"])
 
       {:noreply,
        assign(socket,
@@ -36,7 +37,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          table: table,
          record_id: record_id,
          context_lost?: origin == :lost,
-         as_of: parse_as_of(query_params["as_of"]),
+         as_of: as_of,
+         snapshot_invalid?: snapshot_invalid?,
          history_path: row_history_path(base_path, table, record_id, origin, context_query),
          close_path: timeline_path(base_path, origin, context_query)
        )}
@@ -83,6 +85,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             table={@table}
             record_id={@record_id}
             as_of={@as_of}
+            snapshot_invalid?={@snapshot_invalid?}
             base_path={@base_path}
             close_path={@close_path}
             history_path={@history_path}
@@ -97,17 +100,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    defp parse_as_of(nil), do: nil
-    defp parse_as_of(""), do: nil
+    defp snapshot_request(value) when value in [nil, ""], do: {nil, false}
 
-    defp parse_as_of(value) when is_binary(value) do
+    defp snapshot_request(value) when is_binary(value) do
       case DateTime.from_iso8601(value) do
-        {:ok, dt, _offset} -> dt
-        _ -> nil
+        {:ok, dt, _offset} -> {dt, false}
+        _ -> {nil, true}
       end
     end
 
-    defp parse_as_of(_), do: nil
+    defp snapshot_request(_), do: {nil, true}
 
     defp decode_query(nil), do: %{}
 

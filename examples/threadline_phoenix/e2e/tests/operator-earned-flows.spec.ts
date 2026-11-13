@@ -755,6 +755,11 @@ test("Phase251 standalone snapshot intent", async ({ page }) => {
     await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.");
     await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
     await expect(drawer.getByRole("link", { name: "Close", exact: true })).toBeFocused();
+    const latest = drawer.getByRole("link", { name: "View latest snapshot", exact: true });
+    expect(new URL((await latest.getAttribute("href"))!, page.url()).searchParams.get("from")).toBe("");
+    await latest.click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
   }
   await page.goto(`${path}?${retained}&as_of=2026-05-26T16%3A30%3A00%2B02%3A00`);
   let drawer = page.getByTestId("row-history-drawer");

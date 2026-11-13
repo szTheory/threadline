@@ -13,12 +13,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       table = to_string(assigns.table)
       record_id = to_string(assigns.record_id)
       schema_module = schema_for_table(schemas, table)
+      snapshot_invalid? = assigns[:snapshot_invalid?] || false
 
       socket =
         socket
         |> assign(assigns)
         |> assign(:table, table)
         |> assign(:record_id, record_id)
+        |> assign(:snapshot_invalid?, snapshot_invalid?)
         |> assign_new(:close_path, fn -> assigns[:base_path] end)
         |> assign_new(:return_label, fn -> "Timeline" end)
         |> assign_new(:context_lost?, fn -> false end)
@@ -46,12 +48,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             |> Threadline.row_history(assigns.record_id, row_history_opts)
             |> Enum.map(& &1.audit_change)
 
-          as_of_dt =
-            assigns.as_of ||
-              if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
+          {as_of_dt, snapshot_result} =
+            if snapshot_invalid? do
+              {nil, nil}
+            else
+              dt =
+                assigns.as_of ||
+                  if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
 
-          snapshot_result =
-            Threadline.as_of(schema_module, assigns.record_id, as_of_dt, as_of_opts)
+              {dt, Threadline.as_of(schema_module, assigns.record_id, dt, as_of_opts)}
+            end
 
           {:ok,
            socket
@@ -96,6 +102,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           :table,
           :record_id,
           :as_of,
+          :snapshot_invalid?,
           :base_path,
           :close_path,
           :return_label,
@@ -111,17 +118,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, socket}
     end
 
-    def handle_event("update-as-of", %{"as_of" => as_of_str}, socket) do
-      as_of_str =
-        if String.length(as_of_str) == 16, do: as_of_str <> ":00Z", else: as_of_str <> "Z"
-
-      as_of =
-        case DateTime.from_iso8601(as_of_str) do
-          {:ok, dt, _} -> dt
-          _ -> socket.assigns.as_of_dt
+    def handle_event("update-as-of", %{"as_of" => value}, socket) when is_binary(value) do
+      candidate =
+        cond do
+          String.length(value) == 16 -> value <> ":00Z"
+          Regex.match?(~r/T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/, value) -> value <> "Z"
+          true -> value
         end
 
-      {:noreply, push_patch(socket, to: as_of_path(socket.assigns.history_path, as_of))}
+      requested =
+        case DateTime.from_iso8601(candidate) do
+          {:ok, dt, _offset} -> dt
+          _ -> value
+        end
+
+      {:noreply, push_patch(socket, to: as_of_path(socket.assigns.history_path, requested))}
+    end
+
+    def handle_event("update-as-of", _params, socket) do
+      {:noreply, assign(socket, snapshot_invalid?: true, as_of_dt: nil, snapshot_result: nil)}
     end
 
     def render(assigns) do
@@ -191,10 +206,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
 
               <div class="tl-subview__panel">
-                <h4 class="tl-subview__panel-title">
-                  Snapshot as of <time datetime={Presentation.exact_time(@as_of_dt)} title={Presentation.exact_time(@as_of_dt)}><%= Presentation.human_time(@as_of_dt) %></time>
-                </h4>
-                <.snapshot_result result={@snapshot_result} />
+                <%= if @snapshot_invalid? do %>
+                  <div class="tl-alert tl-alert--warning" role="alert">
+                    <p>This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.</p>
+                    <.link patch={as_of_path(@history_path, nil)} class="tl-button tl-button--secondary">
+                      View latest snapshot
+                    </.link>
+                  </div>
+                <% else %>
+                  <h4 class="tl-subview__panel-title">
+                    Snapshot as of <time datetime={Presentation.exact_time(@as_of_dt)} title={Presentation.exact_time(@as_of_dt)}><%= Presentation.human_time(@as_of_dt) %></time>
+                  </h4>
+                  <.snapshot_result result={@snapshot_result} />
+                <% end %>
               </div>
             </div>
           <% end %>
@@ -227,11 +251,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp schema_for_atom_key(_entry, _table), do: nil
 
-    defp as_of_path(history_path, %DateTime{} = as_of) do
+    defp as_of_path(history_path, %DateTime{} = as_of),
+      do: as_of_path(history_path, DateTime.to_iso8601(as_of))
+
+    defp as_of_path(history_path, as_of) when is_binary(as_of) or is_nil(as_of) do
       uri = URI.parse(history_path)
       params = if uri.query, do: URI.decode_query(uri.query), else: %{}
       origin_query = timeline_origin_query(params)
-      as_of_query = URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})
+      as_of_query = if as_of in [nil, ""], do: "", else: URI.encode_query(%{"as_of" => as_of})
       query = Enum.reject([origin_query, as_of_query], &(&1 == "")) |> Enum.join("&")
       path = uri.path || history_path
 
