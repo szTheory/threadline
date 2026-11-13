@@ -1,11 +1,18 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
-test.use({ viewport: { width: 375, height: 812 }, isMobile: true });
+test.use({ viewport: { width: 375, height: 812 }, isMobile: true, ...(process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1" ? { hasTouch: true } : {}) });
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+    await page.setViewportSize({ width: 375, height: 900 });
+    expect(page.viewportSize()).toEqual({ width: 375, height: 900 });
+    expect(await page.evaluate(() => navigator.maxTouchPoints)).toBeGreaterThan(0);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -79,15 +86,17 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await page.goto("/audit/policy/retention");
     await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
 
-    const summary = await box(page.locator(".tl-summary-grid"));
-    const prune = await box(page.getByRole("button", { name: "Prune now" }).last());
+    const summary = await box(page.getByTestId("retention-scope"));
+    await expect(page.getByTestId("retention-scope")).toContainText("The current operator or tenant scope does not limit this prune");
+    const prune = await box(page.getByRole("button", { name: "Preview retention", exact: true }));
     expect(summary.y).toBeLessThan(prune.y);
 
-    const pruneButton = page.getByRole("button", { name: "Prune now" }).last();
+    const pruneButton = page.getByRole("button", { name: "Preview retention", exact: true });
     await expect(pruneButton).toHaveClass(/tl-button--secondary/);
     await expect(pruneButton).not.toHaveClass(/tl-button--danger/);
     await expect(pruneButton).not.toHaveAttribute("data-confirm", /./);
     await pruneButton.click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const modal = page.locator("#prune-confirm");
     await expect(
       modal.getByRole("heading", { name: "Prune retained audit data?" }),
@@ -117,8 +126,9 @@ test.describe("operator evidence and exports mobile UAT", () => {
     const chipBox = await box(chip);
     const rowBox = await box(failedRow);
     expect(chipBox.width).toBeLessThan(rowBox.width);
-    await expect(page.getByText("No rows deleted").first()).toBeVisible();
-    await expect(page.getByText("No duration yet").first()).toBeVisible();
+    await expect(failedRow.getByText("No deletion count recorded", { exact: true })).toBeVisible();
+    await expect(failedRow.getByText("No duration recorded", { exact: true })).toBeVisible();
+    await expect(failedRow).not.toContainText("No rows deleted");
     await expectNoHorizontalOverflow(page);
   });
 

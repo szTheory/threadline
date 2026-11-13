@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { chromium, expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -15,6 +16,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
   test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
 
   await withIsolatedZoomContext(chromium, async (context, page) => {
+    if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
     const baseURL = testInfo.project.use.baseURL ?? "http://127.0.0.1:4002";
     await page.goto(new URL("/users/log_in", String(baseURL)).toString());
     const form = page.locator("#login_form");
@@ -158,6 +160,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
 test("inspection routes preserve exact scope and controls at verified real 200% tab zoom", async ({}, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
   await withIsolatedZoomContext(chromium, async (context, page) => {
+    if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
     const baseURL = String(testInfo.project.use.baseURL ?? "http://127.0.0.1:4002");
     let blockReconnect = false;
     await page.routeWebSocket(/\/live\/websocket/, (socket) => {
@@ -267,13 +270,14 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
     expect(retentionZoom.tabId).toBe(coverageZoom.tabId);
     expect(retentionZoom.zoomFactor).toBe(2);
     await expect(page.locator("#retention-runs")).toBeVisible();
-    const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+    const prune = page.getByRole("button", { name: "Preview retention", exact: true });
     observations.push({ ...await observePage(page, "Retention history", [
-      ["Open prune confirmation", prune],
+      ["Preview retention", prune],
     ], true), tabZoom: retentionZoom });
     await page.setViewportSize({ width: 1280, height: 420 });
     expect((await setAndReadTabZoom(context, page)).zoomFactor).toBe(2);
     await prune.click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const pruneDialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
     await expect(pruneDialog).toBeVisible();
     await expect(pruneDialog).toContainText("This prune applies the configured retention policy globally");
