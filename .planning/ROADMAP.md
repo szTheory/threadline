@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases248–253; active. Seven of34 ADM requirements are locally complete. Phases248/249 are verified complete; Phase250 has seven of eight plans complete. This planning version does not prescribe the package release version.
+- [ ] **v1.48 Threadline Admin: brand and complete journeys** — Phases248–253 active. Phases248–252 locally verified;253 source reviewed, final inclusive/proof/requiredCI acceptance pending. Package remains1.1.0.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -181,7 +181,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Readers find the new identity and truthful language consistently in current README/guides/example docs/ExDoc; working assets, anchors, code contracts and migrated tests agree, and the package ships only needed assets/fonts/licenses while optional Phoenix/LiveView, host CSS/font/script and dev/test Storybook boundaries hold.
 4. Maintainers can reconcile every existing route/job/state disposition with current behavior, database, host-route and browser proof, matched before/after capture identities and bounded independent design/copy review; required existing canonical gates and CI establish the exact candidate without new jobs, redundant cross-product runs or weakened checks.
 5. Maintainers receive migration notes, evidence limits, measured CI/CD conclusions and a truthful package/release recommendation that keeps unresolved safety/proof gates and REL-01 visible; local readiness grants no version bump, risk acceptance, merge or publication authority and cannot complete the live next-release clause.
-**Plans**: 11 plans in six waves (independently accepted)
+**Plans**: 11 initially accepted plans plus one bounded corrective quality plan (12 plans,21 tasks). Pending zoom/CI acceptance remains explicit; source-ready independent local work continues in the same context.
 **Wave 1**
 - [ ] 253-01 — Runner-only worker readiness and mounted blank confirmation
 - [ ] 253-04 — README discovery and contracts
@@ -196,13 +196,16 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 253-03 — Inclusive jobs, headline font and matched captures
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 4 — local corrective quality**
+- [ ] 253-12 — Preserve behavior while closing the actual strict-lint gate
+
+**Wave 5 — local package/acceptance**
 - [ ] 253-09 — Current route acceptance and package readiness
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 6 — independent reviews after local candidate preparation**
 - [ ] 253-10 — Independent reviews and acceptance records
 
-**Wave 6** *(blocked on Wave 5 completion)*
+**Wave 7 — final verification and real external boundary**
 - [ ] 253-11 — Final goal and concrete external CI decision
 
 **Cross-cutting constraints:** <!-- gsd:generated -->
@@ -213,7 +216,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of35 planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 accepted plans/18tasks and complete9requirement/14decision coverage; implementation is next in one continuing dependent context. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-five planned plans,twenty-four complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of36 planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 initially accepted plans plus corrective Plan12/21tasks and complete9requirement/14decision coverage; local implementation and package verification are active in the preserved context; nine local plan contributions are materialized with explicit evidence limits;02/03 remain pending real-zoom/required-CI and11 final assessment/external decision. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-six planned plans,twenty-four complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -222,7 +225,7 @@ Execution order:248→249→250→251→252→253. Phases248–252 are independe
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
-| 253. Inclusive integration, docs, package and release readiness | 0/11 | Planned | - |
+| 253. Inclusive integration, docs, package and release readiness | 0/12 | Executing; child integration pending | - |
 
 ## Next
 

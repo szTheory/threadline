@@ -4,15 +4,15 @@ milestone: v1.48
 current_phase: 253
 current_phase_name: Inclusive integration, docs, package and release readiness
 status: executing
-stopped_at: Phase253 local execution active in one supported dependent context
-last_updated: "2026-11-13T16:34:46.112Z"
+stopped_at: Phase253 reviewed candidate and durable recovery evidence ready for supported integration
+last_updated: "2026-11-13T21:42:12.088650+00:00"
 last_activity: 2026-11-13
-last_activity_desc: Phase 253 execution started
+last_activity_desc: Closing local reviews and restart recovery complete; integration and final verifier next
 state_head: 0c5afdbc8b1e6cba0b9daa1e0929b7dc8ba496eb
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 35
+  total_plans: 36
   completed_plans: 24
   percent: 83
 milestone_name: "Threadline Admin: brand and complete journeys"
@@ -33,17 +33,17 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 
 Phase: 253 (Inclusive integration, docs, package and release readiness) — EXECUTING
-Plan: 1 of 11
+Plan: supported integration and final independent assessment (12 plans/21tasks; no new executor)
 Status: Executing Phase 253
 Last activity: 2026-11-13 — Phase 253 execution started
 
-Progress: [████████░░] 83% — 5 of 6 phases complete; 24 of 35 planned plans complete.
+Progress: [████████░░] 83% — 5 of 6 phases complete; 24 of 36 planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Active execution:** GSD worktree `agent-p253-01-1794587847` carries local253-01–09; The standalone worker is terminal1 after repeated intake; parent continues directly in this same checkout. Plans253-01/04/05/06/07/08 are locally complete there with actual runner/worker/mounted and bounded documentation proof; source and summaries await grouped integration. Plan253-02 browser-probe migration is next, followed by03 inclusive/font/captures and09–11 package/independent acceptance. Reconcile that checkout before resuming; never dispatch another executor. Parent owns253-10/11 independent review/final authority boundary.
+**Active execution:** The one supported dependent context `agent-p253-01-1794587847` contains the reviewed Phase253 source and all local records. Parent continued it after the original standalone worker ended1; no replacement executor was launched. Local plans01/04/05/06/07/08/09/10/12 have materialized their work and named proof with explicit limits;02/03 remain pending real2x/requiredCI and11 final assessment/external boundary is active. Source review is clean, security24/24mitigations/noopenrisk and UI20/24. Restart deleted private old evidence/cluster; source/reports/JUnit survived, new fixture is explicitly different, and current recovery checks/captures/archive/offline cluster were SHA-verified into parent `.planning/tmp/253-recovery/` before cleanup. Both owned services stopped cleanly; caches remain. Supported integration then independent goal/fingerprint is next. No phase/milestone acceptance, external authority or raw-packet restoration is inferred. No user action is needed for this local work.
 
-**Current diagnosis and dispatch:** Phases248–252 are independently complete. Phase252 delivers exact-target authorized Retention preview/confirmation and persisted outcomes, actor-owned Export boundaries and connected pure Operations catalog. Its final independent goal is39/39 truths/three requirements, source clean, security12/12 mitigated with0 open/no accepted risk, UI22/24 and fresh current catalog widths. [Verification](phases/252-complete-operations-and-connected-catalog-review/252-VERIFICATION.md), [evidence](phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md) and [disposition](phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md) preserve initial findings, the stale-width gap, corrected receipts and actual limits. Supported manifest cleanup merged the one dependent context with no warnings, stopped only its two owned apps cleanly and removed five cache links with targets preserved. Phase253 now has11 independently accepted plans containing18 tasks, complete requirement/decision coverage, approved UI contract and actual probe records. Prepared owned253 databases are migrated and ordinary fixture seeded; implementation starts with runner-only real-Pruner readiness and stale Retention entry probes, then inclusive/font/captures, bounded current docs, actual package/acceptance, independent review and final goal. One continuing dependent GSD context avoids repeated intake; local readiness precedes a concrete external CI/push decision. Required full-root repeat remains consumed/stopped; no native clipboard, foreground, hosted dispatch, push/version/merge/publication authority is inferred. No user action is needed for continuing authorized local work.
+**Current diagnosis and dispatch:** Phases248–252 are independently complete. Phase252 delivers exact-target authorized Retention preview/confirmation and persisted outcomes, actor-owned Export boundaries and connected pure Operations catalog. Its final independent goal is39/39 truths/three requirements, source clean, security12/12 mitigated with0 open/no accepted risk, UI22/24 and fresh current catalog widths. [Verification](phases/252-complete-operations-and-connected-catalog-review/252-VERIFICATION.md), [evidence](phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md) and [disposition](phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md) preserve initial findings, the stale-width gap, corrected receipts and actual limits. Supported manifest cleanup merged the one dependent context with no warnings, stopped only its two owned apps cleanly and removed five cache links with targets preserved. Phase253 has11 initially accepted plans plus a bounded corrective quality plan,21 tasks total, complete requirement/decision coverage, approved UI contract and actual probe records. Prepared owned253 databases are migrated and ordinary fixture seeded; implementation starts with runner-only real-Pruner readiness and stale Retention entry probes, then inclusive/font/captures, bounded current docs, actual package/acceptance, independent review and final goal. One continuing dependent GSD context avoids repeated intake; local readiness precedes a concrete external CI/push decision. Required full-root repeat remains consumed/stopped; no native clipboard, foreground, hosted dispatch, push/version/merge/publication authority is inferred. No user action is needed for continuing authorized local work.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -58,7 +58,7 @@ Progress: [████████░░] 83% — 5 of 6 phases complete; 24 of
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 5 complete, 24/35 planned plans complete, 83% phase progress. Phase253 local execution is active; six plans are complete in the isolated checkout and not yet integrated.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 5 complete, 24/36 planned plans complete, 83% phase progress. Phase253 local execution is active; six plans are complete in the isolated checkout and not yet integrated.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -104,7 +104,7 @@ The accepted [Phase253 context](phases/253-inclusive-integration-docs-package-an
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase253-01 active in supported dependent worktree `agent-p253-01-1794587847`; reconcile existing worker before any dispatch
+**Stopped at:** Phase253 closing packet ready; original worker terminal, parent-owned supported integration/final verification next
 **Resume file:** .planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-01-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
