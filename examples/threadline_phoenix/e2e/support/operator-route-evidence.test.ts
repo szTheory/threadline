@@ -1194,3 +1194,15 @@ test("semantic identities and source ownership survive reordered declarations; m
   assert.ok(semanticInventoryErrors(falseTransactionPagination, fixture, semanticSources)
     .includes("unsupported transaction change pagination claim"));
 });
+
+
+test("Retention preview mapping rejects a stale changed-control source anchor", () => {
+  const inventory = JSON.parse(readFileSync(semanticInventoryPath, "utf8"));
+  const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
+  assert.deepEqual(semanticInventoryErrors(inventory, fixture, semanticSources), []);
+  const retention = inventory.surfaces.find((surface: SemanticSurface) => surface.routeId === "route.retention");
+  const preview = retention.sourceRefs.find((reference: SemanticReference) => reference.id === "source-retention-preview");
+  assert.ok(preview, "Retention preview must map its actual event owner");
+  const changedSources = { ...semanticSources, [preview.path]: semanticSources[preview.path].replace(preview.locator, 'handle_event("obsolete_preview", _params, socket) do') };
+  assert.ok(semanticInventoryErrors(inventory, fixture, changedSources).some((error) => error === `invalid source locator ${preview.path}#${preview.locator}`));
+});

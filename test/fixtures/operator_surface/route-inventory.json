@@ -537,7 +537,7 @@
     {
       "id": "control.retention-history.phx-click.39327fd8b0",
       "kind": "control",
-      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}"
+      "label": "retention-history phx-click=\"preview_retention\""
     },
     {
       "id": "control.retention-history.phx-click.b1923ff2d5",
@@ -547,7 +547,7 @@
     {
       "id": "control.retention-history.phx-click.f5976720b6",
       "kind": "control",
-      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")}"
+      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")} disabled={@prune_submitting}>Review and confirm</button>"
     },
     {
       "id": "control.retention-history.phx-submit.e4adfa4855",
@@ -727,7 +727,7 @@
     {
       "id": "control.surface-header.href.251f47a90c",
       "kind": "control",
-      "label": "surface-header href={\"#{@base_path}/coverage\"}>"
+      "label": "surface-header selected-schema Coverage link"
     },
     {
       "id": "control.surface-header.href.coverage-warning-second",
@@ -2108,6 +2108,66 @@
       "id": "state.phase250.docs-favicon",
       "kind": "state",
       "label": "keeps the local favicon independent from application body theme"
+    },
+    {
+      "id": "control.phase252.retention.preview-pending",
+      "kind": "control",
+      "label": "retention-history phx-disable-with=\"Generating preview…\""
+    },
+    {
+      "id": "state.phase251.70d4151b61f3",
+      "kind": "state",
+      "label": "operator-earned-flows.spec.ts test(\"Phase251 retained-context recovery\""
+    },
+    {
+      "id": "state.phase251.f9d63f93b851",
+      "kind": "state",
+      "label": "operator-earned-flows.spec.ts test(\"Phase251 standalone snapshot intent\""
+    },
+    {
+      "id": "state.phase251.db46d583c8d9",
+      "kind": "state",
+      "label": "operator-earned-flows.spec.ts test(\"Phase251 transaction snapshot intent\""
+    },
+    {
+      "id": "state.phase251.7c109397825b",
+      "kind": "state",
+      "label": "operator-earned-flows.spec.ts test(\"Phase251 narrow history close control\""
+    },
+    {
+      "id": "state.phase251.8e854774f122",
+      "kind": "state",
+      "label": "operator-timeline-investigation-flow.spec.ts test(\"Phase251 Home and actor lifecycle\""
+    },
+    {
+      "id": "control.phase251.8afd29426bfc",
+      "kind": "control",
+      "label": "row_history_component.ex patch={as_of_path(@history_path, nil)} class=\"tl-button tl-button--secondary\">"
+    },
+    {
+      "id": "state.phase251.0f0f0de6cb7f",
+      "kind": "state",
+      "label": "operator-coverage-readiness.spec.ts test(\"Phase251 Coverage selected snapshot\""
+    },
+    {
+      "id": "state.phase251.a3bae73bd788",
+      "kind": "state",
+      "label": "operator-route-states.spec.ts test(\"Phase251 Timeline and saved-view guards\""
+    },
+    {
+      "id": "state.phase251.330cb3ba8b20",
+      "kind": "state",
+      "label": "operator-route-states.spec.ts test(\"Phase251 Coverage availability boundaries\""
+    },
+    {
+      "id": "state.phase251.255a960ff0c3",
+      "kind": "state",
+      "label": "operator-route-states.spec.ts test(\"Phase251 Redaction current-definition meaning\""
+    },
+    {
+      "id": "state.phase251.b83a7acdcf97",
+      "kind": "state",
+      "label": "operator-route-states.spec.ts test(\"Phase251 Evidence recorded provenance\""
     }
   ]
 }
