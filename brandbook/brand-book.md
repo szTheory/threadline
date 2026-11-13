@@ -1,5 +1,11 @@
 # Threadline Brand Book
 
+> Superseded historical identity. Retained as unshipped release-era history;
+> these are not current release or acceptance instructions. Use the
+> [current brand guide](../brand/BRAND.md), [structured rules](../brand/brand.json),
+> [primitive tokens](../brand/tokens.json), and [asset guide](../brand/assets/README.md).
+> The wording, tokens, scores and commands below preserve their historical context.
+
 ## Source Of Truth
 
 Threadline makes system history followable.

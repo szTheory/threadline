@@ -1,4 +1,14 @@
-# Threadline Operator Surface Design System
+<a id="threadline-operator-surface-design-system"></a>
+
+# Threadline Admin Design System
+
+Current brand authority: [brand guide](brand/BRAND.md),
+[structured rules](brand/brand.json), [primitive tokens](brand/tokens.json), and
+[asset guide](brand/assets/README.md). The approved identity governs current UI.
+
+The ledger scores and cohort labels below are historical inventory metadata,
+not current UI acceptance results. Current acceptance uses executable journeys,
+bound captures and independent review.
 
 This inventory is projected from `test/fixtures/operator_surface/design-system-ledger.json`. Update the JSON ledger first, then keep this table projection fresh.
 
@@ -169,7 +179,12 @@ This inventory is projected from `test/fixtures/operator_surface/design-system-l
 
 ## Semantic Token Mapping
 
-Keep `brandbook/tokens.json` strict to primitive brand tokens. Map primitives to functional UI tokens in the operator stylesheet (`lib/threadline/operator_surface/style/01_tokens.css`). This separation of concerns allows the brand to own the core primitive color palette, while the UI system defines semantics like `--tl-color-surface` and maps them appropriately.
+The approved `brand/brand.json` defines color roles and `brand/tokens.json`
+contains primitive brand data. Map them to functional UI tokens in
+`lib/threadline/operator_surface/style/01_tokens.css`. Spacing and semantic
+`--tl-gap-*` aliases belong to that stylesheet; do not add them to brand data.
+`brandbook/tokens.json` and `brandbook/tokens.css` remain historical references,
+not runtime token authorities.
 
 ## Motion Reductions
 

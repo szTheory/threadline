@@ -1,5 +1,11 @@
 # Threadline Brand Pressure Test
 
+> Superseded historical identity. Retained as unshipped release-era history;
+> these are not current release or acceptance instructions. Use the
+> [current brand guide](../brand/BRAND.md), [structured rules](../brand/brand.json),
+> [primitive tokens](../brand/tokens.json), and [asset guide](../brand/assets/README.md).
+> The wording, tokens, scores and commands below preserve their historical context.
+
 Adversarial QA for everything in `brandbook/`. Fifteen dimensions, each scored 1-10
 against a testable pass condition, for a total out of **150**. Self-assessment is
 banned: every score cites a mechanical output (a gate line, a grep result, a measured
