@@ -144,6 +144,8 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
       observations,
     };
     console.log(`THREADLINE_ZOOM_OBSERVATION=${JSON.stringify(result)}`);
+    await testInfo.attach("investigation-real-200-percent-zoom", { body: Buffer.from(JSON.stringify(result)), contentType: "application/json" });
+    await testInfo.attach("investigation-real-200-percent-zoom-after-only", { body: await page.screenshot(), contentType: "image/png" });
 
     if (acceptMode) {
       for (const observation of observations) {
@@ -287,6 +289,7 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
       ["Confirmation policy name", pruneDialog.getByRole("textbox", { name: "Policy name to confirm" })],
       ["Keep audit data", keepAuditData],
     ], true), tabZoom: retentionZoom });
+    await testInfo.attach("retention-real-200-percent-zoom-after-only", { body: await page.screenshot(), contentType: "image/png" });
     await keepAuditData.click();
     await expect(page.locator("#prune-confirm")).toBeHidden();
     await expect(prune).toBeFocused();
@@ -362,11 +365,11 @@ async function observePage(
 
 async function openThemeControls(page: import("@playwright/test").Page): Promise<[string, import("@playwright/test").Locator][]> {
   const shell = page.getByTestId("operator-nav-shell");
-  const theme = (name: string) => [`${name} theme`, shell.getByRole("radio", { name, exact: true })] as [string, import("@playwright/test").Locator];
-  const system = shell.getByRole("radio", { name: "System" });
+  const theme = (name: string) => [`${name} theme`, shell.getByRole("button", { name, exact: true })] as [string, import("@playwright/test").Locator];
+  const system = shell.getByRole("button", { name: "System", exact: true });
   if (!(await system.isVisible())) {
     const toggle = shell.locator(".tl-shell-nav__toggle");
     if (await toggle.isVisible()) await toggle.click();
   }
-  return [theme("System"), theme("Light"), theme("Dark"), ["Apply theme", shell.getByRole("button", { name: "Apply theme", exact: true })]];
+  return [theme("System"), theme("Light"), theme("Dark")];
 }

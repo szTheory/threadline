@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -58,6 +59,7 @@ const adjacentRoutes = [
 ];
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -144,9 +146,9 @@ async function expectMobileDisclosureNav(page: Page) {
   }
 
   for (const theme of ["System", "Light", "Dark"]) {
-    await expect(shell.getByRole("radio", { name: theme })).toBeVisible();
+    await expect(shell.getByRole("button", { name: theme, exact: true })).toBeVisible();
   }
-  await expect(shell.getByRole("button", { name: "Apply theme" })).toBeVisible();
+  await expect(shell.getByRole("button", { name: "Apply theme" })).toHaveCount(0);
 
   // Pointer activation should reopen the same native disclosure after keyboard activation.
   await toggle.click();
@@ -277,10 +279,9 @@ async function expectThemePickerSelected(page: Page, theme: "dark" | "system") {
   await expect(root).toHaveAttribute("data-tl-theme", theme);
 
   const shell = page.getByTestId("operator-nav-shell");
-  const radio = shell.locator(`input[name="theme"][value="${theme}"]`);
-  await expect(radio).toBeChecked();
-
-  const selectedOption = shell.locator(`.tl-theme-picker__option:has(input[value="${theme}"])`);
+  const selectedOption = shell.locator(`button[name="theme"][value="${theme}"]`);
+  await expect(selectedOption).toHaveAttribute("aria-pressed", "true");
+  await expect(selectedOption.locator(".tl-theme-picker__selected")).toContainText("Selected");
   const style = await selectedOption.evaluate((element) => {
     const computed = window.getComputedStyle(element);
     return {

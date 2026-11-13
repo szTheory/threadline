@@ -132,31 +132,15 @@ async function expectImmediateMotion(locator: Locator) {
   expect(style.transitionDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
 }
 
-async function expectThemeOptionFocusVisible(radio: Locator) {
-  await expect(radio).toBeFocused();
-  const option = radio.locator(
-    "xpath=ancestor::label[contains(concat(' ', normalize-space(@class), ' '), ' tl-theme-picker__option ')][1]",
-  );
-  await expect(option).toBeVisible();
-
-  const focusStyle = await option.evaluate((element) => {
-    const style = window.getComputedStyle(element);
-
-    return {
-      matchesFocusVisible: element.matches(":has(:focus-visible)"),
-      matchesFocusWithin: element.matches(":focus-within"),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-    };
+async function expectThemeOptionFocusVisible(button: Locator) {
+  await expect(button).toBeFocused();
+  await expect(button).toBeVisible();
+  const focusStyle = await button.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { matchesFocusVisible: element.matches(":focus-visible"), outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
   });
-
-  const hasFocusRing =
-    focusStyle.outlineStyle !== "none" && focusStyle.outlineWidth !== "0px";
-
-  expect(
-    hasFocusRing,
-    `expected theme option focus ring, got ${JSON.stringify(focusStyle)}`,
-  ).toBe(true);
+  expect(focusStyle.matchesFocusVisible).toBe(true);
+  expect(focusStyle.outlineStyle !== "none" && focusStyle.outlineWidth !== "0px", JSON.stringify(focusStyle)).toBe(true);
 }
 
 async function focusByKeyboard(page: Page, target: Locator, maxTabs = 40) {
@@ -322,8 +306,7 @@ test.describe("operator accessibility baseline", () => {
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
       await openOperatorNav(page);
       const picker = page.getByTestId("operator-nav-group-theme");
-      await picker.getByRole("radio", { name: theme, exact: true }).check();
-      await picker.getByRole("button", { name: "Apply theme", exact: true }).click();
+      await picker.getByRole("button", { name: theme, exact: true }).click();
 
       await page.goto("/audit/evidence");
       await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
@@ -547,26 +530,23 @@ test.describe("operator accessibility baseline", () => {
     await expect(themeGroup.locator('form[action="/audit/theme"]')).toBeVisible();
     await expect(themeGroup.locator('input[name="_csrf_token"]')).toHaveCount(1);
 
+    const selectedTheme = themeGroup.locator('button[name="theme"][aria-pressed="true"]');
+    await expect(selectedTheme).toHaveCount(1);
+    await expect(selectedTheme.locator(".tl-theme-picker__selected")).toContainText("Selected");
     for (const theme of ["System", "Light", "Dark"]) {
-      const radio = themeGroup.getByRole("radio", { name: theme });
-      await expect(radio).toBeVisible();
+      const button = themeGroup.getByRole("button", { name: theme, exact: true });
+      await expect(button).toBeVisible();
+      await focusByKeyboard(page, button);
+      await expectThemeOptionFocusVisible(button);
+      await expectNonObscuredFocused(button, page);
     }
+    await expect(themeGroup.getByRole("button", { name: "Apply theme" })).toHaveCount(0);
+    const light = themeGroup.getByRole("button", { name: "Light", exact: true });
+    await focusByKeyboard(page, light);
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".threadline-ui")).toHaveAttribute("data-tl-theme", "light");
+    await expect(light).toHaveAttribute("aria-pressed", "true");
 
-    const checkedTheme = themeGroup.locator('input[name="theme"]:checked');
-    await focusByKeyboard(page, checkedTheme);
-    await expectThemeOptionFocusVisible(checkedTheme);
-
-    for (let index = 0; index < 2; index += 1) {
-      await page.keyboard.press("ArrowUp");
-      await expectThemeOptionFocusVisible(
-        themeGroup.locator('input[name="theme"]:focus'),
-      );
-    }
-
-    const applyTheme = themeGroup.getByRole("button", { name: "Apply theme" });
-    await page.keyboard.press("Tab");
-    await expect(applyTheme).toBeFocused();
-    await expectNonObscuredFocused(applyTheme, page);
   });
 
   test("keeps System selection while served colors follow OS through investigation navigation", async ({
@@ -576,16 +556,15 @@ test.describe("operator accessibility baseline", () => {
 
     const themeGroup = page.getByTestId("operator-nav-group-theme");
     await openOperatorNav(page);
-    const system = themeGroup.getByRole("radio", { name: "System" });
+    const system = themeGroup.getByRole("button", { name: "System", exact: true });
     if (process.env.THREADLINE_E2E_THEME === "system") {
-      await expect(system).toBeChecked();
+      await expect(system).toHaveAttribute("aria-pressed", "true");
       await expect(page.locator(".threadline-ui")).toHaveAttribute(
         "data-tl-theme",
         "system",
       );
     }
-    await system.check();
-    await themeGroup.getByRole("button", { name: "Apply theme" }).click();
+    await system.click();
     await expect(page.locator(".threadline-ui")).toHaveAttribute(
       "data-tl-theme",
       "system",
@@ -608,14 +587,15 @@ test.describe("operator accessibility baseline", () => {
     const systemLight = await appearance();
     expect(systemLight.background).toBe("rgb(247, 249, 252)");
     expect(systemLight.foreground).toBe("rgb(15, 23, 40)");
-    expect(systemLight.border).toBe("rgb(167, 180, 200)");
+    // Current functional strong-border token, shared by Light and System.
+    expect(systemLight.border).toBe("rgb(118, 132, 159)");
 
     await page.emulateMedia({ colorScheme: "dark" });
     const systemDark = await appearance();
     expect(systemDark.background).toBe("rgb(11, 16, 32)");
     expect(systemDark.foreground).not.toBe(systemLight.foreground);
     expect(systemDark.border).not.toBe(systemLight.border);
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
 
@@ -624,7 +604,7 @@ test.describe("operator accessibility baseline", () => {
       "data-tl-theme",
       "system",
     );
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
     const { transactionHref } = await discoverTransactionAndRowHistory(page);
@@ -638,15 +618,14 @@ test.describe("operator accessibility baseline", () => {
       "data-tl-theme",
       "system",
     );
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
 
     for (const theme of ["light", "dark"]) {
       await openOperatorNav(page);
       const group = page.getByTestId("operator-nav-group-theme");
-      await group.getByRole("radio", { name: new RegExp(theme, "i") }).check();
-      await group.getByRole("button", { name: "Apply theme" }).click();
+      await group.getByRole("button", { name: new RegExp(`^${theme}$`, "i") }).click();
       await expect(page.locator(".threadline-ui")).toHaveAttribute(
         "data-tl-theme",
         theme,
@@ -656,7 +635,7 @@ test.describe("operator accessibility baseline", () => {
         "data-tl-theme",
         theme,
       );
-      await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
         theme,
       );
     }
@@ -817,9 +796,8 @@ test.describe("operator accessibility baseline", () => {
       await page.goto("/audit");
       await openOperatorNav(page);
       const themeGroup = page.getByTestId("operator-nav-group-theme");
-      const themeRadio = themeGroup.getByRole("radio", { name: theme, exact: true });
-      if (!(await themeRadio.isChecked())) await themeRadio.check();
-      await themeGroup.getByRole("button", { name: "Apply theme", exact: true }).click();
+      const themeButton = themeGroup.getByRole("button", { name: theme, exact: true });
+      if ((await themeButton.getAttribute("aria-pressed")) !== "true") await themeButton.click();
       await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
 
       const longCorrelation = `retention-export-filter-${"x".repeat(80)}`;
