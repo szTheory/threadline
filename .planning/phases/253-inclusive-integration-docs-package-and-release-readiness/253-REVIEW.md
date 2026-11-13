@@ -67,6 +67,31 @@ findings:
   total: 3
   necessity: 0
 status: findings
+delta_review:
+  reviewed: 2026-11-13T20:42:11Z
+  baseline_revision: 4f35334f20fc4c8a89ac46d446b9fbb3b6b46672
+  reviewed_revision: decaf3e6b33c799e7543e1acdabc9c2c738a7b84
+  review_type: automated-review
+  files_reviewed: 8
+  files_reviewed_list:
+    - examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts
+    - examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts
+    - guides/operator-surface.md
+    - guides/upgrade-path.md
+    - lib/threadline/operator_surface/style/03_page_home.css
+    - lib/threadline/operator_surface/style/08_overlays_motion.css
+    - lib/threadline/operator_surface/style/09_responsive.css
+    - test/threadline/upgrade_path_doc_contract_test.exs
+  resolved: [CR-01, WR-01]
+  partially_resolved: [WR-02]
+  new_findings: 0
+  remaining_findings:
+    critical: 0
+    warning: 1
+    info: 0
+    total: 1
+    necessity: 0
+  status: findings
 ---
 
 # Phase 253: Independent Code Review
@@ -150,4 +175,33 @@ The newly available [package readiness record](253-PACKAGE-READINESS.md) and [dr
 The parent owns dispositions, source fixes, affected proof and any same-reviewer delta. For CR-01, actual intermediate-width browser proof is the useful next check after the fix. For WR-01/02, correct the existing docs/contracts and run their affected owner checks. Required real zoom and exact-candidate CI remain pending independently; no push, release, foreground, clipboard or residual-risk authority is inferred.
 
 _No structural pre-pass or external-reviewer evidence was supplied. Necessity was assessed under the loaded rubric; no provable necessity finding was identified._
+
+## Bounded Changed-Source Assessment — 2026-11-13T20:42:11Z
+
+**Verdict:** CR-01 and WR-01 are closed. WR-02 is partially resolved: the upgrade guide is accurate, but the unchanged changelog sentence still needs correction. No new source defect was identified in the eight-file delta. This is an automated-review delta, not another whole-phase audit or release/CI acceptance.
+
+All eight actual file hashes match the supplied delta manifest at `decaf3e6b33c799e7543e1acdabc9c2c738a7b84`. The original findings and original frozen-source assessment above remain intact. This assessment covers only those changed files, their immediate owners and the related supplied evidence; no test, browser, application or external action was launched by the reviewer.
+
+### Original-finding dispositions
+
+| Finding | Disposition | Source and evidence |
+| --- | --- | --- |
+| CR-01 | Closed | The named container query now spans through 812px, matching the four desktop track minima plus three gaps. The existing host test adds the 900px wrapper while retaining 640px and 320px cases and all original containment/control-hit predicates. The preserved actual RED JUnit records `1089 > 901` at the intended parent-width assertion. The current browser receipt and inline observations show Timeline and Retention parent/surface scroll widths equal their actual 900/640/320px bounds, with controls inside the host and unobscured. |
+| WR-01 | Closed | The guide and contract now use `adopter_acknowledges_unauthenticated: true`. The contract extracts the exact backticked source fragment and sends its bracketed keyword form to `Code.string_to_quoted/1`, instead of pinning the invalid atom-plus-keyword spelling. See the affected-check currency limit below. |
+| WR-02 | Partially resolved; WARNING remains | `guides/upgrade-path.md:160-164` now distinguishes compile-time literal checks from fail-closed runtime handling of opaque expressions. `CHANGELOG.md:31-32` is unchanged and still says invalid mount authorization is rejected at compile time without that distinction. Apply the original narrow wording remedy to this remaining adopter surface and run its existing contract together with the final guide contract. No router behavior change is required. |
+
+### Other changed owners
+
+The Admin font inventory now names all three actual embedded families. Retention prose/margins, bounded table identifier no-wrap and the transaction detail heading rules are scoped to their intended owners. The identifier still has its existing bounded overflow/ellipsis owner; no table-wide overflow hiding was introduced. Copy-success feedback uses neutral text/control-border tokens while its visible state and animation remain; error feedback is unchanged. These changes introduce no new API, dependency, authorization or persistence behavior.
+
+The forced-colors case retains focus, operation-label, failed-status, border and automatic-adjustment assertions. It strengthens the actual Retention observation by checking the active forced-colors media state and comparing computed foreground/background against a live CanvasText/Canvas sentinel. It attaches the current rendered status screenshot. The font and host cases keep their original computed-font/asset and geometric assertions. No assertion removal, skip, retry allowance or vacuous empty fixture was introduced in the delta.
+
+### Evidence assessed and its limits
+
+- The current selected browser wrapper exits zero at the exact eight-file hashes. Its JSON reports three expected cases, zero skipped/unexpected/flaky cases, and one retry-zero result for each case; duration is 2.9 seconds. Inline JSON attachments substantiate the six host observations, actual forced-colors status and served heading-font bytes. This does not establish real 200% zoom.
+- The preserved RED record's actual JUnit contains the named test's containment failure. The corrected record-v02 preserves that real output; the earlier invalid command-array record is not substituted for executed RED evidence.
+- The 91-case style/brand/font/doc owner run exits zero and matches seven current delta hashes. It predates the final `upgrade_path_doc_contract_test.exs` parser-assertion edit. The current release gate matches all eight hashes but runs archive/topology contracts, not that guide owner. Therefore the final parser assertion still needs its affected doc-owner execution; the planned changelog/guide check can close this small proof-currency gap without repeating the 91-case batch.
+- The current canonical release wrapper exits zero at this revision. The supplied archive inspection records 178 entries, the current archive digest and the ten unchanged approved assets. This contributes local package evidence only. The running evaluator mentioned in the handoff is not assigned a completed result here.
+
+The parent acts next: correct the remaining changelog sentence, run the existing affected changelog/upgrade contracts, and request only the resulting wording/evidence confirmation. Source review has no remaining blocker; one documentation warning remains. Real 200% tab zoom, exact-candidate required CI and the original REL-01 event stay pending under their existing owners and authority boundaries.
 

@@ -56,3 +56,12 @@ Receipts pair-app-02, pair-after-start-materialization and pair-after-first-brow
 ## Still pending
 
 Independent code/UI findings, parent dispositions and current package/validation/UAT records, then final goal fingerprint; actual successful real200% zoom; exactcandidate requiredCI; original first-natural-release REL-01. Preserve the consumed full-root stop and native clipboard as stopped/unobserved, including the earlier uncertain Enter. Descriptorless/unclassified engine flags remain non-authoritative and unresolved, separately from source security findings. Finalize/link lessons at actual handoff. No risk acceptance or human attestation is inferred.
+
+
+## Independent changed-source appendix — decaf3e6
+
+The same read-only auditor returned SECURED for all eight changed source hashes,24/24 source mitigations CLOSED,0open, no accepted risk. No handler/auth/worker/lock/publicAPI changed. It independently unpacked the preserved release04 archive before restart:178 regular files plus one directory, exact ten assets and excluded prefixes absent. It confirmed strengthened system-color observations and900px host coverage, accurate runtime opaque-expression refusal, valid keyword example, approved font inventory and scoped presentation changes. It did not claim evaluator02 while ongoing; parent later observed its actual exit0/19tests before restart.
+
+The auditor correctly found the91-case owner receipt predates the final keyword-parser assertion; release04 does not execute that doc owner. The post-restart recovered-doc-owner-03 actual26/0 covers the final upgrade contract and corrected changelog. The original unspecified LINT severity remains visibly unspecified in the authored plan; critical was reviewer normalization for an OPEN fail-closed counter, not an authored classification. Final code/UI dispositions, fingerprint, real zoom, exactCI and REL01 remain separate pending controls.
+
+The restart removed private pre-restart archives/receipts/images. Original source review observations remain historical judgments at their exact revision, not a claim those deleted bytes are currently available. Current post-restart evidence lives in the durable ignored recovery directory with new cluster/fixture identity. Subsequent table-allocation CSS changes await bounded delta; no security claim is inferred for unreviewed changes.

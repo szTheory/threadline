@@ -28,8 +28,10 @@ unchanged.
 
 ### Breaking changes
 
-None to the supported capture, semantics or public mount APIs. Invalid mount
-authorization is now rejected at compile time; see the required action below.
+None to the supported capture, semantics or public mount APIs. Missing or
+statically invalid mount authorization is rejected at compile time; opaque
+expressions are validated at runtime and unusable values refuse access. See the
+required action below.
 
 ### Required action
 

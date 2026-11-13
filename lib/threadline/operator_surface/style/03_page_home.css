@@ -437,6 +437,11 @@
     white-space: nowrap;
   }
 
+  /* Let the already shortened reference use the whole mobile card width. */
+  .tl-table--retention td[data-label="Run"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   [data-testid="retention-preview"] > :where(h2, p, dl),
   [data-testid="retention-preview"] :where(dt, dd) {
     margin: 0;

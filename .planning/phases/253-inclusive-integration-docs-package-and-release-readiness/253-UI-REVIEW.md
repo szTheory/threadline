@@ -2,16 +2,23 @@
 phase: "253"
 reviewed: "2026-11-13"
 depth: "independent six-pillar visual, source and copy review"
-reviewed_revision: "4f35334f20fc4c8a89ac46d446b9fbb3b6b46672"
-runtime_revision: "79e74fc4f16f125fe20b5bcb0db09bc2a047c26a"
+reviewed_revision: "decaf3e6b33c799e7543e1acdabc9c2c738a7b84"
+runtime_revision: "decaf3e6b33c799e7543e1acdabc9c2c738a7b84"
+original_reviewed_revision: "4f35334f20fc4c8a89ac46d446b9fbb3b6b46672"
+original_runtime_revision: "79e74fc4f16f125fe20b5bcb0db09bc2a047c26a"
 baseline_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
 status: "changes-requested; required real browser zoom proof remains blocking"
-score: 16
+score: 19
 score_max: 24
-open_findings: 8
+original_score: 16
+original_findings: 8
+open_findings: 2
+delta: "changed-only source and ten current PNGs; F01 and F03 remain open"
 ---
 
 # Phase 253 — UI Review
+
+**Record structure:** the original 16/24 assessment and eight findings below are preserved. The current changed-only assessment, score and remaining findings are in **Bounded delta 1** at the end; frontmatter reflects that latest assessment.
 
 **Audited:** 2026-11-13
 **Baseline:** approved [UI-SPEC](253-UI-SPEC.md), approved brand, and retained Phase 252 appearance.
@@ -203,3 +210,56 @@ Registry audit is inapplicable: `components.json` is absent and the full UI cont
 ## Original review and delta ownership
 
 This is the original independent report at the frozen revision. Findings F01–F08 remain recorded for parent disposition and a bounded same-reviewer delta. No anticipated fix, recapture, passing package receipt or remote proposal closes a finding here. Priority fixes:3. Other recommendations:5. Parent owns source changes, acceptance disposition and next authorized execution; no maintainer acknowledgment is required merely to preserve the current stop.
+
+## Bounded delta 1 — source and pixel corrections
+
+**Reviewed:** 2026-11-13. **Source/runtime:** `decaf3e6b33c799e7543e1acdabc9c2c738a7b84`. **Delta baseline:** original reviewed source `4f35334f20fc4c8a89ac46d446b9fbb3b6b46672`, with its original after-capture appearance retained above. This is a changed-only assessment, not a new full audit or re-execution of the 28 UI/16 edge matrix. Original findings, evidence and 16/24 score remain historical rather than being rewritten as successful.
+
+### Current score: 19/24
+
+| Pillar | Original | Current | Changed-only basis |
+|---|---|---|---|
+| Copywriting |3|4|All three embedded families and current asset link now appear in the canonical CSP inventory; changed migration wording distinguishes static compile-time checks from opaque runtime refusal. No new copy defect found in this delta. |
+| Visuals |3|4|The secondary Transaction identifier is now a compact 16px supporting heading, preserving its identity and page heading. Status/task hierarchy remains intact in the viewed replacements; the table allocation defect is scored under Spacing/Typography. |
+| Color |3|4|Copy-success text/button/pulse use neutral reading/border roles. Fresh forced-status pixels visibly use system Canvas/CanvasText with status words and outlined shapes, consistent with the strengthened receipt. No new color defect found in this delta. |
+| Typography |3|3|The risk scope paragraph now uses 16px body/line-body and page/compact headings retain approved roles. F03 still prevents the intended single-line middle-elided reference from remaining fully readable at mobile width. |
+| Spacing |2|2|Preview child margins and dialog action discovery improve, and the additional900px host check passes; F03's nowrap-only remedy creates a substantial desktop Outcome-column squeeze and mobile clipped suffix. |
+| Experience Design |2|2|Selected host/media/font proof is stronger, but required actual real200% tab zoom remains missing. Defaultzoom1 still cannot establish F01. |
+
+### Finding disposition
+
+| Finding | Current assessment | Evidence and practical limit |
+|---|---|---|
+| F01 | **OPEN — BLOCKER** | All ten new captures remain defaultzoom1. No successful exact-tab factor2 receipt was supplied. Existing capped local diagnostics and required-CI boundary remain; no waiver or new attempt is inferred. |
+| F02 | **RESOLVED for supplied forced-status state** | Actually viewed fresh `after-only-forced-status.png`: white system canvas, black text/borders, visible Failed/Queued/Completed words and outlined shapes, top shell in its intended capture position. The owning test now reapplies/settles media after navigation and asserts status media match plus computed Canvas/CanvasText; its attached image is separate actual proof. Original contradictory PNG and failed collectors stay retained and insufficient. |
+| F03 | **PARTIALLY FIXED — OPEN WARNING** | Desktop Run IDs now stay on one line, but the new allocation leaves Outcome about80px wide and breaks the Failed explanation into roughly17 lines. At375px the already middle-shortened Run code is hard-clipped at the right edge, hiding its suffix; full copy/disclosure remains, so no data loss is claimed. Original640-host Timeline actor/row wrapping remains inherited and unchanged. See targeted remedy below. |
+| F04 | **RESOLVED for unnecessary preview spacing and desktop dialog actions** | Child paragraph/list margins are zero; the existing token gap separates estimates and caveats. The1280×900 dialog now visibly contains input focus, Keep audit data and Prune now. The375px ready card is more compact, but its actions still need ordinary vertical scrolling because the formerly12px scope prose is now readable16px. Required scope/caveat content is preserved; this review does not impose an invented above-the-fold guarantee or call that necessary scroll a defect. |
+| F05 | **RESOLVED** | Actually viewed375px transaction: page title remains28px; supporting “Transaction 0bac2d25-10d” is one compact16px line rather than a competing two-line headline. Full metadata, breadcrumb and copy affordance remain. |
+| F06 | **RESOLVED** | Actually viewed copy-success Timeline uses neutral Copied/button styling. Source also changes pulse origin to the neutral strong border. Controlled-copy appearance does not establish native clipboard behavior. |
+| F07 | **RESOLVED** | `guides/operator-surface.md:471` now names Familjen Grotesk, Geist and IBM Plex Mono and links approved assets; existing history/opt-out/CSP boundaries remain. |
+| F08 | **RESOLVED** | `03_page_home.css:430` applies16px body and line-body locally to retention-scope prose. Both new themed retention images visibly show the larger disclosure; no global heading/table restyle occurred. |
+
+### F03 delta — remedy needs column allocation as well as nowrap
+
+**Changed owner:** `lib/threadline/operator_surface/style/03_page_home.css:436` adds only `white-space: nowrap` to Retention reference code, whose inherited shared owner also sets `max-width:100%` and `overflow:hidden`.
+
+**Route/state/trigger:** `/audit/policy/retention`, populated history at1280×900 Dark and ready-preview history at375×900 Light. The Failed row is actual ordinary fixture data, not stress content. The new forced-status image repeats the same layout problem in system colors, supporting that this is geometry rather than palette.
+
+**Observed consequence:** the desktop Outcome column previously held a readable multi-word sentence over about6 lines; it now holds roughly1–3 words per line across about17 lines. The Run column absorbs about300px to satisfy nowrap, and failure recovery becomes much harder to scan. Mobile code is one line but ends in a hard cut rather than exposing the preserved suffix of its middle-elided value. Outer `scrollWidth` remaining equal to `clientWidth` does not establish readable columns or intact reference shortening.
+
+**Least disruptive next fix:** keep nowrap but allocate a readable Outcome minimum/track within the existing bounded table-scroll owner on desktop. At the stacked mobile breakpoint, fit a genuinely shorter middle-elided reference or give its exact code a local accessible horizontal-scroll owner; do not silently clip its identifying suffix. Preserve full copy/disclosure and avoid a global nowrap rule or document overflow. Refresh only the affected desktop/mobile Retention pixels/column geometry. The inherited640-host Timeline reference issue stays explicitly limited unless its existing owner is deliberately included; it is not newly fixed by a Retention-only selector.
+
+### Intermediate-host correction assessed
+
+The control-container breakpoint changes480→812px in `09_responsive.css:563`, matching the documented four-track minima plus gaps. The existing host test now selects900 and640 parents at1280 viewport plus a separate320 viewport for Timeline and Retention. Supplied targeted browser results contain exactly the three host/font/forced-color declarations, all passed with retry0,0skips,0unexpected and0flaky; duration is2.900s. The retained initial900-host failure1089>901 is separate RED evidence, not deleted by the subsequent success. The new640-host PNG still shows contained controls and visible Apply focus; its internal results scrolling and original reference wrapping remain separate from the fixed outer-control containment.
+
+### Delta evidence actually examined
+
+- All eight source hashes in private `threadline-253-review-delta-01.json` were checked against this checkout and matched. Read the actual8-file diff, including both browser owners, the three CSS owners, both guide changes and upgraded guide-contract predicate. The migration correction removes invalid keyword presentation and narrows the compile-time claim; no public API name changes.
+- **Actually opened all ten PNGs** in `threadline-253-pairs-after-review-01`: `ordinary-timeline.png`, `ordinary-transaction.png`, `ordinary-row-history.png`, `retention-history.png`, `retention-preview.png`, `retention-dialog.png`, `exports-statuses.png`, `after-only-forced-focus.png`, `after-only-forced-status.png`, `after-only-host-640.png`. Corresponding original after01 PNGs remain the prior viewed comparison states. Source/runtime for the replacements is the exact current revision above; images are new evidence, not relabeled old captures.
+- Read the replacement manifest's route/state/viewport/theme/focus/container records. Normal repeated comparisons retain1280Dark/375Light/1280Light scope; three inclusive conditions remain after-only. The forced-status correction intentionally changes effective palette and settles navigation, so it repairs evidence rather than constituting a paired brand-color improvement. Real clocks differ; no frozen or pixel-perfect temporal claim.
+- Read actual targeted browser results and strengthened status source: forced-colors must match at the status itself; computed status foreground/background must equal measured system CanvasText/Canvas, with a visible border/word. Passing is confined to those declared conditions, not blanket accessibility.
+- Before/after-review-fix materialization records both bind the exact current revision and report no differences in all named rows across the same five audit/action/export/retention tables. This supports unchanged capture fixture identity only; it does not establish valid deletion or default cleanup.
+- No new browser/app/test/DB/native-clipboard operation by this reviewer. No source changes beyond this report. No fresh snapshot-guard pass, native clipboard observation, human understanding, required exact-candidate CI or REL-01 completion is inferred.
+
+**Current outcome:** six original warnings resolve within their assessed scope; F03 remains partial and F01 remains blocking. Two open findings, with one required-proof blocker and one layout warning; no new independent finding ID is invented for F03's directly resulting tradeoff. Parent owns the next targeted remedy and acceptance/CI disposition. The original28UI/16edge limits remain; F02's status-pixel limit is the one specifically superseded here.
