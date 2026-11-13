@@ -1,19 +1,26 @@
 ---
 phase: 252-complete-operations-and-connected-catalog-review
 audited: 2026-11-13
-reviewed_revision: e79f7837e6e9817e739933c85d9579f436f42446
+reviewed_revision: 74fe8df2b2520868d464eca93054492fc93a2cad
+reviewed_record_revision: 3a3d3ab19fc631f453778b472855e09f4c8c5c7f
+previous_reviewed_revision: e79f7837e6e9817e739933c85d9579f436f42446
 baseline_revision: b1888177648ef468c6d2bfc1cc1645f860fd2e4b
-status: open_threats
-verdict: OPEN_THREATS
+status: secured
+verdict: SECURED
 level: ASVS1
 block_on: high
 threats_total: 12
-threats_secured: 9
-threats_open: 3
+threats_secured: 12
+threats_open: 0
 accepted_risks: []
+final_goal_acceptance: pending
 ---
 
-# Independent security audit — initial verdict
+# Independent security audit
+
+**Current independent delta verdict: SECURED,12/12 mitigated,0 open, no accepted risks. Final goal/release acceptance remains pending.** The initial9-secured/3-open findings follow unchanged as historical evidence; the bounded closing delta is below.
+
+## Initial verdict (preserved)
 
 The independent `phase252_security_review` auditor returned OPEN_THREATS. Parent persisted its structured findings because the auditor role is read-only. All19 frozen source hashes and reviewed HEAD matched. Actual runtime is7cca0a18; subsequent reviewed source changes are test/planning only. No tests/builds/apps/DB/browser/install operations were performed by this auditor. This is mitigation verification, not release acceptance. Original initial findings remain below; any later delta must preserve them.
 
@@ -43,3 +50,18 @@ T-10/T-11 remain actual closeout obligations: materialize independent judgments/
 Original trigger/0 and :prune handler remain supported (Pruner34–46,145–146); positive compatibility control follows stale-target refusal67–91. Mounted/worker mismatch refuses instead of retargeting; include both facts in253 migration notes. Guarded acknowledgement loss returns acceptance_unknown62–74, UI clears authority and explains possible queued request129–139 without retry/relookup. Causal after-audit suspension test150–189 exists.
 
 Mutation proof records225 changes and133 empty transactions removed,358 stored rows, after unchanged offline/reconnect stages and one deliberate request. Current14 captures comprise4 paired defaults plus10 after-only scenes; clocks differ, before raw theme is null from retained selector error, housekeeping setup differs. No default-cleanup, broad accessibility, native clipboard, foreground, hosted or release acceptance is established. All three descriptorless prohibitions remain flagged-unverified; independent product intent is assessed separately. Two unclassified edges remain unresolved. No risk acceptance and no unregistered attack-surface flag identified.
+
+
+## Independent bounded delta — SECURED
+
+The same `phase252_security_review` auditor confirmed the actual7 source/test hashes at74fe8df2 and reviewed record revision3a3d3ab1. All twelve unique declared threats are closed with disposition mitigate; no accepted/transferred risk substitutes for correction. T01/02/04/05/06/07/08/09/SC retain their initial actual evidence, with corrected deterministic fixtures and current after04 custody confirmed.
+
+| Previously open threat | Actual independently checked correction/control | Current disposition |
+|---|---|---|
+|T-252-03 high|components.ex141–158 preserves nil, labels running progress and failed last-recorded/incomplete counts; live611–624 excludes active rows from finished aggregate. Existing test now checks nil/0/1/many Outcome and active exclusion. Fixtures343–348,389–396 derive completion from actual scene rows.|CLOSED,mitigate.|
+|T-252-10 high|Actual source/UI initial and bounded independent judgments exist, findings retained; disposition/UAT/sampling/pair and all four summaries materialized. This security delta supplies the actual remaining independent judgment.|CLOSED,mitigate.|
+|T-252-11 high|Assigned independent verifier actually generated canonical v4 preflight over48 paths at current record HEAD, exit0;11 required records nonempty and receipt sizes match. Auditor's read-only installed-helper recomputation matches current content; installed freshness handling fails closed for malformed/stale evidence.|CLOSED,mitigate; final goal/freshness still required.|
+
+Actual preflight integrity digest: `v4:sha256:5e096aa7988ac2b816eb2568b1230ce5f2212aff6d89cc4153324ec993da19ea`. This is not a passed goal verdict. The acyclic sequence is actual independent preflight→security delta→parent writeback→same verifier final whole-goal assessment/current digest, with bounded refresh after necessary writeback. Phase cannot advance without actual canonical passed+fresh status.
+
+Auditor inspected retained meaningful red and green receipts, root128/example13 with no failures, selected after04 digest and all14 PNG hashes, exact runtime source, unchanged ordinary materialization and preview no-write facts. It did not rerun suites/apps/DB/browsers. Mobile-layer actual pixel/hit-test judgment belongs to the independent UI reviewer. Three descriptorless flags and two unclassified edges remain unchanged; no new unregistered attack surface identified. No blocking/nonblocking open threats remain.
