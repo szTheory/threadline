@@ -1785,6 +1785,15 @@ test("Phase251 Coverage availability boundaries", async ({ page, browser }) => {
 
 
 test("Phase251 Redaction current-definition meaning", async ({ page }) => {
+  let hold = false;
+  let held: { server: WebSocketRoute; message: string | Buffer } | undefined;
+  await page.routeWebSocket(/\/live\/websocket/, ws => {
+    const server = ws.connectToServer();
+    ws.onMessage(message => {
+      if (hold && String(message).includes('"refresh-policy-inspection"')) held = { server, message };
+      else server.send(message);
+    });
+  });
   await installControlledClipboard(page);
   await login(page);
   await page.setViewportSize({ width: 375, height: 900 });
@@ -1801,16 +1810,26 @@ test("Phase251 Redaction current-definition meaning", async ({ page }) => {
   await expect(posts.getByRole("rowheader", { name: "Redacted", exact: true })).toBeVisible();
   await expect(posts.getByRole("rowheader", { name: "Replacement", exact: true })).toBeVisible();
   await expect(main).toContainText("does not establish whether historical audit rows or downstream exports were redacted");
-  const refresh = main.getByRole("button", { name: "Refresh policy inspection", exact: true });
+  const refresh = main.locator('button[phx-click="refresh-policy-inspection"]');
   await expect(refresh).toHaveAttribute("phx-disable-with", "Inspecting policy…");
+  const beforeInspection = await main.locator("time").first().getAttribute("datetime");
+  hold = true;
   await refresh.focus();
   await page.keyboard.press("Enter");
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await expect(refresh).toBeDisabled();
+  await expect(refresh).toHaveText("Inspecting policy…");
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", beforeInspection!);
+  hold = false;
+  held!.server.send(held!.message);
   await expect(refresh).toBeEnabled();
+  await expect.poll(() => main.locator("time").first().getAttribute("datetime")).not.toBe(beforeInspection);
   await expect(main.locator("time").first()).toHaveAttribute("datetime", /Z$/);
   await expectNoHorizontalOverflow(page);
   await page.goto("/audit/policy/redaction?schema=threadline");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-  await expect(main.getByRole("heading", { name: "No configured policy to compare", exact: true })).toHaveCount(4);
+  await expect(main.getByRole("heading", { name: "No configured policy to compare", exact: true })).toHaveCount(1);
+  await expect(main.getByRole("heading", { name: /^No configured policy to compare \(0\)$/ })).toHaveCount(3);
   await expect(main).not.toContainText("No redaction drift detected.");
   await expect(main).not.toContainText("No introspection failures.");
   await page.goto("/audit/policy/redaction?schema[bad]=value");
@@ -1823,4 +1842,49 @@ test("Phase251 Redaction current-definition meaning", async ({ page }) => {
   const rendered = await main.evaluate(node => node.outerHTML);
   for (const canary of ["CREATE OR REPLACE FUNCTION", "raw-trigger-sql-canary-241", "private-unexpected-policy-canary-251", "sample-value-canary-241", "redacted-value-canary-241"]) expect(rendered).not.toContain(canary);
   expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 Evidence recorded provenance", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/evidence");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Snapshot recorded at", { exact: true }).first()).toBeVisible();
+  await expect(main).toContainText("caller-overridable recorded metadata, not verified or authenticated identity");
+  const card = main.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("Recorded provenance");
+  const selectedReference = await card.locator("code.tl-secondary-ref").getAttribute("data-tl-copy");
+  expect(selectedReference).not.toBeNull();
+  await card.getByRole("link", { name: "View proof history", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/mode=history/);
+  await expect(main.locator(".tl-record-card")).toHaveCount(3);
+  await expect(main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref")).toHaveAttribute("title", selectedReference!);
+  await expect(main).toContainText("Append-only history");
+  await expectNoHorizontalOverflow(page);
+  const ref = JSON.stringify({ run_id: "missing-" + "x".repeat(180) });
+  const selection = `/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(ref)}`;
+  await page.goto(selection);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No Threadline evidence for this selection", exact: true })).toBeVisible();
+  const selected = main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref");
+  await expect(selected).toHaveAttribute("title", ref);
+  await selected.locator("..").getByRole("button", { name: "Copy subject ref", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => page.evaluate(() => (window as any).__phase251CopyCounter.lastValue)).toBe(ref);
+  await expectNoHorizontalOverflow(page);
+  // The existing live/DB unavailable endpoint owns failed-read and Retry proof;
+  // this mounted host deliberately exposes no outage injection route.
+  const context = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await context.newPage();
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/evidence");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.locator("#tl-main")).toContainText("Evidence is unavailable in this support lane");
+  } finally { await context.close(); }
 });

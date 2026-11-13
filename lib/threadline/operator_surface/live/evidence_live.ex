@@ -104,6 +104,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               “Proven” applies only to the recorded snapshot. Latest projection and append-only history describe recorded Threadline evidence; they do not establish overall capture completeness or the absence of unrecorded activity.
             </p>
 
+            <p class="tl-hint" data-testid="evidence-provenance-boundary">
+              Writer and entrypoint are caller-overridable recorded metadata, not verified or authenticated identity.
+            </p>
+
             <.evidence_results
               request={@request}
               base_path={@base_path}
@@ -166,10 +170,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     label here — each fact renders once (signal-to-chrome). --%>
                     <div class="tl-record-card__meta">
                       <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
+                      <span>Snapshot recorded at</span>
                       <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                         <%= Presentation.human_time(row.recorded_at) %>
                       </time>
                     </div>
+                    <p class="tl-hint"><span>Recorded provenance</span>: <%= row.recorded_provenance %></p>
                   </div>
                   <div class="tl-record-card__actions">
                     <.link
@@ -364,9 +370,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         summary_status: presented.summary_status,
         proof_label: proof_label(presented),
         recorded_at: record.recorded_at,
+        recorded_provenance: recorded_provenance_summary(record),
         verdict_status: presented.verdict_status
       }
     end
+
+    defp recorded_provenance_summary(%{provenance: metadata})
+         when metadata == nil or metadata == %{},
+         do: "No recorded provenance metadata."
+
+    defp recorded_provenance_summary(%{subject: subject, provenance: metadata})
+         when subject in ~w(redaction_policy trigger_coverage retention_run retention_policy export_delivery support_scope_posture) and
+                is_map(metadata) do
+      entrypoint = "record_" <> subject
+
+      if metadata["writer"] == "threadline" and metadata["entrypoint"] == entrypoint do
+        "Threadline writer via " <> entrypoint
+      else
+        "Custom or unrecognized recorded metadata (values hidden)."
+      end
+    end
+
+    defp recorded_provenance_summary(_record),
+      do: "Custom or unrecognized recorded metadata (values hidden)."
 
     defp proof_label(%{subject: "export_delivery", summary_status: status})
          when status in ["failed", "error", "unsupported"] do

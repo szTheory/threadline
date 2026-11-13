@@ -100,6 +100,114 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/evidence" do
+      test "every supported exact recorded writer pair is bounded by its subject", %{conn: conn} do
+        subjects =
+          ~w(redaction_policy trigger_coverage retention_run retention_policy export_delivery support_scope_posture)
+
+        assert Threadline.Evidence.Subject.supported_subjects() == subjects
+
+        for subject <- subjects do
+          reference = %{"probe" => "known-#{subject}"}
+
+          insert_evidence(
+            subject: subject,
+            subject_ref: reference,
+            provenance: %{
+              "writer" => "threadline",
+              "entrypoint" => "record_#{subject}",
+              "secret" => "private-provenance-canary-251"
+            }
+          )
+
+          query =
+            URI.encode_query(%{
+              "subject" => subject,
+              "subject_ref_json" => Jason.encode!(reference)
+            })
+
+          {:ok, _view, html} = live(conn, "/audit/evidence?#{query}")
+          assert html =~ "Recorded provenance"
+          assert html =~ "Threadline writer via record_#{subject}"
+          assert html =~ "Snapshot recorded at"
+
+          assert html =~
+                   "caller-overridable recorded metadata, not verified or authenticated identity"
+
+          assert html =~ "2026-05-26T12:00:00.000000Z"
+          refute html =~ "private-provenance-canary-251"
+        end
+      end
+
+      test "custom partial mismatched and absent provenance never exposes values", %{conn: conn} do
+        samples = [
+          {%{}, "No recorded provenance metadata."},
+          {%{"writer" => "threadline"},
+           "Custom or unrecognized recorded metadata (values hidden)."},
+          {%{"entrypoint" => "record_retention_run"},
+           "Custom or unrecognized recorded metadata (values hidden)."},
+          {%{"writer" => "threadline", "entrypoint" => "record_export_delivery"},
+           "Custom or unrecognized recorded metadata (values hidden)."},
+          {%{
+             "writer" => "private-writer-canary-251",
+             "entrypoint" => String.duplicate("private-entrypoint-canary-251", 30)
+           }, "Custom or unrecognized recorded metadata (values hidden)."},
+          {%{"other" => %{"secret" => "private-map-canary-251"}},
+           "Custom or unrecognized recorded metadata (values hidden)."}
+        ]
+
+        for {{provenance, expected}, index} <- Enum.with_index(samples) do
+          reference = %{"probe" => "custom-#{index}"}
+
+          insert_evidence(
+            subject_ref: reference,
+            provenance: provenance,
+            actor_ref: %{"type" => "service_account", "id" => "private-actor-canary-251"},
+            detail: %{"secret" => "private-detail-canary-251"}
+          )
+
+          query =
+            URI.encode_query(%{
+              "subject" => "retention_run",
+              "subject_ref_json" => Jason.encode!(reference)
+            })
+
+          {:ok, _view, html} = live(conn, "/audit/evidence?#{query}")
+          assert html =~ expected
+          refute html =~ "Threadline writer via"
+
+          for canary <-
+                ~w(private-writer-canary-251 private-entrypoint-canary-251 private-map-canary-251 private-actor-canary-251 private-detail-canary-251),
+              do: refute(html =~ canary)
+        end
+      end
+
+      test "equal recorded times preserve latest and append-only history without leaking arbitrary detail",
+           %{conn: conn} do
+        reference = %{"run_id" => "same-time-boundary"}
+
+        for status <- ["queued", "running", "completed"] do
+          insert_evidence(
+            subject_ref: reference,
+            summary_status: status,
+            detail: %{"secret" => "same-time-private-canary-251"}
+          )
+        end
+
+        query =
+          URI.encode_query(%{
+            "subject" => "retention_run",
+            "subject_ref_json" => Jason.encode!(reference)
+          })
+
+        {:ok, latest, _} = live(conn, "/audit/evidence?#{query}")
+        assert count_occurrences(render(latest), ~s(<article class="tl-record-card)) == 1
+        {:ok, history, html} = live(conn, "/audit/evidence?#{query}&mode=history")
+        assert count_occurrences(render(history), ~s(<article class="tl-record-card)) == 3
+        assert html =~ "Append-only history"
+        assert html =~ "Snapshot recorded at"
+        refute html =~ "same-time-private-canary-251"
+      end
+
       test "renders unsupported state when evidence access is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_evidence, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_evidence, true) end)

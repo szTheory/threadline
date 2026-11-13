@@ -401,7 +401,7 @@
         {"id":"source-route-evidence-9","path":"lib/threadline/operator_surface/live/evidence_live.ex","locator":"copy_label=\"Copy subject ref\"","kind":"production-source"}
       ],
       "proofRefs": [
-        {"id":"proof-evidence-1","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Evidence keeps selected subject/reference through latest and proof-history navigation\"","owner":"operator-route-states.spec.ts","limitation":"Proof owner locator only; this plan does not run browser tests or claim a fresh mounted-route, accessibility, or visual receipt."},
+        {"id":"proof-evidence-1","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Phase251 Evidence recorded provenance\"","owner":"operator-route-states.spec.ts","limitation":"Mounted owner covers snapshot time/provenance labels, selected latest/history, no-match, full controlled-copy bytes and disabled host; owning live/DB tests prove exact pairs/privacy, read failure and Retry. No browser outage injection is claimed."},
         {"id":"proof-evidence-2","kind":"scenario-owner","path":"examples/threadline_phoenix/e2e/tests/operator-features.spec.ts","locator":"test(\"evidence overview shows all three verdicts\"","owner":"operator-features.spec.ts","limitation":"Proof owner locator only; this plan does not run browser tests or claim a fresh mounted-route, accessibility, or visual receipt."}
       ],
       "access": {"authentication":"Host my_authorize_fn requires a current authenticated operator; absent or unmatched users are rejected.","capability":"Evidence has its own host authorization callback; the example host restricts the capability to admins.","organizationScope":"Subject and reference identify evidence rows; this example host does not grant scoped support evidence access.","supportDisposition":"unavailable"},
@@ -470,7 +470,7 @@
         {"id":"source-redaction-3","path":"lib/threadline/operator_surface/router.ex","locator":"live(\"/policy/redaction\","},
         {"id":"source-redaction-4","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def my_authorize_fn(%{assigns: assigns}) do"},
         {"id":"source-redaction-5","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def scope_operator_query(query, _scope, _context), do: where(query, [], false)"},
-        {"id":"source-redaction-6","path":"lib/threadline/operator_surface/live/policy_redaction_live.ex","locator":"handle_event(\"select-schema\", %{\"schema\" => schema}, socket) do"},
+        {"id":"source-redaction-6","path":"lib/threadline/operator_surface/live/policy_redaction_live.ex","locator":"handle_event(\"select-schema\", %{\"schema\" => schema}, socket) when is_binary(schema) do"},
         {"id":"source-redaction-7","path":"examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","locator":"def my_policy_authorize_fn(%{assigns: assigns}) do"},
         {"id":"source-redaction-8","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Redaction policy comparison stays safe, keyboard-operable, and responsive\""},
         {"id":"source-redaction-9","path":"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","locator":"test(\"Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment\""}
