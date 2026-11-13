@@ -266,6 +266,7 @@
   }
 
   .tl-page__title {
+    font-family: var(--tl-font-heading);
     margin: 0 0 var(--tl-space-1);
     font-size: var(--tl-font-size-heading);
     line-height: var(--tl-line-heading);
