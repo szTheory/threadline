@@ -27,10 +27,10 @@ export async function login(page: Page, email = "admin@example.com") {
 // Clipboard isolation for navigation/keyboard checks; this never calls the native clipboard.
 export async function installControlledClipboard(page: Page) {
   await page.addInitScript(`(() => {
-    const state = { count: 0, installed: false };
+    const state = { count: 0, installed: false, lastValue: null };
     Object.defineProperty(window, "__phase251CopyCounter", { value: state });
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
-      writeText: async function() { state.count += 1; }
+      writeText: async function(value) { state.count += 1; state.lastValue = value; }
     }});
     const original = document.execCommand.bind(document);
     document.execCommand = function(command, showUI, value) {
@@ -43,11 +43,13 @@ export async function installControlledClipboard(page: Page) {
 
 export async function seedPaths(page: Page) {
   await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const link = page.getByTestId("timeline-row").first().getByTestId("transaction-link");
   await expect(link).toBeVisible();
   const transaction = await link.getAttribute("href");
   expect(transaction).toMatch(/^\/audit\/transactions\/[^/?#]+(?:\?[^#]*)?$/);
   await page.goto(transaction!);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const rowLink = page.getByTestId("transaction-change-row").filter({ hasText: "tickets" }).getByTestId("row-history-link").first();
   await expect(rowLink).toBeVisible();
   const drawer = await rowLink.getAttribute("href");

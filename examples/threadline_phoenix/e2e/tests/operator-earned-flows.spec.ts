@@ -700,6 +700,7 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   const drawerPath = new URL(seeded.drawer, page.url()).pathname;
   for (const path of [transactionPath, seeded.row, drawerPath]) {
     await page.goto(`${path}?origin=timeline&unsupported_only=private-value`);
+    await expectLiveViewConnected(page);
     const notice = page.getByTestId("timeline-context-loss");
     await expect(notice).toBeVisible();
     await expect(notice).toHaveText(message);
@@ -724,6 +725,7 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   }
 
   await page.goto(investigationSearch());
+  await expectLiveViewConnected(page);
   const expected = [...new URL(page.url()).searchParams.entries()];
   await page.getByTestId("timeline-row").first().getByTestId("transaction-link").click();
   await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
@@ -751,6 +753,7 @@ test("Phase251 standalone snapshot intent", async ({ page }) => {
   const retained = "origin=timeline&from=&table=tickets";
   for (const value of ["not-a-date", "2026-02-30T12:00:00Z"]) {
     await page.goto(`${path}?${retained}&as_of=${encodeURIComponent(value)}`);
+    await expectLiveViewConnected(page);
     const drawer = page.getByTestId("row-history-drawer");
     await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.");
     await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
@@ -762,9 +765,11 @@ test("Phase251 standalone snapshot intent", async ({ page }) => {
     await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
   }
   await page.goto(`${path}?${retained}&as_of=2026-05-26T16%3A30%3A00%2B02%3A00`);
+  await expectLiveViewConnected(page);
   let drawer = page.getByTestId("row-history-drawer");
   await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ }).locator("time")).toHaveAttribute("datetime", "2026-05-26T14:30:00Z");
   await page.reload();
+  await expectLiveViewConnected(page);
   drawer = page.getByTestId("row-history-drawer");
   await drawer.getByLabel("View snapshot at", { exact: true }).fill("");
   await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
@@ -783,6 +788,7 @@ test("Phase251 transaction snapshot intent", async ({ page }) => {
   const path = new URL(seeded.drawer, page.url()).pathname;
   const transaction = new URL(seeded.transaction, page.url()).pathname;
   await page.goto(`${path}?origin=timeline&from=&table=tickets&as_of=not-a-date`);
+  await expectLiveViewConnected(page);
   const drawer = page.getByTestId("row-history-drawer");
   await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid.");
   await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);

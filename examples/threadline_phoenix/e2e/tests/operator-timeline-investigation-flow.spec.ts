@@ -1,4 +1,6 @@
 import { expect, Locator, Page, test } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import { installControlledClipboard, seedPaths } from "../support/operator-browser-evidence.js";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -815,4 +817,93 @@ test.describe("Timeline reduced-motion browser proof", () => {
     await login(page);
     await expectReducedMotionStableRows(page);
   });
+});
+
+
+test("Phase251 Home and actor lifecycle", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const rowParts = new URL(seeded.row, page.url()).pathname.split("/");
+  const table = decodeURIComponent(rowParts.at(-2)!);
+  const rowId = decodeURIComponent(rowParts.at(-1)!);
+  await page.goto("/audit");
+  await expectLiveViewConnected(page);
+  const recordForm = page.locator("#tl-record-lookup");
+  await recordForm.locator('[name="record_lookup[table]"]').selectOption(table);
+  await recordForm.locator('[name="record_lookup[record_id]"]').fill(rowId);
+  const open = recordForm.getByRole("button", { name: "Open row history", exact: true });
+  await open.focus();
+  await expect(open).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => new URL(page.url()).pathname).toBe(new URL(seeded.row, page.url()).pathname);
+  await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "This snapshot time is invalid." })).toHaveCount(0);
+  await page.reload();
+  await expectLiveViewConnected(page);
+  await expect(page.getByTestId("row-history-drawer").getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  await page.goBack();
+  await expectLiveViewConnected(page);
+  await expect(page.locator("#tl-correlation-lookup")).toBeVisible();
+  const correlation = "walk-acme-4521-close";
+  const correlationForm = page.locator("#tl-correlation-lookup");
+  await correlationForm.locator('[name="correlation[correlation_id]"]').fill(correlation);
+  await correlationForm.getByRole("button", { name: "Open the timeline", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);
+  await page.reload();
+  await expectLiveViewConnected(page);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
+  await page.goBack();
+  await expectLiveViewConnected(page);
+  await expect(page.locator("#tl-correlation-lookup")).toBeVisible();
+  await page.goForward();
+  await expectLiveViewConnected(page);
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);
+
+  await page.goto("/audit/actors/service_account/zendesk-sync");
+  await expectLiveViewConnected(page);
+  await expect(page.locator(".tl-detail-header__title")).toContainText("service_account actor");
+  await expect(page.getByTestId("actor-transaction-row").first()).toBeVisible();
+  await page.locator(".tl-detail-header").getByRole("link", { name: "Open timeline", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("actor_kind")).toBe("service_account");
+  expect(new URL(page.url()).searchParams.get("actor_id")).toBe("zendesk-sync");
+  const actorPivot = page.getByTestId("timeline-row").first().getByRole("link", { name: "Actor timeline", exact: true });
+  await expect(actorPivot).toHaveAttribute("href", "/audit/actors/service_account/zendesk-sync");
+  await actorPivot.click();
+  await expect(page.locator(".tl-detail-header__title")).toContainText("service_account actor");
+
+  // Read existing seeded examples only. Never fabricate a person link or mutate paired data.
+  const partition = process.env.MIX_TEST_PARTITION ?? "";
+  expect(partition).toMatch(/^(?:\d+|p251pair)?$/);
+  expect(process.env.THREADLINE_E2E).toBe("1");
+  if (partition === "p251pair") {
+    expect(new URL(page.url()).origin).toBe("http://127.0.0.1:60152");
+    expect(process.env.DB_HOST).toBe("127.0.0.1");
+    expect(process.env.DB_PORT).toBe("60025");
+  }
+  const negativeIds = execFileSync("psql", ["-X", "-h", process.env.DB_HOST ?? "localhost", "-p", process.env.DB_PORT ?? "5432", "-U", "postgres", "-d", `threadline_phoenix_test${partition}`, "-v", "ON_ERROR_STOP=1", "-At", "-c",
+    "SELECT json_build_array((SELECT id FROM threadline.audit_transactions WHERE actor_ref IS NULL ORDER BY id LIMIT 1), (SELECT id FROM threadline.audit_transactions WHERE actor_ref->>'type' = 'anonymous' AND actor_ref->>'id' IS NULL ORDER BY id LIMIT 1))::text",
+  ], { env: { ...process.env, PGPASSWORD: process.env.PGPASSWORD ?? "postgres" }, encoding: "utf8" });
+  const ids = JSON.parse(negativeIds) as string[];
+  expect(ids).toHaveLength(2);
+  for (const id of ids) {
+    expect(id).toMatch(/^[0-9a-f-]{36}$/i);
+    await page.goto(`/audit/transactions/${id}`);
+    await expectLiveViewConnected(page);
+    await expect(page.getByRole("heading", { name: "Transaction", exact: true })).toBeVisible();
+    await expect(page.locator(`.tl-detail-header button[aria-label="Copy transaction id"][data-tl-copy="${id}"]`)).toBeVisible();
+    await expect(page.locator('.tl-detail-header a[href*="/actors/"]')).toHaveCount(0);
+  }
+  const longId = `integration-long-${"id".repeat(80)}`;
+  await page.goto(`/audit/actors/service_account/${longId}`);
+  await expectLiveViewConnected(page);
+  await expect(page.getByRole("heading", { name: "No actor activity recorded", exact: true })).toBeVisible();
+  const copy = page.getByRole("button", { name: "Copy actor id", exact: true });
+  await expect(copy).toHaveAttribute("data-tl-copy", longId);
+  await expectNoHorizontalOverflow(page);
+  await copy.click();
+  await expect.poll(() => page.evaluate(() => (window as any).__phase251CopyCounter.lastValue)).toBe(longId);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(1);
+  await expect(page.locator("[data-tl-copy-status]").filter({ hasText: /Copied/ })).toBeVisible();
 });

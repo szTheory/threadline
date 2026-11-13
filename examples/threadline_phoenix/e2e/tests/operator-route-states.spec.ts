@@ -1652,6 +1652,7 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
   await login(page);
   const message = "These Timeline filters are not supported. Update the filters before applying them.";
   await page.goto("/audit/timeline?unsupported_only=private-value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
 
@@ -1663,13 +1664,17 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
   await page.reload();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect(page.locator("#filter-correlation-id")).toHaveValue("phase251-no-match");
   await page.goBack();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
   await expect(page.getByTestId("timeline-row").first()).toBeVisible();
   await page.goForward();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
   await page.goto(original);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await page.getByRole("button", { name: "Filters", exact: true }).click();
   let drawer = page.getByRole("dialog", { name: "Filters and handoff" });
   const name = `Phase251 saved selection ${randomUUID()}`;
@@ -1699,6 +1704,7 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
       const updated = sql(`UPDATE threadline.threadline_saved_views SET filters = '${payload}'::jsonb WHERE id = '${id}'::uuid RETURNING id`).trim();
       expect(updated).toContain(id!);
       await page.reload();
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
       await page.getByRole("button", { name: "Filters", exact: true }).click();
       drawer = page.getByRole("dialog", { name: "Filters and handoff" });
       await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
@@ -1707,11 +1713,13 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
     }
     sql(`UPDATE threadline.threadline_saved_views SET filters = '{}'::jsonb WHERE id = '${id}'::uuid`);
     await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await page.getByRole("button", { name: "Filters", exact: true }).click();
     drawer = page.getByRole("dialog", { name: "Filters and handoff" });
     await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
     await expect.poll(() => new URL(page.url()).search).toBe("?from=");
     await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect.poll(() => new URL(page.url()).search).toBe("?from=");
     await expectNoHorizontalOverflow(page);
     await page.getByRole("button", { name: "Filters", exact: true }).click();

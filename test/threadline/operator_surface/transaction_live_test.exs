@@ -230,6 +230,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
     end
 
+    test "absent and explicit anonymous actors never create a person activity link", %{conn: conn} do
+      for actor <- [nil, %{"type" => "anonymous"}] do
+        txn =
+          Repo.insert!(
+            AuditTransaction.changeset(%{
+              txid: :rand.uniform(1_000_000_000),
+              occurred_at: DateTime.utc_now(),
+              actor_ref: actor
+            }),
+            repo_opts()
+          )
+
+        {:ok, lv, _} = live(conn, "/audit/transactions/#{txn.id}")
+        assert has_element?(lv, "h1", "Transaction")
+
+        assert has_element?(
+                 lv,
+                 ~s(button[aria-label="Copy transaction id"][data-tl-copy="#{txn.id}"])
+               )
+
+        refute has_element?(lv, ~s(a[href^="/audit/actors/"]))
+      end
+    end
+
     test "keeps transaction and linked action actors and recorded context distinct", %{conn: conn} do
       transaction_actor = %{"type" => "admin", "id" => "transaction-admin-42"}
       action_actor = %{"type" => "user", "id" => "action-user-19"}
