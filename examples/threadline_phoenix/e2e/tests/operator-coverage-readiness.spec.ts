@@ -260,6 +260,7 @@ async function withPhase251CoverageFixture(page: Page, run: (fixture: { selected
 
 
 test("Phase251 Coverage selected snapshot", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
   await installControlledClipboard(page);
   await login(page);
   await withPhase251CoverageFixture(page, async ({ selected, empty, sql }) => {
@@ -270,10 +271,24 @@ test("Phase251 Coverage selected snapshot", async ({ page }) => {
     await expect(status).toHaveAttribute("href", `/audit/coverage?schema=${selected}`);
     await expect(page.locator("tr.tl-table__row--uncovered")).toContainText("Not audited");
     await expect(page.locator("tr.tl-table__row--expected")).toContainText("Expected gap");
-    sql(`CREATE TABLE ${selected}.payments (id integer PRIMARY KEY)`);
+    const longTable = "payments_with_a_long_external_reference_for_operations";
+    sql(`CREATE TABLE ${selected}.${longTable} (id integer PRIMARY KEY)`);
     await page.getByRole("button", { name: "Refresh coverage", exact: true }).click();
     await expect(status).toContainText(`${selected}: 2 not audited`);
-    expect(await page.locator("tr.tl-table__row--uncovered td[data-label=TABLE]").allTextContents()).toEqual(["invoices", "payments"]);
+    expect(await page.locator("tr.tl-table__row--uncovered td[data-label=TABLE]").allTextContents()).toEqual(["invoices", longTable]);
+    const longRow = page.locator("tr.tl-table__row--uncovered").filter({ hasText: longTable });
+    const disclosure = longRow.locator("summary");
+    await disclosure.focus();
+    await expect(disclosure).toBeFocused();
+    await page.keyboard.press("Enter");
+    const copy = longRow.getByRole("button", { name: `Copy ${selected}.${longTable} capture command`, exact: true });
+    await expect(copy).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(copy).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect.poll(() => page.evaluate(() => (window as any).__phase251CopyCounter.lastValue)).toBe(`mix threadline.gen.triggers --tables ${selected}.${longTable}`);
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(1);
+    await expectNoHorizontalOverflow(page);
     await page.reload();
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(status).toContainText(`${selected}: 2 not audited`);

@@ -1711,7 +1711,7 @@
         {
           "path": "lib/threadline/operator_surface/components/surface_header.ex",
           "kind": "control",
-          "anchor": "href={\"#{@base_path}/coverage\"}>All tables captured</a>",
+          "anchor": "data-testid=\"coverage-status\"",
           "occurrence": 1
         }
       ],

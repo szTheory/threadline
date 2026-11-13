@@ -54,17 +54,17 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
   end
 
   describe "surface header literals (D-31a, D-35 #3, #4)" do
-    test "surface_header.ex contains the literal \"All tables captured\" for the boring-case pill" do
+    test "surface header names the inspected scope without a global completeness claim" do
       src = File.read!(@surface_header_path)
-
-      assert String.contains?(src, "All tables captured"),
-             "expected #{@surface_header_path} to render the literal \"All tables captured\""
+      assert String.contains?(src, "coverage_schema")
+      assert String.contains?(src, "Other schemas were not inspected.")
+      refute String.contains?(src, "All tables captured")
     end
 
-    test "surface_header.ex renders the audit coverage gap pluralization format" do
+    test "surface_header.ex renders scoped coverage gap counts and status classes" do
       src = File.read!(@surface_header_path)
 
-      assert String.contains?(src, "tables need audit coverage"),
+      assert String.contains?(src, "not audited"),
              "expected #{@surface_header_path} to render clear coverage-gap copy"
 
       # Pin the warning chip class literal (D-31a CSS class)
@@ -73,7 +73,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
       # Pin the neutral chip class literal (D-31a CSS class)
       assert String.contains?(src, "tl-chip--muted"),
-             "expected the tl-chip--muted CSS class for the all-captured pill"
+             "expected the tl-chip--muted CSS class for the scoped inspected-count pill"
     end
   end
 
@@ -85,11 +85,11 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
              "expected literal `Covered` badge in #{@coverage_lv_path}"
     end
 
-    test "coverage_live.ex renders the literal \"Needs capture\" badge state" do
+    test "coverage_live.ex renders the literal \"Not audited\" badge state" do
       src = File.read!(@coverage_lv_path)
 
-      assert String.contains?(src, ">Needs capture<"),
-             "expected literal `Needs capture` badge in #{@coverage_lv_path}"
+      assert String.contains?(src, ">Not audited<"),
+             "expected literal `Not audited` badge in #{@coverage_lv_path}"
     end
 
     test "coverage_live.ex renders the literal \"Expected gap\" badge state" do
@@ -131,7 +131,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
       assert String.contains?(
                src,
-               ~S|Fix rows marked Needs capture, apply the migration, run #{verifier}, then refresh.|
+               ~S|Fix rows marked Not audited, apply the migration, run #{verifier}, then refresh.|
              )
 
       assert String.contains?(src, ~S|Run #{verifier}, then refresh.|)

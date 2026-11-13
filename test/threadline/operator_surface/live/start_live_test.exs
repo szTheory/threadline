@@ -270,7 +270,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Close coverage gaps before relying on timeline answers"
 
       refute home_health(html) =~
-               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
+               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*public: \d+ not audited\s*</
     end
 
     test "renders current actor failed exports as danger without leaking other actors", %{

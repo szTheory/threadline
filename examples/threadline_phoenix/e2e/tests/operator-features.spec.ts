@@ -132,8 +132,8 @@ test.describe("operator surface — pass-3 features", () => {
     await expect(table).toBeVisible();
     const row = table.locator("tr", { hasText: "audit_events" });
     await expect(row).toBeVisible();
-    await expect(row.getByText("Needs capture")).toBeVisible();
-    await expect(page.getByText(/tables? need audit coverage/)).toBeVisible();
+    await expect(row.getByText("Not audited")).toBeVisible();
+    await expect(page.getByTestId("coverage-status")).toContainText(/public: \d+ not audited/);
   });
 
   test("retention history shows the full run lifecycle", async ({ page }) => {
