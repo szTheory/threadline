@@ -185,8 +185,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:noreply,
          start_async(socket, {:retention_preview, request}, fn ->
-           with :ok <- authorize_prune(read_socket),
-                {:ok, ^target, ^policy} <- preview_inputs(read_socket),
+           with {:ok, ^target, ^policy} <- preview_inputs(read_socket),
                 :ok <- authorize_prune(read_socket) do
              result =
                Threadline.Retention.purge(
@@ -238,7 +237,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_async({:retention_preview, request}, outcome, socket) do
       if socket.assigns.preview_request == request do
         with {:ok, {:ok, preview}} <- outcome,
-             :ok <- authorize_prune(socket),
              {:ok, target, policy} <- preview_inputs(socket),
              true <- preview.target == target and preview.policy == policy,
              :ok <- authorize_prune(socket) do

@@ -74,6 +74,12 @@ defmodule Threadline.Retention.PrunerTest do
     assert {:error, :unavailable} =
              Pruner.trigger_if_target(%{target | sleep_ms: target.sleep_ms + 1})
 
+    assert {:error, :unavailable} =
+             Pruner.trigger_if_target(%{target | repo: __MODULE__.WrongRepo})
+
+    assert {:error, :unavailable} =
+             Pruner.trigger_if_target(%{target | storage_schema: "other_store"})
+
     assert {:error, :unavailable} = Pruner.trigger_if_target(Map.put(target, :unknown, true))
     assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
     stop_supervised!(Pruner)

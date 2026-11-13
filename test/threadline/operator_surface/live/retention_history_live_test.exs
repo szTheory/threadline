@@ -24,6 +24,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def all(_query, _opts), do: raise("private storage detail")
   end
 
+  defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.FailingPreviewRepo do
+    def all(query, opts), do: Threadline.Test.Repo.all(query, opts)
+    def one(_query, _opts), do: raise("private preview database canary")
+  end
+
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.RetentionHistoryLiveTest.Router
@@ -140,6 +145,226 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions + 1
         assert_eventually(fn -> Repo.aggregate(RetentionRun, :count, :id, repo_opts()) > 0 end)
         assert {:ok, ^target} = Pruner.target_snapshot()
+      end
+
+      test "Phase252 direct confirmation and modal events cannot establish a preview", %{
+        conn: conn
+      } do
+        {:ok, view, _} = live_retention(conn)
+        actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+
+        render_click(view, "prune_now", %{
+          "confirm" => "default",
+          "preview" => %{"deleted_changes" => 999}
+        })
+
+        html = render_click(view, "open_prune_modal", %{})
+        refute html =~ "Estimated AuditChange candidates"
+        refute html =~ "phx-submit=\"prune_now\""
+        assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      for {mode, count} <- [{:revoke, 1}, {:revoke, 2}, {:cancel, 1}, {:restart, 2}, {:policy, 1}] do
+        test "Phase252 #{mode} during preview count #{count} withholds all results", %{
+          conn: conn
+        } do
+          {:ok, view, _} = live_retention(conn)
+          actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+          handler = {__MODULE__, make_ref()}
+
+          :ok =
+            :telemetry.attach(
+              handler,
+              Repo.config()[:telemetry_prefix] ++ [:query],
+              fn _, _, metadata, {parent, stop_at, key} ->
+                if String.starts_with?(metadata.query, "SELECT count(") and
+                     String.contains?(metadata.query, "audit_changes") do
+                  count = Process.get(key, 0) + 1
+                  Process.put(key, count)
+
+                  if count == stop_at do
+                    send(parent, {:preview_read_blocked, self()})
+
+                    receive do
+                      :continue_preview -> :ok
+                    after
+                      5_000 -> raise "test did not release preview query"
+                    end
+                  end
+                end
+              end,
+              {self(), unquote(count), handler}
+            )
+
+          on_exit(fn ->
+            :telemetry.detach(handler)
+            Application.put_env(:threadline, :test_allow_policy, true)
+          end)
+
+          render_click(view, "preview_retention", %{})
+          assert_receive {:preview_read_blocked, reader}, 2_000
+
+          case unquote(mode) do
+            :revoke ->
+              Application.put_env(:threadline, :test_allow_policy, false)
+
+            :cancel ->
+              render_click(view, "close_prune_modal", %{})
+
+            :restart ->
+              stop_supervised!(Pruner)
+              start_supervised!({Pruner, repo: Repo, interval_ms: :timer.hours(24), sleep_ms: 0})
+
+            :policy ->
+              Application.put_env(
+                :threadline,
+                :retention,
+                Keyword.put(
+                  Application.fetch_env!(:threadline, :retention),
+                  :delete_empty_transactions,
+                  false
+                )
+              )
+          end
+
+          send(reader, :continue_preview)
+          html = render_async(view)
+
+          if unquote(mode) == :cancel do
+            refute html =~ "Retention preview is unavailable"
+          else
+            assert html =~ "Retention preview is unavailable"
+          end
+
+          refute html =~ "Estimated AuditChange candidates"
+          refute html =~ "Preview generated at"
+          refute html =~ "Review and confirm"
+          refute html =~ "phx-submit=\"prune_now\""
+          assert :sys.get_state(view.pid).socket.assigns.preview == nil
+          assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
+          assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+        end
+      end
+
+      test "Phase252 changed mounted target invalidates successful preview",
+           %{conn: conn} do
+        {:ok, view, _} = live_retention(conn)
+        render_click(view, "preview_retention", %{})
+        assert render_async(view) =~ "Estimated AuditChange candidates"
+
+        :sys.replace_state(view.pid, fn state ->
+          put_in(state.socket.assigns.threadline_repo, __MODULE__.WrongRepo)
+        end)
+
+        html = render_click(view, "open_prune_modal", %{})
+        assert html =~ "Retention preview is unavailable"
+        refute html =~ "Estimated AuditChange candidates"
+        refute html =~ "phx-submit=\"prune_now\""
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      test "Phase252 cancel clears the successful zero preview and direct submit remains refused",
+           %{conn: conn} do
+        {:ok, view, _} = live_retention(conn)
+        render_click(view, "preview_retention", %{})
+        html = render_async(view)
+        assert html =~ "Estimated AuditChange candidates"
+        render_click(view, "open_prune_modal", %{})
+        render_click(view, "close_prune_modal", %{})
+        html = render_click(view, "prune_now", %{"confirm" => "default"})
+        refute html =~ "Estimated AuditChange candidates"
+        assert :sys.get_state(view.pid).socket.assigns.preview == nil
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      test "Phase252 a replacement worker cannot inherit a successful preview", %{conn: conn} do
+        {:ok, view, _} = live_retention(conn)
+        render_click(view, "preview_retention", %{})
+        assert render_async(view) =~ "Estimated AuditChange candidates"
+        actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+        old = Process.whereis(Pruner)
+        stop_supervised!(Pruner)
+
+        replacement =
+          start_supervised!({Pruner, repo: Repo, interval_ms: :timer.hours(24), sleep_ms: 0})
+
+        assert replacement != old
+        html = render_click(view, "prune_now", %{"confirm" => "default"})
+        refute html =~ "Estimated AuditChange candidates"
+        refute html =~ "phx-submit=\"prune_now\""
+        assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      test "Phase252 failed count reveals neither partial result nor database detail", %{
+        conn: conn
+      } do
+        {:ok, view, _} = live_retention(conn)
+        repo = Threadline.OperatorSurface.RetentionHistoryLiveTest.FailingPreviewRepo
+        :sys.replace_state(Process.whereis(Pruner), fn state -> %{state | repo: repo} end)
+
+        :sys.replace_state(view.pid, fn state ->
+          put_in(state.socket.assigns.threadline_repo, repo)
+        end)
+
+        render_click(view, "preview_retention", %{})
+        html = render_async(view)
+        assert html =~ "Retention preview is unavailable"
+        refute html =~ "private preview database canary"
+        refute html =~ "Estimated AuditChange candidates"
+        refute html =~ "Review and confirm"
+        assert :sys.get_state(view.pid).socket.assigns.preview == nil
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      test "Phase252 disabled cleanup is not presented as zero eligible transactions", %{
+        conn: conn
+      } do
+        Application.put_env(
+          :threadline,
+          :retention,
+          Keyword.put(
+            Application.fetch_env!(:threadline, :retention),
+            :delete_empty_transactions,
+            false
+          )
+        )
+
+        {:ok, view, _} = live_retention(conn)
+        render_click(view, "preview_retention", %{})
+        html = render_async(view)
+
+        assert html =~
+                 "Empty-transaction cleanup is disabled, so empty AuditTransaction candidates are not included in this estimate."
+
+        assert has_element?(view, "[data-testid=retention-preview] dt + dd", "0")
+        assert has_element?(view, "button", "Review and confirm")
+        refute html =~ "phx-submit=\"prune_now\""
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+      end
+
+      test "Phase252 policy changes invalidate a ready preview before any audit", %{conn: conn} do
+        {:ok, view, _} = live_retention(conn)
+        render_click(view, "preview_retention", %{})
+        assert render_async(view) =~ "Estimated AuditChange candidates"
+        actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+
+        Application.put_env(
+          :threadline,
+          :retention,
+          Keyword.put(
+            Application.fetch_env!(:threadline, :retention),
+            :delete_empty_transactions,
+            false
+          )
+        )
+
+        html = render_click(view, "prune_now", %{"confirm" => "default"})
+        refute html =~ "Estimated AuditChange candidates"
+        assert :sys.get_state(view.pid).socket.assigns.preview == nil
+        assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
       end
 
       test "renders unsupported state when policy access is disabled", %{conn: conn} do
