@@ -122,6 +122,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "retention history live view" do
+      test "Phase252 matching preview confirms against the same worker target", %{conn: conn} do
+        {:ok, view, _html} = live_retention(conn)
+        actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+        render_click(view, "preview_retention", %{})
+        html = render_async(view)
+        assert html =~ "Estimated AuditChange candidates"
+        assert html =~ "Estimated empty AuditTransaction candidates"
+        assert html =~ "Preview generated at"
+        assert html =~ "These counts are sequential estimates, not a snapshot."
+        assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
+        assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+        {:ok, target} = Pruner.target_snapshot()
+        render_click(view, "open_prune_modal", %{})
+        html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+        assert html =~ "Prune request accepted"
+        assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions + 1
+        assert_eventually(fn -> Repo.aggregate(RetentionRun, :count, :id, repo_opts()) > 0 end)
+        assert {:ok, ^target} = Pruner.target_snapshot()
+      end
+
       test "renders unsupported state when policy access is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
@@ -143,7 +163,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "A run will appear here after a confirmed prune or scheduled retention operation."
 
         assert html =~ "configured Threadline storage schema"
-        assert html =~ "Prune now"
+        assert html =~ "Preview retention"
         assert html =~ "tl-button--secondary"
         refute html =~ "tl-button--secondary tl-button--danger"
 
@@ -316,7 +336,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # The CTA opens the T3 confirm modal; the actual prune is the type-to-confirm
         # form submission (server-enforced, D-21).
-        assert html =~ "Prune now"
+        assert html =~ "Preview retention"
 
         # ensure no active runs initially
         assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
@@ -342,7 +362,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, view, html} = live_retention(conn)
 
         assert html =~ "Retention window"
-        assert html =~ "Prune now"
+        assert html =~ "Preview retention"
 
         modal_html = open_prune_modal(view)
 
@@ -376,7 +396,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live_retention(conn)
 
-        assert occurrences(html, "Prune now") == 1
+        assert occurrences(html, "Preview retention") == 1
       end
 
       test "no bulk multi-select / select-all-over-destructive control exists (D-19)", %{
@@ -420,7 +440,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Process.read_timer(mounted_ref) == false
         assert is_integer(Process.read_timer(refreshed_ref))
 
-        assert render(view) =~ "Prune now"
+        assert render(view) =~ "Preview retention"
 
         assert :ok =
                  RetentionHistoryLive.terminate(
@@ -612,7 +632,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, view, _html} = live_retention(conn)
 
         assert_eventually(fn -> render(view) =~ run.id end)
-        render_click(view, "open_prune_modal", %{})
+        open_prune_modal(view)
         assert has_element?(view, "button[data-tl-mutating][disabled]", "Prune now")
 
         before_actions = count_audit_actions()
@@ -760,7 +780,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       defp open_prune_modal(view) do
-        html = render_click(element(view, "button", "Prune now"))
+        render_click(view, "preview_retention", %{})
+        assert render_async(view) =~ "Estimated AuditChange candidates"
+        html = render_click(view, "open_prune_modal", %{})
 
         assert html =~ "Prune retained audit data?"
         assert html =~ "phx-submit=\"prune_now\""
