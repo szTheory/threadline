@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { installControlledClipboard, login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
@@ -1648,6 +1648,7 @@ test("Timeline pagination appends the next page without changing the applied sea
 
 
 test("Phase251 Timeline and saved-view guards", async ({ page }) => {
+  await installControlledClipboard(page);
   await login(page);
   const message = "These Timeline filters are not supported. Update the filters before applying them.";
   await page.goto("/audit/timeline?unsupported_only=private-value");
@@ -1713,6 +1714,19 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
     await page.reload();
     await expect.poll(() => new URL(page.url()).search).toBe("?from=");
     await expectNoHorizontalOverflow(page);
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await drawer.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
+    const confirmation = page.getByRole("dialog", { name: "Delete saved search", exact: true });
+    const keep = confirmation.getByRole("button", { name: "Keep saved search", exact: true });
+    await expect(keep).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(confirmation.getByRole("button", { name: "Delete search", exact: true })).toBeFocused();
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.installed)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(confirmation).toBeHidden();
+    await expect(drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
   } finally {
     sql(`DELETE FROM threadline.threadline_saved_views WHERE id = '${id}'::uuid`);
   }

@@ -52,3 +52,16 @@ The required source/UI capability artifacts should use their final schema at the
 ### Phase 251 planning overhead observation
 
 The optional pattern mapper did not return a terminal result after roughly six minutes and a request to finish its bounded memo. The parent interrupted it; a complete-looking pattern file exists and is retained as source guidance, not as a successful agent handoff or runtime evidence. Continue from accepted current research rather than restarting the advisory mapper. The duration is an observed wait, not a measured performance comparison.
+
+
+## Phase251 continuation lessons retained
+
+The maintainer explicitly requested retained lessons at closeout. This record remains in progress: finalize and link it when delivery actually ends, with remaining stops and limitations.
+
+The first executor spent about twenty minutes in intake/setup without tracked implementation edits before a reconciled interruption (exit1, no completed summary). Current STATE was231,884 bytes and PROJECT145,004 bytes; the first nineteen executor command outputs totaled930,514 bytes, and the mandatory spawn prompt was193,471 bytes. These measurements overlap and do not establish tokens or a speedup. Archive history and keep current constraints, authority, source and next action readily available at an accepted integration boundary. Avoid another whole-history intake for a narrow continuation.
+
+Browser failures exposed two incorrect test assumptions: nested row-history Close returns to its transaction, and the sidebar Timeline entry intentionally resets filters while the breadcrumb preserves them. Assert the actual control's href and destination before interpreting navigation as a product defect. A subsequent keyboard check exposed a real delayed container-focus handler overriding preferred Close focus; retain the reproduction and scoped guard. One earlier Enter may have activated Copy row ID; native clipboard outcome was not observed. Subsequent keyboard checks install a controlled browser double before navigation. Do not claim native clipboard was untouched.
+
+Shared build output can change lazily loaded modules in a long-lived app. Freeze committed runtime inputs, preload application modules before declaring readiness, and retain pre-start owner/asset hashes. Runtime and test revisions can differ; bind each honestly. A full-scroll main-element screenshot is not a viewport screenshot: preserve its region and actual dimensions rather than claiming the configured viewport describes the image.
+
+Our setup mistakes also cost time: a malformed test pattern, an unavailable Floki dependency, TypeScript serialization of an init-script helper, and an over-anchored test-title selector. Correct the smallest setup boundary, retain every invocation and require an exact nonzero selection. Reuse the corrected private helpers rather than add another public runner or dependency.

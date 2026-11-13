@@ -1,6 +1,6 @@
 import { chromium, expect, Page, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { seedPaths } from "../support/operator-browser-evidence.js";
+import { installControlledClipboard, seedPaths } from "../support/operator-browser-evidence.js";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
@@ -692,6 +692,7 @@ test.describe("operator earned-flow browser UAT", () => {
 
 
 test("Phase251 retained-context recovery", async ({ page }) => {
+  await installControlledClipboard(page);
   await login(page);
   const seeded = await seedPaths(page);
   const message = "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.";
@@ -706,7 +707,9 @@ test("Phase251 retained-context recovery", async ({ page }) => {
     if (await drawer.isVisible()) {
       const close = drawer.getByRole("link", { name: "Close", exact: true });
       await close.focus();
+      await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
       await expect(close).toBeFocused();
+      expect(await page.evaluate(() => (window as any).__phase251CopyCounter.installed)).toBe(true);
       await page.keyboard.press("Enter");
     } else {
       await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
@@ -736,4 +739,5 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
   expect([...new URL(page.url()).searchParams.entries()]).toEqual(expected);
   await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });

@@ -286,10 +286,13 @@ defmodule Threadline.OperatorSurface.UITest do
   @tag :overlay_focus_scope
   test "deferred container focus cannot override a preferred child control" do
     assigns = %{}
-    html = rendered_to_string(~H"""
-    <UI.Overlay.modal id="focus-modal"><button data-tl-initial-focus>Keep</button></UI.Overlay.modal>
-    <UI.Overlay.drawer id="focus-drawer"><button data-tl-initial-focus>Close</button></UI.Overlay.drawer>
-    """)
+
+    html =
+      rendered_to_string(~H"""
+      <UI.Overlay.modal id="focus-modal"><button data-tl-initial-focus>Keep</button></UI.Overlay.modal>
+      <UI.Overlay.drawer id="focus-drawer"><button data-tl-initial-focus>Close</button></UI.Overlay.drawer>
+      """)
+
     for id <- ["focus-modal", "focus-drawer"] do
       [_, binding] = Regex.run(~r/id="#{id}-content"[^>]*phx-focus="([^"]+)"/s, html)
       assert binding =~ "focus_first"
