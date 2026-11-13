@@ -294,9 +294,9 @@ defmodule Threadline.OperatorSurface.UITest do
       """)
 
     for id <- ["focus-modal", "focus-drawer"] do
-      [_, binding] = Regex.run(~r/id="#{id}-content"[^>]*phx-focus="([^"]+)"/s, html)
-      assert binding =~ "focus_first"
-      assert binding =~ "##{id}-content:focus"
+      [content] = Regex.run(~r/<div[^>]*id="#{id}-content"[^>]*>/s, html)
+      assert content =~ ~s(tabindex="-1")
+      refute content =~ "phx-focus="
     end
   end
 

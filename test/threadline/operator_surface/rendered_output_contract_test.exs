@@ -152,13 +152,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             "b3ee7b27e9d0080546576bd4f1f57832812e94f7a64fabbced784ae7bc5cfaa5"
                         })
 
-    # Plan251-01 scopes deferred focus to the still-focused container. The prior
+    # Plan251-01 removes redundant deferred container focus handlers. The prior
     # 24-test contract invocation passed before this two-selector change; only
     # the shell digest changed, with the same element count and six other pins.
     @phase_251_receipts Map.put(@phase_250_receipts, "row_history.shell", %{
                           elements: 123,
                           sha256:
-                            "efaced85c6b0e5b1a75de0cdfaf9bb9ebfb379eaefec8269604eca671ecb8d92"
+                            "a61337366a1af79e0c9ca89d4b333aa98dea428ce66e47521094ccc8802beb82"
                         })
 
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()

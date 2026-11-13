@@ -42,7 +42,6 @@ if Code.ensure_loaded?(Phoenix.Component) do
           id={"#{@id}-content"}
           class={["tl-modal", @class]}
           tabindex="-1"
-          phx-focus={JS.focus_first(to: "##{@id}-content:focus")}
           phx-window-keydown={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))")}
           phx-key="escape"
         >
@@ -132,7 +131,6 @@ if Code.ensure_loaded?(Phoenix.Component) do
           id={"#{@id}-content"}
           class={["tl-drawer", @class]}
           tabindex="-1"
-          phx-focus={JS.focus_first(to: "##{@id}-content:focus")}
           phx-window-keydown={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))")}
           phx-key="escape"
         >
