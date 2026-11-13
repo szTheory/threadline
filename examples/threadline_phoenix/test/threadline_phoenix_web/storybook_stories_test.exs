@@ -271,8 +271,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
       assert source =~ reference
     end
 
-    Code.require_file(Path.join(@storybook_root, "operations/exports.story.exs"))
     module = ThreadlinePhoenixWeb.Storybook.Operations.ExportsStory
+    Code.ensure_loaded!(module)
 
     html =
       Phoenix.LiveViewTest.render_component(
@@ -300,6 +300,53 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
 
     assert apply(fixtures, :operations_exports, [:ordinary]) ==
              apply(fixtures, :operations_exports, [:ordinary])
+  end
+
+  test "Phase252 Retention uses shared read-only production history and preview" do
+    source = story_file!("operations/retention.story.exs")
+
+    live_source =
+      File.read!("../../lib/threadline/operator_surface/live/retention_history_live.ex")
+
+    assert source =~ "RetentionHistoryLive.Components"
+    assert source =~ "Components.run_history"
+    assert source =~ "Components.retention_preview"
+    assert live_source =~ "RetentionHistoryLive.Components"
+    assert live_source =~ "Components.run_history"
+    assert live_source =~ "Components.retention_preview"
+    module = ThreadlinePhoenixWeb.Storybook.Operations.RetentionStory
+    Code.ensure_loaded!(module)
+
+    html =
+      Phoenix.LiveViewTest.render_component(
+        fn assigns -> apply(module, :render, [assigns]) end,
+        %{}
+      )
+
+    assert html =~ "Static Operations Retention"
+    assert html =~ "Estimated AuditChange candidates"
+    assert html =~ "sequential estimates, not a snapshot"
+    assert html =~ "Empty-transaction cleanup is disabled"
+    assert html =~ "Pending"
+    refute Regex.match?(~r/<[^>]*\sphx-(?:submit|click)=/, html)
+    ids = Regex.scan(~r/<[^>]+\bid="([^"]+)"/, html, capture: :all_but_first) |> List.flatten()
+    assert length(ids) == length(Enum.uniq(ids))
+    sample = ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:ordinary)
+    [{_, run}] = sample.runs
+    assert run.deleted_count == 14
+    assert run.duration_ms == 320
+    refute Map.has_key?(sample.preview, :target)
+    assert sample == ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:ordinary)
+
+    for reference <- [
+          "route.retention",
+          "job.operator-retention-operations",
+          "source-retention-preview",
+          "proof-retention-1",
+          "scenario.offboarded-co-retention-boundary"
+        ] do
+      assert source =~ reference
+    end
   end
 
   defp rendered_or_source_backed?(source, component, markers) do
