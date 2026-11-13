@@ -1,0 +1,62 @@
+{
+  "phase": "252",
+  "phase_name": "Complete operations and connected catalog review",
+  "timestamp": "2026-11-13T09:18:14.062982+00:00",
+  "areas_completed": [
+    "Export boundary",
+    "Retention preview/target/reconnect",
+    "Connected production catalog",
+    "Scoped verification"
+  ],
+  "areas_remaining": [],
+  "decisions": {
+    "coherent_recommendation": [
+      {
+        "question": "How should existing operations and catalog be completed?",
+        "answer": "Preserve Export; add guarded transient Retention preview; share production rendering in Operations stories.",
+        "options_presented": [
+          "Recommended existing-owner remedies",
+          "New persisted scope/preview contracts or generic catalog engine"
+        ]
+      }
+    ]
+  },
+  "deferred_ideas": [
+    "Scoped async exports",
+    "Durable preview lineage",
+    "Phase253 broad acceptance",
+    "Permanent PostgreSQL wrapper"
+  ],
+  "canonical_refs": [
+    ".planning/ROADMAP.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/conventions/research-verification-and-efficiency.md",
+    ".planning/research/2026-11-10-brand-admin/milestone-proposal.md",
+    ".planning/research/2026-11-10-brand-admin/milestone-product-scope.md",
+    ".planning/research/2026-11-13-phase252/exports.md",
+    ".planning/research/2026-11-13-phase252/retention.md",
+    ".planning/research/2026-11-13-phase252/catalog.md",
+    ".planning/research/2026-11-13-phase252/adversarial.md",
+    "brand/BRAND.md",
+    "brand/brand.json",
+    "brand/assets/README.md",
+    "prompts/audit-lib-domain-model-reference.md",
+    "prompts/threadline-elixir-oss-dna.md",
+    "lib/threadline/operator_surface/live/export_status_live.ex",
+    "lib/threadline/operator_surface/live/export_status_live/components.ex",
+    "lib/threadline/operator_surface/controllers/export_controller.ex",
+    "lib/threadline/operator_surface/live/retention_history_live.ex",
+    "lib/threadline/retention.ex",
+    "lib/threadline/retention/pruner.ex",
+    "examples/threadline_phoenix/storybook/index.exs",
+    "examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex",
+    "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json",
+    "test/fixtures/operator_surface/route-inventory.json",
+    "test/fixtures/operator_surface/source-surface-checklist.json",
+    "test/threadline/operator_surface/storybook_boundary_test.exs",
+    "examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs",
+    "examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts",
+    "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+  ]
+}
