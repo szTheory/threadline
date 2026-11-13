@@ -19,6 +19,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
            )
 
     assert String.contains?(guide, "## Canonical references")
+    assert String.contains?(guide, "Threadline Admin")
   end
 
   test "integration-contracts guide locks the concrete breadth seams" do
@@ -42,7 +43,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(
              guide,
-             "governance and support-scope posture the host chooses"
+             "operational settings and support access the host chooses"
            )
 
     assert String.contains?(guide, "Threadline-owned RBAC system")
@@ -87,7 +88,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "surface without optional Phoenix UI dependencies.")
     assert String.contains?(guide, "Threadline.Integrations.Sigra` is the current model:")
 
-    assert String.contains?(guide, "[Operator surface guide](operator-surface.md)")
+    assert String.contains?(guide, "[Threadline Admin guide](operator-surface.md)")
     assert String.contains?(guide, "[Sigra reference integration](integrations/sigra.md)")
   end
 
@@ -165,7 +166,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(guide, "## Next steps")
     assert String.contains?(guide, "[Getting started](getting-started-saas.md)")
-    assert String.contains?(guide, "[Operator surface guide](operator-surface.md)")
+    assert String.contains?(guide, "[Threadline Admin guide](operator-surface.md)")
     assert String.contains?(guide, "[Sigra reference integration](integrations/sigra.md)")
 
     for module <- [
