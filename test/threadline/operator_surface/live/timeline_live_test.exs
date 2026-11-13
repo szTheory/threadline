@@ -661,6 +661,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -------------------------------------------------------------------
+    @tag :timeline_selection
     test "unsupported-only Timeline input is rejected before any audit read", %{conn: conn} do
       handler = "phase251-unknown-only-#{System.unique_integer([:positive])}"
       event = Repo.config()[:telemetry_prefix] ++ [:query]
@@ -688,6 +689,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              )
 
       refute has_element?(lv, "#changes-list [id^=change-]")
+      refute has_element?(lv, "[role=status]", "No captured changes")
+      assert has_element?(lv, ".tl-timeline-command__facts", "Not queried")
       refute_receive :phase251_audit_read, 100
 
       # A real supported read is the positive control for the query observer.
@@ -695,6 +698,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_receive :phase251_audit_read, 1000
     end
 
+    @tag :timeline_selection
     test "non-scalar supported URL filters show correction without crashing", %{conn: conn} do
       {:ok, lv, html} = mount_audit(conn, "/audit/timeline?correlation_id[]=private-value")
 
@@ -1817,6 +1821,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit_actor/timeline?table=restored_posts&correlation_id=restored-7")
     end
 
+    @tag :timeline_selection
     test "unsupported or malformed submitted filters do not broaden a committed selection", %{
       conn: conn
     } do
@@ -1840,6 +1845,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @tag :timeline_selection
     test "malformed saved filters never replace the current selection with a broader read", %{
       conn: conn
     } do
@@ -1866,7 +1872,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert has_element?(
                  lv,
-                 "[role=alert]",
+                 "#timeline-filters-drawer [role=alert]",
                  "These Timeline filters are not supported. Update the filters before applying them."
                )
 
@@ -1874,6 +1880,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @tag :timeline_selection
     test "empty saved filters and newly saved unconstrained intent use explicit from", %{
       conn: conn
     } do
