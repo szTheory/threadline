@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -28,6 +29,9 @@ type MatrixRoute = {
 };
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -546,7 +550,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
     16,
   );
   await expect(
-    page.getByRole("button", { name: "Prune now" }).last(),
+    page.getByRole("button", { name: "Preview retention", exact: true }),
   ).toBeVisible();
   await expectResponsiveTable(
     page.getByTestId("retention-runs-table"),

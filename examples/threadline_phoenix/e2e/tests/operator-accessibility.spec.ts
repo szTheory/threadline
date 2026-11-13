@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -77,6 +78,9 @@ const d04RenderedStateCoverage = [
 ];
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -704,12 +708,12 @@ test.describe("operator accessibility baseline", () => {
       /phx-connected/,
     );
     const prune = page
-      .getByRole("button", { name: "Prune now" })
-      .last();
+      .getByRole("button", { name: "Preview retention", exact: true });
     await expect(prune).toBeVisible();
     await prune.focus();
     await expectNonObscuredFocused(prune, page);
     await prune.click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const pruneModal = page.locator("#prune-confirm");
     const pruneDialog = page.getByRole("dialog", {
       name: "Prune retained audit data?",
@@ -869,7 +873,7 @@ test.describe("operator accessibility baseline", () => {
       const history = page.locator("#retention-runs");
       await expect(history).toBeVisible();
       await expect(history).toContainText(/Completed|Queued|No retention runs/);
-      const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+      const prune = page.getByRole("button", { name: "Preview retention", exact: true });
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 900 });
         await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
@@ -883,6 +887,7 @@ test.describe("operator accessibility baseline", () => {
       await page.setViewportSize({ width: 320, height: 440 });
       await prune.focus();
       await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
       const modal = page.locator("#prune-confirm");
       const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
       await expect(dialog).toBeVisible();
@@ -1395,7 +1400,8 @@ test.describe("operator accessibility baseline", () => {
 
     await page.goto("/audit/policy/retention");
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-    await page.getByRole("button", { name: "Prune now" }).last().click();
+    await page.getByRole("button", { name: "Preview retention", exact: true }).click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const retentionSnapshot = await expectAriaSnapshotContains(
       page.getByRole("dialog", { name: "Prune retained audit data?" }),
       [

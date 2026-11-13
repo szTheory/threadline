@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -21,6 +22,9 @@ type StyleSnapshot = {
 };
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -408,9 +412,10 @@ test.describe("operator motion contracts with reduced motion", () => {
   test("retention confirmation remains immediate and usable with reduced motion", async ({ page }) => {
     await page.goto("/audit/policy/retention");
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-    const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+    const prune = page.getByRole("button", { name: "Preview retention", exact: true });
     await prune.focus();
     await page.keyboard.press("Enter");
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
 
     const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
     const modal = page.locator("#prune-confirm-content");
