@@ -100,6 +100,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/evidence" do
+      test "direct Evidence entry binds enabled copy controls and respects disabled embedded scripts",
+           %{conn: conn} do
+        insert_evidence(subject_ref: %{"run_id" => "direct-copy-ref"})
+        {:ok, _view, html} = live(conn, "/audit/evidence")
+        assert html =~ "Copy subject ref"
+        assert html =~ "window.__tlCopyBound = true"
+        original = Application.get_env(:threadline, :operator_surface_embed_scripts)
+
+        on_exit(fn ->
+          if is_nil(original),
+            do: Application.delete_env(:threadline, :operator_surface_embed_scripts),
+            else: Application.put_env(:threadline, :operator_surface_embed_scripts, original)
+        end)
+
+        Application.put_env(:threadline, :operator_surface_embed_scripts, false)
+        {:ok, _view, disabled} = live(conn, "/audit/evidence")
+        refute disabled =~ "Copy subject ref"
+        refute disabled =~ "window.__tlCopyBound = true"
+        assert disabled =~ "direct-copy-ref"
+      end
+
       test "every supported exact recorded writer pair is bounded by its subject", %{conn: conn} do
         subjects =
           ~w(redaction_policy trigger_coverage retention_run retention_policy export_delivery support_scope_posture)

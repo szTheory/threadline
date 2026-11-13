@@ -93,3 +93,12 @@ No horizontal overflow did not prove readable controls:375px snapshots show an e
 - Width-only checks miss readable-control failures: the history Close label occupied five lines while document width passed. A measured text-rectangle check now covers that defect; the long Coverage grid also needed an intrinsic-minimum-width correction.
 - Keep the committed-source startup guard across tests and metadata as well as production files. One rejected restart correctly exposed incomplete candidate custody.
 - These are observed process and correctness improvements. No measured end-to-end speedup or token savings is claimed.
+
+### Plan04 lessons retained before final review
+
+- Bind every edit to the actual active checkout; using the parent's default cwd produced two zero-selection browser invocations and a misleading old-case-only root run. Only the added edits were moved, and the parent was restored exactly. Verify nonzero named case discovery, not just command exit.
+- Preserve repository serialization. An incidental JSON reformat was reversed with parsed semantic equality before runtime binding.
+- Derive full source revisions from Git; never guess or reconstruct a hash. The startup guard refused incorrect revisions before touching the app.
+- Busy controls change accessible names. Observe the established stable event owner while asserting the busy label and retained inspection time; do not weaken the pending-state claim or increase waits.
+- The Evidence copy failure was a product defect, not a timing excuse: an enabled shared control lacked the shell's existing script capability. Fix the owner and verify direct-entry controlled bytes plus script-disabled selectability.
+- The example host has no outage injection route. Prove failed reads/Retry in the existing owning LiveView/DB endpoint and name that limit; do not add public routes or disrupt PostgreSQL merely to manufacture browser coverage.

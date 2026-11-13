@@ -77,6 +77,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         exports_enabled={@threadline_exports_enabled}
         current={:evidence}
         main_class="tl-page"
+        script
       >
           <%= if @threadline_evidence_enabled do %>
             <%!-- Density: no lede in latest mode — the "Latest projection" Mode chip in the
