@@ -266,6 +266,68 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @tag :selected_coverage_snapshot
+    test "custom-schema success and refresh share the exact header snapshot", %{conn: conn} do
+      repo = Threadline.Test.Repo
+      SQL.query!(repo, "CREATE SCHEMA phase251_selected_snapshot", [])
+      SQL.query!(repo, "CREATE TABLE phase251_selected_snapshot.invoices (id integer)", [])
+      on_exit(fn -> SQL.query!(repo, "DROP SCHEMA phase251_selected_snapshot CASCADE", []) end)
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=phase251_selected_snapshot")
+      assigns = :sys.get_state(view.pid).socket.assigns
+      assert assigns.threadline_coverage == assigns.coverage_for_schema
+      assert assigns.coverage_for_schema_name == "phase251_selected_snapshot"
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_selected_snapshot: 1 not audited"
+             )
+
+      assert has_element?(view, "tr.tl-table__row--uncovered", "Not audited")
+      SQL.query!(repo, "CREATE TABLE phase251_selected_snapshot.payments (id integer)", [])
+      render_click(view, "refresh")
+      refreshed = :sys.get_state(view.pid).socket.assigns
+      assert refreshed.threadline_coverage == refreshed.coverage_for_schema
+      assert refreshed.coverage_for_schema.uncovered_count == 2
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_selected_snapshot: 2 not audited"
+             )
+
+      send(view.pid, :threadline_refresh_coverage)
+      render(view)
+      polled = :sys.get_state(view.pid).socket.assigns
+      assert polled.threadline_coverage == polled.coverage_for_schema
+      assert polled.coverage_for_schema_name == "phase251_selected_snapshot"
+    end
+
+    @tag :selected_coverage_snapshot
+    test "successful empty selected schema keeps its explicit inspection limits", %{conn: conn} do
+      SQL.query!(Threadline.Test.Repo, "CREATE SCHEMA phase251_empty_snapshot", [])
+
+      on_exit(fn ->
+        SQL.query!(Threadline.Test.Repo, "DROP SCHEMA phase251_empty_snapshot CASCADE", [])
+      end)
+
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=phase251_empty_snapshot")
+
+      assert has_element?(
+               view,
+               "p",
+               "No tables found in schema phase251_empty_snapshot during this inspection. Other schemas were not inspected."
+             )
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_empty_snapshot: 0 audited"
+             )
+
+      refute render(view) =~ "All tables captured"
+    end
+
     describe "manual refresh" do
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")

@@ -1,0 +1,3 @@
+# Coverage scope forwarding
+
+Health returns unqualified table names and Snapshot intentionally has no schema field, so the selected schema cannot be recovered from empty results or table facts. Add one optional internal `coverage_schema` shell/header assign, forwarded mechanically through existing UI.Page.shell; CoverageLive supplies its validated selected snapshot name. Other pages retain OnMount's existing public inspection scope. This adds UI.Page to the owner list, preserves Snapshot/public config/API/query contracts and allows accurate no-inspection and empty-schema badges. The selected snapshot itself remains identical for table results and shared counts/time. Required source/rendered checks and independent phase review include this owner.

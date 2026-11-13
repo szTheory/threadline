@@ -1,4 +1,7 @@
 import { expect, Locator, Page, test } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -233,5 +236,54 @@ test.describe("Coverage readiness link behavior", () => {
     expect(href).not.toBeNull();
     expect(href!).toContain("/audit/timeline?table=");
     expect(href!).not.toContain("table_schema=");
+  });
+});
+
+
+async function withPhase251CoverageFixture(page: Page, run: (fixture: { selected: string; empty: string; sql: (statement: string) => string }) => Promise<void>) {
+  const partition = process.env.MIX_TEST_PARTITION ?? "";
+  expect(partition).toMatch(/^(?:\d+|p251pair)?$/);
+  expect(process.env.THREADLINE_E2E).toBe("1");
+  if (partition === "p251pair") {
+    expect(new URL(page.url()).origin).toBe("http://127.0.0.1:60152");
+    expect(process.env.DB_HOST).toBe("127.0.0.1");
+    expect(process.env.DB_PORT).toBe("60025");
+  }
+  const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
+  const selected = `phase251_cov_${suffix}`;
+  const empty = `phase251_empty_${suffix}`;
+  const sql = (statement: string) => execFileSync("psql", ["-X", "-h", process.env.DB_HOST ?? "localhost", "-p", process.env.DB_PORT ?? "5432", "-U", "postgres", "-d", `threadline_phoenix_test${partition}`, "-v", "ON_ERROR_STOP=1", "--single-transaction", "-At", "-c", statement], { env: { ...process.env, PGPASSWORD: process.env.PGPASSWORD ?? "postgres" }, encoding: "utf8" });
+  sql(`CREATE SCHEMA ${selected}; CREATE TABLE ${selected}.invoices (id integer PRIMARY KEY); CREATE TABLE ${selected}.schema_migrations (version bigint PRIMARY KEY); CREATE SCHEMA ${empty}`);
+  try { await run({ selected, empty, sql }); }
+  finally { sql(`DROP SCHEMA ${selected} CASCADE; DROP SCHEMA ${empty} CASCADE`); }
+}
+
+
+test("Phase251 Coverage selected snapshot", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await withPhase251CoverageFixture(page, async ({ selected, empty, sql }) => {
+    await page.goto(`/audit/coverage?schema=${selected}`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const status = page.getByTestId("coverage-status");
+    await expect(status).toContainText(`${selected}: 1 not audited`);
+    await expect(status).toHaveAttribute("href", `/audit/coverage?schema=${selected}`);
+    await expect(page.locator("tr.tl-table__row--uncovered")).toContainText("Not audited");
+    await expect(page.locator("tr.tl-table__row--expected")).toContainText("Expected gap");
+    sql(`CREATE TABLE ${selected}.payments (id integer PRIMARY KEY)`);
+    await page.getByRole("button", { name: "Refresh coverage", exact: true }).click();
+    await expect(status).toContainText(`${selected}: 2 not audited`);
+    expect(await page.locator("tr.tl-table__row--uncovered td[data-label=TABLE]").allTextContents()).toEqual(["invoices", "payments"]);
+    await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(status).toContainText(`${selected}: 2 not audited`);
+    await page.locator("#coverage-schema").selectOption(empty);
+    await page.getByRole("button", { name: "Apply schema", exact: true }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe(empty);
+    await expect(status).toContainText(`${empty}: 0 audited`);
+    await expect(page.getByText(`No tables found in schema ${empty} during this inspection. Other schemas were not inspected.`, { exact: true })).toBeVisible();
+    await expect(page.getByText("All tables captured", { exact: true })).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
   });
 });
