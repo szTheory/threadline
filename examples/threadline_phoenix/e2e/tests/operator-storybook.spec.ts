@@ -1,6 +1,11 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Page, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+test.beforeEach(async ({ page }) => {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
+});
 
 const storybookIndexPath = "/dev/storybook";
 const representativeStories = [
