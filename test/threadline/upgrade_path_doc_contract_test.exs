@@ -224,6 +224,47 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert :binary.match(guide, "CHANGELOG.md", scope: scope) != :nomatch
   end
 
+  test "current unreleased Admin migration preserves authorization and Retention consequences" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    current =
+      guide
+      |> String.split("### Current unreleased Admin changes\n", parts: 2)
+      |> Enum.fetch!(1)
+      |> String.split("### Storage-schema migration expectation", parts: 2)
+      |> hd()
+
+    for consequence <- [
+          "usable unary `:authorize_fn`",
+          "`pipe_through` alone is insufficient",
+          ":adopter_acknowledges_unauthenticated: true",
+          "tests as well as production",
+          "**Preview retention**",
+          "**Review and confirm**",
+          "exact displayed policy name",
+          "**Prune now**",
+          "**Keep audit data** or Escape",
+          "sequential, non-atomic estimates",
+          "global configured\nworker store",
+          "query scope does not narrow",
+          "transient, not persisted deletion outcomes",
+          "running counts are checkpoints",
+          "Missing counts remain unknown",
+          "recorded zero\nremains zero",
+          "target mismatch refuses confirmation",
+          "Refresh run history",
+          "align the existing Repo, storage\nschema and Retention configuration",
+          "does not automatically replay",
+          "Pruner.trigger/0 is unchanged",
+          "operator_surface_embed_fonts: false",
+          "../priv/fonts/README.md",
+          "../brand/assets/README.md#fonts"
+        ] do
+      assert String.contains?(current, consequence),
+             "missing migration consequence: #{consequence}"
+    end
+  end
+
   test "upgrade-path guide refutes aspirational and product-milestone tokens" do
     guide = File.read!("guides/upgrade-path.md")
 

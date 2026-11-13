@@ -149,6 +149,46 @@ Current guidance by minor:
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 
+### Current unreleased Admin changes
+
+The following guidance applies to the current checkout. It does not change the
+historical release notes or the compatibility matrix above. `capture-only`
+adopters do not need a mount or font migration.
+
+**Mount authorization.** Keep the host authentication pipeline and provide a
+usable unary `:authorize_fn` to `threadline_operator_surface/2`.
+`pipe_through` alone is insufficient: the mount rejects missing or unusable
+authorization at compile time. Only an intentionally public mount should use
+`:adopter_acknowledges_unauthenticated: true`; the value must be the literal
+`true`, in tests as well as production. This acknowledgement does not add
+authentication. Reuse the same host-owned callback for LiveView and HTTP export
+requests, as shown in [the authorization guide](operator-surface.md#security-and-authorization-fail-closed-default).
+
+**Retention.** On `/audit/policy/retention`, start with **Preview retention**,
+then **Review and confirm**. Enter the exact displayed policy name before
+**Prune now**. Empty or incorrect input does not start or audit a prune;
+**Keep audit data** or Escape cancels and requires a new preview next time.
+The preview reads sequential, non-atomic estimates for the global configured
+worker store. An operator's or tenant's query scope does not narrow that store.
+Preview counts are transient, not persisted deletion outcomes. In run history,
+queued counts may be placeholders, running counts are checkpoints, and failed
+checkpoints may be incomplete. Missing counts remain unknown; a recorded zero
+remains zero.
+
+A worker restart, policy/target change or target mismatch refuses confirmation.
+Refresh run history before another deliberate attempt, then open a new preview.
+If the mismatch persists, the host owner must align the existing Repo, storage
+schema and Retention configuration with the worker and restart it as needed.
+The UI does not automatically replay a prune. The existing worker entrypoint
+Pruner.trigger/0 is unchanged. See [Retention preview and confirmation](operator-surface.md#retention-preview-and-confirmation).
+
+**Fonts.** The embedded Admin fonts now come from the approved
+[brand assets](../brand/assets/README.md#fonts). The old
+[`priv/fonts/` files](../priv/fonts/README.md) remain unshipped historical source
+with their licenses. `operator_surface_embed_fonts: false` still uses the
+stylesheet's fallback stacks; the existing CSP guidance remains in the
+[Admin guide](operator-surface.md#csp-guidance). No host asset route is required.
+
 ### Storage-schema migration expectation
 
 `storage_schema` arrived in `0.10.0`. It defaults to the host's `public` schema, and a dedicated schema (`config :threadline, storage_schema: "threadline"`) is an explicit opt-in chosen before install.
