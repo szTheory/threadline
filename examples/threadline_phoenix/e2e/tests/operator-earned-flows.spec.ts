@@ -709,13 +709,13 @@ test("Phase251 retained-context recovery", async ({ page }) => {
       await expect(close).toBeFocused();
       await page.keyboard.press("Enter");
     } else {
-      await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+      await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
     }
     const recoveryPath = path === drawerPath ? transactionPath : "/audit/timeline";
     await expect.poll(() => new URL(page.url()).pathname).toBe(recoveryPath);
     expect(new URL(page.url()).searchParams.has("unsupported_only")).toBe(false);
     if (recoveryPath === transactionPath) {
-      await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+      await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
       await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
     }
   }
@@ -728,7 +728,11 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   await expect(page.getByTestId("row-history-drawer")).toBeVisible();
   await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
   await page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true }).click();
-  await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+  const timelineReturn = page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true });
+  const returnHref = await timelineReturn.getAttribute("href");
+  expect(returnHref).toBeTruthy();
+  expect([...new URL(returnHref!, page.url()).searchParams.entries()]).toEqual(expected);
+  await timelineReturn.click();
   await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
   expect([...new URL(page.url()).searchParams.entries()]).toEqual(expected);
   await expectNoHorizontalOverflow(page);
