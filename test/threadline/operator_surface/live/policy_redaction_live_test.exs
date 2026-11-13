@@ -1,5 +1,12 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.UnavailableSQL do
+    def query({:unexpected, stage}, sql, params, opts) do
+      case query(stage, sql, params, opts) do
+        {:error, _} -> raise "private-unexpected-policy-canary-251"
+        result -> result
+      end
+    end
+
     def query(stage, sql, _params, _opts) do
       cond do
         stage == :schema_list -> unavailable()
@@ -135,6 +142,74 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "zero configured policy uses one honest meaning across all sections and records successful time",
+           %{conn: conn} do
+        Application.put_env(:threadline, :trigger_capture, tables: %{})
+        {:ok, view, html} = live(conn, "/audit/policy/redaction?schema=threadline")
+        socket = :sys.get_state(view.pid).socket
+        assert %DateTime{} = socket.assigns.inspected_at
+        assert html =~ "Inspection completed at"
+        assert html =~ DateTime.to_iso8601(socket.assigns.inspected_at)
+
+        assert html =~
+                 "Configured: host application policy. Deployed: current database trigger definition."
+
+        assert count_occurrences(html, "No configured policy to compare") == 4
+        refute html =~ "No redaction drift detected."
+        refute html =~ "No introspection failures."
+        refute html =~ "Deployed matches config"
+        refute html =~ "Deployed matches config</dt>"
+      end
+
+      test "unexpected list validation and report errors never render diagnostics or successful time",
+           %{conn: conn} do
+        {:ok, view, _} = live(conn, "/audit/policy/redaction")
+        initial = :sys.get_state(view.pid).socket
+
+        for stage <- [:schema_list, :schema_validation, :catalog] do
+          socket =
+            Phoenix.Component.assign(
+              initial,
+              :threadline_repo,
+              unavailable_adapter({:unexpected, stage})
+            )
+
+          assert {:noreply, failed} =
+                   PolicyRedactionLive.handle_params(
+                     %{"schema" => "public"},
+                     "http://localhost/audit/policy/redaction",
+                     socket
+                   )
+
+          assert is_nil(failed.assigns.inspected_at)
+          html = failed.assigns |> PolicyRedactionLive.render() |> rendered_to_string()
+
+          assert html =~
+                   "Policy inspection is unavailable for schema public. Retry the inspection before treating policy as matched."
+
+          refute html =~ "private-unexpected-policy-canary-251"
+          refute html =~ "Inspection completed at"
+        end
+      end
+
+      test "structured schema URL and submit stay correctable without a public inspection fallback",
+           %{conn: conn} do
+        {:ok, view, _} = live(conn, "/audit/policy/redaction?schema[bad]=value")
+        assert render(view) =~ "Choose a schema from the list"
+        socket = :sys.get_state(view.pid).socket
+        assert socket.assigns.report == nil
+
+        assert {:noreply, invalid} =
+                 PolicyRedactionLive.handle_event(
+                   "select-schema",
+                   %{"schema" => %{"bad" => "value"}},
+                   socket
+                 )
+
+        assert invalid.assigns.report == nil
+        assert invalid.assigns.inspected_at == nil
+      end
+
       test "schema and catalog read failures stay unavailable and retry with the selected schema",
            %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/redaction?schema=public")
@@ -269,7 +344,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "<th>Configured</th>"
         assert html =~ "<th>Deployed</th>"
-        assert html =~ ~s(<th scope="row" data-label="Field">mask placeholder</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">Replacement</th>)
         assert html =~ "[MASKED]"
         assert html =~ "[DEPLOYED]"
         assert html =~ "password_hash"
@@ -393,7 +468,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Policy inspection unavailable"
 
       assert html =~
-               "Deployed policy could not be inspected. Retry before treating policy as matched."
+               "Policy inspection is unavailable for schema public. Retry the inspection before treating policy as matched."
 
       assert html =~ "Refresh policy inspection"
       refute html =~ "private-policy-outage-canary-241"
@@ -421,9 +496,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         # The field name must render when the table stacks (data-label drives the
         # responsive ::before label), and the table stays the 2-col diff table.
-        assert html =~ ~s(<th scope="row" data-label="Field">exclude</th>)
-        assert html =~ ~s(<th scope="row" data-label="Field">mask</th>)
-        assert html =~ ~s(<th scope="row" data-label="Field">mask placeholder</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">Left out</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">Redacted</th>)
+        assert html =~ ~s(<th scope="row" data-label="Field">Replacement</th>)
         assert html =~ "tl-table--policy"
       end
 

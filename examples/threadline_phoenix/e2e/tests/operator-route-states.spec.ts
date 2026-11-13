@@ -1782,3 +1782,45 @@ test("Phase251 Coverage availability boundaries", async ({ page, browser }) => {
     await anonymousContext.close();
   }
 });
+
+
+test("Phase251 Redaction current-definition meaning", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/policy/redaction?schema=public");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Inspection completed at", { exact: true })).toBeVisible();
+  await expect(main.getByText("Configured: host application policy. Deployed: current database trigger definition.", { exact: true })).toBeVisible();
+  const posts = main.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+  await posts.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(posts).toHaveAttribute("open", "");
+  await expect(posts.getByRole("rowheader", { name: "Left out", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Redacted", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Replacement", exact: true })).toBeVisible();
+  await expect(main).toContainText("does not establish whether historical audit rows or downstream exports were redacted");
+  const refresh = main.getByRole("button", { name: "Refresh policy inspection", exact: true });
+  await expect(refresh).toHaveAttribute("phx-disable-with", "Inspecting policy…");
+  await refresh.focus();
+  await page.keyboard.press("Enter");
+  await expect(refresh).toBeEnabled();
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", /Z$/);
+  await expectNoHorizontalOverflow(page);
+  await page.goto("/audit/policy/redaction?schema=threadline");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No configured policy to compare", exact: true })).toHaveCount(4);
+  await expect(main).not.toContainText("No redaction drift detected.");
+  await expect(main).not.toContainText("No introspection failures.");
+  await page.goto("/audit/policy/redaction?schema[bad]=value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByText("Choose a schema from the list or use public schema.", { exact: true })).toBeVisible();
+  await main.getByRole("link", { name: "Use public schema", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/policy\/redaction\?schema=public$/);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const rendered = await main.evaluate(node => node.outerHTML);
+  for (const canary of ["CREATE OR REPLACE FUNCTION", "raw-trigger-sql-canary-241", "private-unexpected-policy-canary-251", "sample-value-canary-241", "redacted-value-canary-241"]) expect(rendered).not.toContain(canary);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
