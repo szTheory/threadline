@@ -1459,6 +1459,27 @@ test("Retention confirmation focus and cancel preserve state; Chromium touch nav
     await expect(toggle).toBeVisible();
     await toggle.tap();
     await expect(touch.locator(".tl-shell-nav__panel")).toBeVisible();
+    await touch.goto("/audit/policy/retention");
+    await expect(touch.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await touch.getByRole("button", { name: "Preview retention", exact: true }).tap();
+    await expect(touch.getByTestId("retention-preview")).toBeVisible();
+    await touch.getByRole("button", { name: "Review and confirm", exact: true }).tap();
+    const touchDialog = touch.getByRole("dialog");
+    await expect(touchDialog).toBeVisible();
+    await touchDialog.evaluate((dialog) => {
+      for (const element of [dialog, ...dialog.querySelectorAll("*")]) {
+        if (/auto|scroll/.test(getComputedStyle(element).overflowY) && element.scrollHeight > element.clientHeight) element.scrollTop = 0;
+      }
+    });
+    const heading = touchDialog.getByRole("heading", { name: "Prune retained audit data?", exact: true });
+    await expect(heading).toBeVisible();
+    expect(await heading.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const painted = document.elementFromPoint(box.x + box.width / 2, box.y + 4);
+      return painted !== null && (element === painted || element.contains(painted));
+    })).toBe(true);
+    await touchDialog.getByRole("button", { name: "Keep audit data", exact: true }).tap();
+    await expect(touchDialog).toBeHidden();
   } finally { await touchContext.close(); }
 });
 

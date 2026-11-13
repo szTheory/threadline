@@ -26,8 +26,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <strong class="tl-card__metric"><%= @retention_summary.latest_completed %></strong>
                 </div>
                 <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Recorded rows deleted in recent runs</span>
+                  <span class="tl-card__metric-label">Recorded rows deleted in finished runs</span>
                   <strong class="tl-card__metric"><%= if is_nil(@retention_summary.total_deleted), do: "Not recorded", else: @retention_summary.total_deleted %></strong>
+                  <p class="tl-hint">Active runs are excluded. Failed-run counts are last recorded checkpoints and may be incomplete.</p>
                   <p :if={@retention_summary.missing_deletion_counts > 0 and not is_nil(@retention_summary.total_deleted)} class="tl-hint" data-testid="retention-missing-count-note">
                     Known recorded counts only; <%= @retention_summary.missing_deletion_counts %> <%= if @retention_summary.missing_deletion_counts == 1, do: "run has", else: "runs have" %> no deletion count.
                   </p>
@@ -78,7 +79,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <:col :let={{_dom_id, run}} label="Status">
                     <span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span>
                   </:col>
-                  <:col :let={{_dom_id, run}} label="Deleted Rows"><%= count_label(run.deleted_count) %></:col>
+                  <:col :let={{_dom_id, run}} label="Deleted Rows"><%= count_label(run) %></:col>
                   <:col :let={{_dom_id, run}} label="Duration"><%= duration_label(run.duration_ms) %></:col>
                   <:col :let={{_dom_id, run}} label="Outcome">
                     <%= if run.status == "failed" do %>
@@ -114,7 +115,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def retention_preview(assigns) do
       ~H"""
-      <p :if={@state == :loading} role="status">Generating retention preview…</p>
+      <p :if={@state == :loading} role="status">Previewing retention estimates…</p>
       <p :if={@state == :error} class="tl-alert tl-alert--error" role="alert">Retention preview is unavailable. No counts are shown and a prune cannot be started from this view. Refresh the history and try the preview again; if it keeps failing, contact your administrator.</p>
       <section :if={@state == :ready and @preview} class="tl-card" data-testid="retention-preview" aria-label="Retention preview">
         <h2 class="tl-card__title">Retention preview</h2>
@@ -138,14 +139,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp safe_failure_category(_), do: "prune error"
 
     defp failure_summary(run) do
-      deleted = run.deleted_count || 0
-      noun = if deleted == 1, do: "row was", else: "rows were"
+      outcome =
+        if is_nil(run.deleted_count) do
+          "No deletion count was recorded before this failure."
+        else
+          noun = if run.deleted_count == 1, do: "row", else: "rows"
 
-      "Retention prune failed (#{safe_failure_category(run.error_message)}). #{deleted} #{noun} deleted before the failure. Review this run and resolve the reported category before starting another prune."
+          "Last recorded count: #{run.deleted_count} #{noun}. Counts from failed runs may be incomplete."
+        end
+
+      "Retention prune failed (#{safe_failure_category(run.error_message)}). #{outcome} Review this run and resolve the reported category before starting another prune."
     end
 
-    defp count_label(nil), do: "No deletion count recorded"
-    defp count_label(value), do: value
+    defp count_label(%{status: status}) when status in ["pending", "queued"], do: "Not started"
+    defp count_label(%{deleted_count: nil}), do: "No deletion count recorded"
+    defp count_label(%{status: "running", deleted_count: count}), do: "#{count} recorded so far"
+    defp count_label(%{status: "failed", deleted_count: count}), do: "#{count} last recorded"
+    defp count_label(%{deleted_count: count}), do: count
 
     defp duration_label(nil), do: "No duration recorded"
     defp duration_label(value), do: "#{value}ms"

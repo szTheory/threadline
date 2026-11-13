@@ -454,6 +454,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert has_element?(
                  view,
+                 "#runs-#{missing.id} td[data-label='Outcome']",
+                 "No deletion count was recorded before this failure."
+               )
+
+        refute has_element?(
+                 view,
+                 "#runs-#{missing.id} td[data-label='Outcome']",
+                 "0 rows were deleted"
+               )
+
+        assert has_element?(
+                 view,
                  "#runs-#{missing.id} td[data-label='Duration']",
                  "No duration recorded"
                )
@@ -635,6 +647,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "Retention window destructive action"
       end
 
+      test "Phase252 active and failed checkpoint counts are not final outcomes", %{conn: conn} do
+        rows =
+          for {status, count} <- [
+                {"queued", 0},
+                {"running", 3},
+                {"failed", 0},
+                {"failed", 1},
+                {"failed", 7}
+              ] do
+            Repo.insert!(%RetentionRun{status: status, deleted_count: count}, repo_opts())
+          end
+
+        {:ok, view, _} = live_retention(conn)
+
+        assert has_element?(
+                 view,
+                 "section[aria-label='Retention window health'] .tl-card--metric:nth-child(3) .tl-card__metric",
+                 "8"
+               )
+
+        assert has_element?(
+                 view,
+                 "#runs-#{Enum.at(rows, 0).id} td[data-label='Deleted Rows']",
+                 "Not started"
+               )
+
+        assert has_element?(
+                 view,
+                 "#runs-#{Enum.at(rows, 1).id} td[data-label='Deleted Rows']",
+                 "3 recorded so far"
+               )
+
+        for {run, count} <- Enum.zip(Enum.drop(rows, 2), [0, 1, 7]) do
+          assert has_element?(
+                   view,
+                   "#runs-#{run.id} td[data-label='Deleted Rows']",
+                   "#{count} last recorded"
+                 )
+
+          noun = if count == 1, do: "row", else: "rows"
+
+          assert has_element?(
+                   view,
+                   "#runs-#{run.id} td[data-label='Outcome']",
+                   "Last recorded count: #{count} #{noun}. Counts from failed runs may be incomplete."
+                 )
+        end
+      end
+
       test "shows partial deletion with a safe category and never renders raw failure detail", %{
         conn: conn
       } do
@@ -654,7 +715,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live_retention(conn)
 
         assert html =~
-                 "Retention prune failed (prune error). 1 row was deleted before the failure."
+                 "Retention prune failed (prune error). Last recorded count: 1 row. Counts from failed runs may be incomplete."
 
         assert html =~
                  "Review this run and resolve the reported category before starting another prune."

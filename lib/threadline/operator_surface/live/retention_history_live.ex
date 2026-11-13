@@ -355,6 +355,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:actions>
             </UI.Page.page_header>
 
+            <div class="tl-stack tl-stack--stack">
             <section class="tl-card" data-testid="retention-scope">
               <p class="tl-card__body"><%= @prune_copy.scope_explanation %></p>
             </section>
@@ -401,6 +402,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   default_limit={@default_limit}
                 />
             <% end %>
+
+            </div>
 
             <%!-- Type-to-confirm modal. The operator types the
                   policy NAME (the object's own identifier) to confirm; the
@@ -605,8 +608,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       latest_completed = Enum.find(runs, &(&1.status == "completed"))
       first_failed = Enum.find(runs, &(&1.status == "failed"))
 
+      finished_runs = Enum.filter(runs, &(&1.status in ["completed", "failed"]))
+
       recorded_counts =
-        Enum.flat_map(runs, fn run ->
+        Enum.flat_map(finished_runs, fn run ->
           if is_nil(run.deleted_count), do: [], else: [run.deleted_count]
         end)
 
@@ -616,7 +621,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         latest_completed_at: latest_completed && latest_completed.completed_at,
         healthy?: failure_count == 0 and run.status == "completed",
         total_deleted: if(recorded_counts == [], do: nil, else: Enum.sum(recorded_counts)),
-        missing_deletion_counts: length(runs) - length(recorded_counts),
+        missing_deletion_counts: length(finished_runs) - length(recorded_counts),
         failure_count: failure_count,
         first_failed_dom_id: first_failed && "runs-#{first_failed.id}"
       }

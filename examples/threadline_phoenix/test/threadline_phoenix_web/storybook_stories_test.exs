@@ -331,6 +331,10 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     refute Regex.match?(~r/<[^>]*\sphx-(?:submit|click)=/, html)
     ids = Regex.scan(~r/<[^>]+\bid="([^"]+)"/, html, capture: :all_but_first) |> List.flatten()
     assert length(ids) == length(Enum.uniq(ids))
+    partial = ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:partial)
+    assert partial.retention_summary.latest_completed == "No completed run yet"
+    assert partial.retention_summary.total_deleted == nil
+    assert html =~ "No completed run yet"
     sample = ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:ordinary)
     [{_, run}] = sample.runs
     assert run.deleted_count == 14
