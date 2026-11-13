@@ -340,6 +340,11 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
           []
       end
 
+    recorded_counts =
+      Enum.flat_map(runs, fn run ->
+        if is_nil(run.deleted_count), do: [], else: [run.deleted_count]
+      end)
+
     first_failed = Enum.find(runs, &(&1.status == "failed"))
     prefix = "operation-retention-#{scene}"
 
@@ -383,7 +388,8 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
             do: "No completed run yet",
             else: Threadline.OperatorSurface.Presentation.human_time(ordinary.completed_at)
           ),
-        total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
+        total_deleted: if(recorded_counts == [], do: nil, else: Enum.sum(recorded_counts)),
+        missing_deletion_counts: length(runs) - length(recorded_counts),
         failure_count: Enum.count(runs, &(&1.status == "failed")),
         first_failed_dom_id: first_failed && "#{prefix}-#{first_failed.id}"
       },

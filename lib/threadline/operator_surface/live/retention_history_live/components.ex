@@ -26,8 +26,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <strong class="tl-card__metric"><%= @retention_summary.latest_completed %></strong>
                 </div>
                 <div class="tl-card--metric">
-                  <span class="tl-card__metric-label">Rows deleted in recent runs</span>
-                  <strong class="tl-card__metric"><%= @retention_summary.total_deleted %></strong>
+                  <span class="tl-card__metric-label">Recorded rows deleted in recent runs</span>
+                  <strong class="tl-card__metric"><%= if is_nil(@retention_summary.total_deleted), do: "Not recorded", else: @retention_summary.total_deleted %></strong>
+                  <p :if={@retention_summary.missing_deletion_counts > 0 and not is_nil(@retention_summary.total_deleted)} class="tl-hint" data-testid="retention-missing-count-note">
+                    Known recorded counts only; <%= @retention_summary.missing_deletion_counts %> <%= if @retention_summary.missing_deletion_counts == 1, do: "run has", else: "runs have" %> no deletion count.
+                  </p>
                 </div>
                 <div class="tl-card--metric" data-status={if @retention_summary.failure_count > 0, do: "danger"}>
                   <span class="tl-card__metric-label">Failures</span>

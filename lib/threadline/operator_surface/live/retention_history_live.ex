@@ -605,12 +605,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       latest_completed = Enum.find(runs, &(&1.status == "completed"))
       first_failed = Enum.find(runs, &(&1.status == "failed"))
 
+      recorded_counts =
+        Enum.flat_map(runs, fn run ->
+          if is_nil(run.deleted_count), do: [], else: [run.deleted_count]
+        end)
+
       %{
         latest_status: Presentation.status_label(run.status),
         latest_at: run.started_at,
         latest_completed_at: latest_completed && latest_completed.completed_at,
         healthy?: failure_count == 0 and run.status == "completed",
-        total_deleted: Enum.reduce(runs, 0, &((&1.deleted_count || 0) + &2)),
+        total_deleted: if(recorded_counts == [], do: nil, else: Enum.sum(recorded_counts)),
+        missing_deletion_counts: length(runs) - length(recorded_counts),
         failure_count: failure_count,
         first_failed_dom_id: first_failed && "runs-#{first_failed.id}"
       }
@@ -622,7 +628,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         latest_at: nil,
         latest_completed_at: nil,
         healthy?: false,
-        total_deleted: 0,
+        total_deleted: nil,
+        missing_deletion_counts: 0,
         failure_count: 0,
         first_failed_dom_id: nil
       }
@@ -635,6 +642,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         latest_completed: latest_completed_label(runs_summary.latest_completed_at),
         healthy?: runs_summary.healthy?,
         total_deleted: runs_summary.total_deleted,
+        missing_deletion_counts: runs_summary.missing_deletion_counts,
         failure_count: runs_summary.failure_count,
         first_failed_dom_id: runs_summary.first_failed_dom_id
       }

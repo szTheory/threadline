@@ -418,13 +418,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "Phase252 missing run measurements remain distinct from recorded zero", %{conn: conn} do
         missing = Repo.insert!(%RetentionRun{status: "failed"}, repo_opts())
 
+        {:ok, view, _} = live_retention(conn)
+
+        assert has_element?(
+                 view,
+                 "section[aria-label='Retention window health'] .tl-card--metric:nth-child(3) .tl-card__metric",
+                 "Not recorded"
+               )
+
         zero =
           Repo.insert!(
             %RetentionRun{status: "completed", deleted_count: 0, duration_ms: 0},
             repo_opts()
           )
 
-        {:ok, view, _} = live_retention(conn)
+        render_click(view, "refresh_runs", %{})
+
+        assert has_element?(
+                 view,
+                 "section[aria-label='Retention window health'] .tl-card--metric:nth-child(3) .tl-card__metric",
+                 "0"
+               )
+
+        assert has_element?(
+                 view,
+                 "[data-testid=retention-missing-count-note]",
+                 "1 run has no deletion count"
+               )
 
         assert has_element?(
                  view,
@@ -562,7 +582,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|aria-label="Retention window health"|
         assert html =~ "Latest run"
         assert html =~ "Latest completed run"
-        assert html =~ "Rows deleted in recent runs"
+        assert html =~ "Recorded rows deleted"
         assert html =~ "Failures"
         # Density (196-06): the banner restatement of the destructive warning is gone;
         # the type-to-confirm modal owns that copy at the point of action.
