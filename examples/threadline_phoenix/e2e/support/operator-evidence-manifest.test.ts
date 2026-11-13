@@ -373,15 +373,36 @@ test("runner proof rejects altered isolation root, branch, context and ancestry 
 test("ordinary runner lifecycle forwards arguments and removes only ignored export files", (t) => {
   const { root, e2e, run, sentinel } = runnerFixture(t);
   const bin = join(root, "bin");
-  writeFileSync(join(bin, "mix"), '#!/usr/bin/env bash\nprintf "mix %s\\n" "$*" >> "$RUNNER_SENTINEL"\nif [[ "$*" == "phx.server" ]]; then exec sleep 30; fi\n');
+  const example = dirname(e2e);
+  const pidFile = join(root, "server-pid");
+  const argsFile = join(root, "server-argv.json");
+  writeFileSync(join(bin, "mix"), `#!/usr/bin/env python3
+import json, os, sys
+args = sys.argv[1:]
+with open(os.environ["RUNNER_SENTINEL"], "a") as out: out.write("mix " + " ".join(args) + "\\n")
+if args[:1] == ["phx.server"] or args[:4] == ["run", "--no-start", "--no-halt", "-e"]:
+    with open(${JSON.stringify(pidFile)}, "w") as out: out.write(str(os.getpid()))
+    with open(${JSON.stringify(argsFile)}, "w") as out: json.dump(args, out)
+    mode = os.environ.get("FAKE_PRUNER_MARKER", "valid")
+    if mode == "missing": sys.exit(0)
+    if args[:1] == ["run"]:
+        marker = {"repo": "Wrong.Repo" if mode == "mismatch" else "ThreadlinePhoenix.Repo", "storage_schema": "threadline", "sleep_ms": 0, "worker_pid": "#PID<0.123.0>", "rows_unchanged": True}
+        print("THREADLINE_E2E_PRUNER_READY " + json.dumps(marker), flush=True)
+    os.execlp("sleep", "sleep", "30")
+`);
   for (const name of ["npm", "npx"]) {
     writeFileSync(join(bin, name), `#!/usr/bin/env bash\nprintf '${name} %s\\n' "$*" >> "$RUNNER_SENTINEL"\n`);
     chmodSync(join(bin, name), 0o755);
   }
-  writeFileSync(join(bin, "curl"), '#!/usr/bin/env bash\nif [[ "$*" == *"/audit"* ]]; then printf "HTTP/1.1 302 Found\\r\\nLocation: /users/log_in\\r\\n\\r\\n\\n__HTTP_CODE__302"; fi\n');
-  writeFileSync(join(bin, "lsof"), "#!/usr/bin/env bash\nexit 1\n");
-  chmodSync(join(bin, "curl"), 0o755); chmodSync(join(bin, "lsof"), 0o755);
-  const example = dirname(e2e);
+  writeFileSync(join(bin, "curl"), `#!/usr/bin/env bash
+for _ in $(seq 1 100); do [[ -f ${JSON.stringify(pidFile)} ]] && break; sleep 0.01; done
+if [[ "$*" == *"/audit"* ]]; then printf "HTTP/1.1 302 Found\\r\\nLocation: /users/log_in\\r\\n\\r\\n\\n__HTTP_CODE__302"; fi
+`);
+  writeFileSync(join(bin, "lsof"), `#!/usr/bin/env bash
+if [[ "$1" == "-t" ]]; then cat ${JSON.stringify(pidFile)}; elif [[ "$1" == "-a" ]]; then printf '%s\\n' ${JSON.stringify("n" + example)}; else exit 1; fi
+`);
+  writeFileSync(join(bin, "ps"), '#!/usr/bin/env bash\nprintf "beam.smp synthetic-runner-fixture\\n"\n');
+  for (const name of ["mix", "curl", "lsof", "ps"]) chmodSync(join(bin, name), 0o755);
   mkdirSync(join(example, "lib/threadline_phoenix_web"), { recursive: true });
   writeFileSync(join(example, "lib/threadline_phoenix_web/router.ex"), "synthetic router");
   mkdirSync(join(example, "priv/threadline_exports"), { recursive: true });
@@ -390,14 +411,25 @@ test("ordinary runner lifecycle forwards arguments and removes only ignored expo
   execFileSync("git", ["add", "examples/threadline_phoenix/priv/threadline_exports/tracked.txt"], { cwd: root });
   writeFileSync(join(root, ".gitignore"), "examples/threadline_phoenix/priv/threadline_exports/*\nunrelated.tmp\n");
   writeFileSync(join(root, "unrelated.tmp"), "retain unrelated generated data");
+  const overrides = { THREADLINE_E2E_EVIDENCE: "0", MIX_TEST_PARTITION: "", THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "0" };
   for (const theme of ["", "system"]) {
     writeFileSync(join(example, "priv/threadline_exports/generated.csv"), "generated export");
-    const result = run({ THREADLINE_E2E_EVIDENCE: "0", MIX_TEST_PARTITION: "", THREADLINE_E2E_THEME: theme, THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "0" }, ["operator-shell-home.spec.ts", "--grep", "home"]);
+    const result = run({ ...overrides, THREADLINE_E2E_THEME: theme }, ["operator-shell-home.spec.ts", "--grep", "home"]);
     assert.equal(result.status, 0, result.stderr);
+    const argv = JSON.parse(readFileSync(argsFile, "utf8"));
+    assert.deepEqual(argv.slice(0, 4), ["run", "--no-start", "--no-halt", "-e"]);
+    for (const actualOwner of ["Application.ensure_all_started", "Supervisor.start_child", "target_snapshot", "rows_unchanged", "THREADLINE_E2E_PRUNER_READY"]) assert.ok(argv[4].includes(actualOwner), actualOwner);
     assert.equal(existsSync(join(example, "priv/threadline_exports/generated.csv")), false);
     assert.equal(readFileSync(tracked, "utf8"), "retain tracked data");
     assert.equal(readFileSync(join(root, "unrelated.tmp"), "utf8"), "retain unrelated generated data");
     assert.ok(readFileSync(sentinel, "utf8").includes(`npm test -- ${theme === "system" ? "--project=desktop-chromium-light " : ""}operator-shell-home.spec.ts --grep home`));
+  }
+  for (const mode of ["missing", "mismatch"]) {
+    unlinkSync(pidFile); unlinkSync(argsFile); writeFileSync(sentinel, "");
+    const result = run({ ...overrides, FAKE_PRUNER_MARKER: mode });
+    assert.notEqual(result.status, 0, mode);
+    assert.match(result.stderr, /worker readiness|Pruner readiness/i);
+    assert.doesNotMatch(readFileSync(sentinel, "utf8"), /npm test --/);
   }
 });
 
