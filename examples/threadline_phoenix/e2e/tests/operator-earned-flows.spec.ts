@@ -741,3 +741,31 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   await expectNoHorizontalOverflow(page);
   expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });
+
+
+test("Phase251 standalone snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.row, page.url()).pathname;
+  const retained = "origin=timeline&from=&table=tickets";
+  for (const value of ["not-a-date", "2026-02-30T12:00:00Z"]) {
+    await page.goto(`${path}?${retained}&as_of=${encodeURIComponent(value)}`);
+    const drawer = page.getByTestId("row-history-drawer");
+    await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.");
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+    await expect(drawer.getByRole("link", { name: "Close", exact: true })).toBeFocused();
+  }
+  await page.goto(`${path}?${retained}&as_of=2026-05-26T16%3A30%3A00%2B02%3A00`);
+  let drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ }).locator("time")).toHaveAttribute("datetime", "2026-05-26T14:30:00Z");
+  await page.reload();
+  drawer = page.getByTestId("row-history-drawer");
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("");
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
