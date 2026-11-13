@@ -750,8 +750,8 @@
 
   .tl-home__headline {
     margin: 0;
-    font-size: var(--tl-font-size-display);
-    line-height: var(--tl-line-display);
+    font-size: var(--tl-font-size-heading);
+    line-height: var(--tl-line-heading);
     font-weight: var(--tl-weight-medium);
     letter-spacing: var(--tl-tracking-tight);
     color: var(--tl-color-text);
@@ -3505,6 +3505,15 @@
     backdrop-filter: blur(var(--tl-blur-panel));
   }
 
+  .tl-subview__header > div {
+    min-width: 0;
+  }
+
+  .tl-subview__header > .tl-button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   .tl-subview__title {
     margin: 0;
     font-size: var(--tl-font-size-body);
@@ -3981,6 +3990,8 @@
 
   .tl-coverage-verdict {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
     gap: var(--tl-space-3);
     margin-bottom: var(--tl-space-4);
     padding: var(--tl-space-4);
@@ -4019,6 +4030,7 @@
 
   .tl-coverage-verdict__title {
     margin: 0;
+    overflow-wrap: anywhere;
     font-size: var(--tl-font-size-title);
     line-height: var(--tl-line-heading);
     font-weight: var(--tl-weight-strong);

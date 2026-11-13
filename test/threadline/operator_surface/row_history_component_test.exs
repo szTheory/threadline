@@ -34,6 +34,53 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, %{}}
     end
 
+    @tag :transaction_snapshot_intent
+    test "invalid time keeps scoped history but skips the snapshot read, with a valid-read control" do
+      at = ~U[2026-06-04 12:30:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at, source: "support"})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "invalid-component"},
+        data_after: %{"id" => "invalid-component", "name" => "Stored snapshot"},
+        captured_at: at
+      })
+
+      caller = self()
+
+      scope_query_fn = fn query, _scope, context ->
+        send(caller, {:scoped_history_read, context.surface})
+        scope_operator_query(query, %{source: "support"}, context)
+      end
+
+      assigns = %{
+        id: "snapshot-proof",
+        table: "users",
+        record_id: "invalid-component",
+        base_path: "/audit",
+        history_path: "/audit/rows/users/invalid-component",
+        threadline_schemas: %{"users" => FakeUser},
+        repo: Repo,
+        as_of: nil,
+        scope: %{source: "support"},
+        scope_query_fn: scope_query_fn
+      }
+
+      invalid =
+        render_component(
+          Threadline.OperatorSurface.Live.RowHistoryComponent,
+          Map.put(assigns, :snapshot_invalid?, true)
+        )
+
+      assert invalid =~ "This snapshot time is invalid."
+      refute invalid =~ "Stored snapshot"
+      assert_receive {:scoped_history_read, :row_history}
+      refute_receive {:scoped_history_read, :row_history}, 100
+      valid = render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, assigns)
+      assert valid =~ "Stored snapshot"
+      assert_receive {:scoped_history_read, :row_history}
+      assert_receive {:scoped_history_read, :row_history}
+    end
+
     test "renders error when schema is missing" do
       html =
         render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, %{

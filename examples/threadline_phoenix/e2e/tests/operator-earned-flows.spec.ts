@@ -700,6 +700,7 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   const drawerPath = new URL(seeded.drawer, page.url()).pathname;
   for (const path of [transactionPath, seeded.row, drawerPath]) {
     await page.goto(`${path}?origin=timeline&unsupported_only=private-value`);
+    await expectLiveViewConnected(page);
     const notice = page.getByTestId("timeline-context-loss");
     await expect(notice).toBeVisible();
     await expect(notice).toHaveText(message);
@@ -724,6 +725,7 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   }
 
   await page.goto(investigationSearch());
+  await expectLiveViewConnected(page);
   const expected = [...new URL(page.url()).searchParams.entries()];
   await page.getByTestId("timeline-row").first().getByTestId("transaction-link").click();
   await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
@@ -739,5 +741,100 @@ test("Phase251 retained-context recovery", async ({ page }) => {
   await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
   expect([...new URL(page.url()).searchParams.entries()]).toEqual(expected);
   await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 standalone snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.row, page.url()).pathname;
+  const retained = "origin=timeline&from=&table=tickets";
+  for (const value of ["not-a-date", "2026-02-30T12:00:00Z"]) {
+    await page.goto(`${path}?${retained}&as_of=${encodeURIComponent(value)}`);
+    await expectLiveViewConnected(page);
+    const drawer = page.getByTestId("row-history-drawer");
+    await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.");
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+    await expect(drawer.getByRole("link", { name: "Close", exact: true })).toBeFocused();
+    const latest = drawer.getByRole("link", { name: "View latest snapshot", exact: true });
+    expect(new URL((await latest.getAttribute("href"))!, page.url()).searchParams.get("from")).toBe("");
+    await latest.click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  }
+  await page.goto(`${path}?${retained}&as_of=2026-05-26T16%3A30%3A00%2B02%3A00`);
+  await expectLiveViewConnected(page);
+  let drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ }).locator("time")).toHaveAttribute("datetime", "2026-05-26T14:30:00Z");
+  await page.reload();
+  await expectLiveViewConnected(page);
+  drawer = page.getByTestId("row-history-drawer");
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("");
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 transaction snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.drawer, page.url()).pathname;
+  const transaction = new URL(seeded.transaction, page.url()).pathname;
+  await page.goto(`${path}?origin=timeline&from=&table=tickets&as_of=not-a-date`);
+  await expectLiveViewConnected(page);
+  const drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid.");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+  await drawer.getByRole("link", { name: "View latest snapshot", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("2026-05-26T14:30");
+  await expect.poll(() => new URL(page.url()).searchParams.get("as_of")).toBe("2026-05-26T14:30:00Z");
+  const close = drawer.getByRole("link", { name: "Close", exact: true });
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => new URL(page.url()).pathname).toBe(transaction);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  expect(new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 narrow history close control", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  await page.goto(seeded.row + "?as_of=not-a-date");
+  await expectLiveViewConnected(page);
+  await page.evaluate(() => document.fonts.ready);
+  const close = page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true });
+  const textLines = await close.evaluate((element) => {
+    const text = Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim() === "Close");
+    if (!text) throw new Error("Close label text is missing");
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return Array.from(range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0).length;
+  });
+  expect(textLines).toBe(1);
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expectPath(page, "/audit/timeline");
   expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });

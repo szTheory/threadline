@@ -1652,6 +1652,7 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
   await login(page);
   const message = "These Timeline filters are not supported. Update the filters before applying them.";
   await page.goto("/audit/timeline?unsupported_only=private-value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
 
@@ -1663,13 +1664,17 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
   await page.reload();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect(page.locator("#filter-correlation-id")).toHaveValue("phase251-no-match");
   await page.goBack();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
   await expect(page.getByTestId("timeline-row").first()).toBeVisible();
   await page.goForward();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
   await page.goto(original);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await page.getByRole("button", { name: "Filters", exact: true }).click();
   let drawer = page.getByRole("dialog", { name: "Filters and handoff" });
   const name = `Phase251 saved selection ${randomUUID()}`;
@@ -1699,6 +1704,7 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
       const updated = sql(`UPDATE threadline.threadline_saved_views SET filters = '${payload}'::jsonb WHERE id = '${id}'::uuid RETURNING id`).trim();
       expect(updated).toContain(id!);
       await page.reload();
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
       await page.getByRole("button", { name: "Filters", exact: true }).click();
       drawer = page.getByRole("dialog", { name: "Filters and handoff" });
       await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
@@ -1707,11 +1713,13 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
     }
     sql(`UPDATE threadline.threadline_saved_views SET filters = '{}'::jsonb WHERE id = '${id}'::uuid`);
     await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await page.getByRole("button", { name: "Filters", exact: true }).click();
     drawer = page.getByRole("dialog", { name: "Filters and handoff" });
     await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
     await expect.poll(() => new URL(page.url()).search).toBe("?from=");
     await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect.poll(() => new URL(page.url()).search).toBe("?from=");
     await expectNoHorizontalOverflow(page);
     await page.getByRole("button", { name: "Filters", exact: true }).click();
@@ -1730,4 +1738,153 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
   } finally {
     sql(`DELETE FROM threadline.threadline_saved_views WHERE id = '${id}'::uuid`);
   }
+});
+
+
+test("Phase251 Coverage availability boundaries", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.goto("/audit/coverage?schema%5Bpart%5D=private-251-input-canary");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("Choose a schema from the list.");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expect(page.locator("#tl-main")).not.toContainText("private-251-input-canary");
+  await page.locator("#coverage-schema").selectOption("public");
+  await page.getByRole("button", { name: "Apply schema", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe("public");
+  await expect(page.getByTestId("coverage-status")).toContainText("public:");
+  await expect(page.getByTestId("coverage-table")).toBeVisible();
+  await page.goto("/audit/coverage?schema=does_not_exist_phase251");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("was not found");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+
+  const supportContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 } });
+  const anonymousContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await supportContext.newPage();
+    await installControlledClipboard(support);
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/coverage?schema=public");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.getByRole("heading", { name: "Coverage unavailable", exact: true })).toBeVisible();
+    await expect(support.locator("#tl-main")).toContainText("This is not a permissions issue.");
+    await expect(support.getByTestId("coverage-table")).toHaveCount(0);
+    await expect(support.locator("#coverage-schema")).toHaveCount(0);
+    const anonymous = await anonymousContext.newPage();
+    await anonymous.goto("/audit/coverage?schema=public");
+    await expect.poll(() => new URL(anonymous.url()).pathname).toBe("/users/log_in");
+  } finally {
+    await supportContext.close();
+    await anonymousContext.close();
+  }
+});
+
+
+test("Phase251 Redaction current-definition meaning", async ({ page }) => {
+  let hold = false;
+  let held: { server: WebSocketRoute; message: string | Buffer } | undefined;
+  await page.routeWebSocket(/\/live\/websocket/, ws => {
+    const server = ws.connectToServer();
+    ws.onMessage(message => {
+      if (hold && String(message).includes('"refresh-policy-inspection"')) held = { server, message };
+      else server.send(message);
+    });
+  });
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/policy/redaction?schema=public");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Inspection completed at", { exact: true })).toBeVisible();
+  await expect(main.getByText("Configured: host application policy. Deployed: current database trigger definition.", { exact: true })).toBeVisible();
+  const posts = main.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+  await posts.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(posts).toHaveAttribute("open", "");
+  await expect(posts.getByRole("rowheader", { name: "Left out", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Redacted", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Replacement", exact: true })).toBeVisible();
+  await expect(main).toContainText("does not establish whether historical audit rows or downstream exports were redacted");
+  const refresh = main.locator('button[phx-click="refresh-policy-inspection"]');
+  await expect(refresh).toHaveAttribute("phx-disable-with", "Inspecting policy…");
+  const beforeInspection = await main.locator("time").first().getAttribute("datetime");
+  hold = true;
+  await refresh.focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await expect(refresh).toBeDisabled();
+  await expect(refresh).toHaveText("Inspecting policy…");
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", beforeInspection!);
+  hold = false;
+  held!.server.send(held!.message);
+  await expect(refresh).toBeEnabled();
+  await expect.poll(() => main.locator("time").first().getAttribute("datetime")).not.toBe(beforeInspection);
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", /Z$/);
+  await expectNoHorizontalOverflow(page);
+  await page.goto("/audit/policy/redaction?schema=threadline");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No configured policy to compare", exact: true })).toHaveCount(1);
+  await expect(main.getByRole("heading", { name: /^No configured policy to compare \(0\)$/ })).toHaveCount(3);
+  await expect(main).not.toContainText("No redaction drift detected.");
+  await expect(main).not.toContainText("No introspection failures.");
+  await page.goto("/audit/policy/redaction?schema[bad]=value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByText("Choose a schema from the list or use public schema.", { exact: true })).toBeVisible();
+  await main.getByRole("link", { name: "Use public schema", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/policy\/redaction\?schema=public$/);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const rendered = await main.evaluate(node => node.outerHTML);
+  for (const canary of ["CREATE OR REPLACE FUNCTION", "raw-trigger-sql-canary-241", "private-unexpected-policy-canary-251", "sample-value-canary-241", "redacted-value-canary-241"]) expect(rendered).not.toContain(canary);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 Evidence recorded provenance", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/evidence");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Snapshot recorded at", { exact: true }).first()).toBeVisible();
+  await expect(main).toContainText("caller-overridable recorded metadata, not verified or authenticated identity");
+  const card = main.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("Recorded provenance");
+  const selectedReference = await card.locator("code.tl-secondary-ref").getAttribute("data-tl-copy");
+  expect(selectedReference).not.toBeNull();
+  await card.getByRole("link", { name: "View proof history", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/mode=history/);
+  await expect(main.locator(".tl-record-card")).toHaveCount(3);
+  await expect(main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref")).toHaveAttribute("title", selectedReference!);
+  await expect(main).toContainText("Append-only history");
+  await expectNoHorizontalOverflow(page);
+  const ref = JSON.stringify({ run_id: "missing-" + "x".repeat(180) });
+  const selection = `/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(ref)}`;
+  await page.goto(selection);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No Threadline evidence for this selection", exact: true })).toBeVisible();
+  const selected = main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref");
+  await expect(selected).toHaveAttribute("title", ref);
+  await selected.locator("..").getByRole("button", { name: "Copy subject ref", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => page.evaluate(() => (window as any).__phase251CopyCounter.lastValue)).toBe(ref);
+  await expectNoHorizontalOverflow(page);
+  // The existing live/DB unavailable endpoint owns failed-read and Retry proof;
+  // this mounted host deliberately exposes no outage injection route.
+  const context = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await context.newPage();
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/evidence");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.locator("#tl-main")).toContainText("Evidence is unavailable in this support lane");
+  } finally { await context.close(); }
 });

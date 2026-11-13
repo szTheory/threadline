@@ -956,11 +956,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
   end
 
-  test "phase 239 Home lead keeps its display type role at narrow widths" do
+  test "Home lead follows the approved dense Admin heading role at narrow widths" do
     base = base_responsive_section(StyleSource.read!())
 
     assert_selector_contains(base, ".tl-home__headline", [
-      "font-size: var(--tl-font-size-display);"
+      "font-size: var(--tl-font-size-heading);",
+      "line-height: var(--tl-line-heading);"
     ])
   end
 

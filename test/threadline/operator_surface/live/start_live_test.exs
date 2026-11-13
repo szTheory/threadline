@@ -270,7 +270,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Close coverage gaps before relying on timeline answers"
 
       refute home_health(html) =~
-               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
+               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*public: \d+ not audited\s*</
     end
 
     test "renders current actor failed exports as danger without leaking other actors", %{
@@ -445,6 +445,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_submit()
 
       assert_redirect(view, "/audit/rows/ticket_replies/reply-123")
+    end
+
+    test "Home preserves complete long record and correlation lookup identities", %{conn: conn} do
+      record_id = "support/" <> String.duplicate("r", 180)
+      {:ok, row_lookup, _} = live(conn, "/audit")
+
+      row_lookup
+      |> form("#tl-record-lookup", %{
+        "record_lookup" => %{"table" => "ticket_replies", "record_id" => record_id}
+      })
+      |> render_submit()
+
+      assert_redirect(
+        row_lookup,
+        "/audit/rows/ticket_replies/" <> URI.encode(record_id, &URI.char_unreserved?/1)
+      )
+
+      correlation = "case / " <> String.duplicate("c", 180)
+      {:ok, correlation_lookup, _} = live(conn, "/audit")
+
+      correlation_lookup
+      |> form("#tl-correlation-lookup", %{"correlation" => %{"correlation_id" => correlation}})
+      |> render_submit()
+
+      assert_redirect(
+        correlation_lookup,
+        "/audit/timeline?" <> URI.encode_query(%{"correlation_id" => correlation})
+      )
     end
 
     test "record-first lookup validates blank and unmapped input without navigating", %{

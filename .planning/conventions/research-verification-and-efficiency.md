@@ -66,6 +66,14 @@ protocol machinery.
   live external state, publication or a consequential scope/strategy decision.
   Finish safe setup first; explain the choice and who acts next in plain language.
 
+## Autonomous verification flags and human gates
+
+Keep the run mode explicit when dispatching verification. In autonomous mode, GSD's judgment-prohibition branch permits completion with prominent non-authoritative flags; generic human_needed routing must not silently turn those engine annotations into maintainer UAT. The standing zero-human-verification policy assigns bounded judgment to independent agents.
+
+Assess the actual product constraint with source, executable evidence and independent review. Preserve descriptorless/unwired prohibition flags and unclassified edge metadata exactly; do not invent an enforcement descriptor, mark an engine flag green, or convert missing behavior proof into a pass. If the report schema still requires human_needed for these annotations, record the autonomous soft-flag disposition and the separate verified product score. Continue authorized work only when there is no actual product gap or human-only decision. Ask the maintainer only about a concrete scope/authority/risk decision, not acknowledgment of unchanged engine metadata.
+
+Finalize validation, review dispositions and plan summaries before the last verifier fingerprint. Those planning records can be covered by its digest. If completion writeback changes only those records afterward, ask the existing verifier for a bounded changed-record review/digest refresh; do not rerun tests or the full source audit, and do not manually clear a stale owner verdict.
+
 ## Evaluate CI/CD efficiency during the work
 
 Whenever a CI or release/CD run is active or completes, inspect the measured

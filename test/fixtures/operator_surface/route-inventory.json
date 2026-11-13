@@ -757,7 +757,7 @@
     {
       "id": "control.surface-header.href.557ec0bdee",
       "kind": "control",
-      "label": "surface-header href={\"#{@base_path}/coverage\"}>All tables captured</a>"
+      "label": "surface-header data-testid=\"coverage-status\""
     },
     {
       "id": "control.surface-header.href.57e421191d",

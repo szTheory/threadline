@@ -161,6 +161,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             "a61337366a1af79e0c9ca89d4b333aa98dea428ce66e47521094ccc8802beb82"
                         })
 
+    # Selected-schema badge copy/attributes intentionally change only the shared
+    # shell. The failed pre-update comparison retained all six other receipts.
+    @phase_251_coverage_receipts Map.put(@phase_251_receipts, "row_history.shell", %{
+                                   elements: 123,
+                                   sha256:
+                                     "751e613b8b7c5717a339c3ca1bc734983cbed71502db8efff0352316b0302c3a"
+                                 })
+
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
 
     setup_all do
@@ -317,16 +325,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                scan_planning_vocabulary("host-data-control", "Customer note for Phase 201")
     end
 
-    test "seven current structures match the Phase 251 focus guard receipts", %{conn: conn} do
+    test "seven current structures match the Phase 251 scoped Coverage receipts", %{conn: conn} do
       receipts =
         conn
         |> representative_render_inventory()
         |> Map.new(fn {node_id, html} -> {node_id, structure_receipt(node_id, html)} end)
 
-      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_251_receipts) |> Enum.sort()
+      assert Map.keys(receipts) |> Enum.sort() ==
+               Map.keys(@phase_251_coverage_receipts) |> Enum.sort()
+
       assert Enum.all?(receipts, fn {_id, receipt} -> receipt.elements > 0 end)
 
-      assert receipts == @phase_251_receipts
+      assert receipts == @phase_251_coverage_receipts
     end
 
     test "canonical structure ignores copy and provenance but detects meaningful mutations" do

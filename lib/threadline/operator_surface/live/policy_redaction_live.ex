@@ -10,6 +10,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "host-schema picker for the redaction diff view"}
 
+    alias Threadline.Capture.TriggerCaptureConfig
+    alias Threadline.StorageSchema
     alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
@@ -29,6 +31,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:schema_param, "public")
        |> assign(:available_schemas, [])
        |> assign(:form_error, nil)
+       |> assign(:inspected_at, nil)
        |> assign(:report, nil)
        |> assign(:sections, [])}
     end
@@ -55,9 +58,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, message, schemas} ->
             {:noreply,
              socket
-             |> assign(:schema_param, schema_param)
+             |> assign(:schema_param, schema_display(schema_param))
              |> assign(:available_schemas, schemas)
              |> assign(:form_error, message)
+             |> assign(:inspected_at, nil)
              |> assign(:report, nil)
              |> assign(:sections, [])}
         end
@@ -66,7 +70,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    def handle_event("select-schema", %{"schema" => schema}, socket) do
+    def handle_event("select-schema", %{"schema" => schema}, socket) when is_binary(schema) do
       schema =
         case String.trim(to_string(schema)) do
           "" -> "public"
@@ -78,6 +82,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          to:
            "#{socket.assigns.base_path}/policy/redaction?#{URI.encode_query(%{"schema" => schema})}"
        )}
+    end
+
+    def handle_event("select-schema", _params, socket) do
+      {:noreply,
+       socket
+       |> assign(:schema_param, "Invalid schema")
+       |> assign(:form_error, "Choose a schema from the list.")
+       |> assign(:inspected_at, nil)
+       |> assign(:report, nil)
+       |> assign(:sections, [])}
     end
 
     def handle_event(
@@ -122,6 +136,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <.redaction_policy_summary
                 report={@report}
                 schema={@schema_param}
+                inspected_at={@inspected_at}
                 base_path={@base_path}
                 coverage_enabled={@threadline_coverage_enabled}
                 evidence_enabled={@threadline_evidence_enabled}
@@ -134,7 +149,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
 
                   <%= if section.rows == [] do %>
-                    <p class="tl-policy__empty"><%= empty_section_label(section.status) %></p>
+                    <p class="tl-policy__empty"><%= empty_section_label(section.status, @report.tables == []) %></p>
                   <% else %>
                     <div class="tl-policy__rows">
                       <%= for row <- section.rows do %>
@@ -172,17 +187,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                                 </thead>
                                 <tbody>
                                   <tr>
-                                    <th scope="row" data-label="Field">exclude</th>
+                                    <th scope="row" data-label="Field">Left out</th>
                                     <td data-label="Configured" class={diff_cell_class(row, :config, :exclude)}><%= columns_label(row.configured.exclude) %></td>
                                     <td data-label="Deployed" class={diff_cell_class(row, :deployed, :exclude)}><%= deployed_columns_label(row.deployed, :exclude) %></td>
                                   </tr>
                                   <tr>
-                                    <th scope="row" data-label="Field">mask</th>
+                                    <th scope="row" data-label="Field">Redacted</th>
                                     <td data-label="Configured" class={diff_cell_class(row, :config, :mask)}><%= columns_label(row.configured.mask) %></td>
                                     <td data-label="Deployed" class={diff_cell_class(row, :deployed, :mask)}><%= deployed_columns_label(row.deployed, :mask) %></td>
                                   </tr>
                                   <tr>
-                                    <th scope="row" data-label="Field">mask placeholder</th>
+                                    <th scope="row" data-label="Field">Replacement</th>
                                     <td data-label="Configured" class={diff_cell_class(row, :config, :placeholder)}><%= placeholder_label(row.configured.mask_placeholder, row.configured.mask) %></td>
                                     <td data-label="Deployed" class={diff_cell_class(row, :deployed, :placeholder)}><%= deployed_placeholder_label(row.deployed) %></td>
                                   </tr>
@@ -226,7 +241,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       grouped = Map.new(report.grouped)
 
       Enum.map(@section_defs, fn {status, title} ->
-        %{status: status, title: title, rows: Map.get(grouped, status, [])}
+        %{
+          status: status,
+          title: if(report.tables == [], do: "No configured policy to compare", else: title),
+          rows: Map.get(grouped, status, [])
+        }
       end)
     end
 
@@ -240,35 +259,81 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, available_schemas(socket)}
     rescue
       DBConnection.ConnectionError -> {:unavailable, ["public"]}
-      e -> {:error, Exception.message(e), ["public"]}
+      _ -> {:unavailable, ["public"]}
     end
 
     defp safe_validate_schema(socket, schema, schemas) when is_binary(schema) do
       case validate_schema(socket, schema) do
         {:ok, schema} -> {:ok, schema}
-        {:error, message} -> {:error, message, schemas}
+        {:error, reason} -> {:error, safe_policy_error(reason), schemas}
       end
     rescue
       DBConnection.ConnectionError -> {:unavailable, schemas}
-      e -> {:error, Exception.message(e), schemas}
+      _ -> {:unavailable, schemas}
     end
 
+    defp safe_validate_schema(_socket, _schema, schemas),
+      do: {:error, "Choose a schema from the list.", schemas}
+
+    defp safe_policy_error(_reason), do: "Choose a schema from the list."
+    defp schema_display(schema) when is_binary(schema), do: schema
+    defp schema_display(_schema), do: "Invalid schema"
+
     defp fetch_report_for_schema(socket, schema) do
-      report = RedactionPresenter.build(repo: resolve_repo(socket), schema: schema)
+      configured = configured_table_keys(schema)
+
+      report =
+        socket
+        |> resolve_repo()
+        |> then(&RedactionPresenter.build(repo: &1, schema: schema))
+        |> configured_comparison(configured)
 
       socket
+      |> assign(:inspected_at, DateTime.utc_now())
       |> assign(:report, report)
       |> assign(:sections, build_sections(report))
     rescue
-      DBConnection.ConnectionError ->
+      _ ->
         policy_unavailable(socket, schema, socket.assigns.available_schemas)
+    end
+
+    # The presenter also inventories deployed tables absent from host config.
+    # Its default empty policy is useful for drift analysis, but is not evidence
+    # that a host actually configured that policy. Compare only explicit keys.
+    defp configured_table_keys(schema) do
+      TriggerCaptureConfig.load()
+      |> Enum.flat_map(fn {identifier, _policy} ->
+        table = StorageSchema.parse_table_identifier(identifier)
+
+        if table.schema == schema do
+          [if(schema == "public", do: table.table, else: schema <> "." <> table.table)]
+        else
+          []
+        end
+      end)
+      |> MapSet.new()
+    end
+
+    defp configured_comparison(report, configured) do
+      tables = Enum.filter(report.tables, &MapSet.member?(configured, &1.table))
+
+      grouped =
+        Enum.map(@section_defs, fn {status, _title} ->
+          {status, Enum.filter(tables, &(&1.status == status))}
+        end)
+
+      summary = Map.new(grouped, fn {status, rows} -> {status, length(rows)} end)
+
+      %{report | tables: tables, grouped: grouped, summary: summary}
+      |> Map.put(:unconfigured_deployed_count, length(report.tables) - length(tables))
     end
 
     defp policy_unavailable(socket, schema, schemas) do
       socket
-      |> assign(:schema_param, schema)
+      |> assign(:schema_param, schema_display(schema))
       |> assign(:available_schemas, schemas)
       |> assign(:form_error, nil)
+      |> assign(:inspected_at, nil)
       |> assign(:report, nil)
       |> assign(:sections, [])
     end
@@ -338,7 +403,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <section class="tl-alert tl-alert--error" role="alert" aria-label="Policy inspection unavailable">
         <h2>Policy inspection unavailable</h2>
-        <p>Deployed policy could not be inspected. Retry before treating policy as matched.</p>
+        <p>Policy inspection is unavailable for schema <%= @schema %>. Retry the inspection before treating policy as matched.</p>
         <p>Host schema: <code><%= @schema %></code></p>
       </section>
       """
@@ -376,11 +441,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Deployed policy could not be inspected. Retry before treating policy as matched.
         </p>
 
+        <p :if={@report.unconfigured_deployed_count > 0} class="tl-policy__hint">
+          <%= @report.unconfigured_deployed_count %> deployed <%= if @report.unconfigured_deployed_count == 1, do: "table has", else: "tables have" %> no configured policy to compare.
+        </p>
+
+        <p class="tl-policy__source-note">Configured: host application policy. Deployed: current database trigger definition.</p>
+        <dl class="tl-policy__inspection-time">
+          <dt>Inspection completed at</dt>
+          <dd><time datetime={DateTime.to_iso8601(@inspected_at)}><%= DateTime.to_iso8601(@inspected_at) %></time></dd>
+        </dl>
+        <p class="tl-policy__hint">Left out fields are not recorded. Redacted fields use the configured replacement.</p>
+
         <p class="tl-policy__scope-note">
           This inspection compares current deployed trigger definitions only. It does not establish whether historical audit rows or downstream exports were redacted.
         </p>
 
-        <UI.Display.kv>
+        <UI.Display.kv :if={!@empty?}>
           <:item key="Host schema">
             <code><%= @schema %></code>
           </:item>
@@ -449,6 +525,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp status_label(:drift_detected), do: "Drift detected"
     defp status_label(:could_not_introspect), do: "Could not inspect"
     defp status_label(:config_matches_deployed), do: "Deployed matches config"
+
+    defp empty_section_label(_status, true),
+      do: "No configured redaction policies were found for this inspection."
+
+    defp empty_section_label(status, false), do: empty_section_label(status)
 
     defp empty_section_label(:drift_detected), do: "No redaction drift detected."
     defp empty_section_label(:could_not_introspect), do: "All configured tables introspected."

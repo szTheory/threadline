@@ -102,6 +102,66 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Regex.scan(~r/<h1\b/, html) |> length() == 1
     end
 
+    @tag :snapshot_intent
+    test "invalid explicit snapshot time is visible and never queries a substituted latest snapshot",
+         %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "snapshot-intent"},
+        data_after: %{"id" => "snapshot-intent", "name" => "Latest must not be substituted"},
+        captured_at: at
+      })
+
+      handler = {__MODULE__, make_ref()}
+      event = Repo.config()[:telemetry_prefix] ++ [:query]
+      :ok = :telemetry.attach(handler, event, &__MODULE__.observe_snapshot_query/4, self())
+      on_exit(fn -> :telemetry.detach(handler) end)
+
+      assert {:ok, lv, _html} = live(conn, "/audit/rows/users/snapshot-intent?as_of=not-a-date")
+      assert has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+      refute has_element?(lv, "h4", "Snapshot as of")
+      refute has_element?(lv, ".tl-subview__panel", "Latest must not be substituted")
+      refute_receive {:snapshot_query, _}, 100
+
+      # Positive control: the same observer must see the actual supported read.
+      assert {:ok, valid, _} =
+               live(conn, "/audit/rows/users/snapshot-intent?as_of=2026-10-03T12%3A00%3A00Z")
+
+      assert has_element?(valid, ".tl-subview__panel", "Latest must not be substituted")
+      assert_receive {:snapshot_query, _}, 1000
+    end
+
+    @tag :snapshot_intent
+    test "clearing an explicit time keeps blank intent and retained filters", %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "snapshot-clear"},
+        data_after: %{"id" => "snapshot-clear", "name" => "Current captured value"},
+        captured_at: at
+      })
+
+      assert {:ok, lv, _} =
+               live(
+                 conn,
+                 "/audit/rows/users/snapshot-clear?origin=timeline&from=&table=users&as_of=2026-10-03T14%3A00%3A00%2B02%3A00"
+               )
+
+      assert has_element?(lv, ".tl-subview__panel", "Current captured value")
+      lv |> element("#row-history-as-of-form") |> render_change(%{"as_of" => ""})
+      assert_patch(lv, "/audit/rows/users/snapshot-clear?origin=timeline&from=&table=users")
+      refute has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+    end
+
+    def observe_snapshot_query(_event, _measurements, metadata, pid) do
+      if is_binary(metadata[:query]) and String.contains?(metadata.query, ~s("captured_at" <=)) do
+        send(pid, {:snapshot_query, metadata.query})
+      end
+    end
+
     test "first-class row-history route renders its semantic shell without a transaction id", %{
       conn: conn
     } do

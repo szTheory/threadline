@@ -95,11 +95,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "selected schema:"
         refute html =~ ~s|class="tl-coverage-verdict__meta"|
         assert html =~ "Covered"
-        assert html =~ "Needs capture"
+        assert html =~ "Not audited"
         assert html =~ "Expected gaps"
 
         assert html =~
-                 "Fix rows marked Needs capture, apply the migration, run mix threadline.verify_coverage, then refresh."
+                 "Fix rows marked Not audited, apply the migration, run mix threadline.verify_coverage, then refresh."
 
         assert html =~ "mix threadline.verify_coverage"
         assert html =~ ~s|aria-label="Coverage schema"|
@@ -148,7 +148,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|aria-label="Copy public.|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
-        assert html =~ "Fix rows marked Needs capture"
+        assert html =~ "Fix rows marked Not audited"
         assert html =~ "apply the migration"
         refute html =~ "apply the generated migration"
 
@@ -266,6 +266,88 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    @tag :selected_coverage_snapshot
+    test "custom-schema success and refresh share the exact header snapshot", %{conn: conn} do
+      repo = Threadline.Test.Repo
+      SQL.query!(repo, "CREATE SCHEMA phase251_selected_snapshot", [])
+      SQL.query!(repo, "CREATE TABLE phase251_selected_snapshot.invoices (id integer)", [])
+      on_exit(fn -> SQL.query!(repo, "DROP SCHEMA phase251_selected_snapshot CASCADE", []) end)
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=phase251_selected_snapshot")
+      assigns = :sys.get_state(view.pid).socket.assigns
+      assert assigns.threadline_coverage == assigns.coverage_for_schema
+      assert assigns.coverage_for_schema_name == "phase251_selected_snapshot"
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_selected_snapshot: 1 not audited"
+             )
+
+      assert has_element?(view, "tr.tl-table__row--uncovered", "Not audited")
+      SQL.query!(repo, "CREATE TABLE phase251_selected_snapshot.payments (id integer)", [])
+      render_click(view, "refresh")
+      refreshed = :sys.get_state(view.pid).socket.assigns
+      assert refreshed.threadline_coverage == refreshed.coverage_for_schema
+      assert refreshed.coverage_for_schema.uncovered_count == 2
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_selected_snapshot: 2 not audited"
+             )
+
+      send(view.pid, :threadline_refresh_coverage)
+      render(view)
+      polled = :sys.get_state(view.pid).socket.assigns
+      assert polled.threadline_coverage == polled.coverage_for_schema
+      assert polled.coverage_for_schema_name == "phase251_selected_snapshot"
+    end
+
+    @tag :selected_coverage_snapshot
+    test "successful empty selected schema keeps its explicit inspection limits", %{conn: conn} do
+      SQL.query!(Threadline.Test.Repo, "CREATE SCHEMA phase251_empty_snapshot", [])
+
+      on_exit(fn ->
+        SQL.query!(Threadline.Test.Repo, "DROP SCHEMA phase251_empty_snapshot CASCADE", [])
+      end)
+
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=phase251_empty_snapshot")
+
+      assert has_element?(
+               view,
+               "p",
+               "No tables found in schema phase251_empty_snapshot during this inspection. Other schemas were not inspected."
+             )
+
+      assert has_element?(
+               view,
+               ~s([data-testid="coverage-status"]),
+               "phase251_empty_snapshot: 0 audited"
+             )
+
+      refute render(view) =~ "All tables captured"
+    end
+
+    @tag :coverage_availability
+    test "structured schema input renders correction without previous public facts", %{conn: conn} do
+      {:ok, view, _} = live(conn, "/audit/coverage?schema%5Bpart%5D=private-251-input-canary")
+      assert has_element?(view, "[role=alert]", "Choose a schema from the list.")
+      assert has_element?(view, ~s([data-testid="coverage-status"]), "Coverage not inspected")
+      refute has_element?(view, ~s([data-testid="coverage-table"]))
+      refute render(view) =~ "private-251-input-canary"
+      assert :sys.get_state(view.pid).socket.assigns.threadline_coverage.last_checked_at == nil
+    end
+
+    @tag :coverage_availability
+    test "malformed schema submit does not patch to a successful public fallback", %{conn: conn} do
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=public")
+      render_submit(view, "select-schema", %{"schema" => %{"part" => "private-251-input-canary"}})
+      refute_patched(view, "/audit/coverage?schema=public")
+      assert has_element?(view, "[role=alert]", "Choose a schema from the list.")
+      assert has_element?(view, ~s([data-testid="coverage-status"]), "Coverage not inspected")
+      refute has_element?(view, ~s([data-testid="coverage-table"]))
+    end
+
     describe "manual refresh" do
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")
@@ -310,7 +392,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Coverage unavailable"
         assert html =~ "Refresh coverage"
-        refute html =~ "No audited tables found"
+        refute html =~ "No tables found"
         refute html =~ "All tables captured"
         refute html =~ ~s|data-testid="coverage-table"|
         refute html =~ "Enum.uniq"
@@ -337,7 +419,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert failed_html =~ "Coverage refresh failed"
         assert failed_html =~ "schema_migrations"
         assert failed_html =~ ~s|data-testid="coverage-table"|
-        refute failed_html =~ "No audited tables found"
+        refute failed_html =~ "No tables found"
         refute failed_html =~ "All tables captured"
         refute failed_html =~ ~s|class="tl-alert tl-alert--error"|
       end
@@ -419,10 +501,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
 
         {:ok, view, empty_html} = live(conn, "/audit/coverage?schema=coverage_empty_state")
-        assert empty_html =~ "No audited tables found"
+        assert empty_html =~ "No tables found"
 
         assert empty_html =~
-                 "No tables were found in schema coverage_empty_state during this inspection."
+                 "No tables found in schema coverage_empty_state during this inspection. Other schemas were not inspected."
 
         refute empty_html =~ "Coverage unavailable"
 

@@ -230,6 +230,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
     end
 
+    test "absent and explicit anonymous actors never create a person activity link", %{conn: conn} do
+      for actor <- [nil, %{"type" => "anonymous"}] do
+        txn =
+          Repo.insert!(
+            AuditTransaction.changeset(%{
+              txid: :rand.uniform(1_000_000_000),
+              occurred_at: DateTime.utc_now(),
+              actor_ref: actor
+            }),
+            repo_opts()
+          )
+
+        {:ok, lv, _} = live(conn, "/audit/transactions/#{txn.id}")
+        assert has_element?(lv, "h1", "Transaction")
+
+        assert has_element?(
+                 lv,
+                 ~s(button[aria-label="Copy transaction id"][data-tl-copy="#{txn.id}"])
+               )
+
+        refute has_element?(lv, ~s(a[href^="/audit/actors/"]))
+      end
+    end
+
     test "keeps transaction and linked action actors and recorded context distinct", %{conn: conn} do
       transaction_actor = %{"type" => "admin", "id" => "transaction-admin-42"}
       action_actor = %{"type" => "user", "id" => "action-user-19"}
@@ -1038,6 +1062,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/transactions/#{txn.id}")
       assert html =~ "Transaction not found"
+    end
+
+    @tag :transaction_snapshot_intent
+    test "scoped transaction history rejects malformed explicit time and clears without losing context",
+         %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at, source: "support"})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "transaction-snapshot"},
+        data_after: %{"id" => "transaction-snapshot", "name" => "Scoped current value"},
+        captured_at: at
+      })
+
+      path = "/audit_scoped/transactions/#{txn.id}/history/users/transaction-snapshot"
+
+      for invalid <- ["as_of=not-a-date", "as_of%5Bpart%5D=not-a-date"] do
+        assert {:ok, lv, _} = live(conn, path <> "?origin=timeline&from=&table=users&" <> invalid)
+        assert has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+        refute has_element?(lv, "h4", "Snapshot as of")
+        refute has_element?(lv, ".tl-subview__panel", "Scoped current value")
+      end
+
+      assert {:ok, lv, _} =
+               live(
+                 conn,
+                 path <>
+                   "?origin=timeline&from=&table=users&as_of=2026-10-03T14%3A00%3A00%2B02%3A00"
+               )
+
+      assert has_element?(lv, ".tl-subview__panel", "Scoped current value")
+      lv |> element("#row-history-as-of-form") |> render_change(%{"as_of" => ""})
+      assert_patch(lv, path <> "?origin=timeline&from=&table=users")
+
+      assert has_element?(
+               lv,
+               ~s(a[href="/audit_scoped/transactions/#{txn.id}?origin=timeline&from=&table=users"]),
+               "Close"
+             )
     end
 
     test "scoped transaction history route hides out-of-scope row history", %{conn: conn} do

@@ -161,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           with {:ok, _filters} <- validate_ui_filter_input(filter_params) do
             query = FilterParams.canonical_query(filter_params)
-            query = if query == "" and filter_params["from"] == "", do: "from=", else: query
+            query = preserve_empty_from(query, filter_params["from"] == "")
             {:timeline, query}
           else
             _ -> {:lost, ""}
@@ -201,11 +201,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    defp preserve_empty_from(query, true) do
+      cond do
+        query == "" -> "from="
+        String.starts_with?(query, "from=") -> query
+        true -> "from=&" <> query
+      end
+    end
+
+    defp preserve_empty_from(query, false), do: query
+
     defp validated_filter_query(filters_raw, preserve_empty_from?) do
       with {:ok, filters} <- FilterParams.parse(filters_raw),
            :ok <- validate_timeline_filters(filters) do
         query = FilterParams.canonical_query(filters_raw)
-        {:ok, if(query == "" and preserve_empty_from?, do: "from=", else: query)}
+        {:ok, preserve_empty_from(query, preserve_empty_from?)}
       else
         _ -> :error
       end

@@ -75,3 +75,49 @@ At the first251executor intake, STATE was231,884 bytes/1,308lines and PROJECT145
 After the first slice's accepted merge, the parent archived the full state/project snapshots with original revision/digest and rebased relative links, kept current scope/authority/stops/nextwork in conciseSTATE, and retained PROJECT requirements/context/constraints/keydecisions/evolution exactly. Prior milestone chronology remains available by link. The policy now avoids full historical rehydration during normal intake. Compare later actual intake/timings before claiming a speedup; required executor context embeds remain a separate overhead.
 
 At27hours the maintainer again requested an approach sanity check. The parent acknowledged avoidable wheel-spinning, especially historical intake, repeated evidence bookkeeping and our test-setup errors. After accepted Plan01 integration, current STATE shrank from231,884 to14,006 bytes and PROJECT from145,004 to88,078 bytes before the concise current-status repair; all PROJECT requirements/context/constraints/key-decisions/evolution remained byte-identical. Full snapshots and original revision/digest were retained. The installed compact-content option was enabled under its documented independently-complete workflow contract. Eager mandatory executor embeds remain canonical; this option does not authorize omitting them. Future intake reads current purpose/milestone/context/constraints and exact predecessor summaries, opening historical decisions only for an actual dependency. These are reduced context volumes, not a measured runtime speedup.
+
+### Phase251 second intake and connected proof
+
+Compacting STATE/PROJECT was useful but insufficient: the next executor again reread unchanged brand/policy and validation, emitting722,195 bytes across21 commands after420seconds with no tracked implementation edits. The parent stopped that identified worker, preserved actual exit1 and continued the same isolated checkout. Remaining sequential plans now share this execution context while retaining task/proof/summary boundaries and independent final reviews. Canonical eager embeds remain194,423 bytes in that launch; do not claim the compact-content switch removed them or proved a runtime speedup.
+
+The standalone tracer caught explicit empty-from loss alongside another predicate. A structured invalid time also reached raw-value focus-ID formatting; pass parsed values to that private key. A no-read scope control initially omitted the scope needed to invoke its callback. Correct its premise and include a valid-read control. No-person-link browser negatives now assert a loaded transaction before absence of a link, so not-found cannot make them pass vacuously. Match the actual heading when a paragraph contains additional copy rather than assuming one sentence is its entire exact text.
+
+Individual browser passes did not establish a stable combined run. The first five-case batch attempted LiveView events before connection, including a no-component target error. Use existing actual connection checks before interaction instead of server-HTML visibility alone. Preserve failure attachments in unique output directories before another run overwrites them. Inspect the trace and actual readiness first; concurrency, a timeout or elapsed time alone does not establish the cause. The corrected same five-case batch passed without retries; this is selected local proof, not full canonical acceptance.
+
+No horizontal overflow did not prove readable controls:375px snapshots show an existing Close label stacked vertically. Retain it as open Plan04 shared layout work and verify actual text geometry/pixels before phase acceptance. Do not convert a diagnostic geometry pass into a clean visual claim.
+
+### Plan03 retained lessons (in progress)
+
+- Test actual supported controls: an empty schema is accepted by direct selection but is absent from the table-based schema picker. Retain the interrupted wrong-assumption attempt; do not increase timeouts.
+- Couple source copy, semantic ownership and current structure receipts in the implementing slice. Keep historical pins and all negative controls.
+- Width-only checks miss readable-control failures: the history Close label occupied five lines while document width passed. A measured text-rectangle check now covers that defect; the long Coverage grid also needed an intrinsic-minimum-width correction.
+- Keep the committed-source startup guard across tests and metadata as well as production files. One rejected restart correctly exposed incomplete candidate custody.
+- These are observed process and correctness improvements. No measured end-to-end speedup or token savings is claimed.
+
+### Plan04 lessons retained before final review
+
+- Bind every edit to the actual active checkout; using the parent's default cwd produced two zero-selection browser invocations and a misleading old-case-only root run. Only the added edits were moved, and the parent was restored exactly. Verify nonzero named case discovery, not just command exit.
+- Preserve repository serialization. An incidental JSON reformat was reversed with parsed semantic equality before runtime binding.
+- Derive full source revisions from Git; never guess or reconstruct a hash. The startup guard refused incorrect revisions before touching the app.
+- Busy controls change accessible names. Observe the established stable event owner while asserting the busy label and retained inspection time; do not weaken the pending-state claim or increase waits.
+- The Evidence copy failure was a product defect, not a timing excuse: an enabled shared control lacked the shell's existing script capability. Fix the owner and verify direct-entry controlled bytes plus script-disabled selectability.
+- The example host has no outage injection route. Prove failed reads/Retry in the existing owning LiveView/DB endpoint and name that limit; do not add public routes or disrupt PostgreSQL merely to manufacture browser coverage.
+
+### Independent review lessons retained
+
+- Mitigation-presence security review initially missed a semantic false assurance that the independent source reviewer proved with a deployed-empty/no-config counterexample. The fix and bounded security confirmation supersede that initial assessment; preserve the counterexample, not only a checkmark.
+- Verify visual findings against actual pixels and source ownership. The alleged shortened Coverage badge was full in the cited after image; the primary-fill citation pointed to the hidden skip link. Correct/withdraw false findings rather than implementing them.
+- The Home32px exception was real and conflicted with the approved dense Admin contract. Measure actual before/after font size and fix only its existing owner/tokens, not broad unrelated primary styles.
+- Keep historical fixture notes explicitly historical when current rules supersede them. Preserve initial reports and use one bounded delta confirmation; do not repeat whole reviews after a local fix.
+
+### Autonomous verification routing friction
+
+The independent verifier found all product decisions/source identities and current receipts sound so far, but considered human_needed solely for six already-retained descriptorless prohibition flags. The installed verifier instructions contain both an autonomous complete-with-flags/no-hard-AFK-halt branch and a generic flagged-to-human_needed sentence. The parent supplied the exact autonomous branch and standing zero-human policy, requested honest engine status plus explicit soft-flag routing, and did not request a maintainer acknowledgment or fake enforcement. The final goal verdict must still distinguish real behavior gaps from metadata. This rule is retained in the project research/verification convention for subsequent phases.
+
+The goal check’s generic key-link heuristic initially scored1/16 because it expects runtime source to name its test targets. The verifier traced real route/event/component/test ownership instead. Do not add test paths or process markers to production source merely to satisfy that string heuristic; preserve independently discovered semantic owners and negative controls.
+
+The first goal report found63/63 truths, six satisfied requirements,30 artifact entries and16 actual key links, with no implementation gaps, but emitted human_needed solely for the six engine flags. Its initial bytes were preserved. The parent materialized251-UAT.md directly from the existing independent assessments with source:automated-review, no claimed human UAT, no test rerun and no flag resolution. The verifier owns the subsequent final status/self-check; this separates product proof from generic interactive workflow routing without accepting risk or renewing the full-repeat stop.
+
+The verifier consumed the automated disposition, found no behavior gap, emitted passed while explicitly retaining all six non-authoritative engine flags/four unclassified assumptions, and passed the canonical status self-check. Phase251 goal proof is63/63 truths with no manual UAT or repeated tests to clear metadata. This is a local workflow-routing clarification, not a resource-budget or security-risk override.
+
+Final validation/summary/disposition writeback changed three documents included in the verifier digest, so the canonical owner correctly returned stale despite unchanged40 source files. The parent finalized/committed the closeout records first and requested only the existing verifier’s changed-record digest refresh. Future phases should order bookkeeping before the last fingerprint; never clear staleness manually or repeat whole-source/tests for a planning-only writeback.

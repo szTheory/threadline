@@ -83,19 +83,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         table = params["table"]
         record_id = params["record_id"]
 
-        as_of =
-          with str when str not in [nil, ""] <- params["as_of"],
-               {:ok, dt, _offset} <- DateTime.from_iso8601(str) do
-            dt
-          else
-            _ -> nil
-          end
+        {as_of, snapshot_invalid?} = snapshot_request(params["as_of"])
 
         return_focus_id =
           if socket.assigns[:show_history] == true and socket.assigns[:history_focus_id] do
             socket.assigns.history_focus_id
           else
-            row_history_focus_id(table, record_id, params["as_of"])
+            row_history_focus_id(table, record_id, as_of)
           end
 
         {:noreply,
@@ -104,6 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            history_table: table,
            history_record_id: record_id,
            history_as_of: as_of,
+           history_snapshot_invalid?: snapshot_invalid?,
            history_focus_id: return_focus_id,
            history_focus_return_id: nil
          )}
@@ -116,11 +111,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            history_table: nil,
            history_record_id: nil,
            history_as_of: nil,
+           history_snapshot_invalid?: false,
            history_focus_id: nil,
            history_focus_return_id: return_focus_id
          )}
       end
     end
+
+    defp snapshot_request(value) when value in [nil, ""], do: {nil, false}
+
+    defp snapshot_request(value) when is_binary(value) do
+      case DateTime.from_iso8601(value) do
+        {:ok, dt, _offset} -> {dt, false}
+        _ -> {nil, true}
+      end
+    end
+
+    defp snapshot_request(_), do: {nil, true}
 
     def render(assigns) do
       ~H"""
@@ -226,6 +233,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             table={@history_table}
             record_id={@history_record_id}
             as_of={@history_as_of}
+            snapshot_invalid?={@history_snapshot_invalid?}
             base_path={@base_path}
             close_path={@transaction_return_path}
             return_label="transaction"
