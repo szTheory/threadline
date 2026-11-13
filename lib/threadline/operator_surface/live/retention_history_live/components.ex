@@ -92,7 +92,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <%= Presentation.human_time(run.started_at) %>
                       </time>
                     <% else %>
-                      <span class="tl-muted">Not started</span>
+                      <span class="tl-muted">No start time recorded</span>
                     <% end %>
                   </:col>
                   <:action :let={{_dom_id, _run}}>
@@ -141,10 +141,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "Retention prune failed (#{safe_failure_category(run.error_message)}). #{deleted} #{noun} deleted before the failure. Review this run and resolve the reported category before starting another prune."
     end
 
-    defp count_label(nil), do: "No rows deleted"
+    defp count_label(nil), do: "No deletion count recorded"
     defp count_label(value), do: value
 
-    defp duration_label(nil), do: "No duration yet"
+    defp duration_label(nil), do: "No duration recorded"
     defp duration_label(value), do: "#{value}ms"
   end
 end

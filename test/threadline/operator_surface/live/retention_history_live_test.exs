@@ -415,6 +415,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
       end
 
+      test "Phase252 missing run measurements remain distinct from recorded zero", %{conn: conn} do
+        missing = Repo.insert!(%RetentionRun{status: "failed"}, repo_opts())
+
+        zero =
+          Repo.insert!(
+            %RetentionRun{status: "completed", deleted_count: 0, duration_ms: 0},
+            repo_opts()
+          )
+
+        {:ok, view, _} = live_retention(conn)
+
+        assert has_element?(
+                 view,
+                 "#runs-#{missing.id} td[data-label='Deleted Rows']",
+                 "No deletion count recorded"
+               )
+
+        assert has_element?(
+                 view,
+                 "#runs-#{missing.id} td[data-label='Duration']",
+                 "No duration recorded"
+               )
+
+        assert has_element?(view, "#runs-#{zero.id} td[data-label='Deleted Rows']", "0")
+        assert has_element?(view, "#runs-#{zero.id} td[data-label='Duration']", "0ms")
+
+        assert has_element?(
+                 view,
+                 "#runs-#{missing.id} td[data-label='Date']",
+                 "No start time recorded"
+               )
+
+        assert has_element?(
+                 view,
+                 "#runs-#{zero.id} td[data-label='Date']",
+                 "No start time recorded"
+               )
+      end
+
       test "renders unsupported state when policy access is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
@@ -754,8 +793,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ Calendar.strftime(completed.completed_at, "%Y")
         assert html =~ ~s(href="#runs-#{failed.id}")
         assert html =~ "tl-target-row"
-        assert html =~ "No rows deleted"
-        assert html =~ "No duration yet"
+        assert html =~ "No deletion count recorded"
+        assert html =~ "No duration recorded"
       end
 
       test "source contract: retention reads and destructive audit use resolved storage opts" do
