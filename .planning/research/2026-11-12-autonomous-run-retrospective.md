@@ -102,3 +102,10 @@ No horizontal overflow did not prove readable controls:375px snapshots show an e
 - Busy controls change accessible names. Observe the established stable event owner while asserting the busy label and retained inspection time; do not weaken the pending-state claim or increase waits.
 - The Evidence copy failure was a product defect, not a timing excuse: an enabled shared control lacked the shell's existing script capability. Fix the owner and verify direct-entry controlled bytes plus script-disabled selectability.
 - The example host has no outage injection route. Prove failed reads/Retry in the existing owning LiveView/DB endpoint and name that limit; do not add public routes or disrupt PostgreSQL merely to manufacture browser coverage.
+
+### Independent review lessons retained
+
+- Mitigation-presence security review initially missed a semantic false assurance that the independent source reviewer proved with a deployed-empty/no-config counterexample. The fix and bounded security confirmation supersede that initial assessment; preserve the counterexample, not only a checkmark.
+- Verify visual findings against actual pixels and source ownership. The alleged shortened Coverage badge was full in the cited after image; the primary-fill citation pointed to the hidden skip link. Correct/withdraw false findings rather than implementing them.
+- The Home32px exception was real and conflicted with the approved dense Admin contract. Measure actual before/after font size and fix only its existing owner/tokens, not broad unrelated primary styles.
+- Keep historical fixture notes explicitly historical when current rules supersede them. Preserve initial reports and use one bounded delta confirmation; do not repeat whole reviews after a local fix.
