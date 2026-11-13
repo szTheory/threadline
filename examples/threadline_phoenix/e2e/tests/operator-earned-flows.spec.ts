@@ -774,3 +774,35 @@ test("Phase251 standalone snapshot intent", async ({ page }) => {
   await expectNoHorizontalOverflow(page);
   expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });
+
+
+test("Phase251 transaction snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.drawer, page.url()).pathname;
+  const transaction = new URL(seeded.transaction, page.url()).pathname;
+  await page.goto(`${path}?origin=timeline&from=&table=tickets&as_of=not-a-date`);
+  const drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid.");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+  await drawer.getByRole("link", { name: "View latest snapshot", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("2026-05-26T14:30");
+  await expect.poll(() => new URL(page.url()).searchParams.get("as_of")).toBe("2026-05-26T14:30:00Z");
+  const close = drawer.getByRole("link", { name: "Close", exact: true });
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => new URL(page.url()).pathname).toBe(transaction);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  expect(new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
