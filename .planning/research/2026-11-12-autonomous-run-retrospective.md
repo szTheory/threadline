@@ -170,3 +170,10 @@ For consequential253 plan/source/final-goal review, existing AGENTS policy now r
 
 
 Typed-role handoffs exposed another concrete input-volume issue: plain GSD agent-skills queries can return the whole role persona on Codex, while the typed agent already has that role. The documented skills-only form returned0 configured bytes for research/UI/pattern/planner/checker; the three inspected plain payloads total77251 UTF-8 bytes. Use skills-only once for typed dispatch, preserve actual role instructions and keep full persona embedding for standalone executor CLI. No measured latency/token saving is inferred.
+
+
+### Phase253 bounded-input correction and prepared setup
+
+The independent UI checker initially flagged an absent Registry Safety section after a combined read was truncated; that section already existed in the unseen tail. The same checker reread the complete contract in bounded ranges, withdrew the false flag and confirmed the useful visual-anchor clarification. Read mandatory inputs completely in bounded sections; do not add duplicate product/document sections to satisfy an unobserved-tail finding.
+
+All four new owned Phase253 databases now have successful migration receipts, with no suite launched by setup. Prepared setup is passed once into planning/execution rather than rediscovered by each slice. Existing runner aliases still fetch/install and run broad defaults; use their actual generated launch seam with the prepared locked environment for scoped local proof, while keeping ordinary CI intent intact. No new cache, concurrency or dependency is introduced. The run remains in progress; final lessons retention/linking is still required at the actual end or required handoff.

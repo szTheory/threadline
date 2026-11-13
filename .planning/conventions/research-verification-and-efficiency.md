@@ -252,3 +252,6 @@ Refresh cheap affected width checks after static copy or fixture changes, even w
 
 
 On hosts with typed agent dispatch, the agent already receives its role persona. Use `query agent-skills <role> --skills-only` for additional configured skills and honor its exit/stderr; inject the returned block once. The plain non-Claude query can return the whole canonical persona when no skills are configured. Phase253 measured77251 UTF-8 bytes across the research/UI/pattern plain payloads versus0 configured-skill bytes; do not append those duplicate personas to typed-role prompts. This is a payload-size observation, not model-token or latency evidence. Standalone executor CLI processes without a typed role still need their canonical persona; do not remove that required role binding.
+
+
+Read mandatory review inputs in bounded, individually complete sections. A successful command whose output is truncated does not establish that the reviewer saw the missing tail. Phase253's UI checker approved the visible contract but flagged Registry Safety as absent even though it existed after the truncated portion. Re-read the exact missing section and withdraw the false finding; do not implement a duplicate to satisfy it. Keep the actual useful clarification, preserve the original limitation and avoid another whole audit.

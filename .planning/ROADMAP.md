@@ -181,13 +181,39 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Readers find the new identity and truthful language consistently in current README/guides/example docs/ExDoc; working assets, anchors, code contracts and migrated tests agree, and the package ships only needed assets/fonts/licenses while optional Phoenix/LiveView, host CSS/font/script and dev/test Storybook boundaries hold.
 4. Maintainers can reconcile every existing route/job/state disposition with current behavior, database, host-route and browser proof, matched before/after capture identities and bounded independent design/copy review; required existing canonical gates and CI establish the exact candidate without new jobs, redundant cross-product runs or weakened checks.
 5. Maintainers receive migration notes, evidence limits, measured CI/CD conclusions and a truthful package/release recommendation that keeps unresolved safety/proof gates and REL-01 visible; local readiness grants no version bump, risk acceptance, merge or publication authority and cannot complete the live next-release clause.
-**Plans**: 0 (not planned)
+**Plans**: 11 plans in six waves (independently accepted)
+**Wave 1**
+- [ ] 253-01 — Runner-only worker readiness and mounted blank confirmation
+- [ ] 253-04 — README discovery and contracts
+- [ ] 253-05 — Package/module/mount-guide prose
+- [ ] 253-06 — Current brand authority and historical provenance
+- [ ] 253-07 — Architecture/integration/evaluator guides
+- [ ] 253-08 — Migration and legacy-font guidance
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 253-02 — Remaining Retention selector migrations
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 253-03 — Inclusive jobs, headline font and matched captures
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 253-09 — Current route acceptance and package readiness
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 253-10 — Independent reviews and acceptance records
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 253-11 — Final goal and concrete external CI decision
+
+**Cross-cutting constraints:** <!-- gsd:generated -->
+- Current README, example, package/module and Admin guide use Threadline Admin and truthful operational language while stable technical names and incoming anchors work.
+
 **UI hint**: yes
 **Canonical references**: [Approved acceptance](research/2026-11-10-brand-admin/milestone-proposal.md), [verification/DX research](research/2026-11-10-brand-admin/milestone-verification-dx.md), [delivery defaults](conventions/research-verification-and-efficiency.md), [README](../README.md), [Admin guide](../guides/operator-surface.md), [example README](../examples/threadline_phoenix/README.md), [package boundary](../mix.exs), [optional-dependency contract](../test/threadline/optional_deps_contract_test.exs), [journey evidence contract](../test/threadline/browser_journey_evidence_contract_test.exs), [accessibility proof](../examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts), [actual zoom proof](../examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts), [CI topology](../.github/workflows/ci.yml), [carried live-release evidence](milestones/v1.47-phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-REL01-EVIDENCE.md).
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of24 currently planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 inclusive/docs/package/readiness is next and not yet planned. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,twenty-four currently planned plans,twenty-four complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of35 planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 accepted plans/18tasks and complete9requirement/14decision coverage; implementation is next in one continuing dependent context. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-five planned plans,twenty-four complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -196,7 +222,7 @@ Execution order:248→249→250→251→252→253. Phases248–252 are independe
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
-| 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
+| 253. Inclusive integration, docs, package and release readiness | 0/11 | Planned | - |
 
 ## Next
 

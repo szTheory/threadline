@@ -116,4 +116,4 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-33 | Phase 253 | Pending |
 | ADM-34 | Phase 253 | Pending |
 
-**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253;4complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.
+**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253;5complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.
