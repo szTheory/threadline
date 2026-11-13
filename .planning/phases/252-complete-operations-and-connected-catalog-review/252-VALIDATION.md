@@ -1,9 +1,9 @@
 ---
 phase: "252"
 slug: complete-operations-and-connected-catalog-review
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-13"
 ---
 
@@ -45,9 +45,9 @@ Prefer one dependent phase executor context after the parent records a supported
 |252-02 Task3|2|Semantic story links/current shared-source anchors; actual rendered Operations pages|Existing Node CI/route contracts, scoped root contracts, bounded Playwright Storybook|PASS: exactly2 Operations+3 width cases; static owners unchanged by later live-focus fix. Current14 captures bound separately.|
 |252-03 Task1|3|Real Retention cancel/focus/no offline replay/fresh deliberate confirm/persisted outcome|Existing Node contracts; exact new mounted title plus adapted existing Retention focus/cancel title|PASS after diagnosed fix: exact2 browser cases, retries0/no skips/flakes. Initial focus defect and combined-count test error retained.|
 |252-03 Task2|3|Existing scoped immediate versus unscoped queue/ownership/auth/status/file/expiry/recovery/download; fresh paired after selection|Existing4 Export root files,2 carry titles,5 lifecycle/offline titles, existing Node contracts|PASS: four actual root owners141 tests, carry2 and lifecycle5 exact browser cases, retries0/no skips/flakes. Historical collector setup failure retained; ordinary assertion branch retest.|
-|252-04 Task1|4|Independent formal source/ASVS1 security/actual-pixel six-pillar review and bounded fixes/delta|Nonempty4 independent record integrity check plus actual independent assessments|Absent at planning baseline; existence is integrity-only, never a review pass. NOT RUN.|
-|252-04 Task2|4|Completed sampling/summaries/actual automated UAT before final digest; retained retrospective|Nonempty7 closeout-record integrity check plus parent evidence reconciliation|Only VALIDATION exists at planning baseline; actual evidence/assessments required. NOT RUN.|
-|252-04 Task3|4|Independent full-goal/source/record fingerprint, bounded changed-record refresh|Nonempty VERIFICATION integrity check plus actual independent goal verifier|VERIFICATION absent at planning baseline; status must come from independent current verdict. NOT RUN.|
+|252-04 Task1|4|Independent formal source/ASVS1 security/actual-pixel six-pillar review and bounded fixes/delta|Nonempty4 independent record integrity check plus actual independent assessments|Independent source/security/UI initial records complete; bounded source clean and UI22/24 resolve product findings. Security record/fingerprint confirmation remains pending.|
+|252-04 Task2|4|Completed sampling/summaries/actual automated UAT before final digest; retained retrospective|Nonempty7 closeout-record integrity check plus parent evidence reconciliation|Sampling/summaries/disposition/automated UAT prepared;30-row criteria map lives once in UI review. Record-integrity preflight below verifies existence only.|
+|252-04 Task3|4|Independent full-goal/source/record fingerprint, bounded changed-record refresh|Nonempty VERIFICATION integrity check plus actual independent goal verifier|PENDING actual independent final goal verdict/fingerprint and security closure. No completion inferred.|
 
 Each task's PLAN contains its complete root-relative executable commands, exact paths, expected outcomes and done criteria. Root named entrypoints are inherited from accepted251 commands. The example has no verify.test alias, so its existing mix test file entrypoint is used from the actual example directory. Existing e2e package/local tsx/Playwright paths and report configuration were read, not installed or executed. Existing command reuse is distinguished from new-case execution. No source-count/negative-grep acceptance gate is invented.
 
@@ -153,3 +153,19 @@ Plan04 materializes actual independent product judgments into automated UAT befo
 ## Plan03 current execution reconciliation
 
 [252-03-SUMMARY.md](252-03-SUMMARY.md) owns actual current case cardinality, failures and custody. Retention mounted2, Export carry2/lifecycle5 passed; root Export141 and current focus owner45 passed. Current source/rendered/fixture contracts25 passed; two nonexistent requested paths were ignored by Mix and establish no coverage. Node CI/route contracts passed. Current14-image after03 selection is source-bound; reused static-catalog5 proof predates only the live focus-return delta. Independent reviews remain pending. No full-root repeat, hosted or native clipboard claim.
+
+## Independent-review correction samples
+
+[252-PAIR-EVIDENCE.md](252-PAIR-EVIDENCE.md) identifies the current after04 source/capture selection and approved two-reference inline CSS delta. Actual root128/example13 and mobile focus/touch1 pass after the corrections, with original causal reds retained. Nil/active/failed checkpoint values and fixture summaries are status-aware. Only the affected mobile browser title was repeated; prior no-replay/Export/static smoke evidence is reused within its unchanged boundary. The missing-path helper's explicit negative setup probe exits2 before any suite process starts; it is a tested refusal, not a test-suite failure or renewed attempt. Source/security/pixel delta and final independent goal check remain pending.
+
+## Final sampling coverage assessment
+
+All eight implementation tasks have attributable automated boundary feedback; source/domain/LiveView, catalog and mounted Operations have current owning checks with no three consecutive untested tasks. No new Wave0 scaffold was required. Nyquist sampling is complete for implemented product work; that label does not convert final metadata/goal gates into passed product acceptance. The three review/closeout tasks use actual independent judgments and record-integrity checks, with final security/goal confirmation still pending. Current source and UI deltas are complete, with source clean and UI22/24. The30-row UI mapping remains in252-UI-REVIEW rather than duplicated. Current runtime74fe8df2, selected after04; full stop/resource limits unchanged.
+
+## Validation Audit 2026-11-13
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |

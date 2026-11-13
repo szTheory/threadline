@@ -4,9 +4,23 @@ reviewed: "2026-11-13"
 depth: "independent six-pillar actual-pixel review"
 reviewed_revision: "e79f7837e6e9817e739933c85d9579f436f42446"
 runtime_revision: "7cca0a1830949c31fec4a90d2719ef1f0fcb4056"
+delta_reviewed_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
+delta_runtime_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
+delta_capture_manifest: "/private/tmp/private252evidence/after-04.json"
+delta_status: "confirmed"
+open_findings_after_delta: 0
 baseline_revision: "b1888177648ef468c6d2bfc1cc1645f860fd2e4b"
 source_manifest: "/private/tmp/threadline-252-final-source-scope.json"
 files_reviewed: 31
+delta_files_reviewed: 7
+delta_files_reviewed_list:
+  - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
+  - examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex
+  - examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs
+  - lib/threadline/operator_surface/live/retention_history_live.ex
+  - lib/threadline/operator_surface/live/retention_history_live/components.ex
+  - lib/threadline/operator_surface/style/02_base_shell.css
+  - test/threadline/operator_surface/live/retention_history_live_test.exs
 files_reviewed_list:
   - AGENTS.md
   - .planning/conventions/research-verification-and-efficiency.md
@@ -40,7 +54,8 @@ files_reviewed_list:
   - examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex
   - examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts
 findings: 5
-status: "findings-open"
+initial_status: "findings-open"
+status: "bounded-delta-confirmed"
 ---
 
 # Phase 252 — UI Review
@@ -52,7 +67,7 @@ status: "findings-open"
 
 ## Evidence boundaries
 
-The four matched default scenes are Export and Retention at 1280×900 dark and 375×900 light. The before capsule is `before-01.json`; after is `after-03.json`, selected by `selected-after.json`. Both use Chromium 148.0.7778.96 and the same ordinary materialization: 239 AuditChanges, 147 AuditTransactions, 3 referenced AuditActions, 5 ExportJobs, and 4 RetentionRuns. The actual capture clocks differ: before is around 2026-11-13 10:24:50–51 UTC; after is around 12:49:09–12 UTC. No frozen-clock equivalence is claimed. The before capsule’s raw theme field is null due to a selector error; the retained original PNGs visibly show the intended dark/light lanes, and the after capsule asserts its theme. Four defaults pair; preview, confirmation, and catalog are ten after-only scenes with no before equivalent.
+The initial score uses four matched default scenes: Export and Retention at 1280×900 dark and 375×900 light. The before capsule is `before-01.json`; initial after is `after-03.json`. Both use Chromium 148.0.7778.96 and the same ordinary materialization: 239 AuditChanges, 147 AuditTransactions, 3 referenced AuditActions, 5 ExportJobs, and 4 RetentionRuns. The actual capture clocks differ: before is around 2026-11-13 10:24:50–51 UTC; initial after is around 12:49:09–12 UTC. No frozen-clock equivalence is claimed. The before capsule’s raw theme field is null due to a selector error; the retained original PNGs visibly show the intended dark/light lanes, and after capsules assert their theme. Four defaults pair; preview, confirmation, and catalog are ten after-only scenes with no before equivalent. A bounded delta against `after-04.json` follows this initial record.
 
 Catalog PNGs are static PhoenixStorybook projections, not live route, authorization, query, download, persistence, or mutation proof. The five current catalog smoke outcomes reported by the phase were reused from the earlier unchanged static owners; the current after-only catalog captures are visual evidence, not proof of those behaviors. The two mounted Retention mutation cases, Export route tests, and root/example tests are separate behavioral evidence described in [252-03-SUMMARY.md](252-03-SUMMARY.md). They do not convert uncaptured states into pixel evidence. Storybook smoke reported no horizontal overflow at 320, 375, and 768px; no PNG was captured at 320 or 768px.
 
@@ -130,7 +145,7 @@ Scores use the requested 0–4 review scale. A score of 0 means no supportable e
 | U1 Export — zero/one/many | **Partial:** actual view has one ready job, two preparing jobs, and five total; empty/zero/many alternatives are static fixtures, not live route captures. |
 | U1 Export — long text | **Partial:** mobile view elides a long actor reference and shows Copy/Show full controls. The expanded full-value state and longest fixture are not pictured. |
 | U2 Retention — empty | **Partial:** live empty-state copy and always-available Preview action are in `retention_history_live.ex:369-394`; the empty route itself is not pictured. |
-| U2 Retention — loading | **Partial / copy deviation:** status semantics are present at `components.ex:117`, but the live phrase does not match the contract. Only the static pending projection was pictured. |
+| U2 Retention — loading | **Initially failed, resolved in delta:** live `role="status"` now uses “Previewing retention estimates…” and the current static pending projection shows that exact text. No live loading-state PNG. |
 | U2 Retention — error | **Partial:** live no-count `role="alert"` recovery copy is at `components.ex:117-119`; static error/denied projections are pictured, not a live target/read failure. |
 | U2 Retention — partial | **Partial:** component distinguishes cleanup-disabled from zero at `components.ex:123-129`; partial fixture is static. No live disabled-cleanup preview PNG. |
 | U2 Retention — overflow | **Pass in sampled state:** live preview is legible at 375 and 1280 with zero reported horizontal overflow; 320/768 evidence is Storybook smoke only. |
@@ -139,7 +154,7 @@ Scores use the requested 0–4 review scale. A score of 0 means no supportable e
 | U3 History — loading | **Partial:** the LiveView has a separate run-history loading branch at `retention_history_live.ex:375-378`; no live pending-history pixel. |
 | U3 History — error | **Partial:** live safe recovery copy and Refresh action are at `retention_history_live.ex:378-388`; no live history-read error screenshot. |
 | U3 History — populated | **Pass in sampled state:** matched route images show recorded completed, failed, and queued runs, exact recorded values, timestamps, statuses, and Review evidence actions. |
-| U3 History — partial | **Fail:** the failed run has no recorded count, but its visible outcome says 0 rows were deleted (`components.ex:140-148`; actual failed row in `after-03-1280-dark-retention.png`). Separately, the static pending-only partial fixture borrows a completed timestamp (`fixtures.ex:305-315,386-390`); this latter finding is source-only in the supplied viewport. |
+| U3 History — partial | **Initially failed, resolved in delta source and tests:** the failed row now says its count was not recorded, and zero checkpoint counts are labeled as last recorded; the pending-only fixture no longer borrows a completion time. Initial `after-03` showed the old false-zero wording. Current after-04 DOM text and behavior receipts show the correction, but the failed row is below the current screenshot viewport. |
 | U3 History — overflow | **Pass in sampled state:** no horizontal overflow at 375/1280; catalog width smoke covered 320/375/768. Scroll/reachability for every row is not established by viewport PNGs. |
 | U3 History — zero/one/many | **Partial:** ordinary history has four records and count summaries; zero/many fixtures exist, but live zero/many states are not captured. |
 | U3 History — long text | **Partial:** visible mobile run ID wraps/elides with Copy/Show full affordances; the longest fixture and expanded state are source/static evidence only. |
@@ -147,10 +162,47 @@ Scores use the requested 0–4 review scale. A score of 0 means no supportable e
 | U4 Catalog — loading | **Partial:** the static pending label is visible in both catalog samples; it correctly says no new read completed. |
 | U4 Catalog — error | **Partial:** static error projections are visible in the Export and Retention samples; the copy discloses the projection and does not establish a live failure. |
 | U4 Catalog — populated | **Partial:** stories reuse production read-only renderers with deterministic assigns. Current viewport captures show only portions of these long static pages; no SQL/query result is implied. |
-| U4 Catalog — partial | **Fail in source projection:** the visible partial preview is a static example. Its pending-only history also borrows the ordinary completed timestamp (`fixtures.ex:305-315,386-390`); the run-history summary is below the supplied viewport and was not visually observed. |
+| U4 Catalog — partial | **Initially failed, resolved in delta source/test:** the static pending-only partial scene now says “No completed run yet” and “Not recorded”; the current catalog viewport shows the preview but not the below-fold history summary. This remains a static projection, not a live result. |
 | U4 Catalog — overflow | **Pass for reported smoke:** the phase reports no horizontal overflow across story smoke at 320/375/768. Current images show 375 and 1280 only. |
 | U4 Catalog — zero/one/many | **Partial:** separate static zero/many fixtures and story rendering exist; the selected catalog viewport does not show each case in full. |
 | U4 Catalog — long text | **Partial:** the fixture/story supplies long references; the selected catalog images do not show the full long-text sample. |
+
+## Bounded Delta Review — 2026-11-13
+
+### Current Scores and Verdict
+
+The initial score and findings above are preserved as the review of source/runtime `e79f7837…` / `7cca0a18…`. I inspected the bounded correction at source/runtime `74fe8df2b2520868d464eca93054492fc93a2cad`, bound by `/private/tmp/threadline-252-review-delta.json`, and the selected current capture `after-04.json` (SHA-256 `8c41beaee4c6c3fd795095e1849642195a20999fb54d99b355b5a3cce0df56e0`). The four default lanes reuse the retained before capsule and unchanged business materialization; after-04 clocks are around 2026-11-13 13:11:10–13 UTC. The current browser remains Chromium 148.0.7778.96. No new capture was made by this reviewer.
+
+| Pillar | Initial | Bounded final | Delta result |
+|--------|--------:|-------------:|--------------|
+| 1. Copywriting | 2/4 | 3/4 | Unknown/active/failed checkpoint wording and pending-only fixture summary are corrected. The failed row text is below the current screenshot fold; current DOM extraction and affected tests confirm it. |
+| 2. Visuals | 2/4 | 4/4 | The current mobile dialog top view shows its title and intro above the dimmed shell; page groups now have clear spacing. |
+| 3. Color | 4/4 | 4/4 | No change; current Retention screenshots retain the approved light/dark tokens and restrained status/action colors. |
+| 4. Typography | 4/4 | 4/4 | No change; current Retention screenshots preserve the contract hierarchy. |
+| 5. Spacing | 2/4 | 4/4 | A local existing-token stack now separates the scope, preview action, and history groups in the current paired screenshots. |
+| 6. Experience Design | 2/4 | 3/4 | The mobile heading has a passing real-browser hit test, and focus/cancel behavior remains covered; live error/loading/zoom states remain unpictured. |
+
+**Initial overall (preserved): 16/24. Current bounded score: 22/24.**  
+**Delta verdict:** all five initial findings are resolved in the changed scope; no open finding remains from this bounded UI review. This does not claim unpictured state coverage or whole-phase goal completion.
+
+### Finding Disposition
+
+| Initial finding | Current disposition |
+|---|---|
+| Missing failed-run deletion count rendered as 0. | **Resolved in source/tests.** `components.ex:141-158` preserves unknown counts, labels active/failed checkpoint counts as provisional, and reports queued as Not started; `components.ex:28-34` qualifies the aggregate. The current desktop Retention image’s DOM text contains the corrected failed-row sentence, but the row itself falls below the captured viewport. |
+| Mobile sticky shell covered the confirmation title and opening copy. | **Resolved and pixel-confirmed.** Current layer order is topbar `--tl-z-header` and nav below it (`02_base_shell.css:117-120,215-220`) while modal remains at `--tl-z-subview`. In `after-04-375-light-retention-confirmation-top.png`, the full title and opening copy are visible above the dimmed header/navigation. In the focused view, the initial-focus field and both actions remain reachable. The exact mobile hit-test guard failed before the CSS change and passed once afterward, retries 0/no skips/flakes. |
+| Live loading copy differed from the specified announcement. | **Resolved in source.** `components.ex:116-119` now announces “Previewing retention estimates…” with `role="status"`. A live pending route was not captured; current catalog static loading projection visibly shows the phrase. |
+| Retention groups touched without vertical spacing. | **Resolved and pixel-confirmed.** `retention_history_live.ex:358-406` wraps the main content in existing `tl-stack--stack` spacing. `after-04-375-light-retention.png` visibly separates the scope panel, Preview retention action, and first metric; desktop follows the same structure. |
+| Pending-only partial catalog summary borrowed the completed timestamp. | **Resolved in fixture/test source.** `fixtures.ex:343-349,389-396` derives the latest completed timestamp only from a completed run and excludes pending rows from finished-run aggregates. The current partial projection reports “No completed run yet” and “Not recorded.” Its lower history summary is not visible in the selected 375px viewport; this is source/test and DOM text evidence, not a full-scene pixel claim. |
+
+The delta touched only the seven paths in the delta manifest: Retention LiveView/components/tests, static Storybook fixtures/tests, the existing route-state browser test, and `02_base_shell.css`. The shared header and nav now use the existing header z-tokens below the overlay layer. The 128-root and 13-example receipts pass; the source manifest also retains meaningful pre-fix failures for false counts, partial summaries, and dialog hit-testing. These are parent-provided bounded receipts; this review did not rerun them.
+
+### Remaining Evidence Limits
+
+- The current 14 PNGs are viewport captures at 1280×900 dark and 375×900 light for live routes, plus 375×900/1280×900 dark static catalog scenes. The retained before theme metadata remains null from its selector mistake; the original lane pixels remain available. Clocks differ and are actual timestamps, not frozen fixtures.
+- The corrected failed-row sentence and partial history summary are below the current selected viewport. Their source, test, and extracted current DOM text were inspected, but no current PNG shows those rows in pixels.
+- Live Retention loading and error/denial/restart states, actual live empty/zero preview, invalid-token/cancel/submit outcomes, and every long-text case were not visually captured in this delta. Static catalog scenes are projections and do not prove live authorization, SQL, downloads, mutation, persistence, or reconnect.
+- No browser zoom, native clipboard, foreground interaction, hosted environment, or human UAT claim is made. Broad zoom/inclusive/error-pixel and global palette work remain outside this bounded delta.
 
 ## Registry Safety
 
@@ -162,4 +214,4 @@ Repository guidance/design: `AGENTS.md`; `.planning/conventions/research-verific
 
 Implementation/presentation: `lib/threadline/operator_surface/live/export_status_live.ex`; `lib/threadline/operator_surface/live/export_status_live/components.ex`; `lib/threadline/operator_surface/live/retention_history_live.ex`; `lib/threadline/operator_surface/live/retention_history_live/components.ex`; `lib/threadline/operator_surface/ui/overlay.ex`; `lib/threadline/operator_surface/ui/page.ex`; `lib/threadline/operator_surface/style/{01_tokens,02_base_shell,03_page_home,04_controls,05_feedback,06_layout_primitives,08_overlays_motion,09_responsive}.css`; `examples/threadline_phoenix/storybook/operations/{exports,retention}.story.exs`; `examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex`; `examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts`.
 
-Images viewed directly from `/private/tmp/private252evidence/`: four before/after paired defaults; `after-03-1280-dark-retention-preview.png`; `after-03-375-light-retention-preview.png`; desktop and mobile Retention confirmation plus confirmation-top variants; desktop/mobile dark catalog Export and Retention samples. These paths are private run artifacts; the repository keeps only this evidence-bound review.
+Initial images viewed directly from `/private/tmp/private252evidence/`: four before/after paired defaults; `after-03-1280-dark-retention-preview.png`; `after-03-375-light-retention-preview.png`; desktop and mobile Retention confirmation plus confirmation-top variants; desktop/mobile dark catalog Export and Retention samples. Bounded delta images viewed directly: `after-04-1280-dark-retention.png`; `after-04-375-light-retention.png`; `after-04-375-light-retention-preview.png`; `after-04-375-light-retention-confirmation-top.png`; `after-04-375-light-retention-confirmation.png`; `after-04-375-dark-catalog-retention.png`. These paths are private run artifacts; the repository keeps only this evidence-bound review.
