@@ -28,17 +28,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       table = params["table"]
       record_id = params["record_id"]
 
-      {origin, context_query} =
-        case Helpers.timeline_filter_query(query_params) do
-          {:ok, query} -> {:timeline, query}
-          :error -> {:default, ""}
-        end
+      {origin, context_query} = Helpers.retained_timeline_context(query_params)
 
       {:noreply,
        assign(socket,
          base_path: base_path,
          table: table,
          record_id: record_id,
+         context_lost?: origin == :lost,
          as_of: parse_as_of(query_params["as_of"]),
          history_path: row_history_path(base_path, table, record_id, origin, context_query),
          close_path: timeline_path(base_path, origin, context_query)
@@ -90,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             close_path={@close_path}
             history_path={@history_path}
             return_label="Timeline"
+            context_lost?={assigns[:context_lost?] || false}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
             scope={@threadline_scope}
