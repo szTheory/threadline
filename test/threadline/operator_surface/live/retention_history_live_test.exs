@@ -147,20 +147,68 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert {:ok, ^target} = Pruner.target_snapshot()
       end
 
+      test "Phase252 acceptance timeout stays uncertain because the original worker may accept later",
+           %{conn: conn} do
+        {:ok, view, _} = live_retention(conn)
+        open_prune_modal(view)
+        pruner = Process.whereis(Pruner)
+        actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
+        handler = {__MODULE__, make_ref()}
+
+        :ok =
+          :telemetry.attach(
+            handler,
+            Repo.config()[:telemetry_prefix] ++ [:query],
+            fn _, _, metadata, {owner, pid} ->
+              if String.starts_with?(metadata.query, "INSERT INTO") and
+                   String.contains?(metadata.query, "audit_actions") do
+                :ok = :sys.suspend(pid)
+                send(owner, :phase252_acceptance_paused_after_audit)
+              end
+            end,
+            {self(), pruner}
+          )
+
+        on_exit(fn -> :telemetry.detach(handler) end)
+
+        try do
+          html = render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+          assert_receive :phase252_acceptance_paused_after_audit
+          assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions + 1
+          assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+          assert html =~ "The prune request could not be confirmed. It may still be queued."
+          refute html =~ "Prune could not be queued."
+          assert :sys.get_state(view.pid).socket.assigns.preview == nil
+        after
+          :telemetry.detach(handler)
+          :sys.resume(pruner)
+        end
+
+        assert_eventually(fn ->
+          Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status in ["completed", "failed"]))
+        end)
+      end
+
       test "Phase252 direct confirmation and modal events cannot establish a preview", %{
         conn: conn
       } do
         {:ok, view, _} = live_retention(conn)
         actions = Repo.aggregate(AuditAction, :count, :id, repo_opts())
 
-        render_click(view, "prune_now", %{
-          "confirm" => "default",
-          "preview" => %{"deleted_changes" => 999}
-        })
+        for token <- ["default", "not-default", ""] do
+          html =
+            render_click(view, "prune_now", %{
+              "confirm" => token,
+              "preview" => %{"deleted_changes" => 999}
+            })
 
-        html = render_click(view, "open_prune_modal", %{})
-        refute html =~ "Estimated AuditChange candidates"
-        refute html =~ "phx-submit=\"prune_now\""
+          refute html =~ "Estimated AuditChange candidates"
+          refute html =~ "phx-submit=\"prune_now\""
+          html = render_click(view, "open_prune_modal", %{})
+          refute html =~ "Estimated AuditChange candidates"
+          refute html =~ "phx-submit=\"prune_now\""
+        end
+
         assert Repo.aggregate(AuditAction, :count, :id, repo_opts()) == actions
         assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
       end

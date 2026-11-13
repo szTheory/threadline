@@ -62,7 +62,16 @@ defmodule Threadline.Retention.Pruner do
   defp call_target(pid, message) do
     GenServer.call(pid, message)
   catch
-    :exit, _reason -> {:error, :unavailable}
+    :exit, {:noproc, _reason} ->
+      {:error, :unavailable}
+
+    :exit, _reason ->
+      # Losing acknowledgement does not retract a message from the original
+      # worker or prove that its acceptance transaction did not commit.
+      case message do
+        {:prune_if_target, _target} -> {:error, :acceptance_unknown}
+        _ -> {:error, :unavailable}
+      end
   end
 
   defp target(state) do

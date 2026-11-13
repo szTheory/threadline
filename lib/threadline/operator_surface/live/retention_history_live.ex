@@ -102,9 +102,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       typed = confirm_param(params)
 
       with :ok <- authorize_prune(socket),
+           {:ok, preview} <- confirmed_preview(socket),
            canonical <- @canonical_policy_name,
            true <- Plug.Crypto.secure_compare(typed, canonical),
-           {:ok, preview} <- confirmed_preview(socket),
            :ok <- authorize_prune(socket),
            {:ok, _action} <- audit_prune(socket, canonical, preview.target),
            :ok <- Pruner.trigger_if_target(preview.target) do
@@ -125,6 +125,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            socket
            |> clear_preview()
            |> put_flash(:error, "Retention runtime is unavailable. Refresh and try again.")}
+
+        {:error, :acceptance_unknown} ->
+          Process.send_after(self(), :refresh, 500)
+
+          {:noreply,
+           socket
+           |> clear_preview()
+           |> load_runs()
+           |> put_flash(
+             :error,
+             "The prune request could not be confirmed. It may still be queued. Refresh the history before making another deliberate request."
+           )}
 
         {:error, :unavailable} ->
           {:noreply,
