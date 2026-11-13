@@ -4,17 +4,16 @@ milestone: v1.48
 current_phase: 251
 current_phase_name: Complete investigation and inspection screens
 status: planning
-stopped_at: Phase 250 complete, ready to plan Phase 251
-last_updated: "2026-11-12T23:40:56.822Z"
+stopped_at: Phase251 context and current-source research gathered; planning next
+last_updated: "2026-11-13T00:02:36.606Z"
 last_activity: 2026-11-12
 last_activity_desc: Phase 250 complete, transitioned to Phase 251
-state_head: ed68ce8cdb6b7bdb2af57179a595ad38626d232c
+state_head: af4ec7afe606b193eb634d64b5451d9d1a1639b2
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 16
   completed_plans: 16
-  percent: 50
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -1256,9 +1255,9 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 
 ## Session Continuity
 
-**Last session:** 2026-11-12T19:31:42.774099Z
-**Stopped at:** Phase 250 complete, ready to plan Phase 251
-**Resume file:** .planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-PLAN.md
+**Last session:** 2026-11-13T00:02:36.029Z
+**Stopped at:** Phase251 context and current-source research gathered; planning next
+**Resume file:** .planning/phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
 - **Current gates and next actor:** The orchestrator continues Phase250 under the original autonomous scope. Phases248/249 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.

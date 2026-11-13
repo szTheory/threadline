@@ -32,7 +32,7 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 **Canonical inputs:** `brand/BRAND.md`, `brand/brand.json`, `brand/assets/README.md`, `.planning/research/2026-11-10-brand-admin/milestone-proposal.md`, its independent review, `.planning/conventions/research-verification-and-efficiency.md`, and `.planning/REQUIREMENTS.md`.
 
-**Local progress (2026-11-12):** Phases248 and249 are independently complete; Phase250 brand foundation and the first whole investigation is next. No runtime brand adoption, hosted closure, package version change or publication is claimed by that local completion.
+**Local progress (2026-11-12):** Phases248–250 are independently complete. Phase250 passed76/76 must-haves and all nine assigned requirements with source-bound brand/font/theme/whole-investigation evidence; Phase251 investigation and inspection is next. Broader inclusive/operations/hosted release acceptance remains later. Package1.1.0 and publication authority are unchanged.
 
 **Baseline at initialization:** this planning checkout starts at current main `d35b9422`, package 1.1.0 and v1.47 complete. The retained 31-file candidate is preserved and not yet ported; the new `brand/` source is deliberately imported without changing old `brandbook/` consumers. Phase numbering continues at 248 after 247.1.
 
