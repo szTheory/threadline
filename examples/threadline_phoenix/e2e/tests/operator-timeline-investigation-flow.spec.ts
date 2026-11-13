@@ -203,20 +203,29 @@ async function expectTimelineWorkflow(page: Page, viewportWidth: number) {
 
   const factsLayout = await page.locator(".tl-timeline-command__facts").evaluate((element) => {
     const styles = getComputedStyle(element);
+    const container = element.closest(".tl-toolbar.tl-timeline-command");
+    if (!(container instanceof HTMLElement)) throw new Error("Timeline facts lost their intended control container");
+    const containerStyle = getComputedStyle(container);
     return {
       display: styles.display,
       columns: styles.gridTemplateColumns.split(" ").length,
+      containerName: containerStyle.containerName,
+      availableWidth: container.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight),
+      factsWidth: element.getBoundingClientRect().width,
     };
   });
+  expect(factsLayout.containerName.split(" ")).toContain("tl-timeline-controls");
+  expect(factsLayout.availableWidth).toBeGreaterThan(0);
   if (viewportWidth <= 480) {
     expect(factsLayout.display).toBe("none");
-  } else if (viewportWidth < 768) {
+  } else if (factsLayout.availableWidth <= 812 || viewportWidth < 768) {
     expect(factsLayout.columns).toBe(1);
   } else if (viewportWidth < 1280) {
     expect(factsLayout.columns).toBe(2);
   } else {
     expect(factsLayout.columns).toBe(3);
   }
+  expect(factsLayout.factsWidth).toBeLessThanOrEqual(factsLayout.availableWidth + 1);
 
   const rowMetrics = await page.evaluate(() => {
     const command = document.querySelector(".tl-timeline-command");

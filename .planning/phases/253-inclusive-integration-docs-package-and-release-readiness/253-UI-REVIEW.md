@@ -356,3 +356,7 @@ Real capture clocks differ, and transient preview-generated timestamps differ vi
 The same independent UI reviewer examined all18 frozen packet01 hashes. One masked stale dense-value14px assertion was found and parent corrected it to the approved13px token in packet02; other bytes remain unchanged. Four-spec repairs retain meaningful roles, theme selected state/CSRF, precise mobile disclosure targeting, geometry, visible contained focus, exact initial/Escape-return focus and ordinary whole-job coverage. Gutter8/12/16 assertions remain. Historical paired-capture custody is opt-in and ordinary CI fabricates no capture.
 
 Both extracted HEEx fragments retain baseline literal markup/attributes; production CSS is unchanged and golden equals ordered stylesheet bytes wrapped in `<style>`. These changes do not warrant new pixel captures. Score remains20/24, F01 actual2x remains open until an executed required receipt. No hosted browser success follows from listing or local tests.
+
+## Second natural CI: bounded two-spec review
+
+Same independent UI reviewer confirms both packet02 hashes and intended named content-container width, approved28px headline/12px copy labels, retained40px targets/body/action readability/focus/overflow. Bounded forward scan found no further related stale premises; test-only patch needs no new pixels. F01 remains open pending actual executed real2x proof. See [repair record](253-CI-REPAIR-02.md). No runtime/CI pass is inferred from static review.
