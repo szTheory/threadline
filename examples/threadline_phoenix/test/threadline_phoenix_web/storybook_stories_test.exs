@@ -349,6 +349,25 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     end
   end
 
+  test "Phase252 Operations stories link the existing semantic resource and route inventory" do
+    inventory = Jason.decode!(File.read!("e2e/support/operator-journey-inventory.json"))
+    catalog = Enum.find(inventory["resourceDispositions"], &(&1["id"] == "resource.storybook"))
+
+    for {kind, route} <- [{"exports", "route.exports"}, {"retention", "route.retention"}] do
+      path = "operations/#{kind}.story.exs"
+      source = story_file!(path)
+      reference = Enum.find(catalog["sourceRefs"], &(&1["id"] == "operations-#{kind}"))
+      assert reference, "Operations #{kind} must be linked from the existing catalog resource"
+      assert reference["path"] == "examples/threadline_phoenix/storybook/#{path}"
+      assert source =~ reference["locator"]
+      surface = Enum.find(inventory["surfaces"], &(&1["routeId"] == route))
+      assert source =~ surface["routeId"]
+      assert source =~ surface["jobId"]
+      assert Enum.any?(surface["sourceRefs"], &(&1["path"] == reference["path"]))
+      for proof <- surface["proofRefs"], do: assert(source =~ proof["id"])
+    end
+  end
+
   defp rendered_or_source_backed?(source, component, markers) do
     Enum.all?(markers, &String.contains?(source, &1)) or
       (source =~ "unsupported: #{component}" and

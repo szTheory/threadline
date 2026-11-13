@@ -12,6 +12,8 @@ const representativeStories = [
   { category: "data display", path: "/dev/storybook/data_display/data_table", marker: "Data Display contracts" },
   { category: "group", path: "/dev/storybook/groups/operator_groups", marker: "Recurring operator groups" },
   { category: "pattern", path: "/dev/storybook/patterns/operator_patterns", marker: "Small operator patterns" },
+  { category: "operations export", path: "/dev/storybook/operations/exports", marker: "Static Operations Export" },
+  { category: "operations retention", path: "/dev/storybook/operations/retention", marker: "Static Operations Retention" },
 ];
 const viewportWidths = [320, 375, 768];
 
