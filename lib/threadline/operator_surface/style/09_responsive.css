@@ -555,3 +555,16 @@
       transform: none !important;
     }
   }
+
+
+  /* A wide viewport can still mount Admin in a narrow host slot. Choose
+     control tracks from their available width without clipping the host. */
+  @container tl-timeline-controls (max-width: 480px) {
+    .tl-timeline-command__summary,
+    .tl-timeline-command__facts,
+    .tl-filter-grid--primary,
+    .tl-filter-grid--advanced,
+    .tl-timeline-command__utilities {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }

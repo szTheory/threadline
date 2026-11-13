@@ -19,6 +19,8 @@
 
   /* Investigation results carry the card emphasis; controls remain a quiet tool. */
   .tl-toolbar.tl-timeline-command {
+    container-type: inline-size;
+    container-name: tl-timeline-controls;
     background: transparent;
     border-color: transparent;
     box-shadow: none;
