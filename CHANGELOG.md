@@ -21,25 +21,50 @@
 
 ## Unreleased — highlights
 
-The documentation that ships with the package is updated, and the
-maintainer-only Mix aliases changed. Neither change touches the library
-code or its dependency requirements.
+The optional Phoenix surface is presented as Threadline Admin, with the approved
+brand assets, connected investigation and Operations flows, and clearer adoption
+and upgrade guidance. The capture layer and supported dependency ranges remain
+unchanged.
 
 ### Breaking changes
 
-None.
+None to the supported capture, semantics or public mount APIs. Invalid mount
+authorization is now rejected at compile time; see the required action below.
 
 ### Required action
 
-None. No migration, trigger regeneration or configuration change is needed.
+- Admin mounts must provide a usable unary `:authorize_fn`. A host authentication
+  pipeline alone is insufficient. Use
+  `adopter_acknowledges_unauthenticated: true` only for an intentionally public
+  mount; it must be the literal `true` in every environment.
+- On Retention, use **Preview retention**, then **Review and confirm**, and enter
+  the exact policy name before **Prune now**. Estimates cover the global
+  configured worker store; an operator's or tenant's query scope does not narrow
+  it. Review run history after an uncertain result before another deliberate
+  attempt.
+- No database migration, trigger regeneration or dependency-floor change is
+  required. Capture-only adopters need no Admin mount or font migration. See the
+  [current upgrade guidance](guides/upgrade-path.md#current-unreleased-admin-changes)
+  for refusal and recovery details.
 
 ### Changed
 
-- The contributor guide, the configuration and commands reference and the
-  adoption-pilot guide are updated. The reference no longer lists
-  maintainer-only commands that are no longer part of the repository.
-- Maintainer-only Mix aliases in `mix.exs` changed. Mix does not expose a
-  dependency's aliases to the application that depends on it.
+- Threadline Admin uses the approved identity, private embedded font aliases and
+  native immediate-submit Dark, Light and System controls. The existing font and
+  script opt-outs and host-owned authentication boundaries remain.
+- Investigation keeps committed query and return context through Timeline,
+  transaction, row-history, actor, correlation and saved-search flows. Operations
+  separates export readiness and recorded Retention outcomes from transient
+  preview estimates, with explicit recovery and confirmation boundaries.
+- Narrow host slots reflow Timeline controls without hiding overflow. Page
+  headlines use the approved heading-family token; compact preview labels keep
+  their dense-interface type role.
+- README, example and guides distinguish current adoption instructions, historical
+  release context and superseded brand/font source. Local checks do not imply
+  hosted CI, publication or observed adopter understanding.
+- The contributor guide, configuration and commands reference and adoption-pilot
+  guide are updated. Maintainer-only Mix aliases changed; a dependency's aliases
+  are not exposed to the host application.
 
 ## [1.1.0] - 2026-10-23
 
