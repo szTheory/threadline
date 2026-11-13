@@ -160,7 +160,13 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 1. Operators can export the scoped source query with separate authorization, distinguish queued/accepted/completed/failed states, follow recovery links and download only completed authorized output.
 2. Operators can preview Retention consequences, explicitly confirm or cancel, and inspect persisted outcomes; event-time authorization and reconnect protection prevent automatic mutation replay.
 3. Maintainers can review useful primitives, patterns, assemblies and screen states in the existing dev/test-only PhoenixStorybook, linked to the existing fixture/journey inventory and mounted-route proofs while reusing production components without a second registry.
-**Plans**: 0 (not planned)
+**Plans**: 4 reviewed, implementation pending
+
+- [ ] 252-01 — Retention preview and same-worker target safety
+- [ ] 252-02 — Shared production Operations catalog
+- [ ] 252-03 — Mounted operation proof and matched captures
+- [ ] 252-04 — Independent review, automated UAT and goal verification
+
 **UI hint**: yes
 **Canonical references**: [Approved operations/catalog scope](research/2026-11-10-brand-admin/milestone-proposal.md), [export status](../lib/threadline/operator_surface/live/export_status_live.ex), [download controller](../lib/threadline/operator_surface/controllers/export_controller.ex), [retention history](../lib/threadline/operator_surface/live/retention_history_live.ex), [Retention domain](../lib/threadline/retention.ex), [catalog root](../examples/threadline_phoenix/storybook/index.exs), [catalog boundary](../test/threadline/operator_surface/storybook_boundary_test.exs), [catalog browser proof](../examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts), [complete operation journeys](../examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts).
 
@@ -181,7 +187,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–251 are independently verified complete; all20 currently planned plans are GSD-reconciled. ADM01–22 are locally complete. Phase251 passed63/63 scoped truths, source/security/UI reviews and current bounded browser proof; unresolved non-authoritative engine annotations remain explicit. Phase252 operations/catalog and Phase253 inclusive/docs/package/readiness are next. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,four complete,twenty currently planned plans,twenty complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–251 are independently verified complete; 20 of24 currently planned plans are GSD-reconciled; Phase252 four plans are independently reviewed, implementation pending. ADM01–22 are locally complete. Phase251 passed63/63 scoped truths, source/security/UI reviews and current bounded browser proof; unresolved non-authoritative engine annotations remain explicit. Phase252 operations/catalog and Phase253 inclusive/docs/package/readiness are next. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,four complete,twenty-four currently planned plans,twenty complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -189,7 +195,7 @@ Execution order:248→249→250→251→252→253. Phases248–251 are independe
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
-| 252. Complete operations and connected catalog review | 0/0 | Pending | - |
+| 252. Complete operations and connected catalog review | 0/4 | Ready to execute | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 
 ## Next

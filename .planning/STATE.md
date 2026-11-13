@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 milestone: v1.48
 current_phase: 252
 current_phase_name: Complete operations and connected catalog review
-status: planning
-stopped_at: Phase 251 complete, ready to plan Phase 252
-last_updated: "2026-11-13T06:31:02.797Z"
+status: ready_to_execute
+stopped_at: Phase252 reviewed plans ready; preparing supported isolated execution
+last_updated: "2026-11-13T10:12:52.584Z"
 last_activity: 2026-11-13
-last_activity_desc: Phase 251 complete, transitioned to Phase 252
-state_head: 61d227e2bfda20da40f681eb1665e5926212cf31
+last_activity_desc: Phase252 four plans independently reviewed; authorization race fixed in plan
+state_head: 76c749638ce00a51ce606a970558b6171d927696
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 20
+  total_plans: 24
   completed_plans: 20
   percent: 67
 milestone_name: "Threadline Admin: brand and complete journeys"
@@ -33,15 +33,15 @@ See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 
 Phase: 252 — Complete operations and connected catalog review
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-11-13 — Phase 251 complete, transitioned to Phase 252
+Plan: 252-01 — reviewed, implementation not started
+Status: Preparing isolated execution
+Last activity: 2026-11-13 — Phase252 four plans reviewed; preparing execution
 
-Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of 20 currently planned plans complete.
+Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of 24 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248–251 are independently complete. Phase251 delivers validated investigation context, exact snapshot intent, scoped Coverage and honest current Redaction/Evidence inspection. Its corrected source review is clean, security has no open authored threats or accepted risks, UI is22/24 and the independent goal check passed63/63 truths/six requirements. [Verification](phases/251-complete-investigation-and-inspection-screens/251-VERIFICATION.md), [evidence](phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md) and [review disposition](phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md) retain source/capture identity, failures, non-authoritative engine flags and limits. The remaining isolated group merged through the supported manifest with no warnings; its owned app stopped cleanly, five cache links were unlinked with targets preserved, and its checkout was removed. Original full-repeat stop and REL-01 remain effective. Continue Phase252 research/discussion/planning, then implementation. No user action is needed.
+**Current diagnosis and dispatch:** Phases248–251 are independently complete. Phase251 delivers validated investigation context, exact snapshot intent, scoped Coverage and honest current Redaction/Evidence inspection. Its corrected source review is clean, security has no open authored threats or accepted risks, UI is22/24 and the independent goal check passed63/63 truths/six requirements. [Verification](phases/251-complete-investigation-and-inspection-screens/251-VERIFICATION.md), [evidence](phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md) and [review disposition](phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md) retain source/capture identity, failures, non-authoritative engine flags and limits. The remaining isolated group merged through the supported manifest with no warnings; its owned app stopped cleanly, five cache links were unlinked with targets preserved, and its checkout was removed. Original full-repeat stop and REL-01 remain effective. Phase252 research, UI contract and four plans are reviewed; prepare one supported isolated implementation context and retain independent final acceptance. No user action is needed.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -56,7 +56,7 @@ Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 3 complete, 17 currently planned plans complete, 50% phase progress. Phases248–250 passed; Phase251 Plan01 accepted; Plan02 is next.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 4 complete, 20/24 currently planned plans complete, 67% phase progress. Phase252 implementation is next.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -86,7 +86,7 @@ Historical metrics, deferred items, roadmap evolution and prior decisions are pr
 
 ### Current decisions
 
-The accepted [Phase251 context](phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md), [research](phases/251-complete-investigation-and-inspection-screens/251-RESEARCH.md), [approved UI contract](phases/251-complete-investigation-and-inspection-screens/251-UI-SPEC.md) and plans retain the active decisions. Earlier public compatibility/domain decisions remain effective; consult their linked original evidence when changing those surfaces. This compaction grants no new authority.
+The accepted [Phase252 context](phases/252-complete-operations-and-connected-catalog-review/252-CONTEXT.md), [plans and review](phases/252-complete-operations-and-connected-catalog-review/252-PLAN-REVIEW.md) govern current implementation. The accepted [Phase251 context](phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md), [research](phases/251-complete-investigation-and-inspection-screens/251-RESEARCH.md), [approved UI contract](phases/251-complete-investigation-and-inspection-screens/251-UI-SPEC.md) and plans retain the active decisions. Earlier public compatibility/domain decisions remain effective; consult their linked original evidence when changing those surfaces. This compaction grants no new authority.
 
 ### Blockers
 
@@ -97,22 +97,22 @@ The accepted [Phase251 context](phases/251-complete-investigation-and-inspection
 - The full-root repeat grant was consumed in Phase248 and remains stopped. Elapsed time, zero completed iterations, setup errors or routine test authorization never renew a bounded attempt/window. Preserve every failure and diagnose its cause before permitted retests.
 - Routine scoped local builds, tests, independent reviews, fixes and bounded retests are authorized. No hosted dispatch, push/merge, issue, package version/publication, native clipboard or foreground activation is implied.
 - REL-01 retains the first-natural-release external trigger. Local readiness cannot satisfy publication evidence. Historical publication checkpoints above remain recorded; this run has no publication authority.
-- Preserve original Phase250 pair data and capsules. Use owned loopback PostgreSQL and dedicated Phase251 test/runtime partitions; shared5432 is untouched. Keep exact process/source/fixture custody and proof boundaries.
+- Preserve original Phase250 pair data and capsules. Use owned loopback PostgreSQL and dedicated Phase252 test/ordinary/mutation partitions; preserve Phase251 data; shared5432 is untouched. Keep exact process/source/fixture custody and proof boundaries.
 
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase 251 complete, ready to plan Phase 252
-**Resume file:** .planning/phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md
+**Stopped at:** Phase252 reviewed plans ready; preparing isolated execution
+**Resume file:** .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
-- **Current gates and next actor:** The orchestrator continues Phase251 under the original autonomous scope. Phases248/249 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.
+- **Current gates and next actor:** The orchestrator continues Phase252 under the original autonomous scope. Phases248–251 are locally verified complete; hosted/live release clauses stay separate. Before any new executor dispatch, re-resolve supported isolation in the active checkout and preserve configured worktrees. No user action is needed for authorized discussion, implementation, focused verification, review or bounded fixes.
 - **Evidence freshness:** `brand/` is the deliberately imported approved source; old `brandbook/` runtime consumers remain until migration. The retained 31-edit candidate and dated main/CI/advisory/browser receipts are comparison inputs; Phase 248 re-establishes current applicable evidence. `research/SUMMARY.md` is historical; use the v1.48 synthesis above.
 - **Carried release clause:** REL-01 retains its original first-natural-release proof and remains pending if live publication is not performed under actual authority; local release readiness cannot satisfy it. See `.planning/REQUIREMENTS.md` → Carried release gate.
 
 ## Operator Next Steps
 
-Continue the authorized Phase251 work, then252 and253 through their required boundaries. No user action is needed for routine authorized work. At a real pause, state the blocker, consequence, recommended next step and who acts; stop only owned services after their checks finish.
+Continue the authorized Phase252 work, then253 through their required boundaries. No user action is needed for routine authorized work. At a real pause, state the blocker, consequence, recommended next step and who acts; stop only owned services after their checks finish.
 
 ## Retrospective obligation
 
