@@ -558,6 +558,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
             match_count={@match_count}
+            form_error={@form_error}
             coverage={assigns[:threadline_coverage]}
             timeline_path={@timeline_path}
           />
@@ -592,7 +593,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           newer_event={nil}
         />
         <UI.Data.empty_state
-          :if={not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
+          :if={is_nil(@form_error) and not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
           variant={Helpers.timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
           icon={Helpers.timeline_empty_icon(@filters_raw, @future_window_empty)}
@@ -620,6 +621,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           actor_ref={assigns[:threadline_actor_ref]}
           saved_views={@saved_views}
+          saved_search_error={if is_nil(@pending_delete_view), do: @saved_search_error, else: nil}
           search_url={@search_url}
           form_error={@form_error}
           base_path={@base_path}
@@ -631,9 +633,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
-        <div :if={@saved_search_error && is_nil(@pending_delete_view)} class="tl-alert tl-alert--error" role="alert">
-          <%= @saved_search_error %>
-        </div>
         <.saved_search_delete_modal
           :if={@pending_delete_view}
           view={@pending_delete_view}
