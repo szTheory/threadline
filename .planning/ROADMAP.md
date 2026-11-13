@@ -136,9 +136,9 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Audited-table inspection shows current schema-specific facts and actionable remediation, distinguishing not audited, not inspected, denied and unavailable without an all-schema default.
 4. Redaction inspection distinguishes configured from deployed policy and provenance, replaced from left-out values, and supported empty/error recovery paths.
 5. Operational Evidence inspection preserves subject scope, observation/provenance and genuine availability limits; it does not call every evidence record record history.
-**Plans**: 4 plans in four sequential waves, grouped into navigation/history (01–02) and scoped inspection (03–04).
+**Plans**: 1/4 plans executed in four sequential waves, grouped into navigation/history (01–02) and scoped inspection (03–04).
 **Wave 1**
-- [ ] 251-01-PLAN.md — Guard Timeline/saved filters and disclose lost retained context.
+- [x] 251-01-PLAN.md — Guard Timeline/saved filters and disclose lost retained context.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 251-02-PLAN.md — Preserve explicit snapshot identity and existing Home/Actor flows.
@@ -188,7 +188,7 @@ Execution order:248→249→250→251→252→253. Phases248/249/250 are indepen
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
-| 251. Complete investigation and inspection screens | 0/4 | Planned | - |
+| 251. Complete investigation and inspection screens | 1/4 | In Progress | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 

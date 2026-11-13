@@ -51,7 +51,8 @@
       "assessment_supersedes_prior_thread": true
     },
     "nyquist_validation": true,
-    "use_worktrees": true
+    "use_worktrees": true,
+    "compact_content": true
   },
   "granularity": "coarse",
   "model_profile": "adaptive",

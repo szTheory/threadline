@@ -226,3 +226,8 @@ Before a composite browser gate, confirm the actual target selector, responsive 
 
 
 Resolve the required phase capability outputs before the first review dispatch: request the final code-review frontmatter and six-pillar UI scoring artifact together with source/capture identities. Reuse the same independent judgment for bounded corrections; do not create a separate format-only review round because the initial request omitted the final schema. Include coupled inventory/semantic regression owners in the initial verification plan. Phase250's additional schema-reconciliation handoffs were avoidable coordination, not new product evidence.
+
+
+### Keep current orchestration documents current
+
+Measured Phase251 intake repeatedly printed oversized historical STATE/PROJECT content. Keep active state concise and archive completed history with preserved, rebased links and a recorded source revision. Preserve all current approvals, stops, limits, pending work, requirements and effective decisions; archival is not authorization to disregard them. Read historical sections only when a current change depends on them, and select needed init/state fields instead of printing entire state payloads. Do not measure reduced document bytes as a runtime speedup.
