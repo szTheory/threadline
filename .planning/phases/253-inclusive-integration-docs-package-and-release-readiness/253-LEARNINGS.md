@@ -147,3 +147,8 @@ The interrupted standalone executor spent333.83seconds on12commands/640250output
 ## Estimate calibration at extraction
 
 The canonical parent rebuild returned factor3,7samples,confidencehigh,clampedtrue/appliedtrue. This is the installed estimate-vs-actual calibration over eligible completed phases; it is not a measured speedup or a fabricated token count for this run. Current unknown actual token values remain null. Parent state writeback was hand-checked because the handler dropped the activity description; bespoke phase progress remains5of6/83percent, with9local253plan contributions and3pending.
+
+
+## Retention at the real handoff
+
+The same final verifier closed the newly repaired local custody portion and left actual2x/exactcandidateCI as the only required proof gaps, with futureREL01separate. This lesson snapshot and the run retrospective are retained for that external-authority handoff; they do not declare milestone completion. User acts next only on the proposed review branch/PR/CI decision. Current source/caches/proof/offline database remain; no owned app/database stays running. A short same-verifier changed-record confirmation finishes normal writeback, without another source/evidence audit.

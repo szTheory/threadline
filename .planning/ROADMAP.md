@@ -225,8 +225,11 @@ Execution order:248→249→250→251→252→253. Phases248–252 are independe
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
-| 253. Inclusive integration, docs, package and release readiness | 9/12 local | Integrated; final verification and realzoom/CI pending | - |
+| 253. Inclusive integration, docs, package and release readiness | 9/12 local | Local assessment/custody closed; realzoom/requiredCI pending | - |
 
 ## Next
 
 Continue already authorized Phase253 inclusive integration, docs, package and release readiness. Reuse accepted252 source/reviews and earlier research, resolve only remaining scope/proof ambiguity, and group affected checks to avoid repeated intake and evidence transcription. Migrate old Retention entry probes/positive-Pruner fixture, then assess supported inclusive jobs, current docs/package and truthful canonical/CI/release limits. No acknowledgment is needed. Preserve consumed full-repeat and native-clipboard/foreground/hosted/external-action limits; only a genuinely new consequential authority or scope decision goes to the maintainer.
+
+
+Local253handoff: same-verifier6of9requirements/3of5roadmap truths, local custody repaired with a retained new paired-source packet. Only real2x/exactcandidateCI remain actual required proof gaps; REL01futurelivegate stays separate. User acts next on the concrete review-branch/PR/requiredCI decision; no human UAT or new local audit/repeat is needed. Phase253/milestone remain incomplete.
