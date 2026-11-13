@@ -2,18 +2,19 @@
 phase: "253"
 reviewed: "2026-11-13"
 depth: "independent six-pillar visual, source and copy review"
-reviewed_revision: "decaf3e6b33c799e7543e1acdabc9c2c738a7b84"
-runtime_revision: "decaf3e6b33c799e7543e1acdabc9c2c738a7b84"
+reviewed_revision: "e42d295c910e11918a1df224a1307c369a2a8767"
+runtime_revision: "e42d295c910e11918a1df224a1307c369a2a8767"
 original_reviewed_revision: "4f35334f20fc4c8a89ac46d446b9fbb3b6b46672"
 original_runtime_revision: "79e74fc4f16f125fe20b5bcb0db09bc2a047c26a"
 baseline_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
 status: "changes-requested; required real browser zoom proof remains blocking"
-score: 19
+score: 20
 score_max: 24
 original_score: 16
 original_findings: 8
-open_findings: 2
-delta: "changed-only source and ten current PNGs; F01 and F03 remain open"
+open_findings: 1
+carried_observations: "inherited Timeline-reference wrapping; newly visible unchanged640-host summary compression, outside F03 allocation delta"
+delta: "F03 Retention allocation resolved by post-restart current-state proof; F01 remains blocking"
 ---
 
 # Phase 253 — UI Review
@@ -263,3 +264,48 @@ The control-container breakpoint changes480→812px in `09_responsive.css:563`, 
 - No new browser/app/test/DB/native-clipboard operation by this reviewer. No source changes beyond this report. No fresh snapshot-guard pass, native clipboard observation, human understanding, required exact-candidate CI or REL-01 completion is inferred.
 
 **Current outcome:** six original warnings resolve within their assessed scope; F03 remains partial and F01 remains blocking. Two open findings, with one required-proof blocker and one layout warning; no new independent finding ID is invented for F03's directly resulting tradeoff. Parent owns the next targeted remedy and acceptance/CI disposition. The original28UI/16edge limits remain; F02's status-pixel limit is the one specifically superseded here.
+
+## Bounded delta 2 — Retention allocation after restart
+
+**Reviewed:** 2026-11-13. **Current source/runtime:** `e42d295c910e11918a1df224a1307c369a2a8767`. **Changed-source baseline:** `decaf3e6b33c799e7543e1acdabc9c2c738a7b84`. Scope is F03's Retention reference/Outcome allocation and direct layout effects only. Prior16/24 and19/24 assessments and all eight original findings remain preserved above.
+
+### Restart and comparison boundary
+
+The computer restart lost the previous `/private/tmp` screenshots, receipts and original local database. The actual view judgments already recorded in this report remain historical observations; this delta does not claim those old bytes are available for fresh inspection or digest verification. Prior F02/F04–F08 dispositions are carried at their previously assessed boundary, not re-executed after restart.
+
+The new durable packet is `.planning/tmp/253-recovery/closing-review-manifest.json`. Its fresh post-restart database/fixture is explicitly different. These three current-state PNGs are **not matched before/after pairs** with the lost ordinary fixture. Similar labels, row counts or deterministic-looking IDs do not establish equality with the lost materialization. New cluster before/after records compare only this new fixture, and their complete five-table count/hash maps are exactly equal around the current captures. That supports current capture stability, not deletion, default cleanup, historical equivalence or continuity through the restart.
+
+### F03 — resolved for the targeted Retention allocation
+
+All three supplied PNGs were actually opened with `view_image`:
+
+| Durable capture | Actual conditions | Visual assessment |
+|---|---|---|
+| `table-captures-01/retention-wide.png` |1280×900, Dark, DPR1, defaultzoom1 |Middle-shortened Run IDs display their suffix on one line. Outcome is a readable260px column; Failed recovery prose is no longer squeezed into roughly17 short lines. Right-side table actions require the existing bounded horizontal scroll, which the contract permits. |
+| `table-captures-01/retention-mobile.png` |375×900, Light, DPR1, defaultzoom1 |Run labels now sit above a full-card-width value. Every shown shortened ID retains its suffix, with full Copy/disclosure recovery. Outcome and actions remain readable in the stacked cards. This375px image is separate current-state proof, not a claim that the browser declaration executed375px. |
+| `table-captures-01/retention-host640.png` |Actual640px host inside1280×900 desktop viewport, Dark, DPR1, defaultzoom1 |The Run references remain complete within their shortened form. The wide table stays inside its existing scroll owner; offscreen Outcome/actions are not silently document overflow. The source and measurements establish the260px Outcome allocation, while this initial scroll-position image does not show that offscreen column. |
+
+**Source inspected:** `03_page_home.css` makes only the Run cell's stacked grid one column. The existing1280px media owner in `09_responsive.css` reserves minimum Run240px/Outcome260px tracks; the already-shortened code remains nowrap within the existing bounded table. There is no global nowrap, new hidden-overflow patch, auth/worker/API or clipboard change. The four manifest source hashes, including the updated existing browser assertion and the narrow CHANGELOG authorization clarification, match this checkout.
+
+**Actual targeted proof inspected:** the retained expected RED was machine-classified `RED_EVIDENCE_OK`; the Outcome width was90px against the required260px before the fix. The current named host case executes the two routes at900/640 host widths with1280 viewport and at320 viewport. Its result is one passed declaration,0skipped,0unexpected,0flaky, with retries disabled; duration2.300s. The source checks visible reference `scrollWidth <= clientWidth + 1`, actual desktop Outcome width≥260, intended parent/surface/document bounds and focused control hit testing. Those assertions establish their own selected boundaries, not every table cell or every width.
+
+The current capture manifest separately records all four visible Run codes at client267/scroll267 in each of the three states, desktop/host Outcome260 and mobile Outcome333, and no document overflow. Viewed suffixes agree with those measurements. F03's direct Retention regression is therefore resolved; the earlier intermediate fix and its failure remain recorded rather than being relabeled successful.
+
+### Current bounded score: 20/24
+
+| Pillar | Current score | Delta basis |
+|---|---|---|
+| Copywriting |4/4|Carried from delta1; the only new prose narrowly aligns CHANGELOG compile-time/runtime authorization wording with the assessed migration text. No broader copy re-audit claimed. |
+| Visuals |4/4|Carried delta1 hierarchy judgment; targeted Retention column allocation is now readable in the selected wide/mobile states. |
+| Color |4/4|Carried delta1 color/forced-status disposition; no color owner changes in this delta. |
+| Typography |3/4|Retention's shortened suffix now remains readable. The original inherited640-host Timeline reference-wrapping observation was neither changed nor remeasured here, so this bounded fix does not justify promoting the entire pillar to excellent. |
+| Spacing |3/4|Raised2→3 because the demonstrated Outcome squeeze/mobile clipping resolves. Intentional bounded table scrolling remains. The new640 Retention image also reveals compressed unchanged summary cards, so the visible composition does not justify4/4. |
+| Experience Design |2/4|F01 actual real200% tab zoom still has no successful proof. |
+
+### Remaining findings and observations
+
+- **F01 remains OPEN/BLOCKER:** no new factor2 proof exists; all three current images explicitly report defaultzoom1. Required exact-candidate CI and REL-01 remain pending. No local retry, waiver, user risk acceptance or release authority is inferred.
+- **F03 Retention allocation is RESOLVED at the named current-state boundary.** Prior inherited Timeline reference wrapping remains a carried observation from the original actual view, outside this Retention-only fix; no new source or pixel pass is claimed for it. Parent owns its existing scope/density disposition rather than this delta silently declaring all identifier owners correct.
+- **640-host composition limit:** the new Retention image shows the unchanged three-column summary grid compressed into narrow cards, with “Completed” overflowing toward its neighbor. This is a visible current-state quality limitation outside the requested F03 reference/Outcome owners. There is no matched pre-restart640 Retention image and no changed summary owner, so this report does not invent a new regression attribution or expand this delta into a broad redesign. Parent has been notified; it remains relevant to the3/4 Spacing ceiling. The passing outer-geometry assertion does not establish that every inner metric fits.
+
+The original28 UI/16edge accounting and proof limits continue; this delta supersedes only F03's targeted Retention allocation failure. Existing scope limitations are not erased by the score increase. One required acceptance blocker remains, with the inherited/unchanged composition observations explicit. No browser/app/test/DB operation or capture was launched by this reviewer; these durable PNGs are git-ignored, as confirmed for the supplied capture path. No human comprehension or comprehensive accessibility claim is made. Parent acts next on actual zoom/CI authority and final dispositions; no maintainer acknowledgment is needed to preserve the stop.

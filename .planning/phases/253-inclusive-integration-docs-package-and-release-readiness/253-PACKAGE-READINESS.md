@@ -1,5 +1,17 @@
 # Package readiness — local candidate, required CI pending
 
+## Current post-restart candidate
+
+**Current source/runtime: `e42d295c910e11918a1df224a1307c369a2a8767`.** The computer restart removed the earlier `/private/tmp` artifacts, archives, helper scripts and PostgreSQL data. The historical results below were actually observed and independently reviewed before restart, but their raw private files are no longer available. They are not presented as current artifacts. Current durable proof is under the ignored `.planning/tmp/253-recovery/` directory; preserve it outside the child before supported cleanup.
+
+Current actual gates: focused upgrade/changelog26 tests/0failures (including the final extracted keyword-parser assertion); style/brand/font68/0; named format0; selected strengthened host/Retention case1pass,0skip/flake/retry at900/640/320×2routes; canonical release56/0 plus strict ExDoc and actual Hex build; canonical signed-loopback package consumer19/0 under child OS external-network denial; generated ExDoc page/local links and Light/Dark logo hook observed. `current-local-gates.json`, `recovery-docs-served-01.json`, `served-docs.json`, `archive-inspection.json` and associated actual logs/results retain boundaries. Earlier optional-host/Storybook/runtime and nested example evidence stays historical at its unchanged owner bytes; it is not relabelled as a new full-suite run.
+
+Current archive SHA-256: `2ab213360f90384c3a56f17929c4eed38f237f675b775b2846b294232cfe370b`;178 regular files, all ten approved brand assets/licenses match source, excluded package prefixes absent. The durable preserved archive is named in `archive-inspection.json`. Earlier before archives were lost; no old-to-new archive byte comparison is claimed. Consumer used fixed `hex_evaluator_test` on the new owned cluster; its loopback registry listener and package cache were observed cleaned after actual exit0.
+
+Current table images are three after-only post-restart views, not recreated historical matched pairs. The new cluster has a different system identifier and a separately seeded `p253recovery` fixture. All five named full-row count/hash objects match before/after the closing captures. Source review is clean; independent security closes24/24 mitigations/no accepted risk; UI20/24 preserves actual real2x zoom as blocking and inherited presentation observations as limits. See current review reports and disposition. The exact-candidate required CI and live REL-01 remain pending.
+
+## Historical pre-restart package record
+
 The implementation source is frozen at `4f35334f20fc4c8a89ac46d446b9fbb3b6b46672`. Package version remains **1.1.0**. All required selected local package gates have actual successful receipts; this is neither exact-candidate hosted CI nor release acceptance. Later metadata-only commits do not change the inspected package bytes.
 
 ## Observed local gates

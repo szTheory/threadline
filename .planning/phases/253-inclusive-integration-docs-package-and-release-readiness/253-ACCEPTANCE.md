@@ -1,6 +1,6 @@
 # Phase253 acceptance reconciliation
 
-Status: local source/inventory reconciliation and the named scoped proofs are recorded; final acceptance remains pending required exact-candidate CI, actual real200% desktop zoom and independent reviews. A static row, digest, declaration, image or shared receipt is not a behavioral pass. No risk is accepted by a pending status.
+Status: local source/inventory reconciliation and the named scoped proofs are recorded; final acceptance remains pending required exact-candidate CI, actual real200% desktop zoom and final verification. Independent code/security/UI reviews now have bounded closing dispositions; original real-zoom blocker remains. A static row, digest, declaration, image or shared receipt is not a behavioral pass. No risk is accepted by a pending status.
 
 ## Authorities and current local proof
 
@@ -564,3 +564,8 @@ Required rows remain pending the actual candidate CI run, rather than inheriting
 ## Acceptance limits
 
 The28 UI and16 surfaced edge rows remain mapped by [the probe record](253-PROBE-RECORD.md). Descriptorless/unclassified engine annotations retain their exact non-authoritative limits; they are distinct from the actual missing zoom/required-CI proof. No human UAT, native clipboard observation, full-root repeat, foreground use, hosted execution, merge, version bump or publication is inferred. Local package and independent review results are appended by their owners; this reconciliation is not a substitute for them.
+
+
+## Closing current-source disposition and artifact loss
+
+Current code review closes its three original findings; security reports24/24 source mitigations,0open/noacceptedrisk; UI20/24 retains real200%zoom as blocking. Current recovery gates and limits are in [package readiness](253-PACKAGE-READINESS.md), [review disposition](253-REVIEW-DISPOSITION.md) and [sampling](253-SAMPLING.md). Original private raw proofs were removed by restart; their actual independent observations remain historical and are not a claim of present raw-file custody. Three new after-only table images and equal five-table row hashes use a different explicitly identified fixture. Final verification must assess this custody limitation separately from missing real zoom/exactCI; no row is auto-promoted from metadata or fresh image counts. All required semantic CI rows remain pending their exact candidate run.
