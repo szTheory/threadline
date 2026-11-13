@@ -282,12 +282,12 @@
     {
       "id": "control.filters.239.be344aac56f3",
       "kind": "control",
-      "label": "filters phx-disable-with=\"Applying filters…\""
+      "label": "filters phx-disable-with=\"Applying filters\u2026\""
     },
     {
       "id": "control.filters.239.c363f049d6e7",
       "kind": "control",
-      "label": "filters phx-disable-with=\"Applying filters…\""
+      "label": "filters phx-disable-with=\"Applying filters\u2026\""
     },
     {
       "id": "control.filters.href.1f60da21e9",
@@ -547,7 +547,7 @@
     {
       "id": "control.retention-history.phx-click.f5976720b6",
       "kind": "control",
-      "label": "retention-history phx-click={JS.push_focus() |> JS.push(\"open_prune_modal\")} disabled={@prune_submitting}>Review and confirm</button>"
+      "label": "retention-history phx-click={JS.push_focus(to: \"button[phx-click='preview_retention']\") |> JS.push(\"open_prune_modal\")} disabled={@prune_submitting}>Review and confirm</button>"
     },
     {
       "id": "control.retention-history.phx-submit.e4adfa4855",
@@ -2037,7 +2037,7 @@
     {
       "id": "control.generated.phase241.c05c91e406",
       "kind": "control",
-      "label": "phx-disable-with=\"Inspecting policy…\""
+      "label": "phx-disable-with=\"Inspecting policy\u2026\""
     },
     {
       "id": "state.generated.phase241.d0edf01594",
@@ -2092,7 +2092,7 @@
     {
       "id": "control.phase242.retention.submit",
       "kind": "control",
-      "label": "retention-history phx-disable-with=\"Starting prune…\""
+      "label": "retention-history phx-disable-with=\"Starting prune\u2026\""
     },
     {
       "id": "state.phase250.fonts-brand-boundaries",
@@ -2112,7 +2112,7 @@
     {
       "id": "control.phase252.retention.preview-pending",
       "kind": "control",
-      "label": "retention-history phx-disable-with=\"Generating preview…\""
+      "label": "retention-history phx-disable-with=\"Generating preview\u2026\""
     },
     {
       "id": "state.phase251.70d4151b61f3",
@@ -2168,6 +2168,11 @@
       "id": "state.phase251.b83a7acdcf97",
       "kind": "state",
       "label": "operator-route-states.spec.ts test(\"Phase251 Evidence recorded provenance\""
+    },
+    {
+      "id": "state.phase252.retention-no-replay",
+      "kind": "state",
+      "label": "operator-route-states.spec.ts test(\"Phase252 Retention preview requires fresh deliberate confirmation after reconnect\""
     }
   ]
 }

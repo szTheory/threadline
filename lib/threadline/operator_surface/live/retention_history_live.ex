@@ -369,7 +369,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <Components.retention_preview preview={@preview} state={@preview_state} />
             <div class="tl-page__actions">
               <button type="button" class="tl-button tl-button--secondary" phx-click="preview_retention" disabled={@preview_state == :loading or @prune_submitting} data-tl-mutating data-tl-server-disabled={if(@preview_state == :loading or @prune_submitting, do: "true", else: "false")} phx-disable-with="Generating preview…">Preview retention</button>
-              <button :if={@preview_state == :ready} type="button" class="tl-button tl-button--secondary" phx-click={JS.push_focus() |> JS.push("open_prune_modal")} disabled={@prune_submitting}>Review and confirm</button>
+              <button :if={@preview_state == :ready} type="button" class="tl-button tl-button--secondary" phx-click={JS.push_focus(to: "button[phx-click='preview_retention']") |> JS.push("open_prune_modal")} disabled={@prune_submitting}>Review and confirm</button>
             </div>
 
             <%= case @runs_state do %>
