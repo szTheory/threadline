@@ -12,7 +12,7 @@ Phase251 independent review also aligns the actual Home lead with the approved d
 
 ## Updating
 
-Only an intentional change to the rendered CSS may update this file. Phase 239 changed decorative Home card kickers from accent styling to neutral tokens, as required by the approved UI contract. The responsive follow-up preserves the 32px Home lead on mobile, wraps long active-filter values in a compact rectangular treatment, and keeps Timeline fact cards at two columns on tablet before restoring three columns on wide desktop. Phase 240 keeps row-history and investigation evidence immediate and puts clipboard status in normal flow so success and recovery messages do not cover values or controls.
+Only an intentional change to the rendered CSS may update this file. Phase 239 changed decorative Home card kickers from accent styling to neutral tokens, as required by the approved UI contract. That historical responsive follow-up retained the 32px Home lead on mobile, wrapped long active-filter values in a compact rectangular treatment, and kept Timeline fact cards at two columns on tablet before restoring three columns on wide desktop. The current Phase251 heading change supersedes that historical 32px exception. Phase 240 keeps row-history and investigation evidence immediate and puts clipboard status in normal flow so success and recovery messages do not cover values or controls.
 
 1. Regenerate the golden file from the repository root:
 
