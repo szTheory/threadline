@@ -29,7 +29,7 @@ export async function seedPaths(page: Page) {
   const link = page.getByTestId("timeline-row").first().getByTestId("transaction-link");
   await expect(link).toBeVisible();
   const transaction = await link.getAttribute("href");
-  expect(transaction).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  expect(transaction).toMatch(/^\/audit\/transactions\/[^/?#]+(?:\?[^#]*)?$/);
   await page.goto(transaction!);
   const rowLink = page.getByTestId("transaction-change-row").filter({ hasText: "tickets" }).getByTestId("row-history-link").first();
   await expect(rowLink).toBeVisible();

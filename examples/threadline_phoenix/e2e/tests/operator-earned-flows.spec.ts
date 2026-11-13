@@ -1,5 +1,6 @@
 import { chromium, expect, Page, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { seedPaths } from "../support/operator-browser-evidence.js";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
@@ -687,4 +688,40 @@ test.describe("operator earned-flow browser UAT", () => {
     expect(exportHtml).toContain("Evidence export context");
     expect(exportHtml).toContain("acme-4521-close");
   });
+});
+
+
+test("Phase251 retained-context recovery", async ({ page }) => {
+  await login(page);
+  const seeded = await seedPaths(page);
+  const message = "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.";
+  const transactionPath = new URL(seeded.transaction, page.url()).pathname;
+  const drawerPath = new URL(seeded.drawer, page.url()).pathname;
+  for (const path of [transactionPath, seeded.row, drawerPath]) {
+    await page.goto(`${path}?origin=timeline&unsupported_only=private-value`);
+    const notice = page.getByTestId("timeline-context-loss");
+    await expect(notice).toBeVisible();
+    await expect(notice).toHaveText(message);
+    const drawer = page.getByTestId("row-history-drawer");
+    if (await drawer.isVisible()) {
+      await drawer.getByRole("link", { name: "Close", exact: true }).click();
+    } else {
+      await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+    }
+    await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+    expect(new URL(page.url()).searchParams.has("unsupported_only")).toBe(false);
+  }
+
+  await page.goto(investigationSearch());
+  const expected = [...new URL(page.url()).searchParams.entries()];
+  await page.getByTestId("timeline-row").first().getByTestId("transaction-link").click();
+  await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
+  await page.getByTestId("transaction-change-row").filter({ hasText: rowTable }).getByTestId("row-history-link").first().click();
+  await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+  await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
+  await page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true }).click();
+  await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  expect([...new URL(page.url()).searchParams.entries()]).toEqual(expected);
+  await expectNoHorizontalOverflow(page);
 });
