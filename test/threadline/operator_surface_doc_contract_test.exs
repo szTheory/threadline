@@ -27,9 +27,35 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "Threadline is an audit trail library for Phoenix apps.")
     assert String.contains?(guide, "Threadline Admin provides")
+    assert String.contains?(guide, ~s|<a id="operator-surface"></a>|)
+
+    assert String.contains?(
+             Threadline.MixProject.project()[:description],
+             "An audit trail library for Phoenix"
+           )
+
+    assert String.contains?(
+             File.read!("lib/threadline.ex"),
+             "Threadline is an open-source audit trail library for Elixir and Phoenix apps."
+           )
+
+    assert String.contains?(guide, "native submit buttons")
+    refute String.contains?(guide, "`Apply theme`")
+
+    for boundary <- [
+          "Preview retention",
+          "Review and confirm",
+          "Prune now",
+          "sequential estimates",
+          "configured worker store",
+          "Pruner.trigger/0",
+          "mismatch"
+        ] do
+      assert String.contains?(guide, boundary), "missing current Retention boundary #{boundary}"
+    end
 
     for heading <- [
-          "# Operator Surface",
+          "# Threadline Admin",
           "## 1-Minute Mount",
           "### Theme",
           "### `:actor_fn`",

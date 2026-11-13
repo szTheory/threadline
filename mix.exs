@@ -47,7 +47,8 @@ defmodule Threadline.MixProject do
       aliases: aliases(),
       package: package(),
       name: "Threadline",
-      description: "Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL",
+      description:
+        "An audit trail library for Phoenix that records every row change in PostgreSQL, so you can follow what happened.",
       source_url: @source_url,
       docs: docs(),
       dialyzer: [

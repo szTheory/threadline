@@ -1,4 +1,6 @@
-# Operator Surface
+<a id="operator-surface"></a>
+
+# Threadline Admin
 
 Threadline is an audit trail library for Phoenix apps. Threadline Admin provides
 mountable LiveView screens for investigating row mutations, actor histories, and
@@ -92,10 +94,10 @@ mount option, validated at compile time to one of `:dark | :light | :system`
   (a `@media (prefers-color-scheme: light)` lane keyed on the rendered
   `data-tl-theme` attribute). It is correct on the first paint / dead render.
 
-Operators can also choose a runtime server-posted dark/light/system theme picker
-from the shell. The form uses native radio controls with values `system`,
-`light`, and `dark`, includes a hidden `_csrf_token`, and submits through the
-`Apply theme` button with POST `{base_path}/theme`. The controller allowlists
+Operators can choose System, Light, or Dark from three native submit buttons
+in the header. Each button submits its `theme` value immediately to
+POST `{base_path}/theme`; `aria-pressed` and a visible Selected marker identify
+the current choice. The form includes a hidden `_csrf_token`. The controller allowlists
 those values, stores the choice in the session and `tl_theme` cookie, then
 redirects back to a same-origin referring operator page. The route is guarded by
 the same mounted `authorize_fn` decision as the LiveView pages and requires the
@@ -496,6 +498,32 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{exception: module}`; alert on this for sustained drift.
+
+## Retention preview and confirmation
+
+On `/audit/policy/retention`, **Preview retention** reads candidate counts without
+starting a prune. The counts are sequential estimates for the configured worker store,
+not an atomic promise of how many rows a later run will delete. They are transient
+and are not saved as the run's outcome. The operator's or tenant's query scope does
+not narrow this global worker store.
+
+After a ready preview, **Review and confirm** opens the confirmation dialog. Read
+the scope and estimates, then type the exact displayed policy name before using
+**Prune now**. An empty or incorrect name does not start or audit a prune.
+**Keep audit data** or Escape cancels; a later attempt requires a new preview.
+
+If the worker restarts, its target or policy changes, or a target mismatch is
+detected, the view refuses confirmation rather than choosing a different store.
+Refresh the history and open a new preview. A persistent mismatch requires the
+host owner to align the existing Repo, storage schema and Retention configuration
+with the worker, then restart it as needed. This adds no public target-inspection
+endpoint. The existing worker entrypoint Pruner.trigger/0 is unchanged.
+
+History shows recorded outcomes separately from preview estimates. Queued counts
+may be placeholders; running counts are checkpoints, and failed checkpoints may
+be incomplete. Missing counts are unknown; a recorded zero remains zero. If
+acceptance cannot be confirmed, check the run history before another deliberate
+attempt; the UI does not automatically replay a prune.
 
 ## Operational paths
 

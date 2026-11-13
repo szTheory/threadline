@@ -1,8 +1,9 @@
 defmodule Threadline do
   @moduledoc """
-  Threadline is an audit platform that captures database row changes and links them to application actions and execution context.
-  Threadline combines trigger-backed row-change capture, rich action semantics
-  (actor/intent/context), and operator-grade exploration.
+  Threadline is an open-source audit trail library for Elixir and Phoenix apps.
+  PostgreSQL triggers record inserts, updates and deletes on registered tables,
+  linked to the actor and execution context supplied by your app. Threadline Admin
+  is the optional LiveView interface for finding a record and following its changes.
 
   ## Jobs
 
