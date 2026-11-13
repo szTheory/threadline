@@ -1739,3 +1739,46 @@ test("Phase251 Timeline and saved-view guards", async ({ page }) => {
     sql(`DELETE FROM threadline.threadline_saved_views WHERE id = '${id}'::uuid`);
   }
 });
+
+
+test("Phase251 Coverage availability boundaries", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.goto("/audit/coverage?schema%5Bpart%5D=private-251-input-canary");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("Choose a schema from the list.");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expect(page.locator("#tl-main")).not.toContainText("private-251-input-canary");
+  await page.locator("#coverage-schema").selectOption("public");
+  await page.getByRole("button", { name: "Apply schema", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe("public");
+  await expect(page.getByTestId("coverage-status")).toContainText("public:");
+  await expect(page.getByTestId("coverage-table")).toBeVisible();
+  await page.goto("/audit/coverage?schema=does_not_exist_phase251");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("was not found");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+
+  const supportContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 } });
+  const anonymousContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await supportContext.newPage();
+    await installControlledClipboard(support);
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/coverage?schema=public");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.getByRole("heading", { name: "Coverage unavailable", exact: true })).toBeVisible();
+    await expect(support.locator("#tl-main")).toContainText("This is not a permissions issue.");
+    await expect(support.getByTestId("coverage-table")).toHaveCount(0);
+    await expect(support.locator("#coverage-schema")).toHaveCount(0);
+    const anonymous = await anonymousContext.newPage();
+    await anonymous.goto("/audit/coverage?schema=public");
+    await expect.poll(() => new URL(anonymous.url()).pathname).toBe("/users/log_in");
+  } finally {
+    await supportContext.close();
+    await anonymousContext.close();
+  }
+});

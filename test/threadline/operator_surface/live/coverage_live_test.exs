@@ -328,6 +328,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute render(view) =~ "All tables captured"
     end
 
+    @tag :coverage_availability
+    test "structured schema input renders correction without previous public facts", %{conn: conn} do
+      {:ok, view, _} = live(conn, "/audit/coverage?schema%5Bpart%5D=private-251-input-canary")
+      assert has_element?(view, "[role=alert]", "Choose a schema from the list.")
+      assert has_element?(view, ~s([data-testid="coverage-status"]), "Coverage not inspected")
+      refute has_element?(view, ~s([data-testid="coverage-table"]))
+      refute render(view) =~ "private-251-input-canary"
+      assert :sys.get_state(view.pid).socket.assigns.threadline_coverage.last_checked_at == nil
+    end
+
+    @tag :coverage_availability
+    test "malformed schema submit does not patch to a successful public fallback", %{conn: conn} do
+      {:ok, view, _} = live(conn, "/audit/coverage?schema=public")
+      render_submit(view, "select-schema", %{"schema" => %{"part" => "private-251-input-canary"}})
+      refute_patched(view, "/audit/coverage?schema=public")
+      assert has_element?(view, "[role=alert]", "Choose a schema from the list.")
+      assert has_element?(view, ~s([data-testid="coverage-status"]), "Coverage not inspected")
+      refute has_element?(view, ~s([data-testid="coverage-table"]))
+    end
+
     describe "manual refresh" do
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")

@@ -8,6 +8,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
     @root Path.expand("../../..", __DIR__)
 
+    test "empty and expected-only inspections never imply global capture completeness" do
+      alias Threadline.OperatorSurface.Coverage.Snapshot
+
+      for snapshot <- [
+            Snapshot.from_coverage([]),
+            Snapshot.from_coverage([{:expected_uncovered, "schema_migrations"}])
+          ] do
+        html = render_header(%{coverage: snapshot, coverage_schema: "tenant_scope"})
+        assert html =~ "tenant_scope: 0 audited"
+        assert html =~ "Other schemas were not inspected."
+        refute html =~ "All tables captured"
+      end
+
+      not_inspected = render_header(%{coverage: Snapshot.empty(nil), coverage_schema: nil})
+      assert not_inspected =~ "Coverage not inspected"
+      refute not_inspected =~ "0 audited"
+    end
+
+    test "unavailable and stale badges retain scope without rendering backend diagnostics" do
+      alias Threadline.OperatorSurface.Coverage.Snapshot
+      canary = "SELECT hidden FROM private_table -- private-251-backend-canary"
+
+      for {checked_at, expected} <- [
+            {nil, "tenant_scope: Coverage unavailable"},
+            {~U[2026-06-04 00:00:00Z], "tenant_scope: Coverage refresh failed"}
+          ] do
+        snapshot = %{Snapshot.empty(checked_at) | error: canary}
+
+        html =
+          render_header(%{coverage: snapshot, error: canary, coverage_schema: "tenant_scope"})
+
+        assert html =~ expected
+        assert html =~ "coverage?schema=tenant_scope"
+        refute html =~ canary
+        refute html =~ "private-251-backend-canary"
+        refute html =~ "All tables captured"
+      end
+    end
+
     test "renders grouped rail IA and preserved header affordances" do
       html = render_header()
 

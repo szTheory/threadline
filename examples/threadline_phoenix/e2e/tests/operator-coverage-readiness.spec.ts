@@ -277,9 +277,13 @@ test("Phase251 Coverage selected snapshot", async ({ page }) => {
     await page.reload();
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(status).toContainText(`${selected}: 2 not audited`);
-    await page.locator("#coverage-schema").selectOption(empty);
+    await expect(page.locator('#coverage-schema option[value="public"]')).toHaveCount(1);
+    await page.locator("#coverage-schema").selectOption("public");
     await page.getByRole("button", { name: "Apply schema", exact: true }).click();
-    await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe(empty);
+    await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe("public");
+    await expect(status).toContainText("public:");
+    await page.goto(`/audit/coverage?schema=${empty}`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(status).toContainText(`${empty}: 0 audited`);
     await expect(page.getByText(`No tables found in schema ${empty} during this inspection. Other schemas were not inspected.`, { exact: true })).toBeVisible();
     await expect(page.getByText("All tables captured", { exact: true })).toHaveCount(0);
