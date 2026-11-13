@@ -43,7 +43,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] **Phase 248: Reconcile the base and safety/proof ownership** - A preserved current-main candidate has fail-closed access and trustworthy affected verification. (completed 2026-11-11)
 - [x] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership. (completed 2026-11-12)
 - [x] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes. (completed 2026-11-12)
-- [ ] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design.
+- [x] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design. (completed 2026-11-13)
 - [ ] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs.
 - [ ] **Phase 253: Inclusive integration, docs, package and release readiness** - The complete existing Admin is accepted against current evidence with truthful release limits.
 
@@ -136,18 +136,18 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Audited-table inspection shows current schema-specific facts and actionable remediation, distinguishing not audited, not inspected, denied and unavailable without an all-schema default.
 4. Redaction inspection distinguishes configured from deployed policy and provenance, replaced from left-out values, and supported empty/error recovery paths.
 5. Operational Evidence inspection preserves subject scope, observation/provenance and genuine availability limits; it does not call every evidence record record history.
-**Plans**: 1/4 plans executed in four sequential waves, grouped into navigation/history (01–02) and scoped inspection (03–04).
+**Plans**: 4/4 plans complete in four sequential waves, grouped into navigation/history (01–02) and scoped inspection (03–04).
 **Wave 1**
 - [x] 251-01-PLAN.md — Guard Timeline/saved filters and disclose lost retained context.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 251-02-PLAN.md — Preserve explicit snapshot identity and existing Home/Actor flows.
+- [x] 251-02-PLAN.md — Preserve explicit snapshot identity and existing Home/Actor flows.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 251-03-PLAN.md — Align selected-schema Coverage facts, current badge and recovery.
+- [x] 251-03-PLAN.md — Align selected-schema Coverage facts, current badge and recovery.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 251-04-PLAN.md — Clarify Redaction/Evidence provenance and close bounded review.
+- [x] 251-04-PLAN.md — Clarify Redaction/Evidence provenance and close bounded review.
 **UI hint**: yes
 **Canonical references**: [Approved complete-screen scope](research/2026-11-10-brand-admin/milestone-proposal.md), [domain meanings](../prompts/audit-lib-domain-model-reference.md), [Home](../lib/threadline/operator_surface/live/start_live.ex), [Timeline](../lib/threadline/operator_surface/live/timeline_live.ex), [Actor](../lib/threadline/operator_surface/live/actor_live.ex), [record history](../lib/threadline/operator_surface/live/row_history_live.ex), [audited tables](../lib/threadline/operator_surface/live/coverage_live.ex), [Redaction](../lib/threadline/operator_surface/live/policy_redaction_live.ex), [Evidence](../lib/threadline/operator_surface/live/evidence_live.ex), [route/state browser proof](../examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts), [existing journey inventory](../examples/threadline_phoenix/e2e/support/operator-journey-inventory.json).
 
@@ -181,14 +181,14 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248/249/250 are independently verified complete; all16 plans are GSD-reconciled. ADM01–14/16–17 are locally complete. Phase250 passed76/76 unique must-haves with current whole-browser/font/copy/theme proof and independent review. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop remains in force. Totals:six phases,three complete,sixteen currently planned plans,sixteen complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–251 are independently verified complete; all20 currently planned plans are GSD-reconciled. ADM01–22 are locally complete. Phase251 passed63/63 scoped truths, source/security/UI reviews and current bounded browser proof; unresolved non-authoritative engine annotations remain explicit. Phase252 operations/catalog and Phase253 inclusive/docs/package/readiness are next. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,four complete,twenty currently planned plans,twenty complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
-| 251. Complete investigation and inspection screens | 1/4 | In Progress | - |
+| 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 

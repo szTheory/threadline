@@ -32,17 +32,17 @@
 ### Investigation journeys
 
 - [x] **ADM-14**: Support can find a ticket change, inspect its transaction and exact values/actor, open record history, copy its identifier and return with the original search intact through mounted host routes.
-- [ ] **ADM-15**: Existing Timeline filters, saved views, direct entry, reload, browser back and return URLs preserve validated query state and host scope.
+- [x] **ADM-15**: Existing Timeline filters, saved views, direct entry, reload, browser back and return URLs preserve validated query state and host scope.
 - [x] **ADM-16**: Before/after values remain exact and neutrally presented, with missing/redacted/left-out cases unambiguous and operation words conveying meaning independently of color.
 - [x] **ADM-17**: Displayed times identify their time zone, and compact identifiers expose/copy the complete unchanged value with keyboard focus and truthful success/failure feedback.
-- [ ] **ADM-18**: Home lookups and actor/correlation pivots complete their existing jobs with scoped context, including non-human and absent actor information, through the new design.
-- [ ] **ADM-19**: Supported record/transaction history and as-of paths retain exact identity, deletion/history-gap semantics and return context without implying new composite-key navigation.
+- [x] **ADM-18**: Home lookups and actor/correlation pivots complete their existing jobs with scoped context, including non-human and absent actor information, through the new design.
+- [x] **ADM-19**: Supported record/transaction history and as-of paths retain exact identity, deletion/history-gap semantics and return context without implying new composite-key navigation.
 
 ### Inspection and permitted operations
 
-- [ ] **ADM-20**: Audited-table inspection presents current schema-specific facts and remediation while distinguishing not audited, not inspected, denied and unavailable; no all-schema default is introduced.
-- [ ] **ADM-21**: Redaction inspection preserves configured-versus-deployed policy and provenance, with clear replaced/left-out meanings and actionable supported empty/error states.
-- [ ] **ADM-22**: Operational Evidence inspection retains subject scope, observation/provenance and genuine availability limits without relabeling every evidence record as record history.
+- [x] **ADM-20**: Audited-table inspection presents current schema-specific facts and remediation while distinguishing not audited, not inspected, denied and unavailable; no all-schema default is introduced.
+- [x] **ADM-21**: Redaction inspection preserves configured-versus-deployed policy and provenance, with clear replaced/left-out meanings and actionable supported empty/error states.
+- [x] **ADM-22**: Operational Evidence inspection retains subject scope, observation/provenance and genuine availability limits without relabeling every evidence record as record history.
 - [ ] **ADM-23**: Exports preserve source-query scope, separate authorization, queued/accepted/completed/failed states, recovery links and completed-download behavior through the new interface.
 - [ ] **ADM-24**: Retention preserves consequence preview, explicit confirmation/cancel, event-time authorization, persisted run outcomes and reconnect protection without automatic mutation replay.
 
@@ -95,14 +95,14 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-12 | Phase 250 | Complete |
 | ADM-13 | Phase 250 | Complete |
 | ADM-14 | Phase 250 | Complete |
-| ADM-15 | Phase 251 | Pending |
+| ADM-15 | Phase 251 | Complete |
 | ADM-16 | Phase 250 | Complete |
 | ADM-17 | Phase 250 | Complete |
-| ADM-18 | Phase 251 | Pending |
-| ADM-19 | Phase 251 | Pending |
-| ADM-20 | Phase 251 | Pending |
-| ADM-21 | Phase 251 | Pending |
-| ADM-22 | Phase 251 | Pending |
+| ADM-18 | Phase 251 | Complete |
+| ADM-19 | Phase 251 | Complete |
+| ADM-20 | Phase 251 | Complete |
+| ADM-21 | Phase 251 | Complete |
+| ADM-22 | Phase 251 | Complete |
 | ADM-23 | Phase 252 | Pending |
 | ADM-24 | Phase 252 | Pending |
 | ADM-25 | Phase 252 | Pending |

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.48
-current_phase: 251
-current_phase_name: Complete investigation and inspection screens
-status: executing
-stopped_at: Phase251 Plan01 accepted and merged; continuing Plan02
-last_updated: "2026-11-13T03:18:44.277Z"
-last_activity: 2026-11-12
-last_activity_desc: Phase251 Plan01 accepted; Plan02 next
-state_head: fe7f0d67a593f13d13c755da078d0ce92df13778
+current_phase: 252
+current_phase_name: Complete operations and connected catalog review
+status: planning
+stopped_at: Phase 251 complete, ready to plan Phase 252
+last_updated: "2026-11-13T06:31:02.797Z"
+last_activity: 2026-11-13
+last_activity_desc: Phase 251 complete, transitioned to Phase 252
+state_head: 61d227e2bfda20da40f681eb1665e5926212cf31
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 20
-  completed_plans: 17
-  percent: 50
+  completed_plans: 20
+  percent: 67
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -25,23 +25,23 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 251 — Complete investigation and inspection screens
+**Current focus:** Phase 252 — Complete operations and connected catalog review
 
 ## Current Position
 
 **Required autonomous closeout:** The maintainer explicitly requested retained lessons. Finalize the [run retrospective](research/2026-11-12-autonomous-run-retrospective.md) before milestone closure or any earlier handoff, then link it in chat. Current status is in progress.
 
 
-Phase: 251 (Complete investigation and inspection screens) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase251; Plan01 accepted
-Last activity: 2026-11-12 — Phase251 Plan01 accepted; Plan02 next
+Phase: 252 — Complete operations and connected catalog review
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-13 — Phase 251 complete, transitioned to Phase 252
 
-Progress: [█████░░░░░] 50% — 3 of 6 phases complete; 17 of 20 currently planned plans complete.
+Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of 20 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248–250 are independently complete. Phase251 Plan01 is accepted and merged: original UI/saved intent is validated before canonicalization; context loss is visible on detail/history; queued overlay focus no longer overrides preferred Close.253 selected root tests,32 Node cases, exact two retries-disabled browser cases, compile/format and ten matched viewport captures per half passed. The original audit materialization remains unchanged. [Summary](phases/251-complete-investigation-and-inspection-screens/251-01-SUMMARY.md) and [evidence](phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md) retain failed attempts and limits. Both manifest-owned worktrees were removed after owned listeners stopped; only three expected planning-bookkeeping scope warnings remain recorded. The managed executor exit1 is preserved; parent completed the same checkout. Continue Plan02 with current accepted research. No user action is needed.
+**Current diagnosis and dispatch:** Phases248–251 are independently complete. Phase251 delivers validated investigation context, exact snapshot intent, scoped Coverage and honest current Redaction/Evidence inspection. Its corrected source review is clean, security has no open authored threats or accepted risks, UI is22/24 and the independent goal check passed63/63 truths/six requirements. [Verification](phases/251-complete-investigation-and-inspection-screens/251-VERIFICATION.md), [evidence](phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md) and [review disposition](phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md) retain source/capture identity, failures, non-authoritative engine flags and limits. The remaining isolated group merged through the supported manifest with no warnings; its owned app stopped cleanly, five cache links were unlinked with targets preserved, and its checkout was removed. Original full-repeat stop and REL-01 remain effective. Continue Phase252 research/discussion/planning, then implementation. No user action is needed.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -102,7 +102,7 @@ The accepted [Phase251 context](phases/251-complete-investigation-and-inspection
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase251 Plan01 accepted and merged; continuing Plan02
+**Stopped at:** Phase 251 complete, ready to plan Phase 252
 **Resume file:** .planning/phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
