@@ -81,3 +81,8 @@ Independent security/UI/source/goal review is pending; no risk was accepted. The
 ## Self-check
 
 All task/corrective commits exist; current selected catalog/static/live evidence is bound and retained. This is Plan02 completion only. The parent continues Plan03 in the same GSD checkout; no user action is needed.
+
+
+## Current contracted-width gap closure
+
+The initial final verifier established38/39 unique truths and identified one actual freshness gap: the previous320/768 catalog smoke predates changed static Retention copy. Parent ran exactly the existing two Operations render cases and three320/375/768 width loops against final reviewed production/runtime74fe8df2. `catalog-current-after-review-01` reports5 passed, retries0, no skipped/flaky/unexpected cases,3.960281 seconds. The ordinary canonical audit/operation materialization still matches baseline. No source or screenshots changed; selected after04 remains current. The original stale-width report is retained as historical evidence, and this current receipt supersedes its reuse for contracted-width acceptance. The same independent verifier owns actual bounded gap closure and current final digest; no phase pass is inferred from this parent entry.

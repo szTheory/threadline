@@ -30,3 +30,8 @@ All completed sampling/summaries/UAT and independent judgments must precede fina
 
 
 Security delta is complete:12/12 mitigated,0 open, no accepted risks. It independently checked the product corrections, actual judgments and assigned-verifier canonical preflight. Source/UI/security review closure is complete; only final whole-goal verdict and normal tracking/integration writeback remain.
+
+
+## Current contracted-width gap closure
+
+The initial final verifier established38/39 unique truths and identified one actual freshness gap: the previous320/768 catalog smoke predates changed static Retention copy. Parent ran exactly the existing two Operations render cases and three320/375/768 width loops against final reviewed production/runtime74fe8df2. `catalog-current-after-review-01` reports5 passed, retries0, no skipped/flaky/unexpected cases,3.960281 seconds. The ordinary canonical audit/operation materialization still matches baseline. No source or screenshots changed; selected after04 remains current. The original stale-width report is retained as historical evidence, and this current receipt supersedes its reuse for contracted-width acceptance. The same independent verifier owns actual bounded gap closure and current final digest; no phase pass is inferred from this parent entry.
