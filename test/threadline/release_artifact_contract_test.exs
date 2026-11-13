@@ -4,6 +4,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   alias Mix.Tasks.Release.Pins
 
+  # One freshly built candidate per module invocation. Every archive assertion
+  # inspects the same immutable bytes; mutation controls operate on copied maps.
+  setup_all do
+    {:ok, archive: built_archive()}
+  end
+
   @banned_shapes [
     {:phase_prose, ~r/\bPhase\s+\d+(?:\.\d+)?\b/i},
     {:phase_identifier, ~r/\bphase[_-]?\d+(?:[_-][a-z0-9_]+)?\b/i},
@@ -164,8 +170,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert Regex.match?(Keyword.fetch!(groups, :Contribute), design_url)
   end
 
-  test "built Hex archive excludes repository evidence" do
-    %{entries: entries, readable: readable} = built_archive()
+  test "built Hex archive excludes repository evidence", %{archive: archive} do
+    %{entries: entries, readable: readable} = archive
 
     assert entries != [], "unpacked Hex archive contained no files"
     assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
@@ -186,8 +192,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
   end
 
-  test "built Hex archive contains only exact approved brand asset bytes" do
-    %{entries: entries, brand_assets: archived_assets} = built_archive()
+  test "built Hex archive contains only exact approved brand asset bytes", %{archive: archive} do
+    %{entries: entries, brand_assets: archived_assets} = archive
 
     assert MapSet.new(Map.keys(archived_assets)) == MapSet.new(@brand_asset_paths)
 
@@ -221,8 +227,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/operator_surface/live/stress_live/"
   ]
 
-  test "built Hex archive excludes maintainer-only tooling" do
-    %{entries: entries} = built_archive()
+  test "built Hex archive excludes maintainer-only tooling", %{archive: archive} do
+    %{entries: entries} = archive
 
     # Populated-archive assertions first: a refutation over an empty archive is
     # the vacuous-gate shape this repository has already been bitten by.
@@ -255,8 +261,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     end
   end
 
-  test "the bot-owned generated changelog is never adopter surface" do
-    %{entries: entries} = built_archive()
+  test "the bot-owned generated changelog is never adopter surface", %{archive: archive} do
+    %{entries: entries} = archive
 
     assert entries != [], "unpacked Hex archive contained no files"
     assert "CHANGELOG.md" in entries
@@ -346,8 +352,10 @@ defmodule Threadline.ReleaseArtifactContractTest do
   # release. The built archive is the ground truth for what ships: the list
   # must name exactly the tracked directories that ship nothing, and must
   # never cover a shipped file.
-  test "exclude-paths names exactly the unshipped directories of the built Hex archive" do
-    %{entries: entries} = built_archive()
+  test "exclude-paths names exactly the unshipped directories of the built Hex archive", %{
+    archive: archive
+  } do
+    %{entries: entries} = archive
     assert entries != [], "unpacked Hex archive contained no files"
 
     tracked = tracked_files()
@@ -426,12 +434,11 @@ defmodule Threadline.ReleaseArtifactContractTest do
   for {tag, paths} <- @source_owners do
     @tag tag
     @tag :phase200_red
-    test "#{tag} is an exact nonempty archive source owner" do
+    test "#{tag} is an exact nonempty archive source owner", %{archive: archive} do
       expected = unquote(Macro.escape(paths))
       assert expected != []
       assert Enum.all?(expected, &File.regular?/1)
 
-      archive = built_archive()
       selected = Map.take(archive.readable, expected)
       assert Map.keys(selected) |> Enum.sort() == Enum.sort(expected)
 
@@ -446,9 +453,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @tag :source_module_vocabulary
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "all packaged source uses durable vocabulary" do
-    archive = built_archive()
-
+  test "all packaged source uses durable vocabulary", %{archive: archive} do
     source =
       archive.readable
       |> Map.filter(fn {path, _content} ->
@@ -465,8 +470,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @tag :archive_vocabulary
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "the entire readable archive is free of planning vocabulary" do
-    archive = built_archive()
+  test "the entire readable archive is free of planning vocabulary", %{archive: archive} do
     assert map_size(archive.readable) > 0
     matches = planning_vocabulary_matches(archive.readable)
     assert matches == [], format_vocab_matches(matches)
