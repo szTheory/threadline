@@ -4,7 +4,7 @@ import { expect, Locator, Page, test } from "@playwright/test";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
-test.use({ viewport: { width: 375, height: 812 }, isMobile: true, ...(process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1" ? { hasTouch: true } : {}) });
+test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
 async function login(page: Page) {
   if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
@@ -82,9 +82,16 @@ test.describe("operator evidence and exports mobile UAT", () => {
 
   test("retention dense state keeps context before destructive prune and targetable failures", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.goto("/audit/policy/retention");
     await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
+    if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+      const input = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, touchPoints: navigator.maxTouchPoints, noHover: matchMedia("(hover: none)").matches, clock: new Date().toISOString() }));
+      expect(input).toMatchObject({ width: 375, height: 900, noHover: true });
+      expect(input.touchPoints).toBeGreaterThan(0);
+      await testInfo.attach("phase253-actual-retention-touch-input", { body: Buffer.from(JSON.stringify(input)), contentType: "application/json" });
+    }
+
 
     const summary = await box(page.getByTestId("retention-scope"));
     await expect(page.getByTestId("retention-scope")).toContainText("The current operator or tenant scope does not limit this prune");
@@ -95,8 +102,8 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(pruneButton).toHaveClass(/tl-button--secondary/);
     await expect(pruneButton).not.toHaveClass(/tl-button--danger/);
     await expect(pruneButton).not.toHaveAttribute("data-confirm", /./);
-    await pruneButton.click();
-    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
+    await pruneButton.tap();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).tap();
     const modal = page.locator("#prune-confirm");
     await expect(
       modal.getByRole("heading", { name: "Prune retained audit data?" }),
@@ -110,7 +117,8 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(
       modal.getByText("Type the policy name “default” to confirm"),
     ).toBeVisible();
-    await modal.getByRole("button", { name: "Keep audit data" }).click();
+    await modal.getByRole("button", { name: "Keep audit data" }).tap();
+    await expect(pruneButton).toBeFocused();
 
     const failureMetric = page.locator(".tl-card--metric", { hasText: "Failures" });
     const failureLink = failureMetric.getByRole("link");
