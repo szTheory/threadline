@@ -1817,6 +1817,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit_actor/timeline?table=restored_posts&correlation_id=restored-7")
     end
 
+    test "unsupported or malformed submitted filters do not broaden a committed selection", %{
+      conn: conn
+    } do
+      for input <- [
+            %{"filter" => %{"unsupported_only" => "private-value"}},
+            %{"filter" => ["private-value"]},
+            %{}
+          ] do
+        {:ok, lv, _html} =
+          mount_actor_audit(conn, "/audit_actor/timeline?correlation_id=committed")
+
+        render_submit(lv, "apply", input)
+
+        assert has_element?(
+                 lv,
+                 "[role=alert]",
+                 "These Timeline filters are not supported. Update the filters before applying them."
+               )
+
+        refute_patched(lv)
+      end
+    end
+
     test "malformed saved filters never replace the current selection with a broader read", %{
       conn: conn
     } do
