@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.48
-current_phase: 252
-current_phase_name: Complete operations and connected catalog review
-status: ready_to_execute
-stopped_at: Phase252 reviewed plans ready; preparing supported isolated execution
-last_updated: "2026-11-13T10:12:52.584Z"
+current_phase: 253
+current_phase_name: Inclusive integration, docs, package and release readiness
+status: planning
+stopped_at: Phase 252 complete, ready to plan Phase 253
+last_updated: "2026-11-13T14:14:40.734Z"
 last_activity: 2026-11-13
-last_activity_desc: Phase252 four plans independently reviewed; authorization race fixed in plan
-state_head: 76c749638ce00a51ce606a970558b6171d927696
+last_activity_desc: Phase 252 complete, transitioned to Phase 253
+state_head: e8249149b451e665dd992e7a4dde4eb2129d11db
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 24
-  completed_plans: 20
-  percent: 67
+  completed_plans: 24
+  percent: 83
 milestone_name: "Threadline Admin: brand and complete journeys"
 ---
 
@@ -25,23 +25,23 @@ milestone_name: "Threadline Admin: brand and complete journeys"
 See: `.planning/PROJECT.md` (updated 2026-11-12 through Phase249 completion)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 252 — Complete operations and connected catalog review
+**Current focus:** Phase 253 — Inclusive integration, docs, package and release readiness
 
 ## Current Position
 
 **Required autonomous closeout:** The maintainer explicitly requested retained lessons. Finalize the [run retrospective](research/2026-11-12-autonomous-run-retrospective.md) before milestone closure or any earlier handoff, then link it in chat. Current status is in progress.
 
 
-Phase: 252 — Complete operations and connected catalog review
-Plan: 252-01 — reviewed, implementation not started
-Status: Preparing isolated execution
-Last activity: 2026-11-13 — Phase252 four plans reviewed; preparing execution
+Phase: 253 — Inclusive integration, docs, package and release readiness
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-13 — Phase 252 complete, transitioned to Phase 253
 
-Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of 24 currently planned plans complete.
+Progress: [████████░░] 83% — 5 of 6 phases complete; 24 of 24 currently planned plans complete.
 
 **Startup gates:** Phase 248 owns the approved fail-closed mount correction and current issue #61 advisories / issue #90 affected-suite diagnosis and compatible remediation. Mount policy gates mounted-route acceptance; unresolved reachable runtime risks or untrustworthy required proof block affected acceptance and release without implied risk acceptance. Broader Safe by default work stays separately queued. Preserve configured worktrees: historical-root executor-isolation negotiation returned none; re-resolve in the active checkout before executor dispatch and stop if supported isolation cannot be established. The planning checkout alone does not prove executor binding.
 
-**Current diagnosis and dispatch:** Phases248–251 are independently complete. Phase251 delivers validated investigation context, exact snapshot intent, scoped Coverage and honest current Redaction/Evidence inspection. Its corrected source review is clean, security has no open authored threats or accepted risks, UI is22/24 and the independent goal check passed63/63 truths/six requirements. [Verification](phases/251-complete-investigation-and-inspection-screens/251-VERIFICATION.md), [evidence](phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md) and [review disposition](phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md) retain source/capture identity, failures, non-authoritative engine flags and limits. The remaining isolated group merged through the supported manifest with no warnings; its owned app stopped cleanly, five cache links were unlinked with targets preserved, and its checkout was removed. Original full-repeat stop and REL-01 remain effective. Phase252 research, UI contract and four plans are reviewed; prepare one supported isolated implementation context and retain independent final acceptance. No user action is needed.
+**Current diagnosis and dispatch:** Phases248–252 are independently complete. Phase252 delivers exact-target authorized Retention preview/confirmation and persisted outcomes, actor-owned Export boundaries and connected pure Operations catalog. Its final independent goal is39/39 truths/three requirements, source clean, security12/12 mitigated with0 open/no accepted risk, UI22/24 and fresh current catalog widths. [Verification](phases/252-complete-operations-and-connected-catalog-review/252-VERIFICATION.md), [evidence](phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md) and [disposition](phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md) preserve initial findings, the stale-width gap, corrected receipts and actual limits. Supported manifest cleanup merged the one dependent context with no warnings, stopped only its two owned apps cleanly and removed five cache links with targets preserved. Phase253 inclusive/jobs/docs/package/readiness is next, including older Retention preview-entry selectors and positive-Pruner normal test startup. Required full-root repeat remains consumed/stopped; no native clipboard, foreground, hosted dispatch, push/version/merge/publication authority is inferred. No user action is needed for continuing authorized local work.
 
 **Accepted proof and authority boundary:** Phase248 plainnine-runpass at7fa5d51d/codece0c2e30:9clean suites, suite/capture/wrapper0,classifierpass,3045s within3300,scale5/max36/freshseeds/noobserver. GSDreconciliation, validated coverage,18closedsecurityrows, UI-preservation20/24code-only and clean36fileformalreview are complete. Independentgoalverifierpassed15/15 andowningstatusconfirmedpassed beforephase.complete248. One transparencyprohibition remains prominently flagged as non-authoritative automatedjudgment, not human/remoteattestation orruntime-riskacceptance. Historical failed/invalidintermediateproof remains labeled; fullcanonical/browser/toolchainmatrix and hostedreceipts retain their limits. Phase248 ownedPG15.17 was stopped at its close; the same task-owned instance is now available for continuing authorized focused checks on loopback60025. Sharedservices remain untouched. The one repeatgrant is consumed, with no automaticnextrepeat. Original250–253autonomousscope continues; no externalwrite/publication/versionauthority inferred.
 
@@ -56,7 +56,7 @@ Progress: [███████░░░] 67% — 4 of 6 phases complete; 20 of
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 4 complete, 20/24 currently planned plans complete, 67% phase progress. Phase252 implementation is next.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 5 complete, 24/24 currently planned plans complete, 83% phase progress. Phase253 planning is next.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -102,7 +102,7 @@ The accepted [Phase252 context](phases/252-complete-operations-and-connected-cat
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase252 reviewed plans ready; preparing isolated execution
+**Stopped at:** Phase 252 complete, ready to plan Phase 253
 **Resume file:** .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-PLAN.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.

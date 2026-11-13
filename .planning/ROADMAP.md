@@ -44,7 +44,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] **Phase 249: Map jobs, scenarios and the brand contract** - Existing jobs and states have coherent ordinary examples and explicit proof ownership. (completed 2026-11-12)
 - [x] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes. (completed 2026-11-12)
 - [x] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design. (completed 2026-11-13)
-- [ ] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs.
+- [x] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs. (completed 2026-11-13)
 - [ ] **Phase 253: Inclusive integration, docs, package and release readiness** - The complete existing Admin is accepted against current evidence with truthful release limits.
 
 ## Phase Details
@@ -162,10 +162,10 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Maintainers can review useful primitives, patterns, assemblies and screen states in the existing dev/test-only PhoenixStorybook, linked to the existing fixture/journey inventory and mounted-route proofs while reusing production components without a second registry.
 **Plans**: 4 reviewed, implementation pending
 
-- [ ] 252-01 — Retention preview and same-worker target safety
-- [ ] 252-02 — Shared production Operations catalog
-- [ ] 252-03 — Mounted operation proof and matched captures
-- [ ] 252-04 — Independent review, automated UAT and goal verification
+- [x] 252-01 — Retention preview and same-worker target safety
+- [x] 252-02 — Shared production Operations catalog
+- [x] 252-03 — Mounted operation proof and matched captures
+- [x] 252-04 — Independent review, automated UAT and goal verification
 
 **UI hint**: yes
 **Canonical references**: [Approved operations/catalog scope](research/2026-11-10-brand-admin/milestone-proposal.md), [export status](../lib/threadline/operator_surface/live/export_status_live.ex), [download controller](../lib/threadline/operator_surface/controllers/export_controller.ex), [retention history](../lib/threadline/operator_surface/live/retention_history_live.ex), [Retention domain](../lib/threadline/retention.ex), [catalog root](../examples/threadline_phoenix/storybook/index.exs), [catalog boundary](../test/threadline/operator_surface/storybook_boundary_test.exs), [catalog browser proof](../examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts), [complete operation journeys](../examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts).
@@ -187,7 +187,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–251 are independently verified complete; 20 of24 currently planned plans are GSD-reconciled; Phase252 four plans are independently reviewed, implementation pending. ADM01–22 are locally complete. Phase251 passed63/63 scoped truths, source/security/UI reviews and current bounded browser proof; unresolved non-authoritative engine annotations remain explicit. Phase252 operations/catalog and Phase253 inclusive/docs/package/readiness are next. Phase248’s accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,four complete,twenty-four currently planned plans,twenty complete plans. No hosted or publication authority is implied.
+Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;24 of24 currently planned plans are GSD-reconciled and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 inclusive/docs/package/readiness is next and not yet planned. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,twenty-four currently planned plans,twenty-four complete plans. No hosted or publication authority is implied.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -195,9 +195,9 @@ Execution order:248→249→250→251→252→253. Phases248–251 are independe
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
-| 252. Complete operations and connected catalog review | 0/4 | Ready to execute | - |
+| 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 
 ## Next
 
-Continue Phase251 complete investigation and inspection screens. Reuse the accepted research and shared brand foundation, inspect only post250 source drift, and group coherent jobs with shared checks to reduce repeated intake/closeout. No user acknowledgment is needed. Preserve the consumed full-repeat stop, resource/data custody, external-action and publication limits; Phase253 owns the two retained UI observations and comprehensive acceptance.
+Continue already authorized Phase253 inclusive integration, docs, package and release readiness. Reuse accepted252 source/reviews and earlier research, resolve only remaining scope/proof ambiguity, and group affected checks to avoid repeated intake and evidence transcription. Migrate old Retention entry probes/positive-Pruner fixture, then assess supported inclusive jobs, current docs/package and truthful canonical/CI/release limits. No acknowledgment is needed. Preserve consumed full-repeat and native-clipboard/foreground/hosted/external-action limits; only a genuinely new consequential authority or scope decision goes to the maintainer.

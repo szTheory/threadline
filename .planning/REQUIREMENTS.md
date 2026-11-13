@@ -43,12 +43,12 @@
 - [x] **ADM-20**: Audited-table inspection presents current schema-specific facts and remediation while distinguishing not audited, not inspected, denied and unavailable; no all-schema default is introduced.
 - [x] **ADM-21**: Redaction inspection preserves configured-versus-deployed policy and provenance, with clear replaced/left-out meanings and actionable supported empty/error states.
 - [x] **ADM-22**: Operational Evidence inspection retains subject scope, observation/provenance and genuine availability limits without relabeling every evidence record as record history.
-- [ ] **ADM-23**: Exports preserve source-query scope, separate authorization, queued/accepted/completed/failed states, recovery links and completed-download behavior through the new interface.
-- [ ] **ADM-24**: Retention preserves consequence preview, explicit confirmation/cancel, event-time authorization, persisted run outcomes and reconnect protection without automatic mutation replay.
+- [x] **ADM-23**: Exports preserve source-query scope, separate authorization, queued/accepted/completed/failed states, recovery links and completed-download behavior through the new interface.
+- [x] **ADM-24**: Retention preserves consequence preview, explicit confirmation/cancel, event-time authorization, persisted run outcomes and reconnect protection without automatic mutation replay.
 
 ### Catalog and inclusive use
 
-- [ ] **ADM-25**: The existing PhoenixStorybook catalog connects useful primitives, patterns, assemblies and screen states to the existing fixture/journey inventory and real host-route proofs without a duplicate registry.
+- [x] **ADM-25**: The existing PhoenixStorybook catalog connects useful primitives, patterns, assemblies and screen states to the existing fixture/journey inventory and real host-route proofs without a duplicate registry.
 - [ ] **ADM-26**: Changed controls and complete jobs have correct accessible names, keyboard order, actual focused target, visible focus and focus return across the supported interactions.
 - [ ] **ADM-27**: Representative ordinary and high-risk journeys work at narrow/reflow and embedded-container widths and actual browser zoom, measured against the intended container rather than a shrink-wrapped child.
 - [ ] **ADM-28**: Both themes, touch, selected forced-colors states and reduced-motion behavior preserve operation/status meaning and supported interaction without color-only or motion-only feedback.
@@ -103,9 +103,9 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-20 | Phase 251 | Complete |
 | ADM-21 | Phase 251 | Complete |
 | ADM-22 | Phase 251 | Complete |
-| ADM-23 | Phase 252 | Pending |
-| ADM-24 | Phase 252 | Pending |
-| ADM-25 | Phase 252 | Pending |
+| ADM-23 | Phase 252 | Complete |
+| ADM-24 | Phase 252 | Complete |
+| ADM-25 | Phase 252 | Complete |
 | ADM-26 | Phase 253 | Pending |
 | ADM-27 | Phase 253 | Pending |
 | ADM-28 | Phase 253 | Pending |
