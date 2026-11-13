@@ -12,7 +12,7 @@ import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
 test.beforeEach(async ({ page }, info) => {
-  if (process.env.THREADLINE_E2E_EVIDENCE === "1") await installControlledClipboard(page);
+  if (process.env.THREADLINE_E2E_EVIDENCE === "1" || process.env.THREADLINE_PHASE252_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
   if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme" &&
       info.title === "theme preference, effective cascade and reduced motion are distinct observed facts" &&
       info.project.name === "desktop-chromium") return;
