@@ -75,6 +75,16 @@
       "light": "xhigh",
       "standard": "xhigh",
       "heavy": "high"
+    },
+    "agent_overrides": {
+      "gsd-plan-checker": "high",
+      "gsd-code-reviewer": "high",
+      "gsd-verifier": "high"
     }
+  },
+  "model_overrides": {
+    "gsd-plan-checker": "gpt-6.1-sol",
+    "gsd-code-reviewer": "gpt-6.1-sol",
+    "gsd-verifier": "gpt-6.1-sol"
   }
 }

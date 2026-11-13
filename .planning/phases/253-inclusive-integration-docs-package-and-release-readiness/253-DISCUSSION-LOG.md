@@ -1,0 +1,7 @@
+# Phase253 autonomous discussion record
+
+Research-first fan-out covered inclusive use, current docs/package and verification/readiness through independent role contexts. All three returned terminal recommendations; no new consequential architectural choice lacks a clear winner. Existing autonomous authority and accepted decisions govern local work; no human confirmation/UAT or external-action authority is fabricated. See253-CONTEXT.md for the coherent locked recommendation and relative canonical references.
+
+Adversarial synthesis rejected an app-tree Pruner starter because Mix migrate/seed starts applications before schema readiness. Existing runner-only server bootstrap after those commands is the smallest verified-pattern fit. It enables real read-only preview without changing the disabled test default; valid deletion remains separately isolated. Export bootstrap cleanup would rewrite old seeded running jobs, so the fixture's existing24h/12000h options and limitation must be recorded.
+
+Assets already match approved runtime/package identity; update current docs/contracts and historical labels, preserve public names/anchors, and do not rebuild/remove assets without a defect. Actual headless tab zoom exists; intended-container and forced-colors proof need completion. Local gates cannot stand in for exact-candidate required CI/REL-01. Current role routing reserves stronger plan/source/goal review for consequential synthesis while routine research remains lightweight; no measured speedup claimed.
