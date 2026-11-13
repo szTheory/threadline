@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { resolve } from "node:path";
 import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
@@ -1485,6 +1488,32 @@ test.describe("operator accessibility baseline", () => {
       body: stressDrawerSnapshot,
       contentType: "text/plain",
     });
+  });
+
+  test("Phase253 page headlines use served heading font", async ({ page }, testInfo) => {
+    await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await page.getByRole("button", { name: "Preview retention", exact: true }).click();
+    const compact = page.getByTestId("retention-preview").getByRole("heading", { name: "Retention preview", exact: true });
+    await expect(compact).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const title = page.getByRole("heading", { name: "Retention window", exact: true });
+    const font = async (locator: Locator) => locator.evaluate((el) => { const s = getComputedStyle(el); return { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, lineHeight: s.lineHeight }; });
+    const headline = await font(title), dense = await font(compact);
+    const face = (await page.locator("style").allTextContents()).join("\n").match(/@font-face\s*\{[^}]*font-family:\s*"Threadline Familjen Grotesk";[^}]*\}/)?.[0];
+    expect(face).toBeTruthy();
+    const encoded = /data:font\/woff2;base64,([A-Za-z0-9+/=]+)/.exec(face!)?.[1];
+    expect(encoded).toBeTruthy();
+    const servedSha256 = createHash("sha256").update(Buffer.from(encoded!, "base64")).digest("hex");
+    const localSha256 = createHash("sha256").update(readFileSync(resolve(process.cwd(), "../../../brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2"))).digest("hex");
+    expect(servedSha256).toBe(localSha256);
+    const loaded = await page.evaluate(async () => (await document.fonts.load('600 28px "Threadline Familjen Grotesk"')).map(f => f.status));
+    expect(loaded.length).toBeGreaterThan(0); expect(loaded.every(s => s === "loaded")).toBe(true);
+    await testInfo.attach("phase253-rendered-font-observation", { body: Buffer.from(JSON.stringify({ headline, dense, servedSha256, localSha256, loaded, clock: new Date().toISOString() })), contentType: "application/json" });
+    expect(headline.family).toMatch(/^"Threadline Familjen Grotesk"/);
+    expect(headline).toMatchObject({ size: "28px", weight: "600", lineHeight: "33.6px" });
+    expect(dense.family).toMatch(/^"Threadline Geist"/);
+    expect(dense).toMatchObject({ size: "16px", weight: "600" });
   });
 
   test("Phase253 forced colors preserve focus and operation meaning", async ({ page }, testInfo) => {
