@@ -169,3 +169,7 @@ All eight implementation tasks have attributable automated boundary feedback; so
 | Gaps found | 0 |
 | Resolved | 0 |
 | Escalated | 0 |
+
+## Regression scope and preserved stop
+
+The installed execution manifest includes the generic prior-phase regression step. This phase's approved bounded contract and consumed full-root stop remain authoritative: no new full-root or full prior-browser-file run is claimed. Current affected regression proof is root128 (Retention/source/rendered/fixture/style), earlier unchanged Export141 (including Timeline owner), example13 and the exact browser cases already listed. Older Retention entry selectors and positive-Pruner normal-runner startup remain explicit253 inclusive-integration work in the independent disposition. Accepted prior source/behavior receipts are reused only within unchanged boundaries. This is a scoped acceptance record, not a generic complete-UI/CI pass; the goal verifier must assess any actual missing252 product evidence independently.
