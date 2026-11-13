@@ -1,9 +1,13 @@
-# Measured test time per file, in milliseconds, used by bin/ci-test-partitions
+# Test-time weights in milliseconds, used by bin/ci-test-partitions
 # to balance the CI test partitions. One "<milliseconds> <test file>" per line,
 # sorted by path.
 # Regenerate with: bin/ci-test-partitions --write-weights
 # The runner tolerates stale or missing weights for assignment; every discovered test
 # still runs exactly once. The committed-inventory CI contract rejects either condition.
+# Admission exception: fonts_test.exs uses ceil(5.7ms) from one local four-test
+# run on Elixir 1.17.3 / OTP 27 / PostgreSQL 15.17 (2026-11-13). This is an
+# uncalibrated estimate in all three files, not a measured CI-lane result.
+# Replace through normal successful CI timing ingestion; existing weights unchanged.
 195 test/mix/tasks/threadline.evidence_show_test.exs
 113 test/mix/tasks/threadline.incident_test.exs
 31 test/mix/tasks/threadline/export_test.exs
@@ -151,6 +155,7 @@
 155 test/threadline/operator_surface/exports/filename_test.exs
 1383 test/threadline/operator_surface/exports_doc_contract_test.exs
 72 test/threadline/operator_surface/exports_mix_parity_test.exs
+6 test/threadline/operator_surface/fonts_test.exs
 117 test/threadline/operator_surface/gating_test.exs
 982 test/threadline/operator_surface/live/actor_live_test.exs
 536 test/threadline/operator_surface/live/coverage_live_test.exs

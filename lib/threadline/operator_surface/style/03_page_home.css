@@ -266,6 +266,7 @@
   }
 
   .tl-page__title {
+    font-family: var(--tl-font-heading);
     margin: 0 0 var(--tl-space-1);
     font-size: var(--tl-font-size-heading);
     line-height: var(--tl-line-heading);
@@ -423,3 +424,35 @@
     font-weight: var(--tl-weight-strong);
   }
 
+
+  /* Retention disclosures are body prose; identifier elision stays on one line
+     inside the existing bounded table scroll owner. */
+  [data-testid="retention-scope"] .tl-card__body {
+    margin: 0;
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+  }
+
+  .tl-table--retention .tl-ref > .tl-secondary-ref {
+    white-space: nowrap;
+  }
+
+  /* Let the already shortened reference use the whole mobile card width. */
+  .tl-table--retention td[data-label="Run"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-testid="retention-preview"] > :where(h2, p, dl),
+  [data-testid="retention-preview"] :where(dt, dd) {
+    margin: 0;
+  }
+
+  [data-testid="retention-preview"] dd + dt {
+    margin-block-start: var(--tl-space-2);
+  }
+
+  .tl-transaction .tl-detail-header__title {
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-family: var(--tl-font-family);
+  }

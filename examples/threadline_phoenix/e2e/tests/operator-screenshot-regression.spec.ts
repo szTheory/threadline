@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -5,6 +6,9 @@ const adminEmail = "admin@example.com";
 const rowTable = "ticket_replies";
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -145,7 +149,7 @@ test.describe("operator screenshot regression guard", () => {
   test("Retention safety hierarchy stays stable", async ({ page }) => {
     await page.goto("/audit/policy/retention");
     await expect(page.getByRole("heading", { name: "Retention window" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Prune now" }).last()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Preview retention", exact: true })).toBeVisible();
     await expectOperatorScreenshot(page, "retention");
   });
 });

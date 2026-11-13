@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -28,6 +29,9 @@ type MatrixRoute = {
 };
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -546,7 +550,7 @@ async function assertRetention(page: Page, viewportWidth: number) {
     16,
   );
   await expect(
-    page.getByRole("button", { name: "Prune now" }).last(),
+    page.getByRole("button", { name: "Preview retention", exact: true }),
   ).toBeVisible();
   await expectResponsiveTable(
     page.getByTestId("retention-runs-table"),
@@ -673,3 +677,58 @@ for (const viewport of viewports) {
     });
   });
 }
+
+
+test("Phase253 intended host parent contains ordinary and retention jobs", async ({ page }, testInfo) => {
+  await login(page);
+  const observations = [];
+  for (const path of ["/audit/timeline?table=ticket_replies", "/audit/policy/retention"]) {
+    for (const dimensions of [{ viewport: 1280, parent: 900 }, { viewport: 1280, parent: 640 }, { viewport: 320, parent: 320 }]) {
+      await page.setViewportSize({ width: dimensions.viewport, height: 900 });
+      await page.goto(path);
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await page.evaluate((width) => {
+        const main = document.querySelector<HTMLElement>("[data-phx-main]")!;
+        const parent = document.createElement("div");
+        parent.id = "phase253-host-slot";
+        parent.style.cssText = `width:${width}px;box-sizing:border-box;margin:0;padding:0`;
+        main.before(parent);
+        parent.append(main);
+      }, dimensions.parent);
+      const control = page.getByRole("button", { name: path.includes("retention") ? "Preview retention" : "Apply", exact: true });
+      await control.scrollIntoViewIfNeeded();
+      await control.focus();
+      await expect(control).toBeFocused();
+      const measure = await control.evaluate((target) => {
+        const parent = document.getElementById("phase253-host-slot")!;
+        const surface = parent.querySelector(".threadline-ui")!;
+        const read = (el: Element) => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, clientWidth: el.clientWidth, scrollWidth: el.scrollWidth }; };
+        const rect = target.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return { viewport: innerWidth, documentClient: document.documentElement.clientWidth, documentScroll: document.documentElement.scrollWidth, parent: read(parent), surface: read(surface), control: read(target), unobscured: !!hit && (hit === target || target.contains(hit)) };
+      });
+      if (path.includes("retention")) {
+        const reference = page.locator('#retention-runs td[data-label="Run"] .tl-ref > code').first();
+        const referenceBox = await reference.evaluate(el => ({ client: el.clientWidth, scroll: el.scrollWidth, text: el.textContent }));
+        expect(referenceBox.text).toBeTruthy();
+        expect(referenceBox.scroll, "middle-elided Run reference must retain its visible suffix").toBeLessThanOrEqual(referenceBox.client + 1);
+        if (dimensions.viewport === 1280) {
+          const outcomeWidth = await page.locator('#retention-runs td[data-label="Outcome"]').first().evaluate(el => el.getBoundingClientRect().width);
+          expect(outcomeWidth, "Outcome needs a usable reading column in the bounded table").toBeGreaterThanOrEqual(260);
+        }
+      }
+      observations.push({ path, ...measure });
+      expect(measure.viewport).toBe(dimensions.viewport);
+      expect(measure.parent.width).toBe(dimensions.parent);
+      expect(measure.parent.clientWidth).toBe(dimensions.parent);
+      expect(measure.parent.scrollWidth).toBeLessThanOrEqual(dimensions.parent + 1);
+      expect(measure.surface.right).toBeLessThanOrEqual(measure.parent.right + 1);
+      expect(measure.surface.scrollWidth).toBeLessThanOrEqual(measure.surface.clientWidth + 1);
+      expect(measure.documentScroll).toBeLessThanOrEqual(measure.documentClient + 1);
+      expect(measure.control.left).toBeGreaterThanOrEqual(measure.parent.left - 1);
+      expect(measure.control.right).toBeLessThanOrEqual(measure.parent.right + 1);
+      expect(measure.unobscured).toBe(true);
+    }
+  }
+  await testInfo.attach("phase253-intended-host-after-only-observation", { body: Buffer.from(JSON.stringify({ observations, clock: new Date().toISOString() })), contentType: "application/json" });
+});

@@ -8,7 +8,9 @@ It is **not** a compliance procurement sign-off or legal attestation of your env
 
 ## What the current Threadline release packages
 
-Threadline **1.1.0** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT (`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight for maintainer attestation and publish workflow evidence. <!-- x-release-please-version -->
+Threadline **1.1.0** is the version in this checkout (`mix.exs` `@version`). Check [Hex](https://hex.pm/packages/threadline) for the published package; the [Distribution preflight](adoption-pilot-backlog.md) records the release workflow and publication evidence. <!-- x-release-please-version -->
+
+### Historical release context
 
 0.6.0 packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
@@ -20,7 +22,7 @@ Threadline separates concerns into three layers:
 
 - **Capture** — PostgreSQL trigger-backed row mutations (`AuditTransaction`, `AuditChange`).
 - **Semantics** — application-level actions binding actor, intent, correlation, and request/job context (`AuditAction`, `ActorRef`).
-- **Exploration** — timelines, exports, retention, redaction, and operator surfaces for investigation.
+- **Exploration** — timelines, exports, retention, redaction, and Threadline Admin for investigation and operations.
 
 Continue with [How Threadline works](how-threadline-works.md) for the full
 architecture narrative, the [code walkthrough](code-walkthrough.md) for a
@@ -34,11 +36,24 @@ Maintainers exercise the library through named **`mix verify.*`** entrypoints an
 In-repo evidence includes:
 
 - **Trigger capture** and semantics APIs under `test/threadline/`.
-- **Evidence plane** vocabulary, `Threadline.Evidence`, and `mix threadline.evidence.show`.
+- **Recorded evidence** vocabulary, `Threadline.Evidence`, and `mix threadline.evidence.show`.
 - **`mix verify.*` ladder** — doc-contract tests lock public prose to code; `mix verify.test` runs every one of them.
 - **PgBouncer transaction-mode class** via **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through a transaction pooler).
 - **Reference app CI-class HTTP paths** via `mix verify.example` (`examples/threadline_phoenix`).
 - **Hex package install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` installs this tree's `mix hex.build` package from a throwaway local registry, `bin/with-rehearsal-registry`, and not as a path dep).
+
+### Interpreting verification results
+
+`mix verify.release` builds and checks the local documentation/package candidate;
+`mix verify.hex_evaluator` exercises installation through a throwaway registry.
+They contribute to local package readiness. Publication requires its own release
+workflow and authority. Inspect required CI for that candidate separately.
+
+Selected browser checks exercise specific mounted Threadline Admin jobs,
+conditions and authorization boundaries. Catalog examples and screenshots show
+only their recorded states; the test count is not a coverage claim. This evidence
+does not establish adopter understanding or prove your deployment's authentication,
+tenancy, database topology or operational policy.
 
 ## What integrators must prove (host-class)
 

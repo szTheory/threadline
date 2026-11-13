@@ -14,6 +14,8 @@
 
 Threadline is an audit trail library for Phoenix apps. It records every insert, update and delete in your PostgreSQL database, with who made each change and when, and adds Threadline Admin, where your team can follow what happened.
 
+PostgreSQL triggers capture writes on the tables you register; actor details come from the context your app supplies.
+
 New Phoenix integrations should use `Threadline.Audit.transaction/3`; see [Getting started](guides/getting-started-saas.md) §6.
 
 Use it when you want the audit layer in your app, not a separate event system or a black box.
@@ -25,24 +27,23 @@ Pick the row that matches what you want to do. Each lane points at its canonical
 | I want to... | Start here | Then read |
 | --- | --- | --- |
 | **Evaluate** — see what Threadline proves in-repo, and what you must prove in staging. | [guides/evaluating-threadline.md](guides/evaluating-threadline.md) | [how-threadline-works.md](guides/how-threadline-works.md) |
-| **Adopt** — install, capture one real write, and mount the operator surface in the first hour. Wire it into a Phoenix app. | [guides/getting-started-saas.md](guides/getting-started-saas.md) | [configuration and commands](guides/configuration-and-commands.md) |
-| **Operate** — investigate row changes, actor history, and evidence in the `/audit` console. | [guides/operator-surface.md](guides/operator-surface.md) | [incident-playbook.md](guides/incident-playbook.md) |
+| **Adopt** — install, capture one real write, and mount Threadline Admin in the first hour. Wire it into a Phoenix app. | [guides/getting-started-saas.md](guides/getting-started-saas.md) | [configuration and commands](guides/configuration-and-commands.md) |
+| **Operate** — follow row changes and actor history in Threadline Admin at `/audit`. | [guides/operator-surface.md](guides/operator-surface.md) | [incident-playbook.md](guides/incident-playbook.md) |
 | **Contribute** — set up the repo, run `mix ci.all`, and follow the contribution gate. | [`CONTRIBUTING.md`](CONTRIBUTING.md) | [guides/adoption-pilot-backlog.md](guides/adoption-pilot-backlog.md) |
 
 [HexDocs](https://hexdocs.pm/threadline) remains the complete API reference.
 
-## Evidence plane
+<a id="evidence-plane"></a>
 
-Use Threadline's evidence to answer a practical operator question: is the audit
-system configured and behaving the way your team expects right now?
+## Check audit coverage and operations
 
-Threadline can persist evidence about its own governance surfaces such as
-trigger coverage, redaction posture, retention runs, export delivery, and the
-support-lane posture around mounted capabilities. That evidence plane stays
-host-owned on authorization and product scope: Threadline does not become a
-legal hold system, an immutable-storage guarantee beyond the host
-runtime/storage contract, a generic compliance pack, a vendor-specific
-reporting suite, or a Threadline-owned RBAC or tenancy DSL.
+Use Threadline Admin to check which tables are audited, compare configured
+redaction with deployed triggers, review retention runs, and follow export
+status. Stored evidence records let your team review those observations later.
+
+Authorization and product scope remain host-owned. Threadline does not provide
+legal hold, regulatory certification, a reporting suite, or its own role or
+tenant model. Protection and durability depend on the host runtime and storage.
 
 For the canonical non-goals list, read
 [guides/how-threadline-works.md](guides/how-threadline-works.md). For the
@@ -74,24 +75,28 @@ query path. When you need the exhaustive supported settings and command
 boundaries, use the [configuration and command reference](guides/configuration-and-commands.md).
 The [domain reference](guides/domain-reference.md) keeps the canonical "which public API first?" table.
 
-## Operator Surface
+<a id="operator-surface"></a>
 
-Threadline ships an optional, in-tree LiveView **operator console** for Find,
-Verify, and Prove workflows, with no asset build step. Mounting is fail-closed:
+## Threadline Admin
+
+Threadline Admin is the optional, in-tree LiveView interface for finding a
+record, following its change history, checking capture coverage, and reviewing
+exports and retention, with no asset build step. Mounting is fail-closed:
 the host supplies authentication and authorization, and must declare the
 optional Phoenix surface dependencies. The Threadline UI currently ships as an
-optional in-tree dependency; the [Operator Surface guide](guides/operator-surface.md)
+optional in-tree dependency; the [Threadline Admin guide](guides/operator-surface.md)
 is the sole owner for the supported `threadline_operator_surface/2` mount,
 authentication callbacks, screen inventory, and mount-specific configuration.
 The [Upgrade Path](guides/upgrade-path.md) owns its support guarantees.
 
-Daytime and bright-environment teams can mount with `theme: :system` to
-auto-follow each operator's OS light/dark preference (pure CSS, no JS); see the
-[Operator Surface guide](guides/operator-surface.md#theme) for the full
+Dark is the default. The header offers Dark, Light, and System preferences
+through a native form. Hosts can mount with `theme: :system` to follow the
+operator's OS light/dark preference through CSS; see the
+[Threadline Admin guide](guides/operator-surface.md#theme) for the full
 `:dark | :light | :system` triad.
 
 Continue with the [canonical first-hour Phoenix walkthrough](guides/getting-started-saas.md),
-then use the [Operator Surface guide](guides/operator-surface.md) for fail-closed
+then use the [Threadline Admin guide](guides/operator-surface.md) for fail-closed
 authorization and the [integration contracts](guides/integration-contracts.md)
 for host/framework boundaries. For current support claims, stay with the
 [Upgrade Path](guides/upgrade-path.md) rather than inferring broader compatibility
@@ -137,7 +142,7 @@ Quick destinations: [Evaluate](guides/evaluating-threadline.md) ·
 
 **Operate**
 
-- [Operator surface](guides/operator-surface.md)
+- [Threadline Admin](guides/operator-surface.md)
 - [Incident playbook](guides/incident-playbook.md)
 - [Performance](guides/performance.md)
 - [Audit indexing](guides/audit-indexing.md)

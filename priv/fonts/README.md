@@ -1,14 +1,21 @@
-# Operator surface brand fonts
+# Historical operator surface brand fonts
 
-Latin-subset `woff2` webfonts embedded by the Threadline operator surface
-(`lib/threadline/operator_surface/fonts.ex`) as compile-time `@font-face`
-data-URIs, scoped to `.threadline-ui`. They are a progressive enhancement over
-the token fallback chains (Inter / system-ui, JetBrains Mono / ui-monospace) and
-can be disabled with:
+Superseded, unshipped historical source. These files are preserved with their
+original provenance and licenses; they are not the current Admin font source.
+The approved identity is [brand/BRAND.md](../../brand/BRAND.md), and current
+font assets and licenses are described in [brand/assets/README.md](../../brand/assets/README.md#fonts).
+
+`lib/threadline/operator_surface/fonts.ex` embeds the approved Familjen Grotesk,
+Geist and IBM Plex Mono webfonts from `brand/assets/fonts/web/` as compile-time
+`@font-face` data-URIs. The scoped stylesheet keeps its fallback stacks, and
+font embedding can still be disabled with:
 
 ```elixir
 config :threadline, operator_surface_embed_fonts: false
 ```
+
+The following inventory and download provenance describe only this historical
+directory. Do not use them to regenerate the current brand assets.
 
 ## Contents
 

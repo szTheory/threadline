@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { resolve } from "node:path";
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
@@ -77,6 +81,9 @@ const d04RenderedStateCoverage = [
 ];
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -125,31 +132,15 @@ async function expectImmediateMotion(locator: Locator) {
   expect(style.transitionDelay.split(",").every((value) => value.trim() === "0s")).toBe(true);
 }
 
-async function expectThemeOptionFocusVisible(radio: Locator) {
-  await expect(radio).toBeFocused();
-  const option = radio.locator(
-    "xpath=ancestor::label[contains(concat(' ', normalize-space(@class), ' '), ' tl-theme-picker__option ')][1]",
-  );
-  await expect(option).toBeVisible();
-
-  const focusStyle = await option.evaluate((element) => {
-    const style = window.getComputedStyle(element);
-
-    return {
-      matchesFocusVisible: element.matches(":has(:focus-visible)"),
-      matchesFocusWithin: element.matches(":focus-within"),
-      outlineStyle: style.outlineStyle,
-      outlineWidth: style.outlineWidth,
-    };
+async function expectThemeOptionFocusVisible(button: Locator) {
+  await expect(button).toBeFocused();
+  await expect(button).toBeVisible();
+  const focusStyle = await button.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { matchesFocusVisible: element.matches(":focus-visible"), outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
   });
-
-  const hasFocusRing =
-    focusStyle.outlineStyle !== "none" && focusStyle.outlineWidth !== "0px";
-
-  expect(
-    hasFocusRing,
-    `expected theme option focus ring, got ${JSON.stringify(focusStyle)}`,
-  ).toBe(true);
+  expect(focusStyle.matchesFocusVisible).toBe(true);
+  expect(focusStyle.outlineStyle !== "none" && focusStyle.outlineWidth !== "0px", JSON.stringify(focusStyle)).toBe(true);
 }
 
 async function focusByKeyboard(page: Page, target: Locator, maxTabs = 40) {
@@ -315,8 +306,7 @@ test.describe("operator accessibility baseline", () => {
         await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
       await openOperatorNav(page);
       const picker = page.getByTestId("operator-nav-group-theme");
-      await picker.getByRole("radio", { name: theme, exact: true }).check();
-      await picker.getByRole("button", { name: "Apply theme", exact: true }).click();
+      await picker.getByRole("button", { name: theme, exact: true }).click();
 
       await page.goto("/audit/evidence");
       await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
@@ -540,26 +530,23 @@ test.describe("operator accessibility baseline", () => {
     await expect(themeGroup.locator('form[action="/audit/theme"]')).toBeVisible();
     await expect(themeGroup.locator('input[name="_csrf_token"]')).toHaveCount(1);
 
+    const selectedTheme = themeGroup.locator('button[name="theme"][aria-pressed="true"]');
+    await expect(selectedTheme).toHaveCount(1);
+    await expect(selectedTheme.locator(".tl-theme-picker__selected")).toContainText("Selected");
     for (const theme of ["System", "Light", "Dark"]) {
-      const radio = themeGroup.getByRole("radio", { name: theme });
-      await expect(radio).toBeVisible();
+      const button = themeGroup.getByRole("button", { name: theme, exact: true });
+      await expect(button).toBeVisible();
+      await focusByKeyboard(page, button);
+      await expectThemeOptionFocusVisible(button);
+      await expectNonObscuredFocused(button, page);
     }
+    await expect(themeGroup.getByRole("button", { name: "Apply theme" })).toHaveCount(0);
+    const light = themeGroup.getByRole("button", { name: "Light", exact: true });
+    await focusByKeyboard(page, light);
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".threadline-ui")).toHaveAttribute("data-tl-theme", "light");
+    await expect(light).toHaveAttribute("aria-pressed", "true");
 
-    const checkedTheme = themeGroup.locator('input[name="theme"]:checked');
-    await focusByKeyboard(page, checkedTheme);
-    await expectThemeOptionFocusVisible(checkedTheme);
-
-    for (let index = 0; index < 2; index += 1) {
-      await page.keyboard.press("ArrowUp");
-      await expectThemeOptionFocusVisible(
-        themeGroup.locator('input[name="theme"]:focus'),
-      );
-    }
-
-    const applyTheme = themeGroup.getByRole("button", { name: "Apply theme" });
-    await page.keyboard.press("Tab");
-    await expect(applyTheme).toBeFocused();
-    await expectNonObscuredFocused(applyTheme, page);
   });
 
   test("keeps System selection while served colors follow OS through investigation navigation", async ({
@@ -569,16 +556,15 @@ test.describe("operator accessibility baseline", () => {
 
     const themeGroup = page.getByTestId("operator-nav-group-theme");
     await openOperatorNav(page);
-    const system = themeGroup.getByRole("radio", { name: "System" });
+    const system = themeGroup.getByRole("button", { name: "System", exact: true });
     if (process.env.THREADLINE_E2E_THEME === "system") {
-      await expect(system).toBeChecked();
+      await expect(system).toHaveAttribute("aria-pressed", "true");
       await expect(page.locator(".threadline-ui")).toHaveAttribute(
         "data-tl-theme",
         "system",
       );
     }
-    await system.check();
-    await themeGroup.getByRole("button", { name: "Apply theme" }).click();
+    await system.click();
     await expect(page.locator(".threadline-ui")).toHaveAttribute(
       "data-tl-theme",
       "system",
@@ -601,14 +587,15 @@ test.describe("operator accessibility baseline", () => {
     const systemLight = await appearance();
     expect(systemLight.background).toBe("rgb(247, 249, 252)");
     expect(systemLight.foreground).toBe("rgb(15, 23, 40)");
-    expect(systemLight.border).toBe("rgb(167, 180, 200)");
+    // Current functional strong-border token, shared by Light and System.
+    expect(systemLight.border).toBe("rgb(118, 132, 159)");
 
     await page.emulateMedia({ colorScheme: "dark" });
     const systemDark = await appearance();
     expect(systemDark.background).toBe("rgb(11, 16, 32)");
     expect(systemDark.foreground).not.toBe(systemLight.foreground);
     expect(systemDark.border).not.toBe(systemLight.border);
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
 
@@ -617,7 +604,7 @@ test.describe("operator accessibility baseline", () => {
       "data-tl-theme",
       "system",
     );
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
     const { transactionHref } = await discoverTransactionAndRowHistory(page);
@@ -631,15 +618,14 @@ test.describe("operator accessibility baseline", () => {
       "data-tl-theme",
       "system",
     );
-    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+    await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
       "system",
     );
 
     for (const theme of ["light", "dark"]) {
       await openOperatorNav(page);
       const group = page.getByTestId("operator-nav-group-theme");
-      await group.getByRole("radio", { name: new RegExp(theme, "i") }).check();
-      await group.getByRole("button", { name: "Apply theme" }).click();
+      await group.getByRole("button", { name: new RegExp(`^${theme}$`, "i") }).click();
       await expect(page.locator(".threadline-ui")).toHaveAttribute(
         "data-tl-theme",
         theme,
@@ -649,7 +635,7 @@ test.describe("operator accessibility baseline", () => {
         "data-tl-theme",
         theme,
       );
-      await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      await expect(page.locator('button[name="theme"][aria-pressed="true"]')).toHaveAttribute("value",
         theme,
       );
     }
@@ -704,12 +690,12 @@ test.describe("operator accessibility baseline", () => {
       /phx-connected/,
     );
     const prune = page
-      .getByRole("button", { name: "Prune now" })
-      .last();
+      .getByRole("button", { name: "Preview retention", exact: true });
     await expect(prune).toBeVisible();
     await prune.focus();
     await expectNonObscuredFocused(prune, page);
     await prune.click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const pruneModal = page.locator("#prune-confirm");
     const pruneDialog = page.getByRole("dialog", {
       name: "Prune retained audit data?",
@@ -810,9 +796,8 @@ test.describe("operator accessibility baseline", () => {
       await page.goto("/audit");
       await openOperatorNav(page);
       const themeGroup = page.getByTestId("operator-nav-group-theme");
-      const themeRadio = themeGroup.getByRole("radio", { name: theme, exact: true });
-      if (!(await themeRadio.isChecked())) await themeRadio.check();
-      await themeGroup.getByRole("button", { name: "Apply theme", exact: true }).click();
+      const themeButton = themeGroup.getByRole("button", { name: theme, exact: true });
+      if ((await themeButton.getAttribute("aria-pressed")) !== "true") await themeButton.click();
       await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
 
       const longCorrelation = `retention-export-filter-${"x".repeat(80)}`;
@@ -869,7 +854,7 @@ test.describe("operator accessibility baseline", () => {
       const history = page.locator("#retention-runs");
       await expect(history).toBeVisible();
       await expect(history).toContainText(/Completed|Queued|No retention runs/);
-      const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+      const prune = page.getByRole("button", { name: "Preview retention", exact: true });
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 900 });
         await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
@@ -883,6 +868,7 @@ test.describe("operator accessibility baseline", () => {
       await page.setViewportSize({ width: 320, height: 440 });
       await prune.focus();
       await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
       const modal = page.locator("#prune-confirm");
       const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
       await expect(dialog).toBeVisible();
@@ -1395,7 +1381,8 @@ test.describe("operator accessibility baseline", () => {
 
     await page.goto("/audit/policy/retention");
     await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-    await page.getByRole("button", { name: "Prune now" }).last().click();
+    await page.getByRole("button", { name: "Preview retention", exact: true }).click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const retentionSnapshot = await expectAriaSnapshotContains(
       page.getByRole("dialog", { name: "Prune retained audit data?" }),
       [
@@ -1479,6 +1466,85 @@ test.describe("operator accessibility baseline", () => {
       body: stressDrawerSnapshot,
       contentType: "text/plain",
     });
+  });
+
+  test("Phase253 page headlines use served heading font", async ({ page }, testInfo) => {
+    await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await page.getByRole("button", { name: "Preview retention", exact: true }).click();
+    const compact = page.getByTestId("retention-preview").getByRole("heading", { name: "Retention preview", exact: true });
+    await expect(compact).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const title = page.getByRole("heading", { name: "Retention window", exact: true });
+    const font = async (locator: Locator) => locator.evaluate((el) => { const s = getComputedStyle(el); return { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, lineHeight: s.lineHeight }; });
+    const headline = await font(title), dense = await font(compact);
+    const face = (await page.locator("style").allTextContents()).join("\n").match(/@font-face\s*\{[^}]*font-family:\s*"Threadline Familjen Grotesk";[^}]*\}/)?.[0];
+    expect(face).toBeTruthy();
+    const encoded = /data:font\/woff2;base64,([A-Za-z0-9+/=]+)/.exec(face!)?.[1];
+    expect(encoded).toBeTruthy();
+    const servedSha256 = createHash("sha256").update(Buffer.from(encoded!, "base64")).digest("hex");
+    const localSha256 = createHash("sha256").update(readFileSync(resolve(process.cwd(), "../../../brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2"))).digest("hex");
+    expect(servedSha256).toBe(localSha256);
+    const loaded = await page.evaluate(async () => (await document.fonts.load('600 28px "Threadline Familjen Grotesk"')).map(f => f.status));
+    expect(loaded.length).toBeGreaterThan(0); expect(loaded.every(s => s === "loaded")).toBe(true);
+    await testInfo.attach("phase253-rendered-font-observation", { body: Buffer.from(JSON.stringify({ headline, dense, servedSha256, localSha256, loaded, clock: new Date().toISOString() })), contentType: "application/json" });
+    expect(headline.family).toMatch(/^"Threadline Familjen Grotesk"/);
+    expect(headline).toMatchObject({ size: "28px", weight: "600", lineHeight: "33.6px" });
+    expect(dense.family).toMatch(/^"Threadline Geist"/);
+    expect(dense).toMatchObject({ size: "16px", weight: "600" });
+  });
+
+  test("Phase253 forced colors preserve focus and operation meaning", async ({ page }, testInfo) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await page.goto("/audit/timeline");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const apply = page.getByRole("button", { name: "Apply", exact: true });
+    await apply.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expectNonObscuredFocused(apply, page);
+    const focus = await apply.evaluate((el) => {
+      const css = getComputedStyle(el);
+      return { active: document.activeElement === el, forcedColors: matchMedia("(forced-colors: active)").matches, outlineStyle: css.outlineStyle, outlineWidth: parseFloat(css.outlineWidth), outlineColor: css.outlineColor };
+    });
+    expect(focus.active).toBe(true);
+    expect(focus.forcedColors).toBe(true);
+    expect(focus.outlineStyle).not.toBe("none");
+    expect(focus.outlineWidth).toBeGreaterThanOrEqual(1);
+    expect(focus.outlineColor).not.toBe("rgba(0, 0, 0, 0)");
+    await discoverTransactionAndRowHistory(page);
+    const operation = page.locator(".tl-change__op").first();
+    await expect(operation).toBeVisible();
+    await expect(operation).toHaveText(/insert|update|delete/i);
+    await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const failed = page.locator("#retention-runs tr").filter({ hasText: "Failed" }).locator(".tl-chip").first();
+    await expect(failed).toHaveText("Failed");
+    await expect(failed).toBeVisible();
+    // Navigation can reset the effective emulated palette. Observe the actual
+    // status after reapplying it, rather than inheriting the earlier focus flag.
+    await page.emulateMedia({ forcedColors: "active", colorScheme: "light" });
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const shape = await failed.evaluate((el) => {
+      const css = getComputedStyle(el);
+      const sentinel = document.createElement("span");
+      sentinel.style.cssText = "color:CanvasText;background:Canvas";
+      document.body.append(sentinel);
+      const system = getComputedStyle(sentinel);
+      const result = { borderStyle: css.borderTopStyle, borderWidth: parseFloat(css.borderTopWidth), borderColor: css.borderTopColor, forcedColorAdjust: css.forcedColorAdjust, forcedColors: matchMedia("(forced-colors: active)").matches, color: css.color, background: css.backgroundColor, canvas: system.backgroundColor, canvasText: system.color };
+      sentinel.remove();
+      return result;
+    });
+    expect(shape.borderStyle).not.toBe("none");
+    expect(shape.borderWidth).toBeGreaterThanOrEqual(1);
+    expect(shape.borderColor).not.toBe("rgba(0, 0, 0, 0)");
+    expect(shape.forcedColorAdjust).toBe("auto");
+    expect(shape.forcedColors).toBe(true);
+    expect(shape.color).toBe(shape.canvasText);
+    expect(shape.background).toBe(shape.canvas);
+    await page.evaluate(() => scrollTo(0, 0));
+    await testInfo.attach("phase253-forced-status-current", { body: await page.screenshot({ fullPage: true, animations: "disabled" }), contentType: "image/png" });
+    await testInfo.attach("phase253-forced-colors-after-only-observation", { body: Buffer.from(JSON.stringify({ focus, shape, clock: new Date().toISOString() })), contentType: "application/json" });
   });
 
   test("renders status and verdict chips with text labels and non-color shape", async ({

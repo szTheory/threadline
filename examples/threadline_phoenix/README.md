@@ -9,6 +9,9 @@ This app is the current `sigra-reference` lane. It proves the narrow first-party
 composition shipped in this repository without claiming that arbitrary Sigra
 versions, auth layouts, or non-Phoenix hosts work automatically.
 
+Threadline Admin runs inside this host at `/audit`, where the team can find a
+record, follow its changes, and review coverage, exports, and retention.
+
 ## Before you use the example
 
 - **Audience:** adopters evaluating the reference integration and maintainers
@@ -33,7 +36,7 @@ Use the guide for the job in front of you:
 | Job | Canonical owner | What you get |
 | --- | --- | --- |
 | Install Threadline and reach one captured write | [Getting Started — prerequisites](../../guides/getting-started-saas.md#1-prerequisites) | The complete first-hour path from package dependency through capture and query verification |
-| Mount and authorize the operator console | [Operator Surface — 1-Minute Mount](../../guides/operator-surface.md#1-minute-mount) | The supported router, authorization, screen, and configuration contract |
+| Mount and authorize Threadline Admin | [Threadline Admin — 1-Minute Mount](../../guides/operator-surface.md#1-minute-mount) | The supported router, authorization, screen, and configuration contract |
 | Run the local demo or test database with Docker | [Local Docker DX — Try the UI demo](../../guides/local-docker-dx.md#try-the-ui-demo) | Lifecycle, ports, cleanup, and troubleshooting |
 
 For the exhaustive supported application settings and command boundaries, use
@@ -77,9 +80,11 @@ Historical reconstruction and explicit `:deleted_record` /
 history and incident tests, while the public API contract stays in the
 [domain reference](../../guides/domain-reference.md).
 
-### Mounted operator boundary
+<a id="mounted-operator-boundary"></a>
 
-The operator scope in
+### Mounted Threadline Admin
+
+The Threadline Admin scope in
 [`router.ex`](lib/threadline_phoenix_web/router.ex) demonstrates one secured
 `/audit` tree with host-owned actor, authorization, export, evidence, coverage,
 policy, and query-scope callbacks. Admin and support roles share the mount while
@@ -113,7 +118,7 @@ must still validate in staging.
 ## Learn more
 
 - [Getting Started](../../guides/getting-started-saas.md)
-- [Operator Surface](../../guides/operator-surface.md)
+- [Threadline Admin](../../guides/operator-surface.md)
 - [Local Docker DX](../../guides/local-docker-dx.md)
 - [Integration contracts](../../guides/integration-contracts.md)
 - [Sigra integration](../../guides/integrations/sigra.md)

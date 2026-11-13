@@ -9,9 +9,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
 
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
-    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
 
     def mount(_params, _session, socket) do
       repo =

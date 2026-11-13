@@ -65,6 +65,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.OperatorSurfaceCase,
       endpoint: Threadline.OperatorSurface.EvidenceLiveTest.Endpoint
 
+    alias Threadline.Evidence.Subject
     alias Threadline.Governance.EvidenceRecord
 
     setup_all do
@@ -125,7 +126,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         subjects =
           ~w(redaction_policy trigger_coverage retention_run retention_policy export_delivery support_scope_posture)
 
-        assert Threadline.Evidence.Subject.supported_subjects() == subjects
+        assert Subject.supported_subjects() == subjects
 
         for subject <- subjects do
           reference = %{"probe" => "known-#{subject}"}

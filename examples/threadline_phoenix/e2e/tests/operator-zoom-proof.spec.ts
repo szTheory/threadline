@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { chromium, expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -15,6 +16,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
   test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
 
   await withIsolatedZoomContext(chromium, async (context, page) => {
+    if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
     const baseURL = testInfo.project.use.baseURL ?? "http://127.0.0.1:4002";
     await page.goto(new URL("/users/log_in", String(baseURL)).toString());
     const form = page.locator("#login_form");
@@ -142,6 +144,8 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
       observations,
     };
     console.log(`THREADLINE_ZOOM_OBSERVATION=${JSON.stringify(result)}`);
+    await testInfo.attach("investigation-real-200-percent-zoom", { body: Buffer.from(JSON.stringify(result)), contentType: "application/json" });
+    await testInfo.attach("investigation-real-200-percent-zoom-after-only", { body: await page.screenshot(), contentType: "image/png" });
 
     if (acceptMode) {
       for (const observation of observations) {
@@ -158,6 +162,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
 test("inspection routes preserve exact scope and controls at verified real 200% tab zoom", async ({}, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
   await withIsolatedZoomContext(chromium, async (context, page) => {
+    if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
     const baseURL = String(testInfo.project.use.baseURL ?? "http://127.0.0.1:4002");
     let blockReconnect = false;
     await page.routeWebSocket(/\/live\/websocket/, (socket) => {
@@ -267,13 +272,14 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
     expect(retentionZoom.tabId).toBe(coverageZoom.tabId);
     expect(retentionZoom.zoomFactor).toBe(2);
     await expect(page.locator("#retention-runs")).toBeVisible();
-    const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+    const prune = page.getByRole("button", { name: "Preview retention", exact: true });
     observations.push({ ...await observePage(page, "Retention history", [
-      ["Open prune confirmation", prune],
+      ["Preview retention", prune],
     ], true), tabZoom: retentionZoom });
     await page.setViewportSize({ width: 1280, height: 420 });
     expect((await setAndReadTabZoom(context, page)).zoomFactor).toBe(2);
     await prune.click();
+    await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
     const pruneDialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
     await expect(pruneDialog).toBeVisible();
     await expect(pruneDialog).toContainText("This prune applies the configured retention policy globally");
@@ -283,6 +289,7 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
       ["Confirmation policy name", pruneDialog.getByRole("textbox", { name: "Policy name to confirm" })],
       ["Keep audit data", keepAuditData],
     ], true), tabZoom: retentionZoom });
+    await testInfo.attach("retention-real-200-percent-zoom-after-only", { body: await page.screenshot(), contentType: "image/png" });
     await keepAuditData.click();
     await expect(page.locator("#prune-confirm")).toBeHidden();
     await expect(prune).toBeFocused();
@@ -358,11 +365,11 @@ async function observePage(
 
 async function openThemeControls(page: import("@playwright/test").Page): Promise<[string, import("@playwright/test").Locator][]> {
   const shell = page.getByTestId("operator-nav-shell");
-  const theme = (name: string) => [`${name} theme`, shell.getByRole("radio", { name, exact: true })] as [string, import("@playwright/test").Locator];
-  const system = shell.getByRole("radio", { name: "System" });
+  const theme = (name: string) => [`${name} theme`, shell.getByRole("button", { name, exact: true })] as [string, import("@playwright/test").Locator];
+  const system = shell.getByRole("button", { name: "System", exact: true });
   if (!(await system.isVisible())) {
     const toggle = shell.locator(".tl-shell-nav__toggle");
     if (await toggle.isVisible()) await toggle.click();
   }
-  return [theme("System"), theme("Light"), theme("Dark"), ["Apply theme", shell.getByRole("button", { name: "Apply theme", exact: true })]];
+  return [theme("System"), theme("Light"), theme("Dark")];
 }

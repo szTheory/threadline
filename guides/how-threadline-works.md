@@ -1,6 +1,6 @@
 # How Threadline works
 
-Threadline is embedded audit infrastructure for Phoenix, Ecto, and PostgreSQL applications. Read this guide when you need to trace one audited write end to end, decide which guarantees Threadline provides, and identify which decisions remain with the host application.
+Threadline is an audit trail library for Elixir and Phoenix apps using Ecto and PostgreSQL. Read this guide when you need to trace one audited write end to end, decide which guarantees Threadline provides, and identify which decisions remain with the host application.
 
 The architectural promise is simple:
 
@@ -10,7 +10,7 @@ That becomes a useful shorthand:
 
 `database truth` + `application intent` + `host-owned policy`
 
-Threadline is not event sourcing, a remote audit SaaS, an authentication framework, or a write-capable admin backend. It records and presents evidence about ordinary database writes without taking ownership of the application's domain model or security boundary.
+Threadline is not event sourcing, a remote audit SaaS, an authentication framework, or a write-capable admin backend for your application's business records. It records and presents evidence about ordinary database writes without taking ownership of the application's domain model or security boundary.
 
 ## Threadline in one picture
 
@@ -24,7 +24,7 @@ flowchart LR
     P[("PostgreSQL transaction")]
     C["Trigger-captured audit facts"]
     Q["Threadline query and investigation APIs"]
-    O["Host-authorized operator, export, or evidence surface"]
+    O["Host-authorized Threadline Admin, exports and evidence"]
 
     H -->|"actor, intent, domain writes"| A
     A -->|"one database transaction"| P
@@ -34,12 +34,14 @@ flowchart LR
     H -.->|"auth, tenancy, retention policy"| O
 ```
 
-There are two planes in this picture:
+Three layers share the work:
 
-- The **capture plane** is PostgreSQL-first. Triggers create `Threadline.Capture.AuditTransaction` and `Threadline.Capture.AuditChange` rows from writes that actually reached audited tables.
-- The **meaning and operations plane** is application-aware. `Threadline.Semantics.AuditAction`, investigations, exports, retention runs, saved views, and evidence records make captured facts useful without replacing host policy.
+- The **capture layer** is PostgreSQL-first. Triggers create `Threadline.Capture.AuditTransaction` and `Threadline.Capture.AuditChange` rows from writes that actually reached audited tables.
+- The **semantics layer** binds application intent, actors and request/job context through `AuditAction`, `AuditContext` and `ActorRef`. An action is distinct from a captured row change or database transaction.
+- The **exploration and operations layer** provides investigations, exports, retention, saved views and host-written evidence under host policy.
 
-The optional operator surface reads through the same public query and investigation layers. It is not a second source of truth.
+Threadline Admin, the optional operator surface, reads through the same public
+query and investigation layers. It is not a second source of truth.
 
 ## Vocabulary for the trip
 
@@ -244,7 +246,7 @@ flowchart LR
 
     Q["Query and investigation APIs"]
 
-    subgraph Governance["Operational and evidence plane"]
+    subgraph Governance["Operations and recorded evidence"]
       X["Export jobs"]
       R["Retention runs"]
       V["Saved views"]
@@ -274,7 +276,7 @@ The design concentrates important guarantees at boundaries that can enforce them
 - **Atomic linkage:** domain writes, actor publication, optional action creation, metadata, and action linkage share one database transaction. Linkage failure rolls back the domain writes.
 - **Database-level observation:** triggers see writes made through ordinary Ecto calls, scripts, or direct SQL as long as they reach an audited table with triggers installed.
 - **Transaction-local identity:** the actor GUC is local to the transaction, and transaction grouping uses `txid_current()`, preserving PgBouncer transaction-pooling safety.
-- **Actor posture:** correlation-ready writes require a validated actor. Anonymous is an explicit actor type; absent is a separate, narrowly opt-in capture-only state.
+- **Actor context:** correlation-ready writes require a validated actor. Anonymous is an explicit actor type; absent is a separate, narrowly opt-in capture-only state.
 - **Capture-time secrecy:** `exclude` and `mask` transform values before the audit insert. `except_columns` only reduces change-detail noise.
 - **Recursion prevention:** trigger generation rejects Threadline's own storage tables.
 - **Strict correlation:** correlation filters return only changes connected through `AuditTransaction.action_id` to a matching action.
@@ -302,7 +304,7 @@ Retention is an explicit operational policy, not an invisible cleanup. When enab
 
 ### Evidence
 
-`Threadline.Evidence` exposes six subject-specific write entrypoints for redaction policy, trigger coverage, retention runs, retention policy, export delivery, and support-scope posture. Host code calls those entrypoints deliberately. Threadline does not auto-populate compliance claims, provide legal holds, promise immutable storage beyond the configured backend, or own an RBAC or tenancy model.
+`Threadline.Evidence` exposes six subject-specific write entrypoints for redaction policy, trigger coverage, retention runs, retention policy, export delivery, and support access. Host code calls those entrypoints deliberately. Threadline does not auto-populate compliance claims, provide legal holds, promise immutable storage beyond the configured backend, or own an RBAC or tenancy model.
 
 ### Runtime ownership
 
@@ -355,6 +357,6 @@ For release work, verify source contracts, generated docs, the Hex package, and 
 - [Getting started with Phoenix SaaS](getting-started-saas.md) — install and exercise the supported write path.
 - [Domain reference](domain-reference.md) — exact vocabulary and public API routing.
 - [Integration contracts](integration-contracts.md) — host-owned identity, jobs, scope, and adapters.
-- [Operator surface](operator-surface.md) — secure mounting and operator capabilities.
+- [Threadline Admin](operator-surface.md) — secure mounting and operator capabilities.
 - [Production checklist](production-checklist.md) — deployment and live-database verification.
 - [Incident playbook](incident-playbook.md) — use the captured trail during an investigation.

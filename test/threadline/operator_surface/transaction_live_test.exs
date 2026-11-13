@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          %{conn: conn} do
       txn =
         Repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
           }),

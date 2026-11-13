@@ -159,12 +159,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         "timeline" ->
           filter_params = Map.drop(params, ["origin", "as_of"])
 
-          with {:ok, _filters} <- validate_ui_filter_input(filter_params) do
-            query = FilterParams.canonical_query(filter_params)
-            query = preserve_empty_from(query, filter_params["from"] == "")
-            {:timeline, query}
-          else
-            _ -> {:lost, ""}
+          case validate_ui_filter_input(filter_params) do
+            {:ok, _filters} ->
+              query = FilterParams.canonical_query(filter_params)
+              query = preserve_empty_from(query, filter_params["from"] == "")
+              {:timeline, query}
+
+            _ ->
+              {:lost, ""}
           end
 
         origin when origin in [nil, ""] ->

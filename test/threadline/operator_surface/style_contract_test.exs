@@ -5,6 +5,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   alias Threadline.Test.StyleSource
 
+  test "page headlines use the heading role while compact cards retain body type" do
+    src = StyleSource.read!()
+    title = selector_block!(src, ".tl-page__title")
+    assert title =~ "font-family: var(--tl-font-heading);"
+    assert title =~ "font-size: var(--tl-font-size-heading);"
+    assert title =~ "font-weight: var(--tl-weight-strong);"
+    assert title =~ "line-height: var(--tl-line-heading);"
+    refute selector_block!(src, ".tl-card__title") =~ "var(--tl-font-heading)"
+  end
+
   test "investigation results keep card emphasis and history clears the fixed app bar" do
     src = StyleSource.read!()
 

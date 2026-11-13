@@ -1,5 +1,11 @@
 # Threadline Brandbook
 
+> Superseded historical identity. Retained as unshipped release-era history;
+> these are not current release or acceptance instructions. Use the
+> [current brand guide](../brand/BRAND.md), [structured rules](../brand/brand.json),
+> [primitive tokens](../brand/tokens.json), and [asset guide](../brand/assets/README.md).
+> The wording, tokens, scores and commands below preserve their historical context.
+
 This directory contains the repo-ready Threadline brand system. It is intentionally self-contained and source-control friendly: HTML, Markdown, JSON, CSS, and SVG only.
 
 Open `index.html` directly in a browser to review the visual brandbook. The Markdown files are the durable source text:

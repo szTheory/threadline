@@ -378,8 +378,8 @@
   }
 
   .tl-copy.is-copied {
-    color: var(--tl-color-signal);
-    border-color: var(--tl-color-signal-border);
+    color: var(--tl-color-text);
+    border-color: var(--tl-color-border-strong);
     animation: tl-copy-pulse var(--tl-motion-base) var(--tl-ease-out);
   }
 
@@ -400,7 +400,7 @@
   }
 
   .tl-copy-status[data-state="success"] {
-    color: var(--tl-color-signal);
+    color: var(--tl-color-text);
   }
 
   .tl-copy-status[data-state="error"] {
@@ -409,7 +409,7 @@
 
   @keyframes tl-copy-pulse {
     from {
-      box-shadow: 0 0 0 0 var(--tl-color-signal-border);
+      box-shadow: 0 0 0 0 var(--tl-color-border-strong);
     }
     to {
       box-shadow: 0 0 0 6px transparent;
