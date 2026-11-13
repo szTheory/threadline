@@ -683,7 +683,7 @@ test("Phase253 intended host parent contains ordinary and retention jobs", async
   await login(page);
   const observations = [];
   for (const path of ["/audit/timeline?table=ticket_replies", "/audit/policy/retention"]) {
-    for (const dimensions of [{ viewport: 1280, parent: 640 }, { viewport: 320, parent: 320 }]) {
+    for (const dimensions of [{ viewport: 1280, parent: 900 }, { viewport: 1280, parent: 640 }, { viewport: 320, parent: 320 }]) {
       await page.setViewportSize({ width: dimensions.viewport, height: 900 });
       await page.goto(path);
       await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
