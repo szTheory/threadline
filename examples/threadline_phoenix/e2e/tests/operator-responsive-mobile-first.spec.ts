@@ -707,6 +707,16 @@ test("Phase253 intended host parent contains ordinary and retention jobs", async
         const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
         return { viewport: innerWidth, documentClient: document.documentElement.clientWidth, documentScroll: document.documentElement.scrollWidth, parent: read(parent), surface: read(surface), control: read(target), unobscured: !!hit && (hit === target || target.contains(hit)) };
       });
+      if (path.includes("retention")) {
+        const reference = page.locator('#retention-runs td[data-label="Run"] .tl-ref > code').first();
+        const referenceBox = await reference.evaluate(el => ({ client: el.clientWidth, scroll: el.scrollWidth, text: el.textContent }));
+        expect(referenceBox.text).toBeTruthy();
+        expect(referenceBox.scroll, "middle-elided Run reference must retain its visible suffix").toBeLessThanOrEqual(referenceBox.client + 1);
+        if (dimensions.viewport === 1280) {
+          const outcomeWidth = await page.locator('#retention-runs td[data-label="Outcome"]').first().evaluate(el => el.getBoundingClientRect().width);
+          expect(outcomeWidth, "Outcome needs a usable reading column in the bounded table").toBeGreaterThanOrEqual(260);
+        }
+      }
       observations.push({ path, ...measure });
       expect(measure.viewport).toBe(dimensions.viewport);
       expect(measure.parent.width).toBe(dimensions.parent);
