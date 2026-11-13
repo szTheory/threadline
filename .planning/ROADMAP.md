@@ -136,7 +136,18 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Audited-table inspection shows current schema-specific facts and actionable remediation, distinguishing not audited, not inspected, denied and unavailable without an all-schema default.
 4. Redaction inspection distinguishes configured from deployed policy and provenance, replaced from left-out values, and supported empty/error recovery paths.
 5. Operational Evidence inspection preserves subject scope, observation/provenance and genuine availability limits; it does not call every evidence record record history.
-**Plans**: 0 (not planned)
+**Plans**: 4 plans in four sequential waves, grouped into navigation/history (01–02) and scoped inspection (03–04).
+**Wave 1**
+- [ ] 251-01-PLAN.md — Guard Timeline/saved filters and disclose lost retained context.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 251-02-PLAN.md — Preserve explicit snapshot identity and existing Home/Actor flows.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 251-03-PLAN.md — Align selected-schema Coverage facts, current badge and recovery.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 251-04-PLAN.md — Clarify Redaction/Evidence provenance and close bounded review.
 **UI hint**: yes
 **Canonical references**: [Approved complete-screen scope](research/2026-11-10-brand-admin/milestone-proposal.md), [domain meanings](../prompts/audit-lib-domain-model-reference.md), [Home](../lib/threadline/operator_surface/live/start_live.ex), [Timeline](../lib/threadline/operator_surface/live/timeline_live.ex), [Actor](../lib/threadline/operator_surface/live/actor_live.ex), [record history](../lib/threadline/operator_surface/live/row_history_live.ex), [audited tables](../lib/threadline/operator_surface/live/coverage_live.ex), [Redaction](../lib/threadline/operator_surface/live/policy_redaction_live.ex), [Evidence](../lib/threadline/operator_surface/live/evidence_live.ex), [route/state browser proof](../examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts), [existing journey inventory](../examples/threadline_phoenix/e2e/support/operator-journey-inventory.json).
 
@@ -177,7 +188,7 @@ Execution order:248→249→250→251→252→253. Phases248/249/250 are indepen
 | 248. Reconcile the base and safety/proof ownership | 4/4 | Complete    | 2026-11-11 |
 | 249. Map jobs, scenarios and the brand contract | 4/4 | Complete    | 2026-11-12 |
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
-| 251. Complete investigation and inspection screens | 0/0 | Pending | - |
+| 251. Complete investigation and inspection screens | 0/4 | Planned | - |
 | 252. Complete operations and connected catalog review | 0/0 | Pending | - |
 | 253. Inclusive integration, docs, package and release readiness | 0/0 | Pending | - |
 
