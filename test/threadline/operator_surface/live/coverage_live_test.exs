@@ -95,11 +95,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "selected schema:"
         refute html =~ ~s|class="tl-coverage-verdict__meta"|
         assert html =~ "Covered"
-        assert html =~ "Needs capture"
+        assert html =~ "Not audited"
         assert html =~ "Expected gaps"
 
         assert html =~
-                 "Fix rows marked Needs capture, apply the migration, run mix threadline.verify_coverage, then refresh."
+                 "Fix rows marked Not audited, apply the migration, run mix threadline.verify_coverage, then refresh."
 
         assert html =~ "mix threadline.verify_coverage"
         assert html =~ ~s|aria-label="Coverage schema"|
@@ -148,7 +148,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ ~s|aria-label="Copy public.|
         refute html =~ ~s|<span class="tl-remediation__action">Add capture</span>|
 
-        assert html =~ "Fix rows marked Needs capture"
+        assert html =~ "Fix rows marked Not audited"
         assert html =~ "apply the migration"
         refute html =~ "apply the generated migration"
 
@@ -372,7 +372,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Coverage unavailable"
         assert html =~ "Refresh coverage"
-        refute html =~ "No audited tables found"
+        refute html =~ "No tables found"
         refute html =~ "All tables captured"
         refute html =~ ~s|data-testid="coverage-table"|
         refute html =~ "Enum.uniq"
@@ -399,7 +399,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert failed_html =~ "Coverage refresh failed"
         assert failed_html =~ "schema_migrations"
         assert failed_html =~ ~s|data-testid="coverage-table"|
-        refute failed_html =~ "No audited tables found"
+        refute failed_html =~ "No tables found"
         refute failed_html =~ "All tables captured"
         refute failed_html =~ ~s|class="tl-alert tl-alert--error"|
       end
@@ -481,10 +481,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
 
         {:ok, view, empty_html} = live(conn, "/audit/coverage?schema=coverage_empty_state")
-        assert empty_html =~ "No audited tables found"
+        assert empty_html =~ "No tables found"
 
         assert empty_html =~
-                 "No tables were found in schema coverage_empty_state during this inspection."
+                 "No tables found in schema coverage_empty_state during this inspection. Other schemas were not inspected."
 
         refute empty_html =~ "Coverage unavailable"
 

@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.Component
 
     attr(:coverage, :map, required: true)
+    attr(:coverage_schema, :string, default: "public")
     attr(:base_path, :string, required: true)
     attr(:error, :string, default: nil)
     attr(:coverage_enabled, :boolean, default: false)
@@ -30,19 +31,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           title="Results are limited to the records you are authorized to see."
         >Scoped view</span>
         <%= if @coverage_enabled do %>
-          <%= if @error do %>
-            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
-              <%= if last_checked?(@coverage), do: "Coverage refresh failed", else: "Coverage unavailable" %>
-            </a>
-          <% else %>
-            <%= if @coverage && @coverage.uncovered_count > 0 do %>
-            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
-              <%= @coverage.uncovered_count %> tables need audit coverage
-            </a>
-            <% else %>
-              <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All tables captured</a>
-            <% end %>
-          <% end %>
+          <a
+            class={["tl-chip", if(@error || not last_checked?(@coverage) || coverage_count(@coverage, :uncovered_count) > 0, do: "tl-chip--warning", else: "tl-chip--muted")]}
+            href={coverage_href(@base_path, @coverage_schema)}
+            data-testid="coverage-status"
+            data-coverage-schema={@coverage_schema}
+            title={if @coverage_schema, do: "Coverage scope: schema #{@coverage_schema}. Other schemas were not inspected.", else: "No selected-schema coverage inspection is confirmed."}
+          >
+            <%= coverage_label(@coverage, @error, @coverage_schema) %>
+          </a>
         <% end %>
         <%= if @error && last_checked?(@coverage) do %>
           <span class="tl-topbar__stale">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
@@ -175,6 +172,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp seconds_ago(%{last_checked_at: %DateTime{} = ts}) do
       DateTime.diff(DateTime.utc_now(), ts, :second)
     end
+
+    defp coverage_label(coverage, error, schema) do
+      cond do
+        not is_binary(schema) or schema == "" ->
+          "Coverage not inspected"
+
+        error && last_checked?(coverage) ->
+          "#{schema}: Coverage refresh failed"
+
+        error ->
+          "#{schema}: Coverage unavailable"
+
+        not last_checked?(coverage) ->
+          "Coverage not inspected"
+
+        coverage_count(coverage, :uncovered_count) > 0 ->
+          "#{schema}: #{coverage_count(coverage, :uncovered_count)} not audited"
+
+        true ->
+          "#{schema}: #{coverage_count(coverage, :covered_count)} audited"
+      end
+    end
+
+    defp coverage_count(coverage, key) when is_map(coverage), do: Map.get(coverage, key, 0)
+    defp coverage_count(_coverage, _key), do: 0
+
+    defp coverage_href(base_path, schema) when is_binary(schema) and schema not in ["", "public"],
+      do: "#{base_path}/coverage?" <> URI.encode_query(%{"schema" => schema})
+
+    defp coverage_href(base_path, _schema), do: "#{base_path}/coverage"
 
     defp last_checked?(%{last_checked_at: %DateTime{}}), do: true
     defp last_checked?(_), do: false

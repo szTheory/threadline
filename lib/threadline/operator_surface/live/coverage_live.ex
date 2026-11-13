@@ -110,6 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
+        coverage_schema={@coverage_for_schema_name}
         base_path={@base_path}
         error={@threadline_coverage_error}
         coverage_enabled={@threadline_coverage_enabled}
@@ -146,9 +147,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 <%= if all_empty?(@coverage_for_schema) do %>
                   <div class="tl-empty">
-                    <h3 class="tl-empty__title">No audited tables found</h3>
+                    <h3 class="tl-empty__title">No tables found</h3>
                     <p class="tl-empty__body">
-                      No tables were found in schema <%= @schema_param %> during this inspection.
+                      No tables found in schema <%= @schema_param %> during this inspection. Other schemas were not inspected.
                     </p>
                   </div>
                 <% else %>
@@ -220,7 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% remediation = Presentation.coverage_remediation(table, schema: @schema_param) %>
                         <tr class="tl-table__row--uncovered">
                           <td data-label="TABLE"><code><%= table %></code></td>
-                          <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Needs capture</span></td>
+                          <td data-label="STATUS"><span class="tl-chip tl-chip--danger">Not audited</span></td>
                           <td data-label="SOURCE">missing trigger</td>
                           <td data-label="Actions" class="tl-table__actions">
                             <div class="tl-coverage-actions">
@@ -394,8 +395,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           socket
           |> assign(:schema_param, schema_param)
           |> assign(:available_schemas, schemas)
-          |> assign(:coverage_for_schema, Snapshot.empty(nil))
-          |> assign(:coverage_for_schema_name, nil)
+          |> assign_selected_snapshot(nil, Snapshot.empty(nil))
           |> assign(:form_error, message)
 
         {:unavailable, message} ->
@@ -420,9 +420,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
         snapshot = Snapshot.from_coverage(coverage, last_checked_at: now)
 
-        socket
-        |> assign(:coverage_for_schema, snapshot)
-        |> assign(:coverage_for_schema_name, schema)
+        assign_selected_snapshot(socket, schema, snapshot)
       rescue
         e ->
           message = Exception.message(e)
@@ -547,7 +545,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness."
 
         snapshot.uncovered_count > 0 ->
-          "Fix rows marked Needs capture, apply the migration, run #{verifier}, then refresh."
+          "Fix rows marked Not audited, apply the migration, run #{verifier}, then refresh."
 
         snapshot.expected_uncovered_count > 0 ->
           "Expected gaps are excluded from readiness. Run #{verifier}, then refresh."

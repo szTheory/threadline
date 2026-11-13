@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|
       assert html =~ "Scoped view"
-      assert html =~ "All tables captured"
+      assert html =~ "public: 0 audited"
       assert_before(html, ~s|data-testid="operator-nav-overview"|, ~s|id="tl-shell-nav-find"|)
 
       for {id, label} <- [
