@@ -704,12 +704,20 @@ test("Phase251 retained-context recovery", async ({ page }) => {
     await expect(notice).toHaveText(message);
     const drawer = page.getByTestId("row-history-drawer");
     if (await drawer.isVisible()) {
-      await drawer.getByRole("link", { name: "Close", exact: true }).click();
+      const close = drawer.getByRole("link", { name: "Close", exact: true });
+      await close.focus();
+      await expect(close).toBeFocused();
+      await page.keyboard.press("Enter");
     } else {
       await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
     }
-    await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+    const recoveryPath = path === drawerPath ? transactionPath : "/audit/timeline";
+    await expect.poll(() => new URL(page.url()).pathname).toBe(recoveryPath);
     expect(new URL(page.url()).searchParams.has("unsupported_only")).toBe(false);
+    if (recoveryPath === transactionPath) {
+      await page.getByRole("link", { name: "Timeline", exact: true }).first().click();
+      await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+    }
   }
 
   await page.goto(investigationSearch());
