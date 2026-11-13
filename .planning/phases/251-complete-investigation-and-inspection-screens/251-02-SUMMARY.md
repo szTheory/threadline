@@ -68,7 +68,7 @@ Invalid requested times no longer substitute a current snapshot. Clearing retain
 
 ## Remaining phase work
 
-The existing375px history Close label wraps vertically. It is retained as an open shared layout correction for Plan04 before phase acceptance. Phase-wide independent source/security/UI/goal reviews remain pending; requirements-completed therefore stays empty. This summary completes the plan's behavioral and scoped proof work, not whole-phase visual or release acceptance. Continue Coverage, then Redaction/Evidence and the shared correction/review batch.
+The existing375px history Close label wraps vertically. It was corrected in Plan03’s measured shared layout batch; independent phase UI review remains pending. Phase-wide independent source/security/UI/goal reviews remain pending; requirements-completed therefore stays empty. This summary completes the plan's behavioral and scoped proof work, not whole-phase visual or release acceptance. Continue Coverage, then Redaction/Evidence and the shared correction/review batch.
 
 ## Deviations and retained failures
 

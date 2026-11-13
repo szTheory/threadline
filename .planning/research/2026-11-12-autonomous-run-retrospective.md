@@ -85,3 +85,11 @@ The standalone tracer caught explicit empty-from loss alongside another predicat
 Individual browser passes did not establish a stable combined run. The first five-case batch attempted LiveView events before connection, including a no-component target error. Use existing actual connection checks before interaction instead of server-HTML visibility alone. Preserve failure attachments in unique output directories before another run overwrites them. Inspect the trace and actual readiness first; concurrency, a timeout or elapsed time alone does not establish the cause. The corrected same five-case batch passed without retries; this is selected local proof, not full canonical acceptance.
 
 No horizontal overflow did not prove readable controls:375px snapshots show an existing Close label stacked vertically. Retain it as open Plan04 shared layout work and verify actual text geometry/pixels before phase acceptance. Do not convert a diagnostic geometry pass into a clean visual claim.
+
+### Plan03 retained lessons (in progress)
+
+- Test actual supported controls: an empty schema is accepted by direct selection but is absent from the table-based schema picker. Retain the interrupted wrong-assumption attempt; do not increase timeouts.
+- Couple source copy, semantic ownership and current structure receipts in the implementing slice. Keep historical pins and all negative controls.
+- Width-only checks miss readable-control failures: the history Close label occupied five lines while document width passed. A measured text-rectangle check now covers that defect; the long Coverage grid also needed an intrinsic-minimum-width correction.
+- Keep the committed-source startup guard across tests and metadata as well as production files. One rejected restart correctly exposed incomplete candidate custody.
+- These are observed process and correctness improvements. No measured end-to-end speedup or token savings is claimed.
