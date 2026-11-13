@@ -32,3 +32,9 @@ Preserve original250 materialization/capsules and shared-computer custody. Prepa
 ## Boundaries not to infer
 
 No authenticated provenance, all-schema UI, new public API/routes/query names/schema/config, actor lookup/composite keys, backend capture change, login/white-label, React/Fablebook, package/version/hosted action or risk/publication authority. Existing font/theme/schema callbacks and host scope remain authoritative. Routine private reversible choices use the coherent context; there is no open user decision.
+
+## Validation Architecture
+
+Extend existing ExUnit/live owners for navigation (query/filter_params; operator_surface/live/timeline_live, start_live, actor_live; operator_surface/transaction_live; existing history owners), and inspection (operator_surface/live/coverage_live, policy_redaction_live, evidence_live). Use `mix verify.test` with explicit existing paths and isolated Phase 251 test partitions; preserve shared FilterParams compatibility with negative controls. Existing Node inventory contracts and Playwright route-state/earned-flow/coverage owners supply the coupled structural and real-route boundaries. Before first execution, resolve exact history paths and selected browser title sets from tracked files; no invented command paths. Compile with warnings as errors and run the named formatter on changed files.
+
+Use scoped task checks after source changes, the selected combined regression after each coherent group, and matched before/after evidence only for changed scenarios. No whole-root repeat is authorized. Source/rendered/live/browser/catalog results remain separate. The execution plans fill the per-task commands and threat references into the validation map before execution; no test or runtime result is claimed by this strategy.

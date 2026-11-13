@@ -4,7 +4,7 @@ milestone: v1.48
 current_phase: 251
 current_phase_name: Complete investigation and inspection screens
 status: planning
-stopped_at: Phase251 context and current-source research gathered; planning next
+stopped_at: Phase251 current research and approved UI contract ready; plan creation next
 last_updated: "2026-11-13T00:02:36.606Z"
 last_activity: 2026-11-12
 last_activity_desc: Phase 250 complete, transitioned to Phase 251
@@ -81,7 +81,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 2 complete, 16 currently planned plans, 8 complete plans, 7/34 formally closed requirements, 33% phase progress. Phases248/249 passed; Phase250 planning passed, isolated baseline execution next.
+- **Active Milestone**: v1.48 — Threadline Admin: brand and complete journeys; 6 phases (248–253), 3 complete, 16 currently planned plans complete, 50% phase progress. Phases248–250 passed; Phase251 research and approved UI contract ready for planning.
 - **Last Milestone Shipped**: v1.47 — Release on autopilot (closed 2026-10-29, 5 phases including 247.1, 66 plans, 68 tasks, 13/14 requirements; audit tech_debt; REL-01 deferred-with-trigger, no package release).
 - **Prior Milestone Shipped**: v1.46 — Operator UI Refinement (2026-10-11, 6 phases, 27 plans, 26/26 requirements; bounded visual evidence and carried findings remain historical).
 - **Prior Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
@@ -1257,7 +1257,7 @@ The rows below are preserved historical metrics; current v1.48 execution evidenc
 ## Session Continuity
 
 **Last session:** 2026-11-13T00:02:36.029Z
-**Stopped at:** Phase251 context and current-source research gathered; planning next
+**Stopped at:** Phase251 current research and approved UI contract ready; plan creation next
 **Resume file:** .planning/phases/251-complete-investigation-and-inspection-screens/251-CONTEXT.md
 
 - **Current approval:** The maintainer approved the exact six-phase scope/order and PhoenixStorybook with Phoenix LiveView/HEEx now. Fablebook is deferred until ready; no React or speculative adapter. The ordinary investigation is the first slice, not the milestone's closure. Reuse settled research; no repeat framework or scope confirmation.
