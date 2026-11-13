@@ -157,9 +157,10 @@ adopters do not need a mount or font migration.
 
 **Mount authorization.** Keep the host authentication pipeline and provide a
 usable unary `:authorize_fn` to `threadline_operator_surface/2`.
-`pipe_through` alone is insufficient: the mount rejects missing or unusable
-authorization at compile time. Only an intentionally public mount should use
-`:adopter_acknowledges_unauthenticated: true`; the value must be the literal
+`pipe_through` alone is insufficient. Missing authorization and statically
+invalid callbacks are rejected at compile time; opaque expressions are checked
+at runtime, where unusable values refuse access. Only an intentionally public
+mount should use `adopter_acknowledges_unauthenticated: true`; the value must be the literal
 `true`, in tests as well as production. This acknowledgement does not add
 authentication. Reuse the same host-owned callback for LiveView and HTTP export
 requests, as shown in [the authorization guide](operator-surface.md#security-and-authorization-fail-closed-default).

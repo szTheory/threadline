@@ -1521,14 +1521,29 @@ test.describe("operator accessibility baseline", () => {
     const failed = page.locator("#retention-runs tr").filter({ hasText: "Failed" }).locator(".tl-chip").first();
     await expect(failed).toHaveText("Failed");
     await expect(failed).toBeVisible();
+    // Navigation can reset the effective emulated palette. Observe the actual
+    // status after reapplying it, rather than inheriting the earlier focus flag.
+    await page.emulateMedia({ forcedColors: "active", colorScheme: "light" });
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     const shape = await failed.evaluate((el) => {
       const css = getComputedStyle(el);
-      return { borderStyle: css.borderTopStyle, borderWidth: parseFloat(css.borderTopWidth), borderColor: css.borderTopColor, forcedColorAdjust: css.forcedColorAdjust };
+      const sentinel = document.createElement("span");
+      sentinel.style.cssText = "color:CanvasText;background:Canvas";
+      document.body.append(sentinel);
+      const system = getComputedStyle(sentinel);
+      const result = { borderStyle: css.borderTopStyle, borderWidth: parseFloat(css.borderTopWidth), borderColor: css.borderTopColor, forcedColorAdjust: css.forcedColorAdjust, forcedColors: matchMedia("(forced-colors: active)").matches, color: css.color, background: css.backgroundColor, canvas: system.backgroundColor, canvasText: system.color };
+      sentinel.remove();
+      return result;
     });
     expect(shape.borderStyle).not.toBe("none");
     expect(shape.borderWidth).toBeGreaterThanOrEqual(1);
     expect(shape.borderColor).not.toBe("rgba(0, 0, 0, 0)");
     expect(shape.forcedColorAdjust).toBe("auto");
+    expect(shape.forcedColors).toBe(true);
+    expect(shape.color).toBe(shape.canvasText);
+    expect(shape.background).toBe(shape.canvas);
+    await page.evaluate(() => scrollTo(0, 0));
+    await testInfo.attach("phase253-forced-status-current", { body: await page.screenshot({ fullPage: true, animations: "disabled" }), contentType: "image/png" });
     await testInfo.attach("phase253-forced-colors-after-only-observation", { body: Buffer.from(JSON.stringify({ focus, shape, clock: new Date().toISOString() })), contentType: "application/json" });
   });
 

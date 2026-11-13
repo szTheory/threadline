@@ -468,7 +468,7 @@ Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / D
 The operator surface ships with **no external asset pipeline and no JavaScript dependencies**. Everything it needs is embedded inline by the mounted LiveViews at render time:
 
 - **Styles** — a single scoped `<style>` block rendered by the operator shell.
-- **Fonts** — Geist and IBM Plex Mono as `@font-face` data-URIs embedded at compile time.
+- **Fonts** — Familjen Grotesk, Geist and IBM Plex Mono from the [approved brand assets](../brand/assets/README.md#fonts) as `@font-face` data-URIs embedded at compile time.
 - **Copy helper** — a tiny, dependency-free `<script>` that powers the "Copy" affordance on correlation and transaction ids. It binds one delegated listener; there is no host LiveSocket hook to register.
 
 This keeps the surface a true drop-in: mount it and the screens render fully styled, with no `assets/` build step.

@@ -558,8 +558,9 @@
 
 
   /* A wide viewport can still mount Admin in a narrow host slot. Choose
-     control tracks from their available width without clipping the host. */
-  @container tl-timeline-controls (max-width: 480px) {
+     control tracks from their available width without clipping the host.
+     Four desktop track minima plus three gaps require 812px of content. */
+  @container tl-timeline-controls (max-width: 812px) {
     .tl-timeline-command__summary,
     .tl-timeline-command__facts,
     .tl-filter-grid--primary,

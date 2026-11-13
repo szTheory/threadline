@@ -237,7 +237,8 @@ defmodule Threadline.UpgradePathDocContractTest do
     for consequence <- [
           "usable unary `:authorize_fn`",
           "`pipe_through` alone is insufficient",
-          ":adopter_acknowledges_unauthenticated: true",
+          "adopter_acknowledges_unauthenticated: true",
+          "opaque expressions are checked\nat runtime",
           "tests as well as production",
           "**Preview retention**",
           "**Review and confirm**",
@@ -263,6 +264,9 @@ defmodule Threadline.UpgradePathDocContractTest do
       assert String.contains?(current, consequence),
              "missing migration consequence: #{consequence}"
     end
+
+    [_, acknowledgement] = Regex.run(~r/`(adopter_acknowledges_unauthenticated: true)`/, current)
+    assert {:ok, _} = Code.string_to_quoted("[" <> acknowledgement <> "]")
   end
 
   test "upgrade-path guide refutes aspirational and product-milestone tokens" do
