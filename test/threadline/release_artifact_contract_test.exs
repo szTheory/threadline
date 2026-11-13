@@ -750,11 +750,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
           Enum.reduce(files, %{}, fn path, acc ->
             relative = Path.relative_to(path, unpack_root)
 
-            if String.starts_with?(relative, "brand/assets/") do
-              Map.put(acc, relative, File.read!(path))
-            else
-              acc
-            end
+            put_brand_asset(acc, relative, path)
           end)
 
         readable =
@@ -767,6 +763,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
       {output, status} ->
         flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
     end
+  end
+
+  defp put_brand_asset(acc, relative, path) do
+    if String.starts_with?(relative, "brand/assets/"),
+      do: Map.put(acc, relative, File.read!(path)),
+      else: acc
   end
 
   defp put_readable(acc, relative, {:ok, content}) do

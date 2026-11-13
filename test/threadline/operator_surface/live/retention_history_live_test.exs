@@ -25,7 +25,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.FailingPreviewRepo do
-    def all(query, opts), do: Threadline.Test.Repo.all(query, opts)
+    alias Threadline.Test.Repo
+
+    def all(query, opts), do: Repo.all(query, opts)
     def one(_query, _opts), do: raise("private preview database canary")
   end
 

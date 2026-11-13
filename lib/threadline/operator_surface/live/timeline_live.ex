@@ -133,9 +133,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> assign(:search_url, search_url)
           |> assign(:saved_search_error, nil)
 
-        with {:ok, filters} <- Helpers.validate_ui_filter_input(params) do
-          {:noreply, load_filtered_page(socket, filters)}
-        else
+        case Helpers.validate_ui_filter_input(params) do
+          {:ok, filters} -> {:noreply, load_filtered_page(socket, filters)}
           {:error, message} -> {:noreply, filter_error(socket, message)}
         end
       end
@@ -318,22 +317,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:noreply, socket}
 
         view ->
-          case Helpers.validate_ui_filter_input(view.filters) do
-            {:ok, _filters} ->
-              query = build_canonical_query(view.filters)
-              query = if query == "", do: "from=", else: query
-
-              {:noreply,
-               socket
-               |> assign(:saved_search_error, nil)
-               |> push_patch(to: "#{socket.assigns.timeline_path}?#{query}")}
-
-            {:error, _reason} ->
-              saved_search_error(
-                socket,
-                "These Timeline filters are not supported. Update the filters before applying them."
-              )
-          end
+          apply_saved_view(socket, view)
       end
     end
 
@@ -664,6 +648,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
       </UI.Overlay.modal>
       """
+    end
+
+    defp apply_saved_view(socket, view) do
+      case Helpers.validate_ui_filter_input(view.filters) do
+        {:ok, _filters} ->
+          query = build_canonical_query(view.filters)
+          query = if query == "", do: "from=", else: query
+
+          {:noreply,
+           socket
+           |> assign(:saved_search_error, nil)
+           |> push_patch(to: "#{socket.assigns.timeline_path}?#{query}")}
+
+        {:error, _reason} ->
+          saved_search_error(
+            socket,
+            "These Timeline filters are not supported. Update the filters before applying them."
+          )
+      end
     end
 
     defp saved_search_error(socket, message) do

@@ -11,12 +11,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @ui_form_policy {:has_forms, "host-schema picker for the redaction diff view"}
 
     alias Threadline.Capture.TriggerCaptureConfig
-    alias Threadline.StorageSchema
     alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Policy.RedactionPresenter
+    alias Threadline.StorageSchema
 
     @section_defs [
       {:drift_detected, "Drift detected"},
@@ -305,10 +305,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.flat_map(fn {identifier, _policy} ->
         table = StorageSchema.parse_table_identifier(identifier)
 
-        if table.schema == schema do
-          [if(schema == "public", do: table.table, else: schema <> "." <> table.table)]
-        else
-          []
+        cond do
+          table.schema != schema -> []
+          schema == "public" -> [table.table]
+          true -> [schema <> "." <> table.table]
         end
       end)
       |> MapSet.new()
