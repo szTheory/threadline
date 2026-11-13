@@ -142,6 +142,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "deployed empty policy cannot invent selected-schema configuration", %{conn: conn} do
+        prepare_support_tickets!()
+
+        Repo.query!(
+          TriggerSQL.install_function_for_table("support.tickets", store_changed_from: true)
+        )
+
+        for configured <- [%{}, %{"some_public_table" => []}] do
+          Application.put_env(:threadline, :trigger_capture, tables: configured)
+          presenter = RedactionPresenter.build(repo: Repo, schema: "support")
+          # Positive control: the presenter's default empty deployed comparison is a match.
+          assert presenter.summary.config_matches_deployed == 1
+          {:ok, view, html} = live(conn, "/audit/policy/redaction?schema=support")
+          assert html =~ "No configured policy to compare"
+          assert html =~ "1 deployed table has no configured policy to compare."
+          refute html =~ "Configured policy matches deployed trigger policy"
+          refute html =~ "Deployed matches config"
+          assert :sys.get_state(view.pid).socket.assigns.report.tables == []
+        end
+
+        Application.put_env(:threadline, :trigger_capture, tables: %{"support.tickets" => []})
+        {:ok, _view, configured_html} = live(conn, "/audit/policy/redaction?schema=support")
+        assert configured_html =~ "Configured policy matches deployed trigger policy"
+        assert configured_html =~ "support.tickets"
+        assert configured_html =~ "not used"
+        refute configured_html =~ "No configured policy to compare"
+      end
+
       test "zero configured policy uses one honest meaning across all sections and records successful time",
            %{conn: conn} do
         Application.put_env(:threadline, :trigger_capture, tables: %{})
@@ -300,6 +328,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       } do
         {:ok, _view, html} = live(conn, "/audit/policy/redaction")
         report = RedactionPresenter.build(repo: Repo, schema: "public")
+        configured_rows = Enum.filter(report.tables, &(&1.table in @tables))
+
+        grouped =
+          Enum.map(report.grouped, fn {status, rows} ->
+            {status, Enum.filter(rows, &(&1.table in @tables))}
+          end)
+
+        report = %{
+          report
+          | tables: configured_rows,
+            grouped: grouped,
+            summary: Map.new(grouped, fn {status, rows} -> {status, length(rows)} end)
+        }
 
         assert html =~ "Redaction policy"
         assert html =~ "Compare the configured redaction policy"
@@ -350,7 +391,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "password_hash"
         assert html =~ "email"
         assert html =~ "not available"
-        assert html =~ "not used"
 
         assert Enum.member?(Enum.map(report.grouped[:drift_detected], & &1.table), @bravo)
         assert Enum.member?(Enum.map(report.grouped[:drift_detected], & &1.table), @delta)

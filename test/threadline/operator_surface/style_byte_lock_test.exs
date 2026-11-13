@@ -28,8 +28,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @golden_relative "test/fixtures/style/operator_surface.css"
     @golden_path Path.join(@root, @golden_relative)
 
-    @golden_sha256 "016a797f0db8b357761f4e9b8cb7dfd9a77a76cb6ba0cc1b4f0d7408d866ad8e"
-    @rendered_sha256 "fe865d213b113e0193dd842be1e30ffb4820bcdaa00b68e0b812fcf2ee9f2f5c"
+    @golden_sha256 "de2dc74281a79520e720936e39bdf91a96ddfc4b026bc1b1afea3e797b17b6d9"
+    @rendered_sha256 "9212a0e6a905e7afa9005e5ae6f21ecf17febe403b8de6ad918ec40500d49af2"
 
     @readme_relative "test/fixtures/style/README.md"
     @readme_path Path.join(@root, @readme_relative)

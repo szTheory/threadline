@@ -8,6 +8,8 @@ Phase 243 separates the policy refresh action from the posture card and keeps Ev
 
 Phase251 constrains Coverage verdict tracks and wraps long selected-schema headings, preventing narrow-page overflow. Shared history headers preserve a readable one-line Close action while their identity content can shrink. Tokens, full values and focus behavior remain unchanged.
 
+Phase251 independent review also aligns the actual Home lead with the approved dense Admin28px/1.2 heading tokens. This deliberately supersedes the historical Phase23932px lead exception below; the shared font tokens and all other primary-action styles are unchanged.
+
 ## Updating
 
 Only an intentional change to the rendered CSS may update this file. Phase 239 changed decorative Home card kickers from accent styling to neutral tokens, as required by the approved UI contract. The responsive follow-up preserves the 32px Home lead on mobile, wraps long active-filter values in a compact rectangular treatment, and keeps Timeline fact cards at two columns on tablet before restoring three columns on wide desktop. Phase 240 keeps row-history and investigation evidence immediate and puts clipboard status in normal flow so success and recovery messages do not cover values or controls.

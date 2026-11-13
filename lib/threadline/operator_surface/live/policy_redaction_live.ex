@@ -10,6 +10,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "host-schema picker for the redaction diff view"}
 
+    alias Threadline.Capture.TriggerCaptureConfig
+    alias Threadline.StorageSchema
     alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
@@ -278,7 +280,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp schema_display(_schema), do: "Invalid schema"
 
     defp fetch_report_for_schema(socket, schema) do
-      report = RedactionPresenter.build(repo: resolve_repo(socket), schema: schema)
+      configured = configured_table_keys(schema)
+
+      report =
+        socket
+        |> resolve_repo()
+        |> then(&RedactionPresenter.build(repo: &1, schema: schema))
+        |> configured_comparison(configured)
 
       socket
       |> assign(:inspected_at, DateTime.utc_now())
@@ -287,6 +295,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     rescue
       _ ->
         policy_unavailable(socket, schema, socket.assigns.available_schemas)
+    end
+
+    # The presenter also inventories deployed tables absent from host config.
+    # Its default empty policy is useful for drift analysis, but is not evidence
+    # that a host actually configured that policy. Compare only explicit keys.
+    defp configured_table_keys(schema) do
+      TriggerCaptureConfig.load()
+      |> Enum.flat_map(fn {identifier, _policy} ->
+        table = StorageSchema.parse_table_identifier(identifier)
+
+        if table.schema == schema do
+          [if(schema == "public", do: table.table, else: schema <> "." <> table.table)]
+        else
+          []
+        end
+      end)
+      |> MapSet.new()
+    end
+
+    defp configured_comparison(report, configured) do
+      tables = Enum.filter(report.tables, &MapSet.member?(configured, &1.table))
+
+      grouped =
+        Enum.map(@section_defs, fn {status, _title} ->
+          {status, Enum.filter(tables, &(&1.status == status))}
+        end)
+
+      summary = Map.new(grouped, fn {status, rows} -> {status, length(rows)} end)
+
+      %{report | tables: tables, grouped: grouped, summary: summary}
+      |> Map.put(:unconfigured_deployed_count, length(report.tables) - length(tables))
     end
 
     defp policy_unavailable(socket, schema, schemas) do
@@ -400,6 +439,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         <p :if={@report.summary.could_not_introspect > 0} class="tl-policy__hint">
           Deployed policy could not be inspected. Retry before treating policy as matched.
+        </p>
+
+        <p :if={@report.unconfigured_deployed_count > 0} class="tl-policy__hint">
+          <%= @report.unconfigured_deployed_count %> deployed <%= if @report.unconfigured_deployed_count == 1, do: "table has", else: "tables have" %> no configured policy to compare.
         </p>
 
         <p class="tl-policy__source-note">Configured: host application policy. Deployed: current database trigger definition.</p>
