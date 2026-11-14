@@ -86,3 +86,7 @@ Local compile/strictCredo/format/owner receipts exit0; hosted browser/latest com
 ## Second natural CI: bounded two-spec review
 
 Same independent security reviewer confirms SECURED,24/24 retained, zero open/no accepted risks; both packet02 hashes match. No production CSS/Elixir/auth/destructive handling/pair/clipboard/limits changed; second browser failures remain unaccepted. See [repair record](253-CI-REPAIR-02.md). No runtime/CI pass is inferred from static review.
+
+## Third natural CI: one-line assertion and actual owner proof
+
+SECURED,24/24 retained, zero open/no accepted risks. Frozen one-file hash matches; exact12 follows existing label role. Targets, action text, selection, focus, copy and layout controls remain unchanged. Actual selected20-case exit0/no skips/flake evidence is bounded; failed setup/supplementary SQL diagnostic stays disclosed. See [repair record](253-CI-REPAIR-03.md).

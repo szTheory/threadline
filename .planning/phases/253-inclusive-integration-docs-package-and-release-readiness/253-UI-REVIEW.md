@@ -360,3 +360,7 @@ Both extracted HEEx fragments retain baseline literal markup/attributes; product
 ## Second natural CI: bounded two-spec review
 
 Same independent UI reviewer confirms both packet02 hashes and intended named content-container width, approved28px headline/12px copy labels, retained40px targets/body/action readability/focus/overflow. Bounded forward scan found no further related stale premises; test-only patch needs no new pixels. F01 remains open pending actual executed real2x proof. See [repair record](253-CI-REPAIR-02.md). No runtime/CI pass is inferred from static review.
+
+## Third natural CI: one-line assertion and actual owner proof
+
+Same reviewer confirms exact axis12px from ancestor .tl-change__field at06_layout_primitives.css375–379, overriding its earlier unsupported body16 assurance. Adjacent values explicitly use dense13. Keep direct-arrow/wide-pairing eligibility and actual runtime geometry requirements. Parent selected20 cases pass without retry; no production change/new pixels or F01 real2x closure follows. See [repair record](253-CI-REPAIR-03.md).

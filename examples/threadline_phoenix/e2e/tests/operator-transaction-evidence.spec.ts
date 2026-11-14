@@ -270,7 +270,7 @@ for (const viewport of responsiveCases) {
     const axisFontSize = await after.getByText("After", { exact: true }).evaluate((label) =>
       parseFloat(getComputedStyle(label).fontSize),
     );
-    expect(axisFontSize).toBeGreaterThanOrEqual(14);
+    expect(axisFontSize, "Before/After labels use the compact label role").toBe(12);
     await expectNoHorizontalOverflow(page);
 
     const disclosureValue = after.locator("code.tl-value__full");

@@ -265,3 +265,7 @@ Moved helpers preserve expressions/callers; removed fallback clauses are unreach
 ## Second natural CI: bounded two-spec review
 
 Independent typed code review is clean across both packet02 hashes, zero findings; named-container measurement is independent and fixed812px tracks preserve meaningful geometry. Explicit28px headline/12px copy role retains40px target and other body readability checks. See [repair record](253-CI-REPAIR-02.md). No runtime/CI pass is inferred from static review.
+
+## Third natural CI: one-line assertion and actual owner proof
+
+One-line frozen assertion correction is clean, zero findings. Exact12px matches inherited label role; the prior ≥14/body16 review premise was wrong. Independent source/harness checks confirm only import resolution and pre-navigation clipboard doubles differ; raw report proves20 named cases passed once without skips/errors. Later target/selection/focus/paired-layout/overflow checks remain. See [repair record](253-CI-REPAIR-03.md).

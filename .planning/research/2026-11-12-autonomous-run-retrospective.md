@@ -242,3 +242,9 @@ Measured first-run browser report time: desktop235.2s and mobile183.9s, inside o
 ## Second natural CI: avoid serial premise repairs
 
 All13 non-browser gates pass. Browser legs progress to190/185passes but later old viewport/32px assertions hit the unchanged failure cap. Required forward review of the two owning specs also caught compact copy-label12px versus40px hit-area conflation before another run. The correction measures the actual named container and keeps explicit role/target distinctions. This is an applied lesson in completing fixture migration and scanning masked follow-ons, not a claim of CI speedup. Original retries/skips and first/second failures remain visible; real2x/exact required-CI acceptance is still pending.
+
+## Third run: source review cannot prove the cascade
+
+All13 non-browser gates pass again; browser source review had incorrectly inferred body16 for Before/After labels, missing the label12 ancestor. Parent stopped serial full-CI premise chasing, corrected the one assertion and ran20 whole affected cases headlessly with retries0 against a fresh isolated database. All20 pass through later geometry/selection/focus/overflow, and independent reviewers verify the source-copy/harness boundary. This is14.1s of selected runtime proof, not a full-suite/global speedup or actual zoom claim.
+
+Retain the setup lessons too: a private source-copy harness needs the original ESM boundary; migration/example seeds are not the named rich demo scenario seed; validate only real schema fields; use fail-fast shells for dependent setup/assertion/retest steps. Earlier module-resolution/login/SQL failures are preserved. Scoped runtime proof now precedes the next push; owned services stop before handoff, and the old paired fixture stays unchanged.
