@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- [x] **v1.48 Threadline Admin: brand and complete journeys** — Completed planning 2026-11-13; six phases,36 plans,34/34 requirements. [Archive](milestones/v1.48-ROADMAP.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md). PR105 is open/unmerged; package remains1.1.0.
+- [x] **v1.48 Threadline Admin: brand and complete journeys** — Completed planning 2026-11-13; six phases, 36 plans, 34/34 requirements. PR #105 merged as `b9dba172`; repair PR #107 merged as `5fcac23`. [Archive](milestones/v1.48-ROADMAP.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md). The natural 1.2.0 handoff passed REL-01; release PR #106 squash-merged as `93d57ddb` and GitHub published tag/release v1.2.0. Hex publication still awaits `production-hex` approval; Hex lists 1.1.0.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -23,8 +23,8 @@ Earlier milestones are recorded in [MILESTONES](MILESTONES.md).
 
 ## Current position
 
-No active implementation phase or new milestone is selected. v1.48 completes all six phases248–253,36plan contributions and34requirements, with independent goal/integration verification and required candidate CI green. [Closeout](milestones/v1.48-CLOSEOUT.md) preserves exact evidence and historical limits.
+No active implementation phase or new milestone is selected. v1.48 completes all six phases 248–253, 36 plan contributions and 34 requirements, with independent goal/integration verification and required candidate CI green. [Closeout](milestones/v1.48-CLOSEOUT.md) preserves exact evidence and historical limits. PR #105 is merged; the implementation is on main.
 
 ## Next
 
-[PR105](https://github.com/szTheory/threadline/pull/105) is ready for the separate merge decision. The existing grant covers the review branch/PR/CI and bounded repairs; no merge, tag, version or publication follows automatically. FutureREL-01 still needs its actual first natural release PR/own Unreleased prose/first green run. Retained [lessons](research/2026-11-12-autonomous-run-retrospective.md) guide future work; no new milestone or UI rebuild is inferred.
+[REL-01](milestones/v1.47-phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-REL01-EVIDENCE.md) is observed: the release PR carried its own Unreleased prose, the release workflow dated it, no separate changelog-dating PR merged, and required CI passed on final head `032aea5`. PR #106 is merged and GitHub published v1.2.0; the Release workflow verified main CI and is waiting at the protected `production-hex` approval, while Hex still lists 1.1.0. The post-release baseline found repeated min/latest partition imbalance, so the lane weights were refreshed locally from the last three main runs. A reviewed PR must get the change onto main before the next three ratios can verify it; the scheduled flake detector should confirm its Playwright setup fix before milestone selection. “Remaining Safe by default” remains provisional. Keep v1.48 archived and complete.
