@@ -10,6 +10,10 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
+The v1.48 Admin planning milestone is complete: six phases248–253,36plan contributions and34/34requirements. Independent goal/integration checks and existing required candidate CI pass. [PR105](https://github.com/szTheory/threadline/pull/105) is open/unmerged; source version remains1.1.0 and no package/tag/publication is performed. The next decision is merge; no new milestone is selected. [Closeout](milestones/v1.48-CLOSEOUT.md) and [retained lessons](research/2026-11-12-autonomous-run-retrospective.md) preserve current outcomes and limits.
+
+**Previous release history:**
+
 Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, before v1.47 opened). The **v1.47 — Release on autopilot** quality milestone closed on 2026-10-29: five phases (244–247 plus gap phase 247.1), 66 plans, 68 tasks, and 13/14 requirements. REL-01 is deferred-with-trigger and was accepted at close. The milestone audit is `tech_debt`. No v1.47 merge changed the shipped package (all `ci:`/`chore:`/`docs:`, except the CI-only `fix(ci):` #100 that opened the now-closed #101), so v1.47 is a planning milestone tag, not a Hex release; the published package remains 1.1.0.
 
 **Shipped state (updated 2026-10-29, America/New_York):**
@@ -17,24 +21,13 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 - v1.47: CI-02 browser split median 461 s over five main runs (limit 540 s); CI-03 slowest/fastest partition ratio at or below 1.15 on every lane; release-please ignores unshipped-only commits.
 - v1.46: 6/6 phases, 27/27 plans, 49 tasks, and 26/26 requirements (planning milestone; operator UI refinement).
 
-## Current Milestone: v1.48 Threadline Admin: brand and complete journeys
+## Latest completed planning milestone: v1.48 Threadline Admin
 
-**Goal:** Engineers and support staff complete every existing investigation and permitted operations job in a coherent brand-aligned Phoenix LiveView Admin while host access, scope, audit truth and public 1.x integrations remain intact.
+Engineers and support staff can complete the existing investigation and permitted Operations jobs in the approved Phoenix LiveView identity while host authorization/scope and audit semantics remain authoritative. The delivery includes fail-closed mount requirements, ordinary fictional scenarios separate from stress data, connected Timeline/detail/history/pivots, authorized Export/Retention outcomes, dev/test PhoenixStorybook and current docs/package/font assets.
 
-**Approved:** 2026-11-10. The maintainer accepted the revised six-phase proposal after independent adversarial closure, then explicitly confirmed PhoenixStorybook and Phoenix LiveView/HEEx now, Fablebook only once ready. Reuse that scope approval; routine implementation details do not require another confirmation.
+All34 requirements and six independent phase goals are verified. Current required CI includes both voting browser projects, all31 required journey identities and strict actual200% tab zoom. Original failed attempts, restart loss, new controlled-pair custody and inherited design/sampling limits remain explicit; no universal accessibility or human-comprehension claim is made. See [requirements](milestones/v1.48-REQUIREMENTS.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md) and [roadmap](milestones/v1.48-ROADMAP.md).
 
-**Target features:**
-- Current-main reconciliation and named ownership/remediation for the fail-closed mount and current advisory/test blockers; no implied risk waiver.
-- Complete job/route/state map and coherent fictional help-desk scenarios, with normal data separate from stress cases.
-- The approved spool identity, role-based themes, fonts and plain domain language through one whole investigation, then every remaining existing Admin job.
-- PhoenixStorybook components/compositions/screens linked to real mounted-route and domain proofs; no React, Fablebook dependency, duplicate catalog engine or new runtime dependency by default.
-- Useful automated acceptance, current matched visual evidence, docs/package consistency and honest release readiness. Publication remains separately authorized.
-
-**Canonical inputs:** `brand/BRAND.md`, `brand/brand.json`, `brand/assets/README.md`, `.planning/research/2026-11-10-brand-admin/milestone-proposal.md`, its independent review, `.planning/conventions/research-verification-and-efficiency.md`, and `.planning/REQUIREMENTS.md`.
-
-**Local progress (2026-11-12):** Phases248–250 are independently complete. Phase250 passed76/76 must-haves and all nine assigned requirements with source-bound brand/font/theme/whole-investigation evidence; Phase251 investigation and inspection is next. Broader inclusive/operations/hosted release acceptance remains later. Package1.1.0 and publication authority are unchanged.
-
-**Baseline at initialization:** this planning checkout starts at current main `d35b9422`, package 1.1.0 and v1.47 complete. The retained 31-file candidate is preserved and not yet ported; the new `brand/` source is deliberately imported without changing old `brandbook/` consumers. Phase numbering continues at 248 after 247.1.
+Scope was approved2026-11-10. The explicit current grant covers the review branch/ordinary PR/existing CI and bounded fixes; merge/tag/version/publish/risk acceptance remain separate. REL-01 retains its future natural-release trigger. Brand sources remain authoritative; no React/Fablebook adapter, public Storybook distribution, new login API or runtime dependency was introduced.
 
 ## Latest Milestone Shipped: v1.47 Release on autopilot (2026-10-29)
 
@@ -67,6 +60,8 @@ The full prior milestone chronology remains in the [complete project snapshot](h
 ## Requirements
 
 ### Validated
+
+- [x] **ADM-08–34 (v1.48)** — Approved brand and complete existing investigation/inspection/Operations flows, shared example catalog, supported inclusive behavior, current docs/package and source-bound whole acceptance. Independently verified across Phases250–253 and final34-requirement integration; required CI green. Planning completion is not publication.
 
 - [x] **ADM-01–04 (Phase248)** — Locally reconciled current candidate, fail-closed mount and bounded compatible advisory/test remediation with source-bound evidence and independent verification. Hosted/live issue and full canonical/toolchain limits remain explicit.
 - [x] **ADM-05–07 (Phase249)** — Supported jobs/states/renderers/proof owners, coherent original captured-row chronology and separate ordinary/stress/boundary selections, with reference-only approved-brand ownership. Independently verified48/48; rendered adoption remains later scope.
@@ -183,7 +178,7 @@ The full prior milestone chronology remains in the [complete project snapshot](h
 
 ### Active
 
-- **ADM-08–ADM-34** in `.planning/REQUIREMENTS.md` remain the approved active v1.48 scope. ADM01–07 are locally validated in phases248/249; routine implementation continues without renewed scope approval.
+- No new feature milestone is selected. All34v1.48 Admin requirements are validated; implementation is retained on PR105 awaiting separate merge authority.
 - **REL-01** is carried unchanged from v1.47 to the first natural release; it remains separately observable and cannot be closed by local readiness.
 
 ### Out of Scope
@@ -203,6 +198,8 @@ The full prior milestone chronology remains in the [complete project snapshot](h
 - **Silently bumping the declared floor or the current lane's Elixir/OTP in CI** — only for runner or dependency breakage, or to make a lane's pin honest (2026-09-26: `otp-version: "27.0"` resolves to 27.0.1). An additive, exactly pinned newest-toolchain lane shipped in v1.43 (Phase 220, `lane: latest`). The Elixir 1.15 / PostgreSQL 15 floor decision shipped in v1.45 and is now recorded in the supported CI lane and adopter table.
 
 ## Context
+
+**Admin delivery (v1.48,2026-11-13):** Phoenix LiveView/HEEx and example-only PhoenixStorybook now share production components/approved assets through complete existing jobs. Host authorizers and scope remain explicit; catalog projections are not credited as SQL/mutation proof. Actual required candidate CI and bounded source/pixel/goal reviews pass, with inherited quality notes retained. No captured-data model or trigger-backed boundary changed.
 
 **Ecosystem gap:** Carbonite (v0.16.x) is the strongest trigger-backed capture substrate in the Elixir ecosystem but is a library, not a platform — it handles what changed but not who did it or why. PaperTrail and ExAudit fill the action-semantics gap but sacrifice correctness (miss direct Repo/SQL writes). No existing library combines both with operator tooling.
 
@@ -254,6 +251,11 @@ Standing research, verification, dependency and CI/CD policy: [Research and deli
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Apply the approved spool/typography through shared production components | Complete ordinary jobs before broad catalog expansion; preserve exact audit values and plain labels | ✓ v1.48, current matched-source and required-CI proof |
+| Keep PhoenixStorybook in the example dev/test boundary | Reuse Phoenix LiveView/HEEx without a speculative Fablebook adapter or public component API | ✓ v1.48, package/optional/dependency contracts pass |
+| Verify failure-evidence transport and actual assertion modes | A red report must retain geometry/images; observed success does not prove enforcement enabled | ✓ v1.48, marked transport fault plus actual strict zoom/Linux results |
+| Reassess shared successor impact once at milestone close | Earlier phase fingerprints can become stale after approved shared-file changes; evidence-supported deltas preserve history without whole-phase replays | ✓ v1.48, all six current fingerprints passed before archive |
+
 | One semantic inventory for ordinary/stress selection and proof ownership | Separate fixture identity, meaningful states, actual renderers and proof kinds without another registry or false acceptance claims | ✓ Phase249; current source/claim review and lifecycle controls |
 | Stamp fictional business time before capture; retain host authentication materialization | Trigger snapshots must match represented events without backdating unaudited Sigra registration/password/confirmation | ✓ Phase249 domain and authentication contracts; public API unchanged |
 | Keep approved-brand mapping referential until coordinated runtime migration | Role/asset authority and later proof owners are useful without certifying unseen rendering or copying constants | ✓ Phase249 reference contract; runtime adoption starts250 |
@@ -374,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-11-12 after independently verified Phase249; Phase250 startup continues under the approved v1.48 scope. Package remains1.1.0; release authority is separate.*
+*Last updated: 2026-11-13 after v1.48 planning completion; PR105 open/unmerged, package1.1.0, release authority separate.*

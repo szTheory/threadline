@@ -1308,6 +1308,40 @@ First-class light mode for the operator surface without disturbing the dark defa
 - Model mix: adaptive profile (opus tier on Opus 5.5 for planning and orchestration; sonnet and haiku tiers for lighter agents).
 - Notable: hosted CI spend was capped per cohort (B6: 6 runs, 5 successes). Every INVALID local canary stopped at its first invalid warmup.
 
+## Milestone: v1.48 — Threadline Admin: brand and complete journeys
+
+**Planning complete:**2026-11-13; PR105 open/unmerged, package1.1.0. **Phases:**6 | **Plans:**36 | **Requirements:**34/34. No release/tag is implied.
+
+### What was built
+
+- Approved identity and complete existing investigation/inspection/Operations flows through shared Phoenix LiveView components.
+- Explicit fail-closed mount authorization, realistic ordinary scenarios, separate stress data and example-only PhoenixStorybook.
+- Current docs/package/font assets and actual inclusive, route/data and strict browser-zoom evidence.
+
+### What worked
+
+- Preserve failed attempts and identify the owning source/premise before fixing it.
+- Use small independent source/security/visual deltas and real same-fixture comparisons; keep catalog, images and behavior proof distinct.
+- Existing required CI proves the exact candidate with both voting browser projects and31/31 required journey identities.
+
+### What was inefficient
+
+- Incomplete fixture/source-census/golden/documentation migration and stale browser premises reached serial hosted runs.
+- Failure attachments were created but initially not retained on red runs; source review missed inherited computed text roles.
+- Completion metadata made covered digests stale, and successor edits invalidated shared earlier-phase fingerprints. Earlier empty contribution fields and unsupported terminal labels added false open-work noise.
+
+### Patterns and lessons
+
+- Run cheap owner/hygiene/golden/census checks before pushing; then run the whole affected runtime case after a premise correction.
+- Prove red-path evidence persistence and emit the enabled assertion mode; measure overflowing text, not only element boxes.
+- Preserve source/fixture/served assets and exact sampling limits through restarts; new evidence does not restore lost historical custody.
+- Batch normal metadata, use same-verifier record refresh, and perform one bounded successor-impact integration/goal reconciliation at close. Never override stale proof or repeat whole phases for record-only drift.
+- Use recognized terminal statuses with explicit automated/non-authoritative classifications and structured resolution for already fixed items.
+
+### Cost observations
+
+Actual final browser report durations are317.890s desktop/263.130s mobile, with no retries/flakes/unexpected results. No total-session, whole-workflow speedup or token-cost percentage is inferred. Measured archive-contract and input-volume observations remain in the [detailed retained retrospective](research/2026-11-12-autonomous-run-retrospective.md). No speculative cache, concurrency or dependency change was introduced.
+
 ## Cross-Milestone Trends
 
 - v1.47 shows that release automation needs the commit-type discipline to hold up: a correct pipeline still opened an empty, red release PR because a CI-only change used a releasable type. It also shows pre-registered replays can replace paid measurement rounds.

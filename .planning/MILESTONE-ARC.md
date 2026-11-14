@@ -1,17 +1,17 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-11-10 (v1.48 scope approved and initialized)
-**Active milestone:** v1.48 — Threadline Admin: brand and complete journeys. Six phases (248–253), all pending; published package remains 1.1.0.
+**Updated:**2026-11-13 after v1.48 planning completion
+**Active milestone:** None selected. v1.48 is complete and archived; PR105 remains open/unmerged, package1.1.0.
 **Posture:** The maintainer brought new signed-off brand/UI direction and approved the six-phase scope after adversarial revision. Start the complete existing-Admin refresh now, with a current-main baseline, direct fail-closed mount correction and explicit issue #61/#90 acceptance/release gates. Broader foundation work stays separately queued; scope approval is not residual-risk or publication approval.
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
 
 ## Current ranking (2026-11-10)
 
-The approved [roadmap](ROADMAP.md), [requirements](REQUIREMENTS.md) and [v1.48 synthesis](research/v1.48-SUMMARY.md) govern execution. The prior foundation-first proposal is retained as a research input, superseded by the approved direct-gate sequence. Remaining future milestone labels are provisional and will be re-ranked at close.
+The approved [roadmap](ROADMAP.md), [requirements](milestones/v1.48-REQUIREMENTS.md) and [v1.48 synthesis](research/v1.48-SUMMARY.md) govern execution. The prior foundation-first proposal is retained as a research input, superseded by the approved direct-gate sequence. Remaining future milestone labels are provisional and will be re-ranked at close.
 
 | Rank | Milestone or candidate | Outcome | Status |
 | --- | --- | --- | --- |
-| Active | v1.48 Threadline Admin | Approved identity and complete existing jobs, PhoenixStorybook/LiveView catalog and real route proofs, truthful package/release readiness | Phases 248–253 pending |
+| Complete, awaiting merge | v1.48 Threadline Admin | Approved identity and complete existing jobs, PhoenixStorybook/LiveView catalog and real route proofs, truthful package/release readiness | Six phases/34 requirements verified; PR105 open/unmerged |
 | Next candidate | Remaining Safe by default | Restore/transaction-ID behavior, CSV/header/SQL/PgBouncer hardening, security guidance and separately proposed support-floor policy; narrow approved mount guard is owned by current Phase 248 | Separately queued; no finding waived by this label |
 | Candidate | Honest specs | Dependency-free mutation replay, valuable contract-test keep/merge/delete, coverage/floor/twin probes | Re-rank at close |
 | Candidate | Measured performance | Capture/control benchmark, retention orphan drain, adopter indexes, timeline bound and measured guide | Re-rank at close |
@@ -138,3 +138,8 @@ Signal-gated long horizon:
 | v1.43 | Supply Chain, CI Economy and Repo Hygiene: audit gate, toolchain pin, PII guard, measured CI cuts (0.11.1, 0.11.2) |
 
 Full per-milestone record: `.planning/MILESTONES.md`. The superseded "hold" arc (2026-06-07) is in git history.
+
+
+## Current position after v1.48 planning completion
+
+All six phases/36plan contributions/34requirements pass independent goal/integration checks and existing required candidate CI. The [archive](milestones/v1.48-ROADMAP.md) and [closeout](milestones/v1.48-CLOSEOUT.md) retain actual proof and limits; [lessons](research/2026-11-12-autonomous-run-retrospective.md) record the long-run repairs and metadata dependency. The next concrete decision is merging PR105; no new milestone, package bump, tag or publication is selected automatically. REL-01 remains a separate first-natural-release obligation. Future candidate rankings above stay provisional and need a fresh evidence-based selection rather than another default UI rebuild.

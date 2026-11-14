@@ -1,5 +1,25 @@
 # Project milestones: Threadline
 
+## v1.48 Threadline Admin: brand and complete journeys (Planning complete:2026-11-13)
+
+**Delivered in the reviewed branch:** coherent brand/ordinary scenarios, complete investigation and permitted Operations flows, fail-closed mounting, shared example catalog, inclusive proof and aligned docs/package assets. [PR105](https://github.com/szTheory/threadline/pull/105) remains open/unmerged; package remains1.1.0. No tag or publication was created.
+
+**Verified:** six phases248–253,36plan contributions,34/34requirements; final independent integration/goal checks and required candidate CI pass. There are82 authored task declarations. The SDK's31-task statistic reads only some summary actual fields and is not used as a total executed-task claim.
+
+**Accomplishments:**
+- Require explicit host authorization or deliberate public opt-out across mounted and HTTP boundaries.
+- Apply the approved identity through shared production Phoenix components, assets/fonts and complete investigations.
+- Preserve scope/query identity through details/history/actor/correlation and authorized Export/Retention outcomes.
+- Reuse production components in example-only Storybook with separate ordinary/stress fixtures and real mounted proofs.
+- Align current docs/package and prove supported inclusive behavior, actual strict200%zoom and fail-closed journey reconciliation.
+- Retain real failures, new controlled comparisons, bounded review and actionable process lessons.
+
+**Known verification overrides:**0 newly acknowledged. The global artifact scanner still discloses78 prior historical acknowledgments across earlier work; none is newly accepted or relabeled fixed here. Current open items:0. Non-authoritative descriptor/edge flags and inherited UI/sampling limits remain explicit. REL-01 separately awaits the first natural release trigger.
+
+**Archive:** [roadmap](milestones/v1.48-ROADMAP.md), [requirements](milestones/v1.48-REQUIREMENTS.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md), [closeout](milestones/v1.48-CLOSEOUT.md). [Lessons](research/2026-11-12-autonomous-run-retrospective.md) retained. Next: separate merge decision; no new milestone selected.
+
+---
+
 ## v1.47 Release on autopilot (Shipped: 2026-10-29)
 
 **Phases completed:** 5 phases (244, 245, 246, 247, inserted gap phase 247.1), 66 plans, 68 tasks. Opened 2026-10-24; 435 commits since the v1.46 tag. Code paths (`lib`, `test`, `bin`, `.github`, `mix.exs`): 581 files, +16,335 / -105,475 lines, mostly the UI critic retirement.
