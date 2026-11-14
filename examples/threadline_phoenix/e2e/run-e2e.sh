@@ -431,7 +431,6 @@ else
 fi
 mix ecto.migrate --quiet
 mix demo.reset
-mix demo.seed
 
 cd "$E2E_DIR"
 if [[ "$PREVIEW_MODE" != "1" ]]; then
@@ -454,23 +453,102 @@ cleanup() {
 trap cleanup EXIT
 
 : >"$LOG_FILE"
-PHX_PID=$(python3 -c 'import os, subprocess, sys; log = open(sys.argv[1], "ab", buffering=0); child = subprocess.Popen(["mix", "phx.server"], cwd=sys.argv[2], env=os.environ, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True); print(child.pid)' "$LOG_FILE" "$EXAMPLE")
+# The host schema and deterministic fixture are ready before this launch. Keep
+# Retention disabled in test.exs; only this managed browser process enables it.
+PHX_PID=$(python3 -c '
+import os, subprocess, sys
+
+bootstrap = """
+original_exports = Application.get_env(:threadline, :exports, [])
+Application.put_env(:threadline, :exports, Keyword.merge(original_exports,
+  cleanup_interval_ms: 86_400_000, stale_running_cutoff_hours: 12_000))
+Application.put_env(:phoenix, :serve_endpoints, true)
+{:ok, _} = Application.ensure_all_started(:threadline_phoenix)
+Application.put_env(:threadline, :exports, original_exports)
+repo = ThreadlinePhoenix.Repo
+schema = Threadline.StorageSchema.get([])
+rows = fn ->
+  Enum.map(~w(audit_transactions audit_changes audit_actions threadline_export_jobs threadline_retention_runs), fn table ->
+    reference = Threadline.StorageSchema.table(table, storage_schema: schema)
+    Ecto.Adapters.SQL.query!(repo,
+      "SELECT jsonb_agg(to_jsonb(t) ORDER BY id)::text FROM #{reference} t", []).rows
+  end)
+end
+before_rows = rows.()
+Application.put_env(:threadline, :retention,
+  enabled: true, keep_days: 30, delete_empty_transactions: true,
+  interval_ms: 86_400_000, sleep_ms: 0)
+{:ok, worker} = Supervisor.start_child(Threadline.Application.Supervisor,
+  {Threadline.Retention.Pruner, [repo: repo, interval_ms: 86_400_000, sleep_ms: 0]})
+{:ok, target} = Threadline.Retention.Pruner.target_snapshot()
+true = target.pid == worker and target.repo == repo and
+  target.storage_schema == schema and target.sleep_ms == 0
+true = :sys.get_state(worker).interval_ms == 86_400_000
+true = Enum.any?(Supervisor.which_children(Threadline.Application.Supervisor), fn
+  {Threadline.Retention.Pruner, ^worker, :worker, _} -> true
+  _ -> false
+end)
+cleanup = :sys.get_state(Process.whereis(Threadline.Export.CleanupTask))
+true = cleanup.interval_ms == 86_400_000 and cleanup.stale_running_cutoff_hours == 12_000
+rows_unchanged = rows.() == before_rows
+true = rows_unchanged
+Enum.each([:threadline, :threadline_phoenix], fn app ->
+  Enum.each(Application.spec(app, :modules) || [], &Code.ensure_loaded!/1)
+end)
+IO.puts("THREADLINE_E2E_PRUNER_READY " <> Jason.encode!(%{
+  repo: inspect(target.repo), storage_schema: target.storage_schema,
+  sleep_ms: target.sleep_ms, worker_pid: inspect(target.pid), rows_unchanged: rows_unchanged
+}))
+"""
+log = open(sys.argv[1], "ab", buffering=0)
+child = subprocess.Popen(["mix", "run", "--no-start", "--no-halt", "-e", bootstrap],
+    cwd=sys.argv[2], env=os.environ, stdin=subprocess.DEVNULL,
+    stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+print(child.pid)
+' "$LOG_FILE" "$EXAMPLE")
+
+pruner_ready() {
+  python3 - "$LOG_FILE" <<'PY'
+import json, re, sys
+prefix = "THREADLINE_E2E_PRUNER_READY "
+with open(sys.argv[1]) as stream:
+    markers = [line[len(prefix):] for line in stream if line.startswith(prefix)]
+if not markers:
+    sys.exit(1)
+try:
+    marker = json.loads(markers[-1])
+    valid = (marker["repo"] == "ThreadlinePhoenix.Repo" and
+             marker["storage_schema"] == "threadline" and marker["sleep_ms"] == 0 and
+             marker["rows_unchanged"] is True and
+             re.fullmatch(r"#PID<\d+\.\d+\.\d+>", marker["worker_pid"]) is not None)
+except (ValueError, KeyError, TypeError):
+    valid = False
+sys.exit(0 if valid else 2)
+PY
+}
 
 ready=0
 LAUNCH_PID="$PHX_PID"
 for _ in $(seq 1 120); do
   if server_ready "${PORT}"; then
-    ready=1
-    break
+    if pruner_ready; then
+      ready=1
+      break
+    else
+      marker_status=$?
+      if [[ "$marker_status" -ne 1 ]]; then
+        fail_with_log "Pruner readiness marker does not match the configured worker; log follows:"
+      fi
+    fi
   fi
   if ! kill -0 "$PHX_PID" 2>/dev/null; then
-    fail_with_log "phx.server exited before port ${PORT} opened; log follows:"
+    fail_with_log "Browser server exited before worker readiness on port ${PORT}; log follows:"
   fi
   sleep 1
 done
 
 if [[ "$ready" -ne 1 ]]; then
-  fail_with_log "Timed out waiting for port ${PORT}; log follows:"
+  fail_with_log "Timed out waiting for worker readiness on port ${PORT}; log follows:"
 fi
 
 listener_pids=$(lsof -t -nP -iTCP:"${PORT}" -sTCP:LISTEN 2>/dev/null | sort -u)

@@ -123,6 +123,37 @@ defmodule Threadline.RetentionTest do
     :ok
   end
 
+  test "Phase252 dry-run preserves every audit and run row and distinguishes disabled empty cleanup" do
+    cutoff = ~U[2001-06-01 00:00:00.000000Z]
+    transaction = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", transaction, captured_at: DateTime.add(cutoff, -1, :second))
+    tables = [AuditChange, AuditTransaction, RetentionRun, Threadline.Semantics.AuditAction]
+    counts = fn -> Enum.map(tables, &Repo.aggregate(&1, :count, :id, repo_opts())) end
+    before = counts.()
+
+    assert %{deleted_changes: 1, deleted_transactions: 1, dry_run: true, batches_run: 0} =
+             Retention.purge(
+               repo: Repo,
+               cutoff: cutoff,
+               dry_run: true,
+               batch_size: 1,
+               max_batches: 1
+             )
+
+    assert counts.() == before
+
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: false
+    )
+
+    assert %{deleted_changes: 1, deleted_transactions: 0, dry_run: true} =
+             Retention.purge(repo: Repo, cutoff: cutoff, dry_run: true)
+
+    assert counts.() == before
+  end
+
   test "purge/1 without repo raises KeyError" do
     ref = attach_telemetry!(@purge_span_events)
 

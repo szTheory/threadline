@@ -22,6 +22,70 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")
   end
 
+  test "operator surface introduction names Threadline Admin and preserves technical anchors" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(guide, "Threadline is an audit trail library for Phoenix apps.")
+    assert String.contains?(guide, "Threadline Admin provides")
+    assert String.contains?(guide, ~s|<a id="operator-surface"></a>|)
+
+    assert String.contains?(
+             Threadline.MixProject.project()[:description],
+             "An audit trail library for Phoenix"
+           )
+
+    assert String.contains?(
+             File.read!("lib/threadline.ex"),
+             "Threadline is an open-source audit trail library for Elixir and Phoenix apps."
+           )
+
+    assert String.contains?(guide, "native submit buttons")
+    refute String.contains?(guide, "`Apply theme`")
+
+    for boundary <- [
+          "Preview retention",
+          "Review and confirm",
+          "Prune now",
+          "sequential estimates",
+          "configured worker store",
+          "Pruner.trigger/0",
+          "mismatch"
+        ] do
+      assert String.contains?(guide, boundary), "missing current Retention boundary #{boundary}"
+    end
+
+    for heading <- [
+          "# Threadline Admin",
+          "## 1-Minute Mount",
+          "### Theme",
+          "### `:actor_fn`",
+          "## Available Screens (v1.17)"
+        ] do
+      assert String.contains?(guide, heading), "missing stable technical heading #{heading}"
+    end
+  end
+
+  test "all mount guides require explicit authorization separate from host pipelines" do
+    guides = [
+      "guides/operator-surface.md",
+      "guides/integration-contracts.md",
+      "guides/code-walkthrough.md"
+    ]
+
+    Enum.each(guides, fn path ->
+      guide = path |> File.read!() |> String.replace(~r/\s+/, " ")
+
+      assert String.contains?(guide, ":authorize_fn"), path
+      assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true"), path
+      assert String.contains?(guide, "`pipe_through` alone does not authorize"), path
+      assert String.contains?(guide, "intentionally public"), path
+    end)
+
+    operator_surface_guide = File.read!("guides/operator-surface.md")
+    refute String.contains?(operator_surface_guide, "raises in test")
+    refute String.contains?(operator_surface_guide, "warning in prod")
+  end
+
   test "operator surface guide's mount recipe keeps its auth and export-auth gates" do
     guide = File.read!("guides/operator-surface.md")
 

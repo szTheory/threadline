@@ -1,0 +1,47 @@
+{
+  "phase": "248",
+  "plan": "248-04",
+  "evidence_kind": "full_nine_run_repeat",
+  "status": "failed",
+  "producer": {
+    "kind": "local GSD retained-worktree run",
+    "branch": "worktree-agent-p248-04-1794366095",
+    "source_commit": "10442d31a8c7df50111effe1614c99bf5e7e87ee"
+  },
+  "authorization": {
+    "user_grant_count": 1,
+    "invocations_consumed": 1,
+    "remaining_full_repeat_authority": 0
+  },
+  "execution": {
+    "expected_runs": 9,
+    "completed_clean_runs": 3,
+    "failed_iteration": 4,
+    "timeout_failures": 5,
+    "per_test_timeout_ms": 60000,
+    "seed": 579775,
+    "property_scale": 5,
+    "max_cases": 36,
+    "budget_seconds": 3300,
+    "termination_grace_seconds": 60,
+    "suite_exit_code": 2,
+    "wrapper_exit_code": 1,
+    "capture_exit_code": 0,
+    "elapsed_seconds": 1582.26,
+    "source_unchanged_during_run": true
+  },
+  "classifier": {
+    "token": "flaky",
+    "reason": "passed 3 time(s) then failed on iteration 4"
+  },
+  "failures": [
+    "Threadline.RepoContractScopeContractTest: mutation controls no-dodging: text and test-support references are not flagged",
+    "Threadline.FormatterTopologyContractTest: repository formatter configs give representative Elixir files exactly one owner",
+    "Threadline.RemovedArtifactContractTest: live repository has no removed targets, root one-offs, or active citations",
+    "Threadline.StorageSchemaCallSiteContractTest: real tree sweep no unprefixed owned-schema Ecto call site exists in library or example tests/source",
+    "Threadline.OperatorSurface.StorybookBoundaryTest: Storybook terms are allowed only inside the Phoenix example maintainer lane"
+  ],
+  "observed_wait_path": "gen_server.call -> file.call -> File.read!/wildcard/getcwd",
+  "raw_log_sha256": "2e0c0cae2fe0138ae75650fa47beb2a0b6c47694abfdd09f3f80bd23d31c3ae1",
+  "interpretation": "Terminal failed acceptance evidence. This receipt does not establish a sole cause. No further full repeat is authorized by this grant."
+}

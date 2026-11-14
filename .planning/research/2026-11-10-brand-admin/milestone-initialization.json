@@ -1,0 +1,150 @@
+{
+  "milestone": "v1.48",
+  "base_main": "d35b9422fb2a83897902c2276cb94ecf5129a5e3",
+  "approval": "Maintainer approved the revised six-phase scope and roadmap boundary in conversation, then confirmed PhoenixStorybook/LiveView now and Fablebook only when ready.",
+  "predecessor": "v1.47",
+  "starting_phase": 248,
+  "retained_candidate": ".claude/worktrees/v146-phase241-orchestrator",
+  "retained_ui_diff_sha256": "7bb1328b375ed9c9b656d22785e089831122b002b6892554e8ce476d2b7c9074",
+  "retained_files": [
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-phase-175-uat.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-shell-home.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "guides/operator-surface.md",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/components/icon.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/components/surface_header.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/start_live.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/02_base_shell.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/03_page_home.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/06_layout_primitives.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/07_find_detail.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/08_overlays_motion.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "lib/threadline/operator_surface/style/09_responsive.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/fixtures/style/operator_surface.css",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/coverage_doc_contract_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/live/coverage_live_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/live/evidence_live_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/live/policy_redaction_live_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/live/start_live_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/style_contract_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/surface_header_csp_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    },
+    {
+      "path": "test/threadline/operator_surface/surface_header_test.exs",
+      "disposition": "pending baseline-phase port/replace/defer decision; no product diff imported"
+    }
+  ],
+  "framework": "PhoenixStorybook with Phoenix LiveView/HEEx; example dev/test only; no React migration",
+  "fablebook": "deferred until readiness and explicit adoption decision; no speculative adapter",
+  "executor_isolation": "Historical-root query returned none; preserve configured worktree policy and re-resolve before any executor dispatch. This checkout is GSD-created planning isolation, not a claim of executor capability.",
+  "publication": "No new push, merge, publish or residual-risk grant from scope approval.",
+  "planning_checkout": ".claude/worktrees/v148-admin-orchestrator",
+  "branch": "agent-v148-admin",
+  "approved_phases": [
+    248,
+    249,
+    250,
+    251,
+    252,
+    253
+  ],
+  "framework_confirmed": true
+}

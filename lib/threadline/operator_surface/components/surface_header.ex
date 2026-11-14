@@ -5,6 +5,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.Component
 
     attr(:coverage, :map, required: true)
+    attr(:coverage_schema, :string, default: "public")
     attr(:base_path, :string, required: true)
     attr(:error, :string, default: nil)
     attr(:coverage_enabled, :boolean, default: false)
@@ -19,7 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       <a class="tl-skip-link" href="#tl-main">Skip to main content</a>
       <header class="tl-topbar" data-testid="operator-header">
-        <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline operator home">
+        <a class="tl-topbar__brand" href={@base_path || "#"} aria-label="Threadline Admin home">
           <Threadline.OperatorSurface.Components.Logo.compact />
         </a>
         <div class="tl-topbar__status">
@@ -30,19 +31,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           title="Results are limited to the records you are authorized to see."
         >Scoped view</span>
         <%= if @coverage_enabled do %>
-          <%= if @error do %>
-            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
-              <%= if last_checked?(@coverage), do: "Coverage refresh failed", else: "Coverage unavailable" %>
-            </a>
-          <% else %>
-            <%= if @coverage && @coverage.uncovered_count > 0 do %>
-            <a class="tl-chip tl-chip--warning" href={"#{@base_path}/coverage"}>
-              <%= @coverage.uncovered_count %> tables need audit coverage
-            </a>
-            <% else %>
-              <a class="tl-chip tl-chip--muted" href={"#{@base_path}/coverage"}>All tables captured</a>
-            <% end %>
-          <% end %>
+          <a
+            class={["tl-chip", if(@error || not last_checked?(@coverage) || coverage_count(@coverage, :uncovered_count) > 0, do: "tl-chip--warning", else: "tl-chip--muted")]}
+            href={coverage_href(@base_path, @coverage_schema)}
+            data-testid="coverage-status"
+            data-coverage-schema={@coverage_schema}
+            title={if @coverage_schema, do: "Coverage scope: schema #{@coverage_schema}. Other schemas were not inspected.", else: "No selected-schema coverage inspection is confirmed."}
+          >
+            <%= coverage_label(@coverage, @error, @coverage_schema) %>
+          </a>
         <% end %>
         <%= if @error && last_checked?(@coverage) do %>
           <span class="tl-topbar__stale">stale (last checked <%= seconds_ago(@coverage) %>s ago)</span>
@@ -91,6 +88,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.nav_link :if={@policy_enabled} href={"#{@base_path}/policy/retention"} current={@current} page={:retention}>Retention</.nav_link>
             <.nav_link :if={@exports_enabled} href={"#{@base_path}/exports"} current={@current} page={:exports}>Exports</.nav_link>
           </section>
+          <.theme_picker base_path={@base_path} theme={@theme} />
+        </div>
+      </nav>
+      """
+    end
+
+    attr(:base_path, :string, required: true)
+    attr(:theme, :string, required: true)
+
+    defp theme_picker(assigns) do
+      ~H"""
           <section
             class="tl-shell-nav__group tl-theme-picker"
             aria-labelledby="tl-shell-nav-theme"
@@ -100,24 +108,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
               <fieldset class="tl-theme-picker__options">
                 <legend id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>
-                <label class="tl-theme-picker__option" for="theme-system">
-                  <input type="radio" id="theme-system" name="theme" value="system" checked={@theme == "system"} />
-                  System
-                </label>
-                <label class="tl-theme-picker__option" for="theme-light">
-                  <input type="radio" id="theme-light" name="theme" value="light" checked={@theme == "light"} />
-                  Light
-                </label>
-                <label class="tl-theme-picker__option" for="theme-dark">
-                  <input type="radio" id="theme-dark" name="theme" value="dark" checked={@theme == "dark"} />
-                  Dark
-                </label>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="system"
+                  aria-label="System"
+                  aria-pressed={if(@theme == "system", do: "true", else: "false")}
+                >
+                  <span>System</span>
+                  <span :if={@theme == "system"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="light"
+                  aria-label="Light"
+                  aria-pressed={if(@theme == "light", do: "true", else: "false")}
+                >
+                  <span>Light</span>
+                  <span :if={@theme == "light"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
+                <button
+                  class="tl-theme-picker__option"
+                  type="submit"
+                  name="theme"
+                  value="dark"
+                  aria-label="Dark"
+                  aria-pressed={if(@theme == "dark", do: "true", else: "false")}
+                >
+                  <span>Dark</span>
+                  <span :if={@theme == "dark"} class="tl-theme-picker__selected" aria-hidden="true">
+                    <span>✓</span><span>Selected</span>
+                  </span>
+                </button>
               </fieldset>
-              <button type="submit" class="tl-button tl-button--primary">Apply theme</button>
             </form>
           </section>
-        </div>
-      </nav>
       """
     end
 
@@ -149,6 +181,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp seconds_ago(%{last_checked_at: %DateTime{} = ts}) do
       DateTime.diff(DateTime.utc_now(), ts, :second)
     end
+
+    defp coverage_label(coverage, error, schema) do
+      cond do
+        not is_binary(schema) or schema == "" ->
+          "Coverage not inspected"
+
+        error && last_checked?(coverage) ->
+          "#{schema}: Coverage refresh failed"
+
+        error ->
+          "#{schema}: Coverage unavailable"
+
+        not last_checked?(coverage) ->
+          "Coverage not inspected"
+
+        coverage_count(coverage, :uncovered_count) > 0 ->
+          "#{schema}: #{coverage_count(coverage, :uncovered_count)} not audited"
+
+        true ->
+          "#{schema}: #{coverage_count(coverage, :covered_count)} audited"
+      end
+    end
+
+    defp coverage_count(coverage, key), do: Map.get(coverage, key, 0)
+
+    defp coverage_href(base_path, schema) when is_binary(schema) and schema not in ["", "public"],
+      do: "#{base_path}/coverage?" <> URI.encode_query(%{"schema" => schema})
+
+    defp coverage_href(base_path, _schema), do: "#{base_path}/coverage"
 
     defp last_checked?(%{last_checked_at: %DateTime{}}), do: true
     defp last_checked?(_), do: false

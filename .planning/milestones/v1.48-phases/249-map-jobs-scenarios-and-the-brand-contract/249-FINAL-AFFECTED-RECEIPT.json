@@ -1,0 +1,67 @@
+{
+  "source": "b113f576b49f961624285f65dd5eec522dedb1b7",
+  "scope": "remaining final affected contract/build/shell checks for Phase249 validation; no whole-root suite/canonical/browser/fullrepeat",
+  "checks": [
+    {
+      "label": "root-format",
+      "args": [
+        "mix",
+        "verify.format"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.739
+    },
+    {
+      "label": "root-compile",
+      "args": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.484
+    },
+    {
+      "label": "root-contract",
+      "args": [
+        "mix",
+        "verify.test",
+        "test/threadline/operator_surface/operator_evidence_contract_test.exs"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.806
+    },
+    {
+      "label": "lock-contract",
+      "args": [
+        "mix",
+        "test",
+        "test/threadline_phoenix/demo/advisory_lock_pinning_test.exs"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.755
+    },
+    {
+      "label": "shell-syntax",
+      "args": [
+        "bash",
+        "-n",
+        "examples/threadline_phoenix/e2e/run-e2e.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.006
+    }
+  ],
+  "passed": true,
+  "environment": {
+    "postgres": "15.17 (Homebrew)",
+    "owned_loopback_port": 60025,
+    "max_connections": 100,
+    "partition": "p24904",
+    "live_evidence_flags": "unset"
+  },
+  "limits": [
+    "Focused source contracts/build/syntax only",
+    "No full canonical/root-wide/fullrepeat/browser/hosted claim"
+  ]
+}

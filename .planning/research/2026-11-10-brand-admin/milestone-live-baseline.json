@@ -1,0 +1,142 @@
+{
+  "observed_at": "2026-11-10T22:46:30+00:00",
+  "repository": "szTheory/threadline",
+  "main_sha": "d35b9422fb2a83897902c2276cb94ecf5129a5e3",
+  "last_main_commit_at": "2026-10-29T10:15:59Z",
+  "required_ci_run": 40856193944,
+  "required_ci_jobs": [
+    {
+      "name": "Formatting",
+      "conclusion": "success",
+      "seconds": 18,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387654658"
+    },
+    {
+      "name": "CHANGELOG matches version",
+      "conclusion": "success",
+      "seconds": 8,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387654957"
+    },
+    {
+      "name": "Build and test (current)",
+      "conclusion": "success",
+      "seconds": 448,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387654969"
+    },
+    {
+      "name": "Dependency audit (Mix lockfiles)",
+      "conclusion": "success",
+      "seconds": 32,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387654980"
+    },
+    {
+      "name": "Build and test (min)",
+      "conclusion": "success",
+      "seconds": 237,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655000"
+    },
+    {
+      "name": "Repo hygiene (no machine-local paths)",
+      "conclusion": "success",
+      "seconds": 8,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655015"
+    },
+    {
+      "name": "Build and test (latest)",
+      "conclusion": "success",
+      "seconds": 225,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655035"
+    },
+    {
+      "name": "Compile without optional deps",
+      "conclusion": "success",
+      "seconds": 96,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655044"
+    },
+    {
+      "name": "Hex package install (rehearsal registry)",
+      "conclusion": "success",
+      "seconds": 68,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655052"
+    },
+    {
+      "name": "Tests through PgBouncer (transaction mode)",
+      "conclusion": "success",
+      "seconds": 79,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655057"
+    },
+    {
+      "name": "Credo (strict)",
+      "conclusion": "success",
+      "seconds": 71,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655097"
+    },
+    {
+      "name": "Example app browser E2E (mobile-chromium)",
+      "conclusion": "success",
+      "seconds": 341,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655190"
+    },
+    {
+      "name": "Next-minor release rehearsal (docs + contracts)",
+      "conclusion": "success",
+      "seconds": 156,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655213"
+    },
+    {
+      "name": "Dialyzer (full optional build)",
+      "conclusion": "success",
+      "seconds": 164,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655220"
+    },
+    {
+      "name": "Example app browser E2E (desktop-chromium)",
+      "conclusion": "success",
+      "seconds": 354,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123387655249"
+    },
+    {
+      "name": "Browser journey receipt",
+      "conclusion": "success",
+      "seconds": 17,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123390304100"
+    },
+    {
+      "name": "CI required",
+      "conclusion": "success",
+      "seconds": 3,
+      "url": "https://github.com/szTheory/threadline/actions/runs/40856193944/job/123390996457"
+    }
+  ],
+  "open_prs": [
+    {
+      "headRefName": "dependabot/github_actions/github-actions-93f187c3b2",
+      "isDraft": false,
+      "number": 92,
+      "title": "ci(deps): bump the github-actions group across 1 directory with 6 updates"
+    }
+  ],
+  "current_scheduled_findings": [
+    {
+      "number": 61,
+      "title": "Dependency health: advisory",
+      "url": "https://github.com/szTheory/threadline/issues/61",
+      "latest_comment": {
+        "createdAt": "2026-11-10T08:08:11Z",
+        "body": "# Dependency health: advisory\n\n## .\n\n- fetch exit: 0\n\n- audit exit: 1\n\n- advisory phoenix_html EEF-CVE-2026-117645: Dependency 'phoenix_html' '4.3.0' is affected by security advisory 'EEF-CVE-2026-117645 (aka CVE-2026-117645)': 'Phoenix.HTML vulnerable to attribute injection via unvalidated attribute names in attributes_escape/1'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-117645'.\n- advisory ecto EEF-CVE-2026-118391: Dependency 'ecto' '3.14.2' is affected by security advisory 'EEF-CVE-2026-118391 (aka CVE-2026-118391, GHSA-cxjx-vmm2-qr8r)': 'Unbounded query cache growth from interpolated JSON paths and splice lists in Ecto'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-118391'.\n\n## bench\n\n- fetch exit: 0\n\n- audit exit: 1\n\n- advisory ecto EEF-CVE-2026-118391: Dependency 'ecto' '3.14.2' is affected by security advisory 'EEF-CVE-2026-118391 (aka CVE-2026-118391, GHSA-cxjx-vmm2-qr8r)': 'Unbounded query cache growth from interpolated JSON paths and splice lists in Ecto'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-118391'.\n\n## examples/threadline_phoenix\n\n- fetch exit: 0\n\n- audit exit: 1\n\n- advisory bandit EEF-CVE-2026-111101: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-111101 (aka CVE-2026-111101, GHSA-jwh3-j29h-qfmw)': 'HTTP/1.1 chunked request bodies made of 1-byte chunks amplify memory use in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-111101'.\n- advisory bandit EEF-CVE-2026-114216: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-114216 (aka CVE-2026-114216, GHSA-w5wc-g2hc-g7m2)': 'Chunk extensions accept bare LF and CR, enabling request smuggling in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-114216'.\n- advisory bandit EEF-CVE-2026-114213: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-114213 (aka CVE-2026-114213, GHSA-cpx7-qf6w-jc63)': 'WebSocket 1-byte continuation frames bypass `max_fragmented_message_size` in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-114213'.\n- advisory bandit EEF-CVE-2026-113436: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-113436 (aka CVE-2026-113436, GHSA-29cr-8477-rg6r)': 'Quadratic bignum parsing of Content-Length and Host port values in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-113436'.\n- advisory bandit EEF-CVE-2026-110499: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-110499 (aka CVE-2026-110499, GHSA-47x4-3fxf-82fr)': 'Client-chosen HPACK encoder table size is applied uncapped, growing per-connection state with every response in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-110499'.\n- advisory bandit EEF-CVE-2026-111103: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-111103 (aka CVE-2026-111103, GHSA-2238-pgfc-w82m)': 'HTTP/2 StreamError recovery rolls back connection state and bypasses per-connection limits in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-111103'.\n- advisory bandit EEF-CVE-2026-115269: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-115269 (aka CVE-2026-115269, GHSA-p2qv-vx88-385x)': 'HTTP/2 WINDOW_UPDATE and SETTINGS frames reset the request body read timeout in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-115269'.\n- advisory bandit EEF-CVE-2026-108525: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-108525 (aka CVE-2026-108525, GHSA-c3g7-2pg5-qvwh)': 'HTTP/2 inbound flow control is not enforced, letting a client queue unbounded DATA in stream processes in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-108525'.\n- advisory bandit EEF-CVE-2026-116078: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-116078 (aka CVE-2026-116078, GHSA-pxjf-g536-7r93)': 'HTTP/2 request bodies made of 1-byte DATA frames amplify memory use in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-116078'.\n- advisory bandit EEF-CVE-2026-109584: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-109584 (aka CVE-2026-109584, GHSA-7gfj-7gvq-3xqj)': 'HTTP/2 cookie crumb join expands a small HPACK header block into an unbounded allocation in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-109584'.\n- advisory bandit EEF-CVE-2026-108529: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-108529 (aka CVE-2026-108529, GHSA-j363-h72p-296m)': 'SETTINGS and stream-0 WINDOW_UPDATE frames trigger quadratic work over blocked streams in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-108529'.\n- advisory bandit EEF-CVE-2026-110314: Dependency 'bandit' '1.13.1' is affected by security advisory 'EEF-CVE-2026-110314 (aka CVE-2026-110314, GHSA-2v5v-8f9v-xh85)': 'WebSocket frames keep reaching the WebSock after a server-initiated close in Bandit'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-110314'.\n- advisory ecto EEF-CVE-2026-118391: Dependency 'ecto' '3.14.2' is affected by security advisory 'EEF-CVE-2026-118391 (aka CVE-2026-118391, GHSA-cxjx-vmm2-qr8r)': 'Unbounded query cache growth from interpolated JSON paths and splice lists in Ecto'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-118391'.\n- advisory phoenix_html EEF-CVE-2026-117645: Dependency 'phoenix_html' '4.3.0' is affected by security advisory 'EEF-CVE-2026-117645 (aka CVE-2026-117645)': 'Phoenix.HTML vulnerable to attribute injection via unvalidated attribute names in attributes_escape/1'. See 'https://osv.dev/vulnerability/EEF-CVE-2026-117645'.\n\n## Blocking \u2014 shipped runtime\n\n- .: advisory phoenix_html EEF-CVE-2026-117645 \u2014 phoenix_html is in the shipped runtime closure (root mix.lock)\n- .: advisory ecto EEF-CVE-2026-118391 \u2014 ecto is in the shipped runtime closure (root mix.lock)\n\n## Non-blocking \u2014 dev/test/bench/example\n\n- bench: advisory ecto EEF-CVE-2026-118391 \u2014 ecto is only in bench/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-111101 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-114216 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-114213 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-113436 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-110499 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-111103 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-115269 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-108525 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-116078 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-109584 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-108529 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory bandit EEF-CVE-2026-110314 \u2014 bandit is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory ecto EEF-CVE-2026-118391 \u2014 ecto is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n- examples/threadline_phoenix: advisory phoenix_html EEF-CVE-2026-117645 \u2014 phoenix_html is only in examples/threadline_phoenix/mix.lock; not shipped in the Hex package\n\n---\n\nThis issue is reused across runs: a re-run comments on the same issue instead\nof opening a new one. Policy: see CONTRIBUTING.md, \"Dependency freshness policy\"."
+      }
+    },
+    {
+      "number": 90,
+      "title": "Flake Detection: test suite reported broken",
+      "url": "https://github.com/szTheory/threadline/issues/90",
+      "latest_comment": {
+        "createdAt": "2026-11-09T07:18:38Z",
+        "body": "The suite is **broken**, not flaky \u2014 it failed on the FIRST iteration.\n\nA first-iteration failure is a deterministic failure. Do not triage this as an intermittent test; the suite does not pass even once.\n\n- Classification: `broken`\n- Reason: failed on the first iteration\n- Suite headers seen: `1`\n- Run: https://github.com/szTheory/threadline/actions/runs/42577559585\n- Commit: `d35b9422fb2a83897902c2276cb94ecf5129a5e3` (schedule)\n\nThe full `mix verify.flake` output is attached to the run as the `flake-detection-log` artifact.\n\nThis issue is reused across runs \u2014 repeated failures accumulate here as\ncomments rather than opening a new issue each run. A passing run closes it.\n"
+      }
+    }
+  ],
+  "posture": "Historical exact-main required CI passed; subsequent scheduled audit and first-iteration suite failures remain open. Not a wholly green current baseline.",
+  "ci_efficiency_observation": "Read existing job timings only; single-run bottlenecks are a triage input, not a measured optimization saving or reason to dispatch new runs.",
+  "actions": "Read only; no workflow dispatch, source update, issue comment, push or publication."
+}

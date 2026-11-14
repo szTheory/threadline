@@ -4,7 +4,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true
+      )
     end
   end
 
@@ -34,6 +37,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_schema",
+        adopter_acknowledges_unauthenticated: true,
         schemas: %{
           "routeable_rows" => Threadline.OperatorSurface.TimelineLiveTest.RouteableRow,
           "support.tickets" => Threadline.OperatorSurface.TimelineLiveTest.SupportTicket
@@ -657,6 +661,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # -------------------------------------------------------------------
+    @tag :timeline_selection
+    test "unsupported-only Timeline input is rejected before any audit read", %{conn: conn} do
+      handler = "phase251-unknown-only-#{System.unique_integer([:positive])}"
+      event = Repo.config()[:telemetry_prefix] ++ [:query]
+
+      :ok =
+        :telemetry.attach(
+          handler,
+          event,
+          fn _event, _measurements, metadata, owner ->
+            if Regex.match?(~r/FROM (?:"[^"]+"\.)?"audit_changes"/, metadata.query) do
+              send(owner, :phase251_audit_read)
+            end
+          end,
+          self()
+        )
+
+      on_exit(fn -> :telemetry.detach(handler) end)
+
+      {:ok, lv, _html} = mount_audit(conn, "/audit/timeline?unsupported_only=private-value")
+
+      assert has_element?(
+               lv,
+               "[role=alert]",
+               "These Timeline filters are not supported. Update the filters before applying them."
+             )
+
+      refute has_element?(lv, "#changes-list [id^=change-]")
+      refute has_element?(lv, "[role=status]", "No captured changes")
+      assert has_element?(lv, ".tl-timeline-command__facts", "Not queried")
+      refute_receive :phase251_audit_read, 100
+
+      # A real supported read is the positive control for the query observer.
+      {:ok, _valid, _html} = mount_audit(conn, "/audit/timeline?from=")
+      assert_receive :phase251_audit_read, 1000
+    end
+
+    @tag :timeline_selection
+    test "non-scalar supported URL filters show correction without crashing", %{conn: conn} do
+      {:ok, lv, html} = mount_audit(conn, "/audit/timeline?correlation_id[]=private-value")
+
+      assert has_element?(
+               lv,
+               "[role=alert]",
+               "These Timeline filters are not supported. Update the filters before applying them."
+             )
+
+      refute html =~ "private-value"
+    end
+
     # Case 12 — unknown_param_dropped (BROWSE-02 — allowlist enforcement)
     # -------------------------------------------------------------------
 
@@ -1105,7 +1159,59 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ "No changes match these filters"
-      assert html =~ "Adjust the time range or filters, then apply again."
+      assert html =~ "Try a wider date range or adjust the filters, then apply again."
+    end
+
+    test "submitting empty filters queries without a date window or invented actor context", %{
+      conn: conn
+    } do
+      table = "unfiltered_timeline_#{System.unique_integer([:positive])}"
+      occurred_at = ~U[2020-05-01 12:00:00Z]
+      change = seed_change!(table: table, actor_ref: nil, occurred_at: occurred_at)
+
+      {:ok, lv, _html} =
+        live(
+          conn,
+          "/audit/timeline?from=2020-01-01T00:00&to=2020-12-31T23:59&table=#{table}"
+        )
+
+      assert has_element?(lv, "#change-#{change.id}")
+
+      lv
+      |> form("#timeline-filters",
+        filter: %{
+          from: "",
+          to: "",
+          table_schema: "",
+          table: "",
+          actor_kind: "",
+          actor_id: "",
+          correlation_id: ""
+        }
+      )
+      |> render_submit()
+
+      path = assert_patch(lv)
+      assert URI.parse(path).path == "/audit/timeline"
+
+      html = render(lv)
+
+      assert has_element?(lv, "#change-#{change.id}")
+      assert html =~ "Showing 1 of 1 matching changes"
+      assert html =~ "value=\"\""
+      assert has_element?(lv, "#change-#{change.id} code", "unknown")
+      refute has_element?(lv, "#change-#{change.id} a[title='View actor activity']")
+      refute has_element?(lv, "#change-#{change.id}", "Correlation")
+
+      {:ok, reopened_lv, reopened_html} = live(conn, path)
+
+      assert has_element?(reopened_lv, "#change-#{change.id}")
+      assert URI.parse(path).query == "from="
+      assert reopened_html =~ "Showing 1 of 1 matching changes"
+      assert reopened_html =~ "value=\"\""
+      assert has_element?(reopened_lv, "#change-#{change.id} code", "unknown")
+      refute has_element?(reopened_lv, "#change-#{change.id} a[title='View actor activity']")
+      refute has_element?(reopened_lv, "#change-#{change.id}", "Correlation")
     end
 
     test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
@@ -1133,7 +1239,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert filtered_html =~ ~s|tl-empty--no_data|
       assert filtered_html =~ "No changes match these filters"
-      assert filtered_html =~ "Adjust the time range or filters, then apply again."
+      assert filtered_html =~ "Try a wider date range or adjust the filters, then apply again."
 
       refute filtered_html =~ "No captured changes in this window"
     end
@@ -1165,7 +1271,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ "No changes match these filters"
-      assert html =~ "Adjust the time range or filters, then apply again."
+      assert html =~ "Try a wider date range or adjust the filters, then apply again."
     end
 
     test "F-403: dense Timeline renders filter summary and rows without a visible journey legend",
@@ -1497,6 +1603,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Row history"
     end
 
+    test "explicit empty from marker follows transaction and row-history links", %{conn: conn} do
+      change =
+        seed_change!(
+          table_schema: "support",
+          table: "tickets",
+          table_pk: %{"id" => "ticket-blank-marker"}
+        )
+
+      assert {:ok, _lv, html} = live(conn, "/audit_schema/timeline?from=")
+
+      assert html =~
+               ~s|href="/audit_schema/transactions/#{change.transaction_id}?origin=timeline&amp;from="|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/support.tickets/ticket-blank-marker?origin=timeline&amp;from="|
+    end
+
     defp clear_audit_rows! do
       Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
       Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
@@ -1696,6 +1819,91 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_click(lv, "apply-view", %{"id" => legacy_search.id})
 
       assert_patch(lv, "/audit_actor/timeline?table=restored_posts&correlation_id=restored-7")
+    end
+
+    @tag :timeline_selection
+    test "unsupported or malformed submitted filters do not broaden a committed selection", %{
+      conn: conn
+    } do
+      for input <- [
+            %{"filter" => %{"unsupported_only" => "private-value"}},
+            %{"filter" => ["private-value"]},
+            %{}
+          ] do
+        {:ok, lv, _html} =
+          mount_actor_audit(conn, "/audit_actor/timeline?correlation_id=committed")
+
+        render_submit(lv, "apply", input)
+
+        assert has_element?(
+                 lv,
+                 "[role=alert]",
+                 "These Timeline filters are not supported. Update the filters before applying them."
+               )
+
+        refute_patched(lv)
+      end
+    end
+
+    @tag :timeline_selection
+    test "malformed saved filters never replace the current selection with a broader read", %{
+      conn: conn
+    } do
+      for filters <- [
+            %{"unsupported_only" => "secret"},
+            %{"from" => "invalid"},
+            %{"correlation_id" => ["secret"]},
+            %{"actor_kind" => "user"}
+          ] do
+        saved =
+          Repo.insert!(
+            %Threadline.Governance.SavedView{
+              name: "Malformed saved selection",
+              actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"},
+              filters: filters
+            },
+            repo_opts()
+          )
+
+        {:ok, lv, _html} =
+          mount_actor_audit(conn, "/audit_actor/timeline?correlation_id=committed")
+
+        render_click(lv, "apply-view", %{"id" => saved.id})
+
+        assert has_element?(
+                 lv,
+                 "#timeline-filters-drawer [role=alert]",
+                 "These Timeline filters are not supported. Update the filters before applying them."
+               )
+
+        refute_patched(lv)
+      end
+    end
+
+    @tag :timeline_selection
+    test "empty saved filters and newly saved unconstrained intent use explicit from", %{
+      conn: conn
+    } do
+      saved =
+        Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "All captured time",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"},
+            filters: %{}
+          },
+          repo_opts()
+        )
+
+      {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor/timeline?correlation_id=committed")
+      render_click(lv, "apply-view", %{"id" => saved.id})
+      assert_patch(lv, "/audit_actor/timeline?from=")
+      lv |> form("#save-view-form", %{name: "Explicit all time"}) |> render_submit()
+
+      assert Repo.get_by!(
+               Threadline.Governance.SavedView,
+               [name: "Explicit all time"],
+               repo_opts()
+             ).filters == %{"from" => ""}
     end
 
     test "an invalid committed Timeline query cannot be saved as a search", %{conn: conn} do

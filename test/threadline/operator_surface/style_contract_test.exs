@@ -5,6 +5,42 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   alias Threadline.Test.StyleSource
 
+  test "page headlines use the heading role while compact cards retain body type" do
+    src = StyleSource.read!()
+    title = selector_block!(src, ".tl-page__title")
+    assert title =~ "font-family: var(--tl-font-heading);"
+    assert title =~ "font-size: var(--tl-font-size-heading);"
+    assert title =~ "font-weight: var(--tl-weight-strong);"
+    assert title =~ "line-height: var(--tl-line-heading);"
+    refute selector_block!(src, ".tl-card__title") =~ "var(--tl-font-heading)"
+  end
+
+  test "investigation results keep card emphasis and history clears the fixed app bar" do
+    src = StyleSource.read!()
+
+    assert_selector_contains(src, ".tl-toolbar.tl-timeline-command", [
+      "background: transparent;",
+      "border-color: transparent;",
+      "box-shadow: none;",
+      "backdrop-filter: none;"
+    ])
+
+    assert_selector_contains(src, ".tl-timeline-command .tl-timeline-fact", [
+      "background: transparent;",
+      "box-shadow: none;"
+    ])
+
+    assert_selector_contains(src, ".tl-drawer-container:has(.tl-row-history-drawer)", [
+      "top: var(--tl-header-height-mobile);"
+    ])
+
+    assert_selector_contains(
+      media_section(src, "1280px"),
+      ".tl-drawer-container:has(.tl-row-history-drawer)",
+      ["top: var(--tl-header-height);"]
+    )
+  end
+
   test "operator surface is dark-primary with governed light and system token lanes" do
     src = StyleSource.read!()
 
@@ -27,7 +63,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            )
   end
 
-  test "operator shell is CSP-proof: native [open] nav + pure-CSS picker cue + hardened scroll (NAV-03/NAV-04)" do
+  test "operator shell is CSP-proof: native [open] nav + server-selected theme cue + hardened scroll (NAV-03/NAV-04)" do
     src = StyleSource.read!()
 
     # Mobile nav reveals its panel on the native <details> [open] attribute,
@@ -41,9 +77,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(src, "tl-shell-nav--open"),
            "the JS-toggled .--open class must be gone (CSP-proof shell)"
 
-    # The selected theme radio gets a pure-CSS non-color cue via :has(:checked).
-    assert String.contains?(src, ":has(:checked)"),
-           "theme picker active cue must be driven by :has(:checked), not a markup --active class"
+    # Theme state is rendered by the server and the selected button retains a
+    # non-color cue without depending on a checked radio or client-side class.
+    assert String.contains?(src, ~s|.tl-theme-picker__option[aria-pressed="true"]|),
+           "theme picker active cue must follow the server-rendered pressed button"
+
+    assert String.contains?(src, ".tl-theme-picker__selected"),
+           "the selected theme needs a visible non-color marker"
+
+    refute String.contains?(src, ":has(:checked)"),
+           "theme picker state must not depend on a radio input"
 
     refute String.contains?(src, "tl-segmented__item--active"),
            "the dead tl-segmented__item--active rule/markup hook must be gone"
@@ -87,12 +130,12 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "min-height: var(--tl-hit-area);"
     ])
 
-    assert_selector_contains(src, ".tl-theme-picker__option:focus-within", [
+    assert_selector_contains(src, ".tl-theme-picker__option:focus-visible", [
       "outline: 2px solid var(--tl-color-border-focus);",
       "outline-offset: 2px;"
     ])
 
-    assert_selector_contains(src, ".tl-theme-picker .tl-button", [
+    assert_selector_contains(src, ".tl-theme-picker__option", [
       "scroll-margin-block: var(--tl-space-8);"
     ])
 
@@ -220,7 +263,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     for selector <- [
           ".tl-topbar__brand-logo",
-          ".tl-topbar__brand-wordmark",
+          ".tl-topbar__brand-lockups",
           ".tl-shell-nav",
           ".tl-shell-nav__toggle",
           ".tl-shell-nav__panel",
@@ -252,10 +295,66 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       "flex: 0 0 var(--tl-brand-logo-width);"
     ])
 
-    assert_selector_contains(topbar_section, ".tl-topbar__brand-wordmark", [
-      "font-family: var(--tl-font-family);",
-      "font-weight: var(--tl-weight-strong);"
+    assert_selector_contains(topbar_section, ".tl-topbar__brand-lockups", [
+      "display: inline-flex;",
+      "align-items: center;"
     ])
+  end
+
+  test "phase 250 supplied lockups follow explicit and System theme precedence at safe sizes" do
+    src = StyleSource.read!()
+
+    assert_selector_contains(src, ".threadline-ui .tl-topbar__brand-logo--light", [
+      "display: none;"
+    ])
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      src,
+      ~s|.threadline-ui[data-tl-theme="light"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    system_light =
+      src
+      |> String.split("@media (prefers-color-scheme: light) {")
+      |> Enum.drop(1)
+      |> Enum.join("@media (prefers-color-scheme: light) {")
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--dark|,
+      [
+        "display: none;"
+      ]
+    )
+
+    assert_selector_contains(
+      system_light,
+      ~s|.threadline-ui[data-tl-theme="system"] .tl-topbar__brand-logo--light|,
+      [
+        "display: block;"
+      ]
+    )
+
+    refute Regex.match?(~r/(?:^|\n)\s*\.tl-topbar__brand-logo--light\s*\{/, src)
+    assert src =~ "--tl-brand-logo-width: 132px;"
+    assert src =~ "--tl-brand-logo-width-desktop: 148px;"
+
+    # Source viewBox width 7252.3 and spool mark bounds -1664.3..-553.11.
+    for width <- [132.0, 148.0] do
+      assert width >= 96
+      assert width * (1664.3 - 553.11) / 7252.3 >= 16
+    end
   end
 
   test "phase 139 home orientation primitives stay scoped token-backed" do
@@ -770,7 +869,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-timeline-fact__label", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-timeline-fact__value", [
@@ -778,17 +877,19 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     assert_selector_contains(base, ".tl-timeline-fact__detail", [
-      "font-size: var(--tl-font-size-label);"
+      "font-size: var(--tl-font-size-sm);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-metadata);"
     ])
 
     assert_selector_contains(base, ".tl-filter-group__legend", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-utility-group__label", [
       "font-size: var(--tl-font-size-label);",
-      "font-weight: var(--tl-weight-regular);"
+      "font-weight: var(--tl-weight-strong);"
     ])
 
     assert_selector_contains(base, ".tl-change__summary", [
@@ -849,11 +950,22 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Timeline rows must fix narrow-width overflow at row/control level, not hide horizontal overflow"
   end
 
-  test "phase 239 Home lead keeps its display type role at narrow widths" do
+  test "Timeline feedback wraps long filter values at every viewport width" do
+    base = File.read!("lib/threadline/operator_surface/style/05_feedback.css")
+    refute base =~ "@media"
+
+    assert_selector_contains(base, ".tl-alert", [
+      "min-width: 0;",
+      "overflow-wrap: anywhere;"
+    ])
+  end
+
+  test "Home lead follows the approved dense Admin heading role at narrow widths" do
     base = base_responsive_section(StyleSource.read!())
 
     assert_selector_contains(base, ".tl-home__headline", [
-      "font-size: var(--tl-font-size-display);"
+      "font-size: var(--tl-font-size-heading);",
+      "line-height: var(--tl-line-heading);"
     ])
   end
 
@@ -1025,19 +1137,43 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
   test "operator typography defaults stay readable and dense text is opt-in" do
     src = StyleSource.read!()
+    base = selector_block!(src, ".threadline-ui")
+    light = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
+    system = system_lane_block!(src)
 
     for token <- [
           "--tl-font-size-xs: 12px;",
           "--tl-font-size-sm: 13px;",
           "--tl-font-size-dense: 13px;",
           "--tl-font-size-body: 16px;",
-          "--tl-font-size-label: 14px;",
-          "--tl-font-size-ui: 15px;",
-          "--tl-font-size-heading: 20px;",
-          "--tl-font-size-title: 24px;",
-          "--tl-font-size-display: 32px;"
+          "--tl-font-size-label: 12px;",
+          "--tl-font-size-ui: 16px;",
+          "--tl-font-size-heading: 28px;",
+          "--tl-font-size-title: 28px;",
+          "--tl-font-size-display: 32px;",
+          "--tl-line-body: 1.55;",
+          "--tl-line-label: 1.2;",
+          "--tl-line-heading: 1.2;",
+          "--tl-line-metadata: 1.4;",
+          "--tl-line-mono: 1.5;"
         ] do
       assert String.contains?(src, token), "missing readable typography token #{token}"
+    end
+
+    for token <- [
+          ~s(--tl-font-family: "Threadline Geist", "Inter", system-ui,),
+          ~s(--tl-font-heading: "Threadline Familjen Grotesk", "Threadline Geist",),
+          ~s(--tl-font-mono: "Threadline IBM Plex Mono", "JetBrains Mono", ui-monospace,)
+        ] do
+      assert String.contains?(base, token), "missing private font fallback chain #{token}"
+    end
+
+    refute Regex.match?(~r/--tl-font-(?:family|heading|mono):\s*;/, src),
+           "font variables must not resolve to an empty host value"
+
+    for lane <- [light, system] do
+      refute Regex.match?(~r/--tl-font-(?:family|heading|mono):/, lane),
+             "light and System lanes must inherit the readable base font roles"
     end
 
     assert String.contains?(src, "--tl-pad-page: var(--tl-space-4);")
@@ -1047,14 +1183,46 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".threadline-ui", ["font-size: var(--tl-font-size-body);"])
 
-    assert_exact_selector_contains(src, ".tl-button", ["font-size: var(--tl-font-size-label);"])
+    assert_exact_selector_contains(src, ".tl-button", [
+      "font-family: var(--tl-font-family);",
+      "font-size: var(--tl-font-size-body);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-body);"
+    ])
+
     assert_exact_selector_contains(src, ".tl-chip", ["font-size: var(--tl-font-size-label);"])
 
     assert_exact_selector_contains(src, ".tl-toolbar__field", [
       "font-size: var(--tl-font-size-label);"
     ])
 
-    assert_exact_selector_contains(src, ".tl-value", ["font-size: var(--tl-font-size-label);"])
+    assert_exact_selector_contains(src, ".tl-value", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-dense);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-mono);",
+      "overflow-wrap: anywhere;"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-timeline-fact__detail", [
+      "font-size: var(--tl-font-size-sm);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-metadata);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-policy__table", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-dense);",
+      "font-weight: var(--tl-weight-regular);",
+      "line-height: var(--tl-line-mono);"
+    ])
+
+    assert_exact_selector_contains(src, ".tl-secondary-ref", [
+      "font-family: var(--tl-font-mono);",
+      "font-size: var(--tl-font-size-dense);",
+      "line-height: var(--tl-line-mono);",
+      "overflow-wrap: anywhere;"
+    ])
 
     assert_selector_contains(src, ".tl-table--compact th,\n  .tl-table--compact td", [
       "font-size: var(--tl-font-size-dense);"
@@ -1078,7 +1246,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute String.contains?(tokens, "--tl-color-paper: var(--tl-color-paper);")
     refute String.contains?(tokens, "--tl-color-ink: var(--tl-color-ink);")
 
-    assert String.contains?(tokens, "--tl-font-size-label: 14px;")
+    assert String.contains?(tokens, "--tl-font-size-label: 12px;")
     assert String.contains?(tokens, "--tl-control-height: 40px;")
 
     assert_selector_contains(src, ".tl-shell-nav:has(.tl-shell-nav__disclosure[open])", [
@@ -1088,7 +1256,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".tl-button", [
       "min-height: var(--tl-hit-area);",
-      "font-size: var(--tl-font-size-label);"
+      "font-size: var(--tl-font-size-body);"
     ])
 
     assert_exact_selector_contains(src, ".tl-toolbar__control", ["width: 100%;"])
@@ -1244,7 +1412,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       # MEASURE muted-soft on surface and surface-raised, but no uniform lane-root
       # darkening reaches 4.5:1 on surface-raised (#EEF3FA) without collapsing the
       # disabled/active read: the value needed (~#636F85) is perceptually adjacent
-      # to --tl-color-muted (#3B4762, the ACTIVE secondary text), which would break
+      # to --tl-color-muted (#56647E, the ACTIVE secondary text), which would break
       # the "disabled looks disabled" affordance. Per D-04 the disabled rows ONLY
       # are downgraded to "exempt — documented" at a non-text legibility floor
       # (>= 3.0), citing WCAG 1.4.3 inactive controls. No other contrast row is
@@ -1279,7 +1447,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> String.split("}")
       |> List.first()
 
-    assert String.contains?(focus_block, "box-shadow: var(--tl-focus-ring);")
+    assert String.contains?(focus_block, "outline: 2px solid var(--tl-color-border-focus);")
+    assert String.contains?(focus_block, "outline-offset: 2px;")
+    assert String.contains?(focus_block, "box-shadow: none;")
 
     refute Regex.match?(~r/\.threadline-ui\s+\*\s*\{[^}]*outline:\s*none/s, src),
            "blanket focus outline removal is forbidden"
@@ -1305,36 +1475,31 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "background: var(--tl-chip-dot);")
   end
 
-  test "phase 168 focus ring clears non-text 3:1 per mode with halo reported only" do
+  test "approved 2px focus clears non-text 3:1 in every mode without relying on translucent decoration" do
     src = StyleSource.read!()
-
+    dark_block = selector_block!(src, ".threadline-ui")
     light_block = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
     system_block = system_lane_block!(src)
 
-    for {mode, block} <- [{"light", light_block}, {"system", system_block}] do
+    for {mode, block} <- [{"dark", dark_block}, {"light", light_block}, {"system", system_block}] do
       map = color_tokens(block)
+      assert block =~ "--tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);"
 
-      # WCAG 2.1 SC 1.4.11 — non-text contrast 3:1 (NOT 4.5). The load-bearing
-      # affordance is the OPAQUE 1px border-focus edge; controls sit on both
-      # surface and surface-raised.
+      # The actual opaque edge carries the same non-text 3:1 requirement on
+      # both surfaces. A low-alpha version of that color is a negative control,
+      # never a substitute for the focused edge.
+      hex = String.trim_leading(map["--tl-color-border-focus"], "#")
+      [r, g, b] = for <<part::binary-size(2) <- hex>>, do: String.to_integer(part, 16)
+
       for bg_token <- ["--tl-color-surface", "--tl-color-surface-raised"] do
         assert contrast_ratio(map["--tl-color-border-focus"], map[bg_token]) >= 3.0,
-               "#{mode}: 1px border-focus edge must clear non-text 3:1 on #{bg_token}"
+               "#{mode}: opaque focus edge must clear non-text 3:1 on #{bg_token}"
+
+        decoration = composite({r, g, b, 0.15}, map[bg_token])
+
+        refute contrast_ratio(decoration, map[bg_token]) >= 3.0,
+               "#{mode}: translucent decoration must not carry the focus pass"
       end
-
-      # The 3px translucent halo (rgba first shadow layer) is composited and
-      # REPORTED, never carrying the pass — a low-alpha halo (here ~1.4:1) would
-      # otherwise mask a focus failure (Anti-Pattern: halo masking). The halo alpha
-      # is parsed from the ACTUAL --tl-focus-ring source in this lane (not a
-      # hardcoded literal) so the assertion tracks source and cannot silently rot.
-      halo_over_surface = composite(focus_ring_halo!(block), map["--tl-color-surface"])
-      halo_ratio = contrast_ratio(halo_over_surface, map["--tl-color-surface"])
-
-      assert is_float(halo_ratio),
-             "#{mode}: focus halo ratio is computed and reportable (value=#{halo_ratio})"
-
-      refute halo_ratio >= 3.0,
-             "#{mode}: the translucent halo alone must NOT reach 3:1 — the opaque edge carries the pass"
     end
   end
 
@@ -1432,7 +1597,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "light coverage table default surface override missing"
   end
 
-  test "phase 168 dark phase-143 contrast + focus guards remain byte-stable" do
+  test "dark contrast baseline and approved focus geometry remain explicit" do
     src = StyleSource.read!()
 
     # The dark contrast baseline and dark focus guard consume only opaque hex /
@@ -1443,10 +1608,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert String.contains?(src, "color-scheme: dark;")
     assert String.contains?(src, "--tl-focus-ring:")
 
-    # The frozen dark focus-ring catalog (unchanged values).
+    # Approved Phase250 focus geometry; the dark color baseline remains intact.
     assert String.contains?(
              src,
-             "--tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);"
+             "--tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);"
            )
   end
 
@@ -1505,7 +1670,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-font-family:",
           "--tl-font-mono:",
           "--tl-font-size-body: 16px;",
-          "--tl-font-size-label: 14px;",
+          "--tl-font-size-label: 12px;",
           "--tl-font-size-dense: 13px;",
           "--tl-color-bg: var(--tl-color-threadline-black);",
           "--tl-color-surface: var(--tl-color-graphite);",
@@ -1599,14 +1764,14 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
 
     for token <- [
-          "--tl-color-op-insert-bg: var(--tl-color-success-bg);",
-          "--tl-color-op-insert-text: var(--tl-color-success-text);",
-          "--tl-color-op-update-bg: var(--tl-color-info-bg);",
-          "--tl-color-op-update-text: var(--tl-color-info-text);",
-          "--tl-color-op-delete-bg: var(--tl-color-danger-bg);",
-          "--tl-color-op-delete-text: var(--tl-color-danger);"
+          "--tl-color-op-insert-bg: #10332B;",
+          "--tl-color-op-insert-text: #5AE0A2;",
+          "--tl-color-op-update-bg: #14284F;",
+          "--tl-color-op-update-text: #8DB4FF;",
+          "--tl-color-op-delete-bg: #3A1B23;",
+          "--tl-color-op-delete-text: #FF8585;"
         ] do
-      assert String.contains?(src, token), "missing phase 144 operation token #{token}"
+      assert String.contains?(src, token), "missing approved operation token #{token}"
     end
   end
 
@@ -2010,20 +2175,6 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end)
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
     |> Map.new()
-  end
-
-  # Parse the first rgba(...) layer (the translucent halo) out of the
-  # `--tl-focus-ring` box-shadow declaration in a lane block. Used so the focus
-  # halo assertion derives from source rather than a duplicated literal.
-  defp focus_ring_halo!(block) do
-    [_match, r, g, b, a] =
-      Regex.run(
-        ~r/--tl-focus-ring:[^;]*?rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/,
-        block
-      )
-
-    {String.to_integer(r), String.to_integer(g), String.to_integer(b),
-     String.to_float(normalize_alpha(a))}
   end
 
   defp parse_color_value("#" <> _ = hex), do: hex

@@ -21,9 +21,44 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
 
   test "threadline admin favicon asset is served", %{conn: conn} do
     conn = get(conn, "/images/threadline-admin-favicon.svg")
+    body = response(conn, 200)
+    source = File.read!(Path.expand("../../../../brand/assets/icon/favicon.svg", __DIR__))
 
-    assert response(conn, 200) =~ "<svg"
+    assert body == source
+    assert body =~ ~s|viewBox="-30.740 -11.993 62.850 62.850"|
+    assert body =~ ~s|<title>Threadline</title>|
+    assert body =~ "#4781E6"
+    assert body =~ "#0F1728"
+    assert body =~ "#D7DEEA"
+    assert body =~ "@media (prefers-color-scheme:dark)"
     assert get_resp_header(conn, "content-type") == ["image/svg+xml"]
+  end
+
+  test "demo home and login retain the shared favicon while Admin uses its own", %{conn: conn} do
+    for path <- ["/", "/users/log_in"] do
+      html = conn |> get(path) |> html_response(200)
+
+      assert html =~ ~s|href="/favicon.ico"|
+      refute html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    end
+
+    user = user_fixture(email: "admin@example.com")
+
+    admin_html =
+      conn
+      |> login_via_sigra(user)
+      |> get("/audit")
+      |> html_response(200)
+
+    assert admin_html =~ ~s|href="/images/threadline-admin-favicon.svg"|
+    refute admin_html =~ ~s|href="/favicon.ico"|
+
+    favicon_path =
+      Path.expand("../../../../examples/threadline_phoenix/priv/static/favicon.ico", __DIR__)
+
+    favicon_conn = get(conn, "/favicon.ico")
+    assert response(favicon_conn, 200) == File.read!(favicon_path)
+    assert get_resp_header(favicon_conn, "content-type") == ["image/vnd.microsoft.icon"]
   end
 
   test "authenticated admin request reaches the surface", %{conn: conn} do
@@ -37,6 +72,101 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
       |> get("/audit/transactions/00000000-0000-0000-0000-000000000000")
 
     assert html_response(conn, 200) =~ "Transaction not found"
+  end
+
+  test "theme choices submit immediately and retain the filtered local return", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    authenticated_conn = login_via_sigra(conn, user)
+    to = DateTime.utc_now() |> DateTime.truncate(:second)
+    from = DateTime.add(to, -3600, :second)
+
+    path =
+      "/audit/timeline?" <>
+        URI.encode_query([
+          {"from", from |> DateTime.to_iso8601() |> String.slice(0..15)},
+          {"to", to |> DateTime.to_iso8601() |> String.slice(0..15)}
+        ])
+
+    initial_conn = get(authenticated_conn, "/audit")
+    initial_html = html_response(initial_conn, 200)
+
+    assert initial_html =~ ~s|data-tl-theme="dark"|
+
+    conn =
+      Enum.reduce(~w(system light dark), initial_conn, fn theme, current_conn ->
+        csrf = csrf_token!(html_response(current_conn, 200))
+
+        posted_conn =
+          current_conn
+          |> recycle()
+          |> put_private(:plug_skip_csrf_protection, false)
+          |> put_req_header("referer", "http://www.example.com#{path}")
+          |> post("/audit/theme", %{"_csrf_token" => csrf, "theme" => theme})
+
+        assert redirected_to(posted_conn) == path
+        assert get_session(posted_conn, :tl_theme) == theme
+        assert %{value: ^theme} = posted_conn.resp_cookies["tl_theme"]
+
+        persisted_conn = posted_conn |> recycle() |> get("/audit")
+        persisted_html = html_response(persisted_conn, 200)
+        assert persisted_html =~ ~s|data-tl-theme="#{theme}"|
+        persisted_conn
+      end)
+
+    assert html_response(conn, 200) =~ ~s|aria-pressed="true"|
+  end
+
+  test "invalid themes are ignored and unsafe return targets are constrained", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    authenticated_conn = login_via_sigra(conn, user)
+    form_conn = get(authenticated_conn, "/audit")
+    csrf = csrf_token!(html_response(form_conn, 200))
+
+    invalid_conn =
+      form_conn
+      |> recycle()
+      |> put_private(:plug_skip_csrf_protection, false)
+      |> put_req_header("referer", "/audit/timeline")
+      |> post("/audit/theme", %{"_csrf_token" => csrf, "theme" => "sepia"})
+
+    assert redirected_to(invalid_conn) == "/audit/timeline"
+    refute Map.has_key?(invalid_conn.resp_cookies, "tl_theme")
+    assert get_session(invalid_conn, :tl_theme) == nil
+
+    unsafe_conn =
+      form_conn
+      |> recycle()
+      |> put_private(:plug_skip_csrf_protection, false)
+      |> put_req_header("referer", "https://attacker.example/audit/timeline?from=private")
+      |> post("/audit/theme", %{"_csrf_token" => csrf, "theme" => "light"})
+
+    assert redirected_to(unsafe_conn) == "/audit"
+    assert get_session(unsafe_conn, :tl_theme) == "light"
+    assert %{value: "light"} = unsafe_conn.resp_cookies["tl_theme"]
+  end
+
+  test "invalid CSRF token is rejected before theme persistence", %{conn: conn} do
+    user = user_fixture(email: "admin@example.com")
+    org = organization_fixture()
+    membership_fixture(org, user_id: to_string(user.id), role: "agent")
+
+    authenticated_conn = login_via_sigra(conn, user)
+    form_conn = get(authenticated_conn, "/audit")
+    _csrf = csrf_token!(html_response(form_conn, 200))
+
+    assert_raise Plug.CSRFProtection.InvalidCSRFTokenError, fn ->
+      form_conn
+      |> recycle()
+      |> put_private(:plug_skip_csrf_protection, false)
+      |> put_req_header("referer", "/audit/timeline")
+      |> post("/audit/theme", %{"_csrf_token" => "invalid", "theme" => "light"})
+    end
   end
 
   test "support user only sees transactions scoped to their organization", %{conn: conn} do
@@ -182,5 +312,12 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
         _ -> {:error, :missing_audit_transaction_id}
       end
     end)
+  end
+
+  defp csrf_token!(html) do
+    case Regex.run(~r/<input[^>]*name="_csrf_token"[^>]*value="([^"]+)"/, html) do
+      [_, token] -> token
+      _ -> flunk("expected the mounted theme form to render a CSRF token")
+    end
   end
 end

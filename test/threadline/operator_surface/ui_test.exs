@@ -283,6 +283,23 @@ defmodule Threadline.OperatorSurface.UITest do
     end
   end
 
+  @tag :overlay_focus_scope
+  test "deferred container focus cannot override a preferred child control" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H"""
+      <UI.Overlay.modal id="focus-modal"><button data-tl-initial-focus>Keep</button></UI.Overlay.modal>
+      <UI.Overlay.drawer id="focus-drawer"><button data-tl-initial-focus>Close</button></UI.Overlay.drawer>
+      """)
+
+    for id <- ["focus-modal", "focus-drawer"] do
+      [content] = Regex.run(~r/<div[^>]*id="#{id}-content"[^>]*>/s, html)
+      assert content =~ ~s(tabindex="-1")
+      refute content =~ "phx-focus="
+    end
+  end
+
   describe "toast" do
     test "renders a persistent toast with explicit dismissal" do
       assigns = %{}
@@ -964,7 +981,7 @@ defmodule Threadline.OperatorSurface.UITest do
   describe "data_state/1 — typed reason dispatch (DATA-03, D-13..D-16)" do
     @reason_cases [
       {:unauthorized, "alert", "You do not have access to this audit data", "lock"},
-      {:no_data, "status", "No audit changes match these filters", "funnel"},
+      {:no_data, "status", "No changes match these filters", "funnel"},
       {:source_down, "alert", "temporarily unavailable", "cloud_off"},
       {:redacted, "status", "Value redacted by policy", "eye_off"},
       {:pruned, "status", "Audit data pruned under retention", "archive"},
@@ -1165,6 +1182,9 @@ defmodule Threadline.OperatorSurface.UITest do
       refute html =~ "the-data-table"
       # A status loading region appears instead.
       assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-busy="true")
+      assert html =~ "tl-spinner"
+      assert html =~ "Loading audit changes"
       # Pager is hidden when not :ok.
       refute html =~ "the-pager"
     end

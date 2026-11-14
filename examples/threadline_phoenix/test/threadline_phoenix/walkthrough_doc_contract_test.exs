@@ -11,7 +11,7 @@ defmodule ThreadlinePhoenix.WalkthroughDocContractTest do
           "4521",
           "4518",
           "walk-retention-offboarded-co",
-          "2026-05-20T14:30:00Z",
+          "2026-05-26T14:30:00Z",
           "demo_last_tuesday",
           "demo_epoch",
           "33123cc4-da21-5674-b030-e168cee90521",
@@ -23,6 +23,14 @@ defmodule ThreadlinePhoenix.WalkthroughDocContractTest do
       assert String.contains?(doc, literal),
              "expected WALKTHROUGH.md to include #{inspect(literal)}"
     end
+  end
+
+  test "WALKTHROUGH keeps every Tuesday filter on the corrected calendar anchor" do
+    doc = File.read!(@walkthrough)
+
+    assert String.contains?(doc, "`demo_last_tuesday` | `2026-05-26T14:30:00Z`")
+    assert String.contains?(doc, "`demo_epoch` | `2026-05-27T12:00:00Z`")
+    refute String.contains?(doc, "2026-05-20T14:30:00Z")
   end
 
   describe "WALK-01 verify cwd truth" do

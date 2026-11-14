@@ -165,7 +165,7 @@ for (const viewport of responsiveCases) {
     await expect(primaryCard).toBeVisible();
     await expect
       .poll(() => page.locator(".tl-home__headline").evaluate((heading) => getComputedStyle(heading).fontSize))
-      .toBe("32px");
+      .toBe("28px");
     await expect(primaryCard.getByRole("heading", { name: "Find what changed", exact: true })).toBeVisible();
     await expect(primaryCard.getByRole("link", { name: "Open the timeline", exact: true })).toBeVisible();
     const primaryPrecedesLookups = await page.locator(".tl-home").evaluate((home) => {
@@ -257,19 +257,20 @@ for (const viewport of responsiveCases) {
     const compactTargets = await change.locator(".tl-button--compact").evaluateAll((controls) =>
       controls.map((control) => {
         const { width, height } = control.getBoundingClientRect();
-        return { width, height, fontSize: parseFloat(getComputedStyle(control).fontSize) };
+        return { width, height, fontSize: parseFloat(getComputedStyle(control).fontSize), copyLabel: control.matches(".tl-copy") };
       }),
     );
     expect(compactTargets.length).toBeGreaterThan(0);
     for (const target of compactTargets) {
       expect(target.width, "compact action target width").toBeGreaterThanOrEqual(40);
       expect(target.height, "compact action target height").toBeGreaterThanOrEqual(40);
-      expect(target.fontSize, "interactive label size").toBeGreaterThanOrEqual(14);
+      if (target.copyLabel) expect(target.fontSize, "compact copy label size").toBe(12);
+      else expect(target.fontSize, "interactive action text size").toBeGreaterThanOrEqual(14);
     }
     const axisFontSize = await after.getByText("After", { exact: true }).evaluate((label) =>
       parseFloat(getComputedStyle(label).fontSize),
     );
-    expect(axisFontSize).toBeGreaterThanOrEqual(14);
+    expect(axisFontSize, "Before/After labels use the compact label role").toBe(12);
     await expectNoHorizontalOverflow(page);
 
     const disclosureValue = after.locator("code.tl-value__full");

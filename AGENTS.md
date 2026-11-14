@@ -4,7 +4,7 @@ This file provides guidance to Codex and other coding agents when working in thi
 
 ## What is Threadline
 
-Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, rich action semantics (actor/intent/context), and operator-grade exploration. The Hex package name is `threadline`.
+Threadline is an open-source audit trail library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, rich action semantics (actor/intent/context), and operator-grade exploration. The Hex package name is `threadline`.
 
 ## Architecture — Three Layers
 
@@ -55,6 +55,18 @@ mix ci.all                  # runs all verification steps
 
 ## CI & Verification Conventions
 
+Launch automated apps and tests in the background by default so the maintainer can
+keep using the shared computer. Use managed sessions that retain logs and the real
+exit status. Use foreground only when a specific check requires it; explain the
+need before activation and bound that interval. Diagnose background
+failures within existing limits. A timeout alone does not justify taking focus.
+
+Before a run with explicit attempt or retry limits, verify its required environment,
+locked tools/cache access and formatting. Record every invocation, including
+failures before a suite starts, and consume the current orchestration stop/handoff
+before retrying. Zero completed iterations do not by themselves renew an attempt
+or window. This adds no approval gate to routine authorized checks.
+
 These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 - **Named entrypoints**: prefer `mix verify.*` / `mix ci.*` aliases over ad-hoc commands. Contributors and CI cite these verbatim.
@@ -75,6 +87,9 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 ## GSD / local planning
 
+Tracked planning artifacts use repository-relative links. Machine-local file links
+belong in chat, not in committed documents.
+
 **Zero human verification by default.** Automate UAT and verification (tests, CI
 gates where they keep paying off, and agent review for judgment calls such as prose
 clarity). Hand the maintainer only secrets, spend, push/publish, and scope decisions.
@@ -90,6 +105,14 @@ decisions it must cohere with. Also enumerate angles the roadmap did not name, u
 the point of diminishing returns. Return ONE coherent recommendation set with a single
 confirm. Ask the maintainer only about major architect-level decisions where research
 found no clear winner. Research depth does not follow the advisor calibration tier.
+
+**Research and delivery policy.** Before milestone scoping, phase discussion,
+verification, CI or release/CD work, read
+`.planning/conventions/research-verification-and-efficiency.md`. It records the
+maintainer's relevant-role fan-out to diminishing returns, adversarial synthesis,
+small/flat dependency preference, useful automated verification and measured CI/CD
+efficiency defaults. Reuse accepted decisions and evidence without reopening them
+unless a relevant change or defect justifies it.
 
 **Milestone guide.** Before choosing or closing a milestone, read `.planning/MILESTONE-GUIDE.txt`
 (intent, lenses, selection loop, quality/CI/release bar, roadmap ladder to 1.0.0) with
@@ -107,10 +130,43 @@ Separately, and regardless of invocation style: the `state.*` handlers miscomput
 repo's bespoke progress block. Hand-check `.planning/STATE.md` and `ROADMAP.md` after
 calling them.
 
+## Brand and Admin direction (2026-11-10)
+
+Before branding, documentation or Admin UI work, read `brand/BRAND.md`,
+`brand/brand.json` and `brand/assets/README.md`. The maintainer signed off this
+v1.0 identity on 2026-11-10; its edition date is 2026-11-03. It supersedes the
+old identity in `brandbook/` and `prompts/Threadline Brand Book.txt`. The approved `brand/` source is now imported into this current-main milestone
+checkout; keep it authoritative through the deliberate runtime/package migration. Inspect
+`test/threadline/brandbook_token_parity_test.exs` before migrating assets/tokens.
+Preserve old references until package, docs, components and tests migrate together.
+
+Design the new Admin around user jobs and complete flows, with catalog coverage
+from primitives through components, page states and journeys. Use PhoenixStorybook
+in the example/dev/test boundary for now; apply Fablebook principles without
+adopting its unfinished library. Use deterministic, realistic adoption scenarios
+with meaningful happy, error and boundary states, connected to executable tests.
+Keep user-facing vocabulary distinct from compatible public module/API/route names.
+The signed-off identity does not by itself authorize new white-label or login APIs.
+Map actual jobs/routes/states before broad rebuilding, then validate one ordinary
+whole-task slice using shared production components. Keep normal fictional business
+data separate from stress cases. Use bounded batches and matched before/after
+captures with behavior/accessibility proof; preserve Threadline's automated
+verification policy. Detailed transfer findings are in
+`.planning/research/2026-11-10-brand-admin/README.md`.
+Accrue's brand/UI refresh is work in progress. Treat its lessons as comparison
+evidence and hypotheses to evaluate against Threadline, not as authority or a
+blueprint. Distinguish owner feedback, implemented safeguards, design proposals
+and unresolved findings before transferring a lesson.
+
+PhoenixStorybook and Phoenix LiveView/HEEx are the approved implementation for
+this milestone, not React. Revisit migration to Fablebook only when it is ready
+and a deliberate adoption decision is made; do not build a speculative adapter.
+
 ## Reference Documents
 
 - `prompts/audit-lib-domain-model-reference.md` — full domain model, entities, bounded contexts, API shapes
 - `prompts/threadline-elixir-oss-dna.md` — engineering habits and quality bar from sibling projects
 - `prompts/THREADLINE-GSD-IDEA.md` — project vision, constraints, and first milestone intent
-- `prompts/Threadline Brand Book.txt` — naming, voice, visual direction
+- `brand/BRAND.md` and `brand/brand.json` — current approved identity and voice
+- `prompts/Threadline Brand Book.txt` — historical identity; superseded by `brand/`
 - `prompts/prior-art/` — ecosystem research (Elixir/Phoenix/Ecto best practices, auth domain, CI/CD patterns)

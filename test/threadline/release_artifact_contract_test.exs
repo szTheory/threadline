@@ -4,6 +4,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   alias Mix.Tasks.Release.Pins
 
+  # One freshly built candidate per module invocation. Every archive assertion
+  # inspects the same immutable bytes; mutation controls operate on copied maps.
+  setup_all do
+    {:ok, archive: built_archive()}
+  end
+
   @banned_shapes [
     {:phase_prose, ~r/\bPhase\s+\d+(?:\.\d+)?\b/i},
     {:phase_identifier, ~r/\bphase[_-]?\d+(?:[_-][a-z0-9_]+)?\b/i},
@@ -51,6 +57,18 @@ defmodule Threadline.ReleaseArtifactContractTest do
   }
 
   @release_please_config "release-please-config.json"
+  @brand_asset_paths [
+    "brand/assets/logo/threadline-lockup-dark.svg",
+    "brand/assets/logo/threadline-lockup-light.svg",
+    "brand/assets/icon/favicon.svg",
+    "brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2",
+    "brand/assets/fonts/web/Geist-normal-400-700.woff2",
+    "brand/assets/fonts/web/IBMPlexMono-normal-400.woff2",
+    "brand/assets/fonts/web/IBMPlexMono-normal-500.woff2",
+    "brand/assets/fonts/OFL-FamiljenGrotesk.txt",
+    "brand/assets/fonts/OFL-Geist.txt",
+    "brand/assets/fonts/OFL-IBMPlexMono.txt"
+  ]
 
   defp project_config, do: Threadline.MixProject.project()
 
@@ -84,9 +102,22 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
-    assert "brandbook/logo-primary.svg" in files
-    assert "brandbook/logo-primary-light.svg" in files
-    assert docs_config()[:assets] == %{"brandbook" => "brandbook"}
+    assert Enum.all?(@brand_asset_paths, &MapSet.member?(files, &1))
+    refute MapSet.member?(files, "priv/fonts")
+    refute Enum.any?(files, &String.starts_with?(&1, "brandbook/"))
+
+    docs = docs_config()
+    assert docs[:logo] == "brand/assets/logo/threadline-lockup-dark.svg"
+    assert docs[:favicon] == "brand/assets/icon/favicon.svg"
+
+    [{logo_files, "brand/assets/logo"}] = Map.to_list(docs[:assets])
+
+    assert Map.new(logo_files) == %{
+             "threadline-lockup-dark.svg" =>
+               File.read!("brand/assets/logo/threadline-lockup-dark.svg"),
+             "threadline-lockup-light.svg" =>
+               File.read!("brand/assets/logo/threadline-lockup-light.svg")
+           }
   end
 
   @tag :url_extras
@@ -139,8 +170,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert Regex.match?(Keyword.fetch!(groups, :Contribute), design_url)
   end
 
-  test "built Hex archive excludes repository evidence" do
-    %{entries: entries, readable: readable} = built_archive()
+  test "built Hex archive excludes repository evidence", %{archive: archive} do
+    %{entries: entries, readable: readable} = archive
 
     assert entries != [], "unpacked Hex archive contained no files"
     assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
@@ -161,6 +192,24 @@ defmodule Threadline.ReleaseArtifactContractTest do
     refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
   end
 
+  test "built Hex archive contains only exact approved brand asset bytes", %{archive: archive} do
+    %{entries: entries, brand_assets: archived_assets} = archive
+
+    assert MapSet.new(Map.keys(archived_assets)) == MapSet.new(@brand_asset_paths)
+
+    assert Enum.all?(@brand_asset_paths, fn path ->
+             archived_assets[path] == File.read!(path)
+           end)
+
+    refute Enum.any?(entries, &String.starts_with?(&1, "priv/fonts/"))
+    refute Enum.any?(entries, &String.ends_with?(String.downcase(&1), ".ttf"))
+
+    [asset | _] = @brand_asset_paths
+    refute exact_brand_assets?(Map.delete(archived_assets, asset))
+    refute exact_brand_assets?(Map.put(archived_assets, asset, <<"mutated">>))
+    refute exact_brand_assets?(Map.put(archived_assets, "brand/assets/extra.svg", <<"extra">>))
+  end
+
   # Maintainer-only tooling, enumerated from `git ls-files 'lib/**'` rather than
   # from any prose figure. Each path must exist in the repository (otherwise
   # this guard would pass because the file was renamed, not because it was
@@ -178,8 +227,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/operator_surface/live/stress_live/"
   ]
 
-  test "built Hex archive excludes maintainer-only tooling" do
-    %{entries: entries} = built_archive()
+  test "built Hex archive excludes maintainer-only tooling", %{archive: archive} do
+    %{entries: entries} = archive
 
     # Populated-archive assertions first: a refutation over an empty archive is
     # the vacuous-gate shape this repository has already been bitten by.
@@ -212,8 +261,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     end
   end
 
-  test "the bot-owned generated changelog is never adopter surface" do
-    %{entries: entries} = built_archive()
+  test "the bot-owned generated changelog is never adopter surface", %{archive: archive} do
+    %{entries: entries} = archive
 
     assert entries != [], "unpacked Hex archive contained no files"
     assert "CHANGELOG.md" in entries
@@ -231,7 +280,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   # Unshipped tracked files that `exclude-paths` cannot cover. Release Please
   # matches entries as directory prefixes only, so a top-level file, a file
-  # sitting directly in a directory that also ships files (`brandbook/`), or a
+  # sitting directly in a directory that also ships files, or a
   # single module excluded from the package by `exclude_patterns` in mix.exs
   # can never be listed. A commit touching only these paths is kept out of a
   # release by its commit type instead (CONTRIBUTING "Ongoing releases"). The
@@ -245,6 +294,41 @@ defmodule Threadline.ReleaseArtifactContractTest do
     ".release-please-manifest.json",
     ".tool-versions",
     "AGENTS.md",
+    "brand/BRAND.md",
+    "brand/assets/README.md",
+    "brand/assets/fonts/web/fonts.css",
+    "brand/assets/icon/favicon-16-dark.png",
+    "brand/assets/icon/favicon-16-dark.svg",
+    "brand/assets/icon/favicon-16-light.png",
+    "brand/assets/icon/favicon-16-light.svg",
+    "brand/assets/icon/favicon-16-mono.png",
+    "brand/assets/icon/favicon-16-mono.svg",
+    "brand/assets/icon/favicon-32-dark.png",
+    "brand/assets/icon/favicon-32-dark.svg",
+    "brand/assets/icon/favicon-32-light.png",
+    "brand/assets/icon/favicon-32-light.svg",
+    "brand/assets/icon/favicon-32-mono.png",
+    "brand/assets/icon/favicon-32-mono.svg",
+    "brand/assets/icon/favicon-48-dark.png",
+    "brand/assets/icon/favicon-48-light.png",
+    "brand/assets/icon/favicon-dark.svg",
+    "brand/assets/icon/favicon-light.svg",
+    "brand/assets/icon/favicon.ico",
+    "brand/assets/index.html",
+    "brand/assets/logo/threadline-lockup-dark-2048.png",
+    "brand/assets/logo/threadline-lockup-light-2048.png",
+    "brand/assets/logo/threadline-lockup-mono-fog.svg",
+    "brand/assets/logo/threadline-lockup-mono-ink.svg",
+    "brand/assets/logo/threadline-mark-dark.svg",
+    "brand/assets/logo/threadline-mark-light.svg",
+    "brand/assets/logo/threadline-mark-mono-fog.svg",
+    "brand/assets/logo/threadline-mark-mono-ink.svg",
+    "brand/brand.json",
+    "brand/threadline-brand-book.html",
+    "brand/threadline-brand-book.pdf",
+    "brand/threadline-one-page.html",
+    "brand/threadline-one-page.pdf",
+    "brand/tokens.json",
     "CHANGELOG-GENERATED.md",
     "CLAUDE.md",
     "CODE_OF_CONDUCT.md",
@@ -252,17 +336,6 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "GEMINI.md",
     "PRODUCT.md",
     "SECURITY.md",
-    "brandbook/README.md",
-    "brandbook/brand-book.md",
-    "brandbook/index.html",
-    "brandbook/logo-mark.svg",
-    "brandbook/logo-monochrome.svg",
-    "brandbook/logo-primary-subtitle.svg",
-    "brandbook/logo-wordmark.svg",
-    "brandbook/pressure-test.md",
-    "brandbook/social-card.svg",
-    "brandbook/tokens.css",
-    "brandbook/tokens.json",
     "docker-compose.proxy.yml",
     "docker-compose.yml",
     "lib/mix/tasks/release.pins.ex",
@@ -279,8 +352,10 @@ defmodule Threadline.ReleaseArtifactContractTest do
   # release. The built archive is the ground truth for what ships: the list
   # must name exactly the tracked directories that ship nothing, and must
   # never cover a shipped file.
-  test "exclude-paths names exactly the unshipped directories of the built Hex archive" do
-    %{entries: entries} = built_archive()
+  test "exclude-paths names exactly the unshipped directories of the built Hex archive", %{
+    archive: archive
+  } do
+    %{entries: entries} = archive
     assert entries != [], "unpacked Hex archive contained no files"
 
     tracked = tracked_files()
@@ -359,12 +434,11 @@ defmodule Threadline.ReleaseArtifactContractTest do
   for {tag, paths} <- @source_owners do
     @tag tag
     @tag :phase200_red
-    test "#{tag} is an exact nonempty archive source owner" do
+    test "#{tag} is an exact nonempty archive source owner", %{archive: archive} do
       expected = unquote(Macro.escape(paths))
       assert expected != []
       assert Enum.all?(expected, &File.regular?/1)
 
-      archive = built_archive()
       selected = Map.take(archive.readable, expected)
       assert Map.keys(selected) |> Enum.sort() == Enum.sort(expected)
 
@@ -379,9 +453,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @tag :source_module_vocabulary
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "all packaged source uses durable vocabulary" do
-    archive = built_archive()
-
+  test "all packaged source uses durable vocabulary", %{archive: archive} do
     source =
       archive.readable
       |> Map.filter(fn {path, _content} ->
@@ -398,8 +470,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @tag :archive_vocabulary
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "the entire readable archive is free of planning vocabulary" do
-    archive = built_archive()
+  test "the entire readable archive is free of planning vocabulary", %{archive: archive} do
     assert map_size(archive.readable) > 0
     matches = planning_vocabulary_matches(archive.readable)
     assert matches == [], format_vocab_matches(matches)
@@ -589,6 +660,13 @@ defmodule Threadline.ReleaseArtifactContractTest do
     |> failed_messages()
   end
 
+  defp exact_brand_assets?(assets) do
+    MapSet.new(Map.keys(assets)) == MapSet.new(@brand_asset_paths) and
+      Enum.all?(@brand_asset_paths, fn path ->
+        assets[path] == File.read!(path)
+      end)
+  end
+
   # No entry may cover a shipped file: Release Please would then ignore a
   # commit that changes the published package.
   defp sound_errors(entries, shipped) do
@@ -668,16 +746,29 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
         entries = files |> Enum.map(&Path.relative_to(&1, unpack_root)) |> Enum.sort()
 
+        brand_assets =
+          Enum.reduce(files, %{}, fn path, acc ->
+            relative = Path.relative_to(path, unpack_root)
+
+            put_brand_asset(acc, relative, path)
+          end)
+
         readable =
           Enum.reduce(files, %{}, fn path, acc ->
             put_readable(acc, Path.relative_to(path, unpack_root), File.read(path))
           end)
 
-        %{entries: entries, readable: readable}
+        %{entries: entries, readable: readable, brand_assets: brand_assets}
 
       {output, status} ->
         flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
     end
+  end
+
+  defp put_brand_asset(acc, relative, path) do
+    if String.starts_with?(relative, "brand/assets/"),
+      do: Map.put(acc, relative, File.read!(path)),
+      else: acc
   end
 
   defp put_readable(acc, relative, {:ok, content}) do

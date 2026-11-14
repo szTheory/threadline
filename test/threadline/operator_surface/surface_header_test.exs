@@ -6,6 +6,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Components.SurfaceHeader
 
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
+    @root Path.expand("../../..", __DIR__)
+
+    test "empty and expected-only inspections never imply global capture completeness" do
+      alias Threadline.OperatorSurface.Coverage.Snapshot
+
+      for snapshot <- [
+            Snapshot.from_coverage([]),
+            Snapshot.from_coverage([{:expected_uncovered, "schema_migrations"}])
+          ] do
+        html = render_header(%{coverage: snapshot, coverage_schema: "tenant_scope"})
+        assert html =~ "tenant_scope: 0 audited"
+        assert html =~ "Other schemas were not inspected."
+        refute html =~ "All tables captured"
+      end
+
+      not_inspected = render_header(%{coverage: Snapshot.empty(nil), coverage_schema: nil})
+      assert not_inspected =~ "Coverage not inspected"
+      refute not_inspected =~ "0 audited"
+    end
+
+    test "unavailable and stale badges retain scope without rendering backend diagnostics" do
+      alias Threadline.OperatorSurface.Coverage.Snapshot
+      canary = "SELECT hidden FROM private_table -- private-251-backend-canary"
+
+      for {checked_at, expected} <- [
+            {nil, "tenant_scope: Coverage unavailable"},
+            {~U[2026-06-04 00:00:00Z], "tenant_scope: Coverage refresh failed"}
+          ] do
+        snapshot = %{Snapshot.empty(checked_at) | error: canary}
+
+        html =
+          render_header(%{coverage: snapshot, error: canary, coverage_schema: "tenant_scope"})
+
+        assert html =~ expected
+        assert html =~ "coverage?schema=tenant_scope"
+        refute html =~ canary
+        refute html =~ "private-251-backend-canary"
+        refute html =~ "All tables captured"
+      end
+    end
 
     test "renders grouped rail IA and preserved header affordances" do
       html = render_header()
@@ -13,15 +53,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert nav_root_count(html) == 1
       assert html =~ ~s|href="/audit"|
       assert html =~ ~s|class="tl-topbar__brand"|
-      assert html =~ ~s|aria-label="Threadline operator home"|
-      assert html =~ ~s|class="tl-topbar__brand-logo"|
-      assert html =~ ~s|class="tl-topbar__brand-wordmark"|
-      assert html =~ ~s|>Threadline</text>|
-      assert html =~ ~s|aria-hidden="true"|
-      assert html =~ ~s|focusable="false"|
-      refute html =~ ~s|tl-topbar__brand-mark|
-      refute html =~ ~s|tl-topbar__brand-text|
-      refute html =~ ~s|role="img"|
+      assert html =~ ~s|aria-label="Threadline Admin home"|
+      assert Regex.scan(~r/aria-label="Threadline Admin home"/, html) |> length() == 1
+      assert_supplied_logo_pair(html)
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-shell"|
       assert html =~ ~s|aria-label="Audit navigation"|
@@ -34,7 +68,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|
       assert html =~ "Scoped view"
-      assert html =~ "All tables captured"
+      assert html =~ "public: 0 audited"
       assert_before(html, ~s|data-testid="operator-nav-overview"|, ~s|id="tl-shell-nav-find"|)
 
       for {id, label} <- [
@@ -63,23 +97,60 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    test "renders native POST theme form with stable CSRF and radio contract" do
+    test "supplied lockups preserve source geometry and colors without duplicate names" do
+      html = render_header()
+
+      for {variant, filename} <- [
+            {"dark", "threadline-lockup-dark.svg"},
+            {"light", "threadline-lockup-light.svg"}
+          ] do
+        source = File.read!(Path.join([@root, "brand", "assets", "logo", filename]))
+        rendered = rendered_logo!(html, variant)
+
+        assert rendered["attributes"] =~ ~s|aria-hidden="true"|
+        assert rendered["attributes"] =~ ~s|focusable="false"|
+        refute rendered["attributes"] =~ ~s|role="img"|
+        refute rendered["body"] =~ "<title>"
+        assert source_view_box(source) == rendered_view_box(rendered["attributes"])
+        assert source_paths(source) == rendered_paths(rendered["body"])
+        assert length(rendered_paths(rendered["body"])) == 3
+      end
+    end
+
+    test "renders immediate native POST theme buttons with stable CSRF and pressed state" do
       html = render_header(%{theme: "system"})
 
       assert html =~ ~s|action="/audit/theme"|
       assert html =~ ~s|method="post"|
       assert html =~ ~s|name="_csrf_token"|
-      assert html =~ ~s|Apply theme|
       assert html =~ ~s|id="tl-shell-nav-theme" class="tl-shell-nav__label">Theme</legend>|
+      assert html =~ ~s|class="tl-theme-picker__selected"|
+      assert html =~ "Selected"
 
-      for value <- ~w(system light dark) do
-        assert html =~ ~s|type="radio"|
-        assert html =~ ~s|name="theme"|
-        assert html =~ ~s|value="#{value}"|
+      theme_buttons =
+        Regex.scan(~r/<button\b[^>]*name="theme"[^>]*>.*?<\/button>/s, html)
+        |> Enum.map(&List.first/1)
+
+      assert length(theme_buttons) == 3
+
+      for {value, label} <- [{"system", "System"}, {"light", "Light"}, {"dark", "Dark"}] do
+        [button] = Enum.filter(theme_buttons, &String.contains?(&1, ~s|value="#{value}"|))
+
+        assert button =~ ~s|type="submit"|
+        assert button =~ ~s|aria-label="#{label}"|
+        assert button =~ ~r/aria-pressed="(?:true|false)"/
+        assert button =~ ~r/>#{label}<\/span>/
       end
 
-      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
-      refute html =~ ~s|onchange=|
+      assert Enum.count(theme_buttons, &String.contains?(&1, ~s|aria-pressed="true"|)) == 1
+
+      assert Enum.any?(theme_buttons, fn button ->
+               String.contains?(button, ~s|value="system"|) and
+                 String.contains?(button, ~s|aria-pressed="true"|)
+             end)
+
+      refute html =~ ~s|Apply theme|
+      refute html =~ ~s|type="radio"|
       refute html =~ ~s|onclick=|
       refute html =~ ~s|localStorage|
     end
@@ -245,10 +316,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp assert_preserved_affordances(html) do
       assert html =~ ~s|class="tl-topbar__brand" href="/audit"|
+      assert html =~ ~s|aria-label="Threadline Admin home"|
       assert html =~ ~s|href="#tl-main"|
       assert html =~ ~s|data-testid="operator-nav-overview"|
       assert html =~ ~s|data-testid="operator-scope"|
     end
+
+    defp assert_supplied_logo_pair(html) do
+      assert length(
+               Regex.scan(
+                 ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--dark"/,
+                 html
+               )
+             ) == 1
+
+      assert length(
+               Regex.scan(
+                 ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--light"/,
+                 html
+               )
+             ) == 1
+
+      assert html =~ ~s|class="tl-topbar__brand-lockups"|
+    end
+
+    defp rendered_logo!(html, variant) do
+      pattern =
+        ~r/<svg class="tl-topbar__brand-logo tl-topbar__brand-logo--#{variant}"(?<attributes>[^>]*)>(?<body>.*?)<\/svg>/s
+
+      case Regex.named_captures(pattern, html) do
+        %{"attributes" => attributes, "body" => body} ->
+          %{"attributes" => attributes, "body" => body}
+
+        nil ->
+          flunk("expected rendered #{variant} lockup in:\n#{html}")
+      end
+    end
+
+    defp source_view_box(source) do
+      Regex.run(~r/<svg[^>]*viewBox="([^"]+)"/, source, capture: :all_but_first)
+      |> List.first()
+    end
+
+    defp rendered_view_box(attributes) do
+      Regex.run(~r/\bviewBox="([^"]+)"/, attributes, capture: :all_but_first)
+      |> List.first()
+    end
+
+    defp source_paths(source),
+      do: Regex.scan(~r/<path\b[^>]*\/>/, source, capture: :first) |> List.flatten()
+
+    defp rendered_paths(body),
+      do: Regex.scan(~r/<path\b[^>]*\/>/, body, capture: :first) |> List.flatten()
 
     defp assert_before(html, first, second) do
       first_index = :binary.match(html, first)

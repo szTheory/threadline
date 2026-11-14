@@ -30,7 +30,7 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     {:source_down, "alert", "temporarily unavailable"},
     {:redacted, "status", "Value redacted by policy"},
     {:pruned, "status", "Audit data pruned under retention"},
-    {:no_data, "status", "No audit changes match these filters"},
+    {:no_data, "status", "No changes match these filters"},
     {:boom, "alert", "Could not load audit data"}
   ]
 

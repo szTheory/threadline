@@ -526,7 +526,7 @@
   .tl-table code {
     overflow-wrap: anywhere;
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
+    font-size: var(--tl-font-size-dense);
   }
 
   .tl-table--compact .tl-table__code,
@@ -628,8 +628,10 @@
     overflow: hidden;
     color: var(--tl-color-muted);
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-weight: var(--tl-weight-regular);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tl-font-size-dense);
+    line-height: var(--tl-line-mono);
     overflow-wrap: anywhere;
   }
 

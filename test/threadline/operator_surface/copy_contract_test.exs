@@ -30,6 +30,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         repo: Threadline.Test.Repo,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.CopyContractTest.FakeTicketReply,
@@ -469,7 +470,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp retention_source do
-      source(@retention_live_path)
+      source(@retention_live_path) <>
+        "\n" <> source(Path.rootname(@retention_live_path) <> "/components.ex")
     end
 
     defp source(path), do: File.read!(path)

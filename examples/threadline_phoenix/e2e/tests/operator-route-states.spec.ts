@@ -1,13 +1,23 @@
 import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { installControlledClipboard, login, paths, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { capturePhase250GateObservation } from "../support/operator-investigation-pair.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
 // Passing this suite means observed states have source-bound evidence. Existing
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
-test.beforeEach(async ({}, info) => {
+test.beforeEach(async ({ page }, info) => {
+  if (process.env.THREADLINE_E2E_EVIDENCE === "1" || process.env.THREADLINE_PHASE252_CONTROLLED_CLIPBOARD === "1" || process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") await installControlledClipboard(page);
+  if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme" &&
+      info.title === "theme preference, effective cascade and reduced motion are distinct observed facts" &&
+      info.project.name === "desktop-chromium") return;
+  if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_BROWSER_GATE ?? "") &&
+      info.title === "Phase250 fonts and brand boundaries" && info.project.name === "desktop-chromium") return;
   if ([
     "Evidence keeps selected subject/reference through latest and proof-history navigation",
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
@@ -39,6 +49,192 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 function copyStatus(control: Locator) {
   return control.locator("xpath=..").locator("[data-tl-copy-status]");
+}
+
+async function phase250FocusByKeyboard(page: Page, target: Locator) {
+  await target.scrollIntoViewIfNeeded();
+  const limit = await page.locator('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])').count() + 1;
+  for (let index = 0; index < limit; index += 1) {
+    if (await target.evaluate((element) => element === document.activeElement)) return;
+    await page.keyboard.press("Tab");
+  }
+  throw new Error("Keyboard traversal did not reach the required control");
+}
+
+function phase250Rgb(hex: string) {
+  return `rgb(${[1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16)).join(", ")})`;
+}
+
+function phase250Contrast(text: string, ground: string) {
+  const luminance = (color: string) => {
+    const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((value) => {
+      const s = value / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+  };
+  const a = luminance(text), b = luminance(ground);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+if (["fonts-loaded", "fonts-disabled"].includes(process.env.THREADLINE_PHASE250_BROWSER_GATE ?? "")) {
+  test("Phase250 fonts and brand boundaries", async ({ page, context, browser }, info) => {
+    test.setTimeout(90_000);
+    const disabled = process.env.THREADLINE_PHASE250_FONT_MODE === "disabled";
+    expect(disabled).toBe(process.env.THREADLINE_PHASE250_BROWSER_GATE === "fonts-disabled");
+    const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
+    const brand = JSON.parse(readFileSync(join(sourceRoot, "brand/brand.json"), "utf8"));
+    const origin = new URL(process.env.E2E_BASE_URL!).origin;
+    const externalRequests: string[] = [];
+    const allowLocal = async (route: any) => {
+      const url = new URL(route.request().url());
+      if (["http:", "https:"].includes(url.protocol) && url.origin !== origin) {
+        externalRequests.push(url.origin); await route.abort();
+      } else await route.continue();
+    };
+    await page.route("**/*", allowLocal);
+    const fontRequests = [
+      '600 28px "Threadline Familjen Grotesk"', '400 16px "Threadline Geist"',
+      '400 13px "Threadline IBM Plex Mono"', '500 13px "Threadline IBM Plex Mono"',
+    ];
+    const timeline = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=walk-acme-4521-close";
+    const mapping: Record<string, [string, string]> = {
+      body: ["text", "bg"], descriptor: ["muted", "bg"], caption: ["muted", "surface"],
+      "application-copy": ["text", "surface"], hero: ["accent", "bg"], link: ["accent", "surface"],
+      focus: ["border-focus", "bg"], artwork: ["stitch-blue", "bg"],
+    };
+    const loadFaces = async (target: Page) => target.evaluate(async (requests) => {
+      await Promise.allSettled(requests.map((font) => document.fonts.load(font)));
+      await document.fonts.ready;
+      return Array.from(document.fonts).map((face) => ({ family: face.family.replaceAll('"', ""), weight: face.weight, status: face.status }));
+    }, fontRequests);
+    await login(page);
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const lane of ["dark", "light"] as const) {
+        await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+        await page.goto(timeline);
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        if (width === 375) await page.locator(".tl-shell-nav__toggle").click();
+        await page.getByRole("button", { name: lane === "dark" ? "Dark" : "Light", exact: true }).click();
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const faces = await loadFaces(page);
+        expect(faces).toHaveLength(disabled ? 0 : 4);
+        if (!disabled) expect(faces.every((face) => face.status === "loaded")).toBe(true);
+        const roles = await page.evaluate(() => {
+          const read = (selector: string) => {
+            const node = document.querySelector<HTMLElement>(selector);
+            if (!node) throw new Error(`Missing rendered type role ${selector}`);
+            const s = getComputedStyle(node);
+            return { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, line: s.lineHeight };
+          };
+          return { body: read(".threadline-ui"), heading: read("#tl-main h1"), id: read(".tl-ref .tl-secondary-ref"), numeric: Array.from(document.querySelectorAll(".threadline-ui *")).map((node) => getComputedStyle(node).fontVariantNumeric).find((value) => value.includes("tabular-nums")) ?? "missing" };
+        });
+        expect(roles.body.family).toContain("Threadline Geist");
+        expect(roles.body).toMatchObject({ size: "16px", weight: "400" });
+        expect(roles.heading.family).toContain("Threadline Familjen Grotesk");
+        expect(roles.heading).toMatchObject({ size: "28px", weight: "600" });
+        expect(roles.id.family).toContain("Threadline IBM Plex Mono");
+        expect(roles.id).toMatchObject({ size: "13px", weight: "400", line: "19.5px" });
+        expect(roles.numeric).toContain("tabular-nums");
+        const contrastRows = await page.evaluate(({ mapping, pairs, lane }) => {
+          const root = document.querySelector(".threadline-ui")!;
+          const probe = document.createElement("span");
+          probe.style.transitionProperty = "none"; probe.style.animationName = "none"; root.append(probe);
+          const rows = pairs.map((pair: any) => {
+            const [text, ground] = mapping[pair.id]!;
+            probe.style.color = `var(--tl-color-${text})`;
+            probe.style.backgroundColor = `var(--tl-color-${ground})`;
+            const style = getComputedStyle(probe);
+            return { id: pair.id, text: style.color, ground: style.backgroundColor, minimum: pair.minimum, expected: pair[lane], mapping: [text, ground] };
+          });
+          probe.remove(); return rows;
+        }, { mapping, pairs: brand.color.contrastPairs, lane });
+        expect(contrastRows.map((row: any) => row.id)).toEqual(["body", "descriptor", "caption", "application-copy", "hero", "link", "focus", "artwork"]);
+        for (const row of contrastRows) {
+          expect(row.text, `${lane}/${row.id} foreground`).toBe(phase250Rgb(row.expected.text));
+          expect(row.ground, `${lane}/${row.id} background`).toBe(phase250Rgb(row.expected.ground));
+          expect(phase250Contrast(row.text, row.ground)).toBeGreaterThanOrEqual(row.minimum);
+        }
+        const home = page.getByRole("link", { name: "Threadline Admin home", exact: true });
+        await expect(home).toBeVisible();
+        const logo = page.locator(`.tl-topbar__brand-logo--${lane}`);
+        await expect(logo).toBeVisible();
+        const logoBox = await logo.boundingBox(); expect(logoBox!.width).toBeGreaterThanOrEqual(96);
+        const homeBox = await home.boundingBox();
+        expect(logoBox!.x).toBeGreaterThanOrEqual(homeBox!.x - 1);
+        expect(logoBox!.x + logoBox!.width).toBeLessThanOrEqual(homeBox!.x + homeBox!.width + 1);
+        const supplied = readFileSync(join(sourceRoot, `brand/assets/logo/threadline-lockup-${lane}.svg`), "utf8");
+        const artwork = await logo.evaluate((element, expected) => {
+          const source = new DOMParser().parseFromString(expected, "image/svg+xml").documentElement;
+          const paths = (node: Element) => Array.from(node.querySelectorAll("path")).map((p) => [p.getAttribute("d"), p.getAttribute("fill"), p.getAttribute("transform")]);
+          return { actualPaths: paths(element), actualPaint: Array.from(element.querySelectorAll("path")).map((path) => getComputedStyle(path).fill), suppliedPaths: paths(source), actualViewBox: element.getAttribute("viewBox"), suppliedViewBox: source.getAttribute("viewBox") };
+        }, supplied);
+        expect(artwork.actualPaths).toEqual(artwork.suppliedPaths);
+        expect(artwork.actualPaint).toEqual(artwork.suppliedPaths.map((path) => phase250Rgb(path[1]!)));
+        expect(artwork.actualViewBox).toBe(artwork.suppliedViewBox);
+        const copy = page.locator("button[data-tl-copy]").first();
+        await phase250FocusByKeyboard(page, copy);
+        await expect(copy).toBeFocused();
+        await expect.poll(() => copy.evaluate((element) => getComputedStyle(element).outlineWidth)).toBe("2px");
+        const focus = await copy.evaluate((element) => ({ color: getComputedStyle(element).outlineColor, visible: element.matches(":focus-visible"), style: getComputedStyle(element).outlineStyle }));
+        expect(focus).toEqual({ color: phase250Rgb(brand.color.contrastPairs.find((pair: any) => pair.id === "focus")[lane].text), visible: true, style: "solid" });
+        await expectNoHorizontalOverflow(page);
+        await capturePhase250GateObservation(page, browser, info, disabled ? "fonts-disabled" : "fonts-loaded", { lane, width, faces, roles, contrastRows, focus, logoWidth: logoBox!.width, contrastBoundary: "scoped semantic-token samples; actual heading/body/ID/logo/focus consumers checked separately" });
+        if (!disabled) {
+          const fallback = await context.newPage();
+          try {
+            await fallback.setViewportSize({ width, height: 900 });
+            await fallback.route("**/*", allowLocal);
+            // Preserve the real loopback document response and LiveView connection.
+            // A fulfilled response changes Chromium's local-network classification.
+            await fallback.addInitScript(() => {
+              const install = () => {
+                if (!document.head) return false;
+                const policy = document.createElement("meta");
+                policy.httpEquiv = "Content-Security-Policy";
+                policy.content = "font-src 'none'";
+                document.head.prepend(policy);
+                return true;
+              };
+              if (!install()) {
+                const observer = new MutationObserver(() => { if (install()) observer.disconnect(); });
+                observer.observe(document, { childList: true, subtree: true });
+              }
+            });
+            await fallback.goto(timeline);
+            await expect(fallback.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+            await expect(fallback.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", lane);
+            const blocked = await loadFaces(fallback);
+            expect(blocked).toHaveLength(4); expect(blocked.every((face) => face.status === "error")).toBe(true);
+            await expect(fallback.getByRole("heading", { name: "Investigate audit activity", exact: true })).toBeVisible();
+            await expect(fallback.locator(".tl-ref .tl-secondary-ref").first()).toBeVisible();
+            await expectNoHorizontalOverflow(fallback);
+            await capturePhase250GateObservation(fallback, browser, info, "fonts-loaded", { lane, width, mode: "test-controlled font-src-none", blockedFaces: blocked, readableFallback: "visible heading, original ID and controls remain in bounded layout" });
+          } finally { await fallback.close(); }
+        }
+      }
+    }
+    const iconHref = await page.locator('link[rel~="icon"]').first().getAttribute("href");
+    expect(iconHref).toBeTruthy(); const iconUrl = new URL(iconHref!, page.url()); expect(iconUrl.origin).toBe(origin);
+    const icon = await page.request.get(iconUrl.toString()); expect(icon.ok()).toBe(true);
+    const iconBytes = await icon.body();
+    expect(iconUrl.pathname).toBe("/images/threadline-admin-favicon.svg");
+    const iconHash = createHash("sha256").update(iconBytes).digest("hex");
+    expect(iconHash).toBe(createHash("sha256").update(readFileSync(join(sourceRoot, "brand/assets/icon/favicon.svg"))).digest("hex"));
+    const markProbe = await page.evaluate(async (url) => {
+      const image = new Image(); image.src = url; await image.decode();
+      const canvas = document.createElement("canvas"); canvas.width = 16; canvas.height = 16;
+      const context = canvas.getContext("2d")!; context.drawImage(image, 0, 0, 16, 16);
+      const pixels = context.getImageData(0, 0, 16, 16).data;
+      let painted = 0; for (let index = 3; index < pixels.length; index += 4) if (pixels[index]! > 0) painted += 1;
+      return { width: canvas.width, height: canvas.height, painted };
+    }, iconUrl.toString());
+    expect(markProbe.width).toBeGreaterThanOrEqual(16); expect(markProbe.height).toBeGreaterThanOrEqual(16); expect(markProbe.painted).toBeGreaterThan(0);
+    await info.attach("phase250-favicon", { body: JSON.stringify({ url: iconUrl.pathname, sha256: iconHash, markProbe, boundary: "linked supplied SVG paints at16px; native browser-tab geometry is not captured" }), contentType: "application/json" });
+    expect(externalRequests).toEqual([]);
+  });
 }
 
 test("Redaction policy comparison stays safe, keyboard-operable, and responsive", async ({ page }) => {
@@ -138,8 +334,360 @@ test("Redaction inspection distinguishes a missing empty-policy trigger from unr
 });
 
 test("theme preference, effective cascade and reduced motion are distinct observed facts", async ({ page, browser }, info) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
   await login(page);
+  if (process.env.THREADLINE_PHASE250_BROWSER_GATE === "theme") {
+    const title = "theme preference, effective cascade and reduced motion are distinct observed facts";
+    const root = page.locator(".threadline-ui");
+    const buttons = root.locator('button[name="theme"]');
+    const lightLogo = root.locator(".tl-topbar__brand-logo--light");
+    const darkLogo = root.locator(".tl-topbar__brand-logo--dark");
+    await page.goto("/audit");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(buttons).toHaveCount(3);
+    let currentPreference: "system" | "light" | "dark" = "dark";
+
+    const assertTheme = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
+      await expect(root).toHaveAttribute("data-tl-theme", preference);
+      await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toHaveCount(1);
+      const selected = root.locator('button[name="theme"][aria-pressed="true"]');
+      await expect(selected).toHaveAttribute("value", preference);
+      const appearance = await root.evaluate((element) => ({
+        stored: (element.querySelector<HTMLButtonElement>('button[name="theme"][aria-pressed="true"]')?.value) ?? "unknown",
+        mounted: element.getAttribute("data-tl-theme"),
+        effective: getComputedStyle(element).colorScheme,
+        system: matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark",
+        reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      }));
+      expect(appearance).toEqual({ stored: preference, mounted: preference, effective: preference === "system" ? system : preference, system, reduced: true });
+      const effective = preference === "system" ? system : preference;
+      await expect(lightLogo).toHaveCSS("display", effective === "light" ? "block" : "none");
+      await expect(darkLogo).toHaveCSS("display", effective === "dark" ? "block" : "none");
+      await expect(selected.locator(".tl-theme-picker__selected")).toContainText("Selected");
+      await expect(selected).toHaveAccessibleName(preference[0]!.toUpperCase() + preference.slice(1));
+      return selected;
+    };
+    await assertTheme(currentPreference, "dark");
+
+    const diagnosticOutput = process.env.THREADLINE_PHASE250_DIAGNOSTIC_OUTPUT;
+    const focusDiagnostics: unknown[] = [];
+    const focusCascadeDiagnostics: unknown[] = [];
+    const fixtureMarkup = readFileSync(join(paths.repositoryRoot, "test/fixtures/style/operator_surface.css"), "utf8");
+    const fixturePrefix = "<style>";
+    const fixtureSuffix = "</style>";
+    const fixtureBody = fixtureMarkup.startsWith(fixturePrefix) && fixtureMarkup.endsWith(fixtureSuffix)
+      ? fixtureMarkup.slice(fixturePrefix.length, -fixtureSuffix.length)
+      : null;
+    const writeFocusDiagnostics = () => {
+      if (diagnosticOutput) {
+        writeFileSync(
+          diagnosticOutput,
+          `${JSON.stringify({ title, route: "/audit", focusDiagnostics, focusCascadeDiagnostics }, null, 2)}\n`,
+          { mode: 0o600 },
+        );
+      }
+    };
+
+    const captureFocusDiagnostic = async (target: Locator, phase: "initial" | "settled" = "initial") => {
+      const observed = await target.evaluate((element) => {
+        const active = document.activeElement;
+        const computed = getComputedStyle(element);
+        const styleBlocks = Array.from(document.querySelectorAll("style"))
+          .filter((style) => style.textContent?.includes(".threadline-ui"))
+          .map((style, index) => ({
+            index,
+            id: style.id || null,
+            body: style.textContent ?? "",
+            markup: style.outerHTML,
+          }));
+        const matchedRules: {
+          sourceOrigin: string;
+          stylesheetIndex: number;
+          selector: string;
+          conditions: string[];
+          declarations: Record<string, string>;
+        }[] = [];
+        for (let stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex += 1) {
+          const sheet = document.styleSheets.item(stylesheetIndex)!;
+          const owner = sheet.ownerNode instanceof Element ? sheet.ownerNode : null;
+          const sourceOrigin = sheet.href ?? (owner
+            ? `${owner.tagName.toLowerCase()}${owner.id ? `#${owner.id}` : `@${stylesheetIndex}`}`
+            : `constructed-stylesheet@${stylesheetIndex}`);
+          let rules: CSSRuleList;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue;
+          }
+          const visit = (nestedRules: CSSRuleList, conditions: string[]) => {
+            for (const rule of Array.from(nestedRules)) {
+              if ("selectorText" in rule && typeof rule.selectorText === "string" && "style" in rule) {
+                const styleRule = rule as CSSStyleRule;
+                let matches = false;
+                try {
+                  matches = element.matches(styleRule.selectorText);
+                } catch {
+                  matches = false;
+                }
+                if (matches) {
+                  const properties = ["outline", "outline-width", "outline-style", "outline-color", "outline-offset", "box-shadow"];
+                  matchedRules.push({
+                    sourceOrigin,
+                    stylesheetIndex,
+                    selector: styleRule.selectorText,
+                    conditions,
+                    declarations: Object.fromEntries(properties.map((name) => [name, styleRule.style.getPropertyValue(name).trim()])),
+                  });
+                }
+              }
+              const groupingRule = rule as CSSRule & { cssRules?: CSSRuleList; conditionText?: string };
+              if (groupingRule.cssRules) {
+                const condition = typeof groupingRule.conditionText === "string" ? groupingRule.conditionText : null;
+                const active = condition && rule.type === CSSRule.MEDIA_RULE
+                  ? window.matchMedia(condition).matches
+                  : condition && rule.type === CSSRule.SUPPORTS_RULE
+                    ? CSS.supports(condition)
+                    : true;
+                if (active) visit(groupingRule.cssRules, condition ? [...conditions, condition] : conditions);
+              }
+            }
+          };
+          visit(rules, []);
+        }
+        return {
+          route: location.pathname,
+          target: {
+            tag: element.tagName.toLowerCase(),
+            className: typeof element.className === "string" ? element.className : null,
+            name: element.getAttribute("name"),
+            value: element.getAttribute("value"),
+            ariaPressed: element.getAttribute("aria-pressed"),
+            active: active === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          activeElement: active instanceof HTMLElement
+            ? { tag: active.tagName.toLowerCase(), id: active.id || null, className: active.className || null, name: active.getAttribute("name"), value: active.getAttribute("value") }
+            : { tag: active?.nodeName ?? null },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineColor: computed.outlineColor,
+            outlineOffset: computed.outlineOffset,
+            boxShadow: computed.boxShadow,
+            focusColorToken: computed.getPropertyValue("--tl-color-border-focus").trim(),
+            focusRingToken: computed.getPropertyValue("--tl-focus-ring").trim(),
+          },
+          inlineStyle: {
+            attribute: element.getAttribute("style"),
+            outline: element.style.getPropertyValue("outline"),
+            outlineWidth: element.style.getPropertyValue("outline-width"),
+            outlineStyle: element.style.getPropertyValue("outline-style"),
+            outlineColor: element.style.getPropertyValue("outline-color"),
+            outlineOffset: element.style.getPropertyValue("outline-offset"),
+          },
+          styleBlocks,
+          matchedRules,
+        };
+      });
+      const blocks = observed.styleBlocks.map((block) => ({
+        index: block.index,
+        id: block.id,
+        bodySha256: createHash("sha256").update(block.body).digest("hex"),
+        bodyBytes: Buffer.byteLength(block.body),
+        matchesCurrentFixtureBody: fixtureBody !== null && block.body === fixtureBody,
+        matchesCurrentFixtureMarkup: block.markup === fixtureMarkup,
+      }));
+      const record = {
+        sequence: focusDiagnostics.length + 1,
+        phase,
+        source: "mounted browser CSSOM and computed styles",
+        fixtureSha256: createHash("sha256").update(fixtureMarkup).digest("hex"),
+        fixtureBodySha256: fixtureBody === null ? null : createHash("sha256").update(fixtureBody).digest("hex"),
+        ...observed,
+        styleBlocks: blocks,
+      };
+      focusDiagnostics.push(record);
+      writeFocusDiagnostics();
+      return record;
+    };
+
+    const captureFocusCascadeDiagnostic = async (target: Locator, sequence: number) => {
+      const elementState = await target.evaluate((element) => ({
+        styleAttribute: element.getAttribute("style"),
+        animations: element.getAnimations().map((animation) => {
+          const effect = animation.effect;
+          const timing = effect?.getTiming();
+          const computedTiming = effect?.getComputedTiming();
+          return {
+            playState: animation.playState,
+            pending: animation.pending,
+            currentTime: animation.currentTime,
+            startTime: animation.startTime,
+            transitionProperty: "transitionProperty" in animation ? animation.transitionProperty : null,
+            timing: timing ? {
+              delay: timing.delay,
+              duration: timing.duration,
+              endDelay: timing.endDelay,
+              fill: timing.fill,
+              iterationStart: timing.iterationStart,
+              iterations: timing.iterations,
+              direction: timing.direction,
+              easing: timing.easing,
+            } : null,
+            computedTiming: computedTiming ? {
+              progress: computedTiming.progress,
+              currentIteration: computedTiming.currentIteration,
+              endTime: computedTiming.endTime,
+            } : null,
+            keyframes: effect?.getKeyframes().map((keyframe) => ({
+              outline: keyframe.outline,
+              outlineWidth: keyframe.outlineWidth,
+              outlineStyle: keyframe.outlineStyle,
+              outlineColor: keyframe.outlineColor,
+              outlineOffset: keyframe.outlineOffset,
+            })) ?? [],
+          };
+        }),
+      }));
+      const cdp = await page.context().newCDPSession(page);
+      try {
+        const sheetSources = new Map<string, string>();
+        cdp.on("CSS.styleSheetAdded", ({ header }) => sheetSources.set(header.styleSheetId, header.sourceURL));
+        await cdp.send("DOM.enable");
+        await cdp.send("CSS.enable");
+        const { root: documentNode } = await cdp.send("DOM.getDocument");
+        const value = await target.getAttribute("value");
+        const { nodeId } = await cdp.send("DOM.querySelector", {
+          nodeId: documentNode.nodeId,
+          selector: `button[name="theme"][value="${value}"]`,
+        });
+        if (!nodeId) throw new Error("Could not resolve the focused theme button through Chromium DOM");
+        const matched = await cdp.send("CSS.getMatchedStylesForNode", { nodeId });
+        const computed = await cdp.send("CSS.getComputedStyleForNode", { nodeId });
+        const focusProperties = (properties: Array<{ name: string; value: string; important?: boolean }>) =>
+          properties
+            .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+            .map(({ name, value: propertyValue, important }) => ({ name, value: propertyValue, important: Boolean(important) }));
+        const matchedRules = (matched.matchedCSSRules ?? []).map(({ rule }) => ({
+          origin: rule.origin,
+          sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+          selector: rule.selectorList.text,
+          declarations: focusProperties(rule.style.cssProperties),
+        })).filter(({ declarations }) => declarations.length > 0);
+        const pseudoRules = (matched.pseudoElements ?? []).map(({ pseudoType, matches }) => ({
+          pseudoType,
+          rules: matches.map(({ rule }) => ({
+            origin: rule.origin,
+            sourceURL: rule.styleSheetId ? sheetSources.get(rule.styleSheetId) ?? null : null,
+            selector: rule.selectorList.text,
+            declarations: focusProperties(rule.style.cssProperties),
+          })).filter(({ declarations }) => declarations.length > 0),
+        })).filter(({ rules }) => rules.length > 0);
+        const computedOutline = (computed.computedStyle ?? [])
+          .filter(({ name }) => /^(outline(?:-|$)|box-shadow$)/.test(name))
+          .map(({ name, value: propertyValue }) => ({ name, value: propertyValue }));
+        const diagnostic = {
+          sequence,
+          source: "Chromium CDP DOM/CSS matched styles",
+          elementState,
+          inlineStyle: matched.inlineStyle ? focusProperties(matched.inlineStyle.cssProperties) : [],
+          attributeStyle: matched.attributesStyle ? focusProperties(matched.attributesStyle.cssProperties) : [],
+          matchedRules,
+          pseudoRules,
+          computedOutline,
+        };
+        focusCascadeDiagnostics.push(diagnostic);
+        writeFocusDiagnostics();
+        return diagnostic;
+      } finally {
+        await cdp.detach();
+      }
+    };
+
+    const focusByKeyboard = async (target: Locator) => {
+      for (let attempts = 0; attempts < 40; attempts += 1) {
+        if (await target.evaluate((element) => document.activeElement === element)) break;
+        await page.keyboard.press("Tab");
+      }
+      const initial = await captureFocusDiagnostic(target, "initial");
+      const expectedFocus = {
+        target: { active: true, matchesFocusVisible: true },
+        computed: { outlineWidth: "2px", outlineStyle: "solid", outlineOffset: "2px" },
+      };
+      const isSettled = initial.target.active && initial.target.matchesFocusVisible &&
+        initial.computed.outlineWidth === "2px" && initial.computed.outlineStyle === "solid" &&
+        initial.computed.outlineOffset === "2px";
+      if (isSettled) return;
+
+      await captureFocusCascadeDiagnostic(target, initial.sequence);
+      await expect.poll(async () => target.evaluate((element) => {
+        const computed = getComputedStyle(element);
+        return {
+          target: {
+            active: document.activeElement === element,
+            matchesFocusVisible: element.matches(":focus-visible"),
+          },
+          computed: {
+            outlineWidth: computed.outlineWidth,
+            outlineStyle: computed.outlineStyle,
+            outlineOffset: computed.outlineOffset,
+          },
+        };
+      }), { timeout: 3000, intervals: [50, 100, 250, 500] }).toMatchObject(expectedFocus);
+      const settled = await captureFocusDiagnostic(target, "settled");
+      expect(settled).toMatchObject(expectedFocus);
+    };
+
+    const activate = async (preference: "system" | "light" | "dark", system: "light" | "dark") => {
+      await page.emulateMedia({ colorScheme: system, reducedMotion: "reduce" });
+      await assertTheme(currentPreference, system);
+      const target = root.locator(`button[name="theme"][value="${preference}"]`);
+      await expect(target).toBeEnabled();
+      await focusByKeyboard(target);
+      await page.keyboard.press("Enter");
+      await expect(root).toHaveAttribute("data-tl-theme", preference);
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await assertTheme(preference, system);
+      currentPreference = preference;
+      const current = root.locator(`button[name="theme"][value="${preference}"]`);
+      await focusByKeyboard(current);
+      return current;
+    };
+
+    const defaultTheme = await activate("dark", "dark");
+    expect(await defaultTheme.getAttribute("aria-label")).toBe("Dark");
+    await activate("light", "dark");
+    await activate("dark", "light");
+    await activate("system", "dark");
+    await activate("system", "light");
+    await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await assertTheme("system", "light");
+    await focusByKeyboard(root.locator('button[name="theme"][value="system"]'));
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    const disclosure = page.locator(".tl-shell-nav__disclosure");
+    await disclosure.locator("summary").click();
+    await expect(disclosure).toHaveAttribute("open", "");
+    for (const button of await buttons.all()) await expect(button).toBeVisible();
+    await expect(root.locator('button[name="theme"][aria-pressed="true"]')).toBeVisible();
+    const narrow = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
+    expect(narrow.document - narrow.viewport).toBeLessThanOrEqual(1);
+    const choiceBounds = await root.locator('button[name="theme"][aria-pressed="true"]').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width, clientWidth: (element as HTMLElement).clientWidth, scrollWidth: (element as HTMLElement).scrollWidth };
+    });
+    expect(choiceBounds.left).toBeGreaterThanOrEqual(0);
+    expect(choiceBounds.right).toBeLessThanOrEqual(376);
+    expect(choiceBounds.scrollWidth).toBeLessThanOrEqual(choiceBounds.clientWidth + 1);
+    const observation = await capturePhase250GateObservation(page, browser, info, "theme");
+    expect(observation.condition).toMatchObject({ preference: "system", mountedTheme: "system", effectiveTheme: "light", systemScheme: "light", reducedMotion: true, browserZoom: "unverified" });
+    expect(observation.assets.fontFaceCount).toBe(4);
+    expect(observation.assets.fontFaces).toHaveLength(4);
+    expect(observation.route).toBe("/audit");
+    expect(info.title).toBe(title);
+    return;
+  }
   const e = await startEvidence(page, browser, info);
   await page.goto("/audit");
   const light = info.project.name === "desktop-chromium-light";
@@ -153,8 +701,9 @@ test("theme preference, effective cascade and reduced motion are distinct observ
   expect(initial.reducedMotion).toBe(true);
   expect(initial.resolvedValues["--tl-color-bg"]).toBeTruthy();
   for (const preference of ["light", "dark", "system"]) {
-    await page.locator(`input[name="theme"][value="${preference}"]`).check();
-    await page.getByRole("button", { name: "Apply theme" }).click();
+    await page.locator(`button[name="theme"][value="${preference}"]`).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(page.locator(".threadline-ui")).toHaveAttribute("data-tl-theme", preference);
     const observed = await e.capture(`state.theme.${preference}`, "/audit", `preference-${preference}`);
     expect(observed.preference).toBe(preference);
@@ -209,6 +758,7 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await page.addInitScript(() => {
     const probe = {
       calls: [] as Array<{ value: string; userActivation: boolean }>,
+      fallbackCalls: 0,
       pending: [] as Array<() => void>,
       resolveNext() {
         this.pending.shift()?.();
@@ -224,6 +774,7 @@ test("Clipboard success waits for confirmation on direct entry and after patches
         },
       },
     });
+    document.execCommand = () => { probe.fallbackCalls += 1; return false; };
   });
 
   await login(page);
@@ -234,7 +785,8 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await expect(copy).toBeVisible();
   const expected = await copy.getAttribute("data-tl-copy");
   expect(expected).toBeTruthy();
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await page.keyboard.press("Enter");
 
   const status = copyStatus(copy);
   await expect(status).toHaveText("Copying…");
@@ -246,6 +798,8 @@ test("Clipboard success waits for confirmation on direct entry and after patches
   await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
   await expect(status).toHaveText("Copied.");
   await expect(copy).toHaveClass(/is-copied/);
+  await expect(copy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(0);
 
   await page.locator("#filter-table").fill("ticket_replies");
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
@@ -254,12 +808,15 @@ test("Clipboard success waits for confirmation on direct entry and after patches
 
   const patchedCopy = page.locator("button[data-tl-copy]").first();
   const patchedExpected = await patchedCopy.getAttribute("data-tl-copy");
-  await patchedCopy.click();
+  await phase250FocusByKeyboard(page, patchedCopy);
+  await page.keyboard.press("Enter");
   const patchedStatus = copyStatus(patchedCopy);
   await expect(patchedStatus).toHaveText("Copying…");
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls)).toHaveLength(2);
   await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
   await expect(patchedStatus).toHaveText("Copied.");
+  await expect(patchedCopy).toBeFocused();
+  await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls[1])).toEqual({
     value: patchedExpected,
     userActivation: true,
@@ -282,10 +839,12 @@ test("Clipboard failure shows manual recovery without claiming success", async (
 
   await login(page);
   await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const copy = page.locator("button[data-tl-copy]").first();
   await expect(copy).toBeVisible();
   const expected = await copy.getAttribute("data-tl-copy");
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await page.keyboard.press("Enter");
 
   const status = copyStatus(copy);
   await expect(status).toHaveText("Copy failed. Select the value and copy it manually.");
@@ -300,11 +859,12 @@ test("Clipboard failure shows manual recovery without claiming success", async (
 
 test("Clipboard fallback confirms success and restores focus and selection", async ({ page }) => {
   await page.addInitScript(() => {
-    const probe = { fallbackCalls: 0 };
+    const probe = { fallbackCalls: 0, values: [] as string[] };
     (window as any).__threadlineCopyProbe = probe;
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
     document.execCommand = () => {
       probe.fallbackCalls += 1;
+      probe.values.push((document.activeElement as HTMLTextAreaElement).value);
       return true;
     };
   });
@@ -327,9 +887,15 @@ test("Clipboard fallback confirms success and restores focus and selection", asy
   await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
 
   const copy = source.locator("xpath=..").locator("button[data-tl-copy]").first();
-  await copy.click();
+  await phase250FocusByKeyboard(page, copy);
+  await source.evaluate((element) => {
+    const range = document.createRange(); range.selectNodeContents(element);
+    const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+  });
+  await page.keyboard.press("Enter");
   await expect(copyStatus(copy)).toHaveText("Copied.");
   await expect(copy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.values)).toEqual([await copy.getAttribute("data-tl-copy")]);
   await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
   expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(1);
   await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
@@ -337,13 +903,17 @@ test("Clipboard fallback confirms success and restores focus and selection", asy
 
 test("Copy feedback fits long URLs and redacted values stay non-copyable", async ({ page }) => {
   await page.addInitScript(() => {
+    (window as any).__threadlineLongCopyValues = [];
+    document.execCommand = () => false;
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
-      value: { writeText: () => Promise.resolve() },
+      value: { writeText: (value: string) => { (window as any).__threadlineLongCopyValues.push(value); return Promise.resolve(); } },
     });
   });
 
   await login(page);
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 900 });
   const correlation = `copy-long-${"x".repeat(180)}`;
   const appliedUrl = `/audit/timeline?table=ticket_replies&correlation_id=${encodeURIComponent(correlation)}`;
   await page.goto(appliedUrl);
@@ -352,7 +922,8 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   const copySearch = drawer.getByRole("button", { name: "Copy search URL", exact: true });
   await expect(copySearch).toHaveAttribute("data-tl-copy", appliedUrl);
   await expect(copyStatus(copySearch)).toHaveCount(1);
-  await copySearch.click();
+  await phase250FocusByKeyboard(page, copySearch);
+  await page.keyboard.press("Enter");
   const status = copyStatus(copySearch);
   await expect(status).toHaveText("Copied.");
   await expectNoHorizontalOverflow(page);
@@ -377,7 +948,8 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   const reference = page.locator(".tl-ref").filter({ has: page.locator("button[data-tl-copy]") }).first();
   const referenceCopy = reference.locator("button[data-tl-copy]").first();
   await expect(referenceCopy).toBeVisible();
-  await referenceCopy.click();
+  await phase250FocusByKeyboard(page, referenceCopy);
+  await page.keyboard.press("Enter");
   await expect(copyStatus(referenceCopy)).toHaveText("Copied.");
   await expectNoHorizontalOverflow(page);
   const referenceGeometry = await reference.evaluate((element) => {
@@ -414,6 +986,19 @@ test("Copy feedback fits long URLs and redacted values stay non-copyable", async
   await expect(
     page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
   ).toHaveCount(0);
+  // Supported long string ActorRef with no recorded actions; no row or action is invented.
+  const expectedLongId = "svc-long-" + "x".repeat(180);
+  await page.goto(`/audit/actors/service_account/${encodeURIComponent(expectedLongId)}`);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const values = await page.locator("button[data-tl-copy]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tl-copy")));
+  const longIndex = values.indexOf(expectedLongId); expect(longIndex).toBeGreaterThanOrEqual(0);
+  const longCopy = page.locator("button[data-tl-copy]").nth(longIndex);
+  await phase250FocusByKeyboard(page, longCopy); await page.keyboard.press("Enter");
+  await expect(copyStatus(longCopy)).toHaveText("Copied."); await expect(longCopy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineLongCopyValues.at(-1))).toBe(expectedLongId);
+  await expectNoHorizontalOverflow(page);
+
+  }
 });
 
 test("Exports seeded pending, failed, completed, unavailable and invalid context stay distinct", async ({ page, browser }, info) => {
@@ -568,26 +1153,110 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   const e = process.env.THREADLINE_E2E_EVIDENCE === "1" ? await startEvidence(page, browser, info) : undefined;
   await page.goto("/audit/timeline");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-  const long = "unmatched_correlation_" + "x".repeat(210);
-  const filter = page.locator("#filter-correlation-id");
-  await filter.fill(long);
+  // Wide glyphs exercise unbroken warning text across platform font metrics.
+  await page.locator("#filter-from").fill("2026-05-25T14:30");
+  await page.locator("#filter-to").fill("2026-05-26T14:30");
+  const longTable = "unmatched_table_" + "m".repeat(210);
+  const longCorrelation = "unmatched_correlation_" + "x".repeat(210);
+  const tableFilter = page.locator("#filter-table");
+  const correlationFilter = page.locator("#filter-correlation-id");
+  await tableFilter.fill(longTable);
+  await correlationFilter.fill(longCorrelation);
   hold = true;
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
   await expect.poll(() => Boolean(held)).toBe(true);
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
-  if (e) await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longValueLength: long.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
+  if (e) await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longTableLength: longTable.length, longCorrelationLength: longCorrelation.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
   hold = false;
   held!.server.send(held!.message);
   await expect(page.locator("#timeline-filters")).not.toHaveClass(/phx-submit-loading/);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
-  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
-  await expect(filter).toHaveValue(long);
-  expect(long).toHaveLength(232);
+  await expect(page.locator("#tl-main")).toContainText("Try a wider date range or adjust the filters, then apply again.");
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("0");
+  await expect(page.locator("nav.tl-pager")).toHaveCount(0);
+  await expect(tableFilter).toHaveValue(longTable);
+  await expect(correlationFilter).toHaveValue(longCorrelation);
+  expect(longTable).toHaveLength(226);
+  expect(longCorrelation).toHaveLength(232);
+  const tableWarning = page.locator(".tl-alert--info[role='status']").filter({ hasText: "Table filter" });
+  await expect(tableWarning).toBeVisible();
+  await expect(tableWarning).toContainText(longTable);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const controlsFit = async () => page.evaluate(() => {
+    const form = document.querySelector<HTMLElement>("#timeline-filters")!;
+    const viewportWidth = window.innerWidth;
+    const controls = Array.from(form.querySelectorAll<HTMLElement>("input, button, a"));
+    return {
+      shellFits: document.documentElement.scrollWidth <= viewportWidth,
+      viewportWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      fontStatus: document.fonts.status,
+      alertText: Array.from(document.querySelectorAll<HTMLElement>("#tl-main .tl-alert--info"))
+        .filter((element) => element.textContent?.includes("Table filter"))
+        .map((element) => {
+          const bounds = element.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const textRects = Array.from(range.getClientRects()).filter((rect) => rect.width > 0);
+          return {
+            clientWidth: element.clientWidth, scrollWidth: element.scrollWidth,
+            left: bounds.left, right: bounds.right,
+            textLength: element.textContent?.length,
+            textLeft: Math.min(...textRects.map((rect) => rect.left)),
+            textRight: Math.max(...textRects.map((rect) => rect.right)),
+            contained: element.scrollWidth <= element.clientWidth && textRects.every((rect) => rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1),
+          };
+        }),
+      overflowing: Array.from(document.querySelectorAll<HTMLElement>("#tl-main, #tl-main *"))
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return { tag: element.tagName, id: element.id, class: element.className, left: rect.left, right: rect.right, width: rect.width, position: style.position, whiteSpace: style.whiteSpace, overflowWrap: style.overflowWrap, minWidth: style.minWidth };
+        })
+        .filter((element) => element.width > 0 && (element.left < -1 || element.right > viewportWidth + 1))
+        .slice(0, 16),
+      controls: controls.map((control) => {
+        const rect = control.getBoundingClientRect();
+        return { visible: rect.width > 0 && rect.height > 0, inside: rect.left >= 0 && rect.right <= viewportWidth };
+      }),
+    };
+  });
+  const initialDesktopControls = await controlsFit();
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  const desktopControls = await controlsFit();
+  const layoutObservation = { initial: initialDesktopControls, settled: desktopControls };
+  const layoutPath = info.outputPath("timeline-long-filter-layout.json");
+  writeFileSync(layoutPath, JSON.stringify(layoutObservation));
+  console.log("THREADLINE_LONG_FILTER_LAYOUT=" + JSON.stringify(layoutObservation));
+  await info.attach("timeline-long-filter-layout-settle", { path: layoutPath, contentType: "application/json" });
+  const screenshotPath = info.outputPath("timeline-long-filter-state.png");
+  const screenshot = await page.screenshot({ path: screenshotPath });
+  await info.attach("timeline-long-filter-state", { body: screenshot, contentType: "image/png" });
+  expect(desktopControls.shellFits).toBe(true);
+  expect(desktopControls.alertText).toHaveLength(1);
+  expect(desktopControls.alertText.every((alert) => alert.contained)).toBe(true);
+  expect(desktopControls.controls.every((control) => control.visible && control.inside)).toBe(true);
   await page.setViewportSize({ width: 375, height: 900 });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  const narrowControls = await controlsFit();
+  expect(narrowControls.shellFits).toBe(true);
+  expect(narrowControls.alertText).toHaveLength(1);
+  expect(narrowControls.alertText.every((alert) => alert.contained)).toBe(true);
+  expect(narrowControls.controls.every((control) => control.visible && control.inside)).toBe(true);
+  await expect(tableFilter).toBeVisible();
+  await expect(correlationFilter).toBeVisible();
+  await expect(tableFilter).toHaveValue(longTable);
+  await expect(correlationFilter).toHaveValue(longCorrelation);
   if (e) {
-    await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longValueLength: long.length, fullValueRetained: await filter.inputValue() === long });
+    await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longTableLength: longTable.length, longCorrelationLength: longCorrelation.length, fullValuesRetained: await tableFilter.inputValue() === longTable && await correlationFilter.inputValue() === longCorrelation });
     e.finish("state.timeline", "/audit/timeline", "delayed-empty-long-value");
   }
 });
@@ -604,14 +1273,31 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   });
 
   await login(page);
-  await seedPaths(page);
   const queryA = "walk-acme-4521-close";
-  await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=${queryA}`);
+  await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=ticket_replies&correlation_id=${queryA}`);
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByTestId("timeline-row")).toHaveCount(1);
   await expect(page.getByTestId("timeline-row").first()).toBeVisible();
   const queryARowCount = await page.getByTestId("timeline-row").count();
-  expect(queryARowCount).toBeGreaterThan(0);
+  expect(queryARowCount).toBe(1);
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("1");
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  const transactionHref = await page.getByTestId("transaction-link").getAttribute("href");
+  expect(transactionHref).not.toBeNull();
+  const transactionUrl = new URL(transactionHref!, page.url());
+  expect(transactionUrl.pathname).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  expect(transactionUrl.origin).toBe(new URL(page.url()).origin);
+  expect(transactionUrl.searchParams.get("origin")).toBe("timeline");
+  expect(transactionUrl.searchParams.get("from")).toBe("2020-01-01T00:00");
+  expect(transactionUrl.searchParams.get("to")).toBe("2099-01-01T00:00");
+  expect(transactionUrl.searchParams.get("table")).toBe("ticket_replies");
+  expect(transactionUrl.searchParams.get("correlation_id")).toBe(queryA);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const desktopOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(desktopOverflow).toBe(false);
 
   const queryB = "timeline-query-b-" + "x".repeat(215);
   expect(queryB).toHaveLength(232);
@@ -624,17 +1310,44 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
   await expect(page.getByTestId("timeline-row")).toHaveCount(queryARowCount);
+  await expect(page.getByTestId("transaction-link")).toHaveAttribute("href", transactionHref!);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
   await expect(page.locator(".tl-filter-summary")).not.toContainText(queryB);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
+  await expect(page.locator(".tl-pager__range")).toContainText("Showing 1 of 1 matching changes");
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(queryB);
+  await expect(page.getByRole("status").filter({ hasText: "Showing 1 of 1 matching changes" })).toBeVisible();
+  await page.setViewportSize({ width: 375, height: 900 });
+  await expect(page.getByTestId("timeline-row")).toHaveCount(1);
+  const pendingOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(pendingOverflow).toBe(false);
 
   hold = false;
   held!.server.send(held!.message);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryB);
   await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
-  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
+  await expect(page.locator("#tl-main")).toContainText("Try a wider date range or adjust the filters, then apply again.");
   await expect(page.locator("#filter-correlation-id")).toHaveValue(queryB);
+  await expect(page.locator("#filter-table")).toHaveValue("ticket_replies");
+  await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
+  await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
+  const committedUrl = new URL(page.url());
+  expect(committedUrl.searchParams.get("from")).toBe("2020-01-01T00:00");
+  expect(committedUrl.searchParams.get("to")).toBe("2099-01-01T00:00");
+  expect(committedUrl.searchParams.get("table")).toBe("ticket_replies");
+  expect(committedUrl.searchParams.get("correlation_id")).toBe(queryB);
+  await expect(page.locator(".tl-timeline-fact").filter({ hasText: "Matching changes" })).toContainText("0");
+
+  await page.setViewportSize({ width: 375, height: 900 });
+  await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+  await expect(page.locator("#filter-table")).toBeVisible();
+  await expect(page.locator("#filter-correlation-id")).toBeVisible();
+  const narrowOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(narrowOverflow).toBe(false);
   const completedApply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
   await expect(completedApply).toBeVisible();
   await expect(completedApply.locator("svg")).toHaveCount(1);
@@ -753,12 +1466,16 @@ for (const input of ["pointer", "Enter", "Space"] as const) {
 test("Retention confirmation focus and cancel preserve state; Chromium touch navigation works", async ({ page, browser }, info) => {
   await login(page);
   await page.goto("/audit/policy/retention");
-  const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+  const preview = page.getByRole("button", { name: "Preview retention", exact: true });
+  const open = page.getByRole("button", { name: "Review and confirm", exact: true });
+  const prepare = async () => { await preview.click(); await expect(page.getByTestId("retention-preview")).toBeVisible(); };
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const revisionMarker = page.locator("[data-tl-mutation-revision]");
   await expect(revisionMarker).toHaveAttribute("data-tl-mutation-revision", /.+/);
-  const initialRows = await page.locator("#retention-runs tbody tr").count();
-  await prune.focus();
+  const initialRows = await page.locator("#retention-runs tr").count();
+  expect(initialRows).toBeGreaterThan(0);
+  await prepare();
+  await open.focus();
   await page.keyboard.press("Enter");
   const dialog = page.locator("#prune-confirm-focus");
   await expect(dialog).toBeVisible();
@@ -773,33 +1490,58 @@ test("Retention confirmation focus and cancel preserve state; Chromium touch nav
   await dialog.getByRole("button", { name: "Prune now", exact: true }).click();
   await expect(dialog).toBeVisible();
   await expect(confirmation).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
   for (let tab = 0; tab < 4; tab += 1) {
     await page.keyboard.press("Tab");
     await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   }
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
-  await expect(prune).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(preview).toBeFocused();
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
   await expect(page.getByText("Prune request accepted", { exact: false })).toHaveCount(0);
 
-  await prune.click();
+  await prepare();
+  await open.click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Keep audit data", exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(prune).toBeFocused();
-  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(preview).toBeFocused();
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  await expect(page.locator("#retention-runs tr")).toHaveCount(initialRows);
 
   const touchContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 }, hasTouch: true, reducedMotion: "reduce", colorScheme: info.project.name.endsWith("light") ? "light" : "dark" });
   try {
     const touch = await touchContext.newPage();
+    await installControlledClipboard(touch);
     await login(touch);
     await touch.goto("/audit");
     const toggle = touch.locator(".tl-shell-nav__toggle");
     await expect(toggle).toBeVisible();
     await toggle.tap();
     await expect(touch.locator(".tl-shell-nav__panel")).toBeVisible();
+    await touch.goto("/audit/policy/retention");
+    await expect(touch.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await touch.getByRole("button", { name: "Preview retention", exact: true }).tap();
+    await expect(touch.getByTestId("retention-preview")).toBeVisible();
+    await touch.getByRole("button", { name: "Review and confirm", exact: true }).tap();
+    const touchDialog = touch.getByRole("dialog");
+    await expect(touchDialog).toBeVisible();
+    await touchDialog.evaluate((dialog) => {
+      for (const element of [dialog, ...dialog.querySelectorAll("*")]) {
+        if (/auto|scroll/.test(getComputedStyle(element).overflowY) && element.scrollHeight > element.clientHeight) element.scrollTop = 0;
+      }
+    });
+    const heading = touchDialog.getByRole("heading", { name: "Prune retained audit data?", exact: true });
+    await expect(heading).toBeVisible();
+    expect(await heading.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const painted = document.elementFromPoint(box.x + box.width / 2, box.y + 4);
+      return painted !== null && (element === painted || element.contains(painted));
+    })).toBe(true);
+    await touchDialog.getByRole("button", { name: "Keep audit data", exact: true }).tap();
+    await expect(touchDialog).toBeHidden();
   } finally { await touchContext.close(); }
 });
 
@@ -994,4 +1736,344 @@ test("Timeline pagination appends the next page without changing the applied sea
   });
   expect(rowMotion.animationName).toBe("none");
   expect(rowMotion.animationDelay.split(",").every((delay) => Number.parseFloat(delay) === 0)).toBe(true);
+});
+
+
+test("Phase251 Timeline and saved-view guards", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const message = "These Timeline filters are not supported. Update the filters before applying them.";
+  await page.goto("/audit/timeline?unsupported_only=private-value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
+  await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+
+  const original = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=walk-acme-4521-close";
+  await page.goto(original);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+  await page.locator("#filter-correlation-id").fill("phase251-no-match");
+  await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
+  await page.reload();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue("phase251-no-match");
+  await page.goBack();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+  await page.goForward();
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("phase251-no-match");
+  await page.goto(original);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  let drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+  const name = `Phase251 saved selection ${randomUUID()}`;
+  await drawer.locator("#save-view-form").getByLabel("Saved search name").fill(name);
+  await drawer.getByRole("button", { name: "Save search", exact: true }).click();
+  const apply = drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true });
+  await expect(apply).toBeVisible();
+  const id = await apply.getAttribute("phx-value-id");
+  expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+  // Mutate only the fresh UI-owned fixture, never shared business data.
+  const partition = process.env.MIX_TEST_PARTITION ?? "";
+  expect(partition).toMatch(/^(?:\d+|p251pair)?$/);
+  expect(process.env.THREADLINE_E2E).toBe("1");
+  if (partition === "p251pair") {
+    expect(new URL(page.url()).origin).toBe("http://127.0.0.1:60152");
+    expect(process.env.DB_HOST).toBe("127.0.0.1");
+    expect(process.env.DB_PORT).toBe("60025");
+  }
+  const sql = (statement: string) => execFileSync("psql", [
+    "-X", "-h", process.env.DB_HOST ?? "localhost", "-p", process.env.DB_PORT ?? "5432",
+    "-U", "postgres", "-d", `threadline_phoenix_test${partition}`, "-v", "ON_ERROR_STOP=1", "-At", "-c", statement,
+  ], { env: { ...process.env, PGPASSWORD: "postgres" }, encoding: "utf8", stdio: "pipe" });
+  try {
+    for (const invalid of [{ unsupported_only: "private-value" }, { correlation_id: ["private-value"] }]) {
+      const payload = JSON.stringify(invalid).replaceAll("'", "''");
+      const updated = sql(`UPDATE threadline.threadline_saved_views SET filters = '${payload}'::jsonb WHERE id = '${id}'::uuid RETURNING id`).trim();
+      expect(updated).toContain(id!);
+      await page.reload();
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await page.getByRole("button", { name: "Filters", exact: true }).click();
+      drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+      await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
+      await expect(drawer.getByRole("alert").filter({ hasText: message })).toBeVisible();
+      expect(new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
+    }
+    sql(`UPDATE threadline.threadline_saved_views SET filters = '{}'::jsonb WHERE id = '${id}'::uuid`);
+    await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
+    await expect.poll(() => new URL(page.url()).search).toBe("?from=");
+    await page.reload();
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect.poll(() => new URL(page.url()).search).toBe("?from=");
+    await expectNoHorizontalOverflow(page);
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await drawer.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
+    const confirmation = page.getByRole("dialog", { name: "Delete saved search", exact: true });
+    const keep = confirmation.getByRole("button", { name: "Keep saved search", exact: true });
+    await expect(keep).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(confirmation.getByRole("button", { name: "Delete search", exact: true })).toBeFocused();
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.installed)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(confirmation).toBeHidden();
+    await expect(drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+  } finally {
+    sql(`DELETE FROM threadline.threadline_saved_views WHERE id = '${id}'::uuid`);
+  }
+});
+
+
+test("Phase251 Coverage availability boundaries", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.goto("/audit/coverage?schema%5Bpart%5D=private-251-input-canary");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("Choose a schema from the list.");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expect(page.locator("#tl-main")).not.toContainText("private-251-input-canary");
+  await page.locator("#coverage-schema").selectOption("public");
+  await page.getByRole("button", { name: "Apply schema", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("schema")).toBe("public");
+  await expect(page.getByTestId("coverage-status")).toContainText("public:");
+  await expect(page.getByTestId("coverage-table")).toBeVisible();
+  await page.goto("/audit/coverage?schema=does_not_exist_phase251");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("alert")).toContainText("was not found");
+  await expect(page.getByTestId("coverage-status")).toContainText("Coverage not inspected");
+  await expect(page.getByTestId("coverage-table")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+
+  const supportContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 } });
+  const anonymousContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await supportContext.newPage();
+    await installControlledClipboard(support);
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/coverage?schema=public");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.getByRole("heading", { name: "Coverage unavailable", exact: true })).toBeVisible();
+    await expect(support.locator("#tl-main")).toContainText("This is not a permissions issue.");
+    await expect(support.getByTestId("coverage-table")).toHaveCount(0);
+    await expect(support.locator("#coverage-schema")).toHaveCount(0);
+    const anonymous = await anonymousContext.newPage();
+    await anonymous.goto("/audit/coverage?schema=public");
+    await expect.poll(() => new URL(anonymous.url()).pathname).toBe("/users/log_in");
+  } finally {
+    await supportContext.close();
+    await anonymousContext.close();
+  }
+});
+
+
+test("Phase251 Redaction current-definition meaning", async ({ page }) => {
+  let hold = false;
+  let held: { server: WebSocketRoute; message: string | Buffer } | undefined;
+  await page.routeWebSocket(/\/live\/websocket/, ws => {
+    const server = ws.connectToServer();
+    ws.onMessage(message => {
+      if (hold && String(message).includes('"refresh-policy-inspection"')) held = { server, message };
+      else server.send(message);
+    });
+  });
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/policy/redaction?schema=public");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Inspection completed at", { exact: true })).toBeVisible();
+  await expect(main.getByText("Configured: host application policy. Deployed: current database trigger definition.", { exact: true })).toBeVisible();
+  const posts = main.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+  await posts.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(posts).toHaveAttribute("open", "");
+  await expect(posts.getByRole("rowheader", { name: "Left out", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Redacted", exact: true })).toBeVisible();
+  await expect(posts.getByRole("rowheader", { name: "Replacement", exact: true })).toBeVisible();
+  await expect(main).toContainText("does not establish whether historical audit rows or downstream exports were redacted");
+  const refresh = main.locator('button[phx-click="refresh-policy-inspection"]');
+  await expect(refresh).toHaveAttribute("phx-disable-with", "Inspecting policy…");
+  const beforeInspection = await main.locator("time").first().getAttribute("datetime");
+  hold = true;
+  await refresh.focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await expect(refresh).toBeDisabled();
+  await expect(refresh).toHaveText("Inspecting policy…");
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", beforeInspection!);
+  hold = false;
+  held!.server.send(held!.message);
+  await expect(refresh).toBeEnabled();
+  await expect.poll(() => main.locator("time").first().getAttribute("datetime")).not.toBe(beforeInspection);
+  await expect(main.locator("time").first()).toHaveAttribute("datetime", /Z$/);
+  await expectNoHorizontalOverflow(page);
+  await page.goto("/audit/policy/redaction?schema=threadline");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No configured policy to compare", exact: true })).toHaveCount(1);
+  await expect(main.getByRole("heading", { name: /^No configured policy to compare \(0\)$/ })).toHaveCount(3);
+  await expect(main).not.toContainText("No redaction drift detected.");
+  await expect(main).not.toContainText("No introspection failures.");
+  await page.goto("/audit/policy/redaction?schema[bad]=value");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByText("Choose a schema from the list or use public schema.", { exact: true })).toBeVisible();
+  await main.getByRole("link", { name: "Use public schema", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/policy\/redaction\?schema=public$/);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const rendered = await main.evaluate(node => node.outerHTML);
+  for (const canary of ["CREATE OR REPLACE FUNCTION", "raw-trigger-sql-canary-241", "private-unexpected-policy-canary-251", "sample-value-canary-241", "redacted-value-canary-241"]) expect(rendered).not.toContain(canary);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 Evidence recorded provenance", async ({ page, browser }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/audit/evidence");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const main = page.locator("#tl-main");
+  await expect(main.getByText("Snapshot recorded at", { exact: true }).first()).toBeVisible();
+  await expect(main).toContainText("caller-overridable recorded metadata, not verified or authenticated identity");
+  const card = main.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("Recorded provenance");
+  const selectedReference = await card.locator("code.tl-secondary-ref").getAttribute("data-tl-copy");
+  expect(selectedReference).not.toBeNull();
+  await card.getByRole("link", { name: "View proof history", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/mode=history/);
+  await expect(main.locator(".tl-record-card")).toHaveCount(3);
+  await expect(main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref")).toHaveAttribute("title", selectedReference!);
+  await expect(main).toContainText("Append-only history");
+  await expectNoHorizontalOverflow(page);
+  const ref = JSON.stringify({ run_id: "missing-" + "x".repeat(180) });
+  const selection = `/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(ref)}`;
+  await page.goto(selection);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(main.getByRole("heading", { name: "No Threadline evidence for this selection", exact: true })).toBeVisible();
+  const selected = main.locator(".tl-evidence__workflow-summary code.tl-secondary-ref");
+  await expect(selected).toHaveAttribute("title", ref);
+  await selected.locator("..").getByRole("button", { name: "Copy subject ref", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => page.evaluate(() => (window as any).__phase251CopyCounter.lastValue)).toBe(ref);
+  await expectNoHorizontalOverflow(page);
+  // The existing live/DB unavailable endpoint owns failed-read and Retry proof;
+  // this mounted host deliberately exposes no outage injection route.
+  const context = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const support = await context.newPage();
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/evidence");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.locator("#tl-main")).toContainText("Evidence is unavailable in this support lane");
+  } finally { await context.close(); }
+});
+
+
+type Phase252MutationState = {
+  database: string; requests: number; changes: number; transactions: number;
+  active: number; run_rows: { id: string; status: string; deleted_count: number | null; started_at: string | null; completed_at: string | null }[];
+  request_rows: { id: string; actor_ref: { type: string; id: string }; inserted_at: string }[];
+};
+
+function phase252MutationState(): Phase252MutationState {
+  const expectedOrigin = "http://127.0.0.1:60154";
+  if (process.env.DB_HOST !== "127.0.0.1" || process.env.DB_PORT !== "60025" || process.env.MIX_TEST_PARTITION !== "p252mutation" || process.env.THREADLINE_PHASE252_MUTATION_APP_URL !== expectedOrigin || new URL(process.env.E2E_BASE_URL ?? "http://invalid").origin !== expectedOrigin) {
+    throw new Error("Phase252 destructive proof requires the exact owned p252mutation database and app origin; no fallback");
+  }
+  const receipt = JSON.parse(readFileSync("/private/tmp/threadline-252-mutation-app.json", "utf8"));
+  if (receipt.status !== "ready" || receipt.url !== expectedOrigin || receipt.database !== "threadline_phoenix_testp252mutation" || receipt.port !== 60154) throw new Error("Mutation app custody is not ready");
+  const sql = `SELECT jsonb_build_object(
+    'database',current_database(),
+    'requests',(SELECT count(*) FROM threadline.audit_actions WHERE name='retention.pruned'),
+    'changes',(SELECT count(*) FROM threadline.audit_changes),
+    'transactions',(SELECT count(*) FROM threadline.audit_transactions),
+    'active',(SELECT count(*) FROM threadline.threadline_retention_runs WHERE status IN ('queued','running')),
+    'run_rows',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',id,'status',status,'deleted_count',deleted_count,'started_at',started_at,'completed_at',completed_at) ORDER BY id),'[]'::jsonb) FROM threadline.threadline_retention_runs),
+    'request_rows',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',id,'actor_ref',actor_ref,'inserted_at',inserted_at) ORDER BY id),'[]'::jsonb) FROM threadline.audit_actions WHERE name='retention.pruned'))::text;`;
+  const value = JSON.parse(execFileSync(process.env.THREADLINE_PHASE252_PSQL ?? "psql", ["-X", "-h", "127.0.0.1", "-p", "60025", "-d", "threadline_phoenix_testp252mutation", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql], { encoding: "utf8", env: { ...process.env, PGUSER: "postgres", PGPASSWORD: "postgres" } }).trim());
+  if (value.database !== "threadline_phoenix_testp252mutation") throw new Error("Wrong observed mutation database");
+  return value;
+}
+
+test("Phase252 Retention preview requires fresh deliberate confirmation after reconnect", async ({ page }) => {
+  test.skip(process.env.THREADLINE_PHASE252_MUTATION_APP_URL !== "http://127.0.0.1:60154", "Explicit owned mutation-fixture lane only");
+  const proofDir = resolve(process.env.THREADLINE_PHASE252_PROOF_DIR ?? "/invalid");
+  if (!proofDir.startsWith("/private/tmp/private252mutationevidence/") || !existsSync(proofDir) || !statSync(proofDir).isDirectory()) throw new Error("Parent-owned fresh mutation proof directory required");
+  const proofFile = join(proofDir, "retention-no-replay.json");
+  if (existsSync(proofFile)) throw new Error("Preserve the previous mutation proof invocation");
+  const facts: { at: string; stage: string; state: Phase252MutationState }[] = [];
+  const mark = (stage: string) => { const state = phase252MutationState(); facts.push({ at: new Date().toISOString(), stage, state }); writeFileSync(proofFile, `${JSON.stringify({ kind: "owned-mutation-fixture", facts }, null, 2)}\n`); return state; };
+  const before = mark("fixture-before-login");
+  expect(before.active).toBe(0); expect(before.changes).toBeGreaterThan(0); expect(before.transactions).toBeGreaterThan(0); expect(before.run_rows.length).toBeGreaterThan(0);
+  let blockReconnect = false;
+  let connections = 0;
+  await page.routeWebSocket(/\/live\/websocket/, (socket) => { connections += 1; if (blockReconnect) socket.close(); else socket.connectToServer(); });
+  await login(page); await page.goto("/audit/policy/retention");
+  const liveRoot = page.locator("[data-phx-main]");
+  await expect(liveRoot).toHaveClass(/phx-connected/);
+  const revision = page.locator("[data-tl-mutation-revision]");
+  await expect(revision).toHaveAttribute("data-tl-mutation-revision", /.+/);
+  const originalRevision = await revision.getAttribute("data-tl-mutation-revision");
+  const prepare = async () => { await page.getByRole("button", { name: "Preview retention", exact: true }).click(); await expect(page.getByTestId("retention-preview")).toBeVisible(); await page.getByRole("button", { name: "Review and confirm", exact: true }).click(); await expect(page.getByRole("dialog")).toBeVisible(); };
+  await prepare();
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).fill("default");
+  blockReconnect = true;
+  await page.evaluate(() => (window as any).liveSocket.disconnect());
+  await expect(liveRoot).toHaveClass(/phx-(loading|error|client-error)/);
+  await expect(page.locator(".tl-reconnect-banner")).toBeVisible();
+  const submit = page.getByRole("button", { name: "Prune now", exact: true });
+  await expect(submit).toBeDisabled();
+  const box = await submit.boundingBox(); expect(box).toBeTruthy();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).focus();
+  await page.keyboard.press("Enter");
+  expect(mark("offline-pointer-enter")).toEqual(before);
+  blockReconnect = false;
+  const previousConnections = connections;
+  await page.evaluate(() => (window as any).liveSocket.connect());
+  await expect(liveRoot).toHaveClass(/phx-connected/);
+  await expect.poll(() => connections).toBeGreaterThan(previousConnections);
+  await expect.poll(() => revision.getAttribute("data-tl-mutation-revision")).not.toBe(originalRevision);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByTestId("retention-preview")).toHaveCount(0);
+  // A bounded observation window checks delayed replay as well as the first reconnect frame.
+  const until = Date.now() + 1_000;
+  while (Date.now() < until) { expect(phase252MutationState()).toEqual(before); await page.waitForTimeout(100); }
+  expect(mark("reconnected-without-replay")).toEqual(before);
+  await prepare();
+  expect(phase252MutationState()).toEqual(before);
+  await page.getByRole("textbox", { name: "Policy name to confirm" }).fill("default");
+  expect(phase252MutationState()).toEqual(before);
+  await page.getByRole("button", { name: "Prune now", exact: true }).click();
+  await expect.poll(() => phase252MutationState().requests).toBe(before.requests + 1);
+  await expect.poll(() => phase252MutationState().run_rows.length).toBe(before.run_rows.length + 1);
+  const originalIds = new Set(before.run_rows.map((run) => run.id));
+  await expect.poll(() => phase252MutationState().run_rows.find((run) => !originalIds.has(run.id))?.status).toBe("completed");
+  const after = mark("fresh-deliberate-completed");
+  const run = after.run_rows.find((candidate) => !originalIds.has(candidate.id))!;
+  expect(run.deleted_count).toBeGreaterThan(0);
+  expect((before.changes - after.changes) + (before.transactions - after.transactions)).toBe(run.deleted_count);
+  expect(after.changes).toBeLessThan(before.changes);
+  expect(after.requests).toBe(before.requests + 1);
+  const requestIds = new Set(before.request_rows.map((request) => request.id));
+  const request = after.request_rows.find((candidate) => !requestIds.has(candidate.id))!;
+  expect(request.actor_ref.type).toBe("user");
+  expect(request.actor_ref.id).toBeTruthy();
+  const row = page.locator(`#runs-${run.id}`);
+  await expect(row.getByText("Completed", { exact: true })).toBeVisible();
+  await expect(row.locator("td[data-label='Deleted Rows']")).toHaveText(String(run.deleted_count));
+  expect(run.started_at).toBeTruthy(); expect(run.completed_at).toBeTruthy();
 });

@@ -2,13 +2,17 @@
 
 ## What This Is
 
-Threadline is an open-source audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, first-class application action semantics (actor, intent, request/job context), and operator-grade exploration tools. It is built for teams who need audit trails that are hard to bypass, SQL-queryable without blobs, and genuinely useful for support and ops — not just compliance.
+Threadline is an open-source audit trail library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines trigger-backed row-change capture, first-class application action semantics (actor, intent, request/job context), and operator-grade exploration tools. It is built for teams who need audit trails that are hard to bypass, SQL-queryable without blobs, and genuinely useful for support and ops — not just compliance.
 
 ## Core Value
 
 Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 
 ## Current State
+
+The v1.48 Admin planning milestone is complete: six phases248–253,36plan contributions and34/34requirements. Independent goal/integration checks and existing required candidate CI pass. [PR105](https://github.com/szTheory/threadline/pull/105) is open/unmerged; source version remains1.1.0 and no package/tag/publication is performed. The next decision is merge; no new milestone is selected. [Closeout](milestones/v1.48-CLOSEOUT.md) and [retained lessons](research/2026-11-12-autonomous-run-retrospective.md) preserve current outcomes and limits.
+
+**Previous release history:**
 
 Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, before v1.47 opened). The **v1.47 — Release on autopilot** quality milestone closed on 2026-10-29: five phases (244–247 plus gap phase 247.1), 66 plans, 68 tasks, and 13/14 requirements. REL-01 is deferred-with-trigger and was accepted at close. The milestone audit is `tech_debt`. No v1.47 merge changed the shipped package (all `ci:`/`chore:`/`docs:`, except the CI-only `fix(ci):` #100 that opened the now-closed #101), so v1.47 is a planning milestone tag, not a Hex release; the published package remains 1.1.0.
 
@@ -17,37 +21,13 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 - v1.47: CI-02 browser split median 461 s over five main runs (limit 540 s); CI-03 slowest/fastest partition ratio at or below 1.15 on every lane; release-please ignores unshipped-only commits.
 - v1.46: 6/6 phases, 27/27 plans, 49 tasks, and 26/26 requirements (planning milestone; operator UI refinement).
 
-## Prior shipped milestone: v1.46 Operator UI Refinement (2026-10-11)
+## Latest completed planning milestone: v1.48 Threadline Admin
 
-**Delivered:** Readable investigation and operations workflows across the existing operator routes, with candidate-bound evidence, exact-query recovery, truthful operation states, responsive and zoom checks, and a guarded review preview.
+Engineers and support staff can complete the existing investigation and permitted Operations jobs in the approved Phoenix LiveView identity while host authorization/scope and audit semantics remain authoritative. The delivery includes fail-closed mount requirements, ordinary fictional scenarios separate from stress data, connected Timeline/detail/history/pivots, authorized Export/Retention outcomes, dev/test PhoenixStorybook and current docs/package/font assets.
 
-**Closeout:** Milestone audit `tech_debt`, no unmet requirements or broken end-to-end flows. Carried findings include UIV-02/03 evidence limits; the baseline-existing History drawer/header overlap; dense typography and Redaction empty-category copy; and disclosed browser/device/theme scope. The audit and full evidence are archived under `.planning/milestones/v1.46-*`. The open-artifact audit is clear; 66 earlier acknowledged items remain disclosed in STATE.md.
+All34 requirements and six independent phase goals are verified. Current required CI includes both voting browser projects, all31 required journey identities and strict actual200% tab zoom. Original failed attempts, restart loss, new controlled-pair custody and inherited design/sampling limits remain explicit; no universal accessibility or human-comprehension claim is made. See [requirements](milestones/v1.48-REQUIREMENTS.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md) and [roadmap](milestones/v1.48-ROADMAP.md).
 
-<details>
-<summary>Approved scope, evidence, and milestone context</summary>
-
-**Goal:** Engineers and support operators can investigate audit activity, understand evidence limits, and complete permitted operations through a readable, consistent, responsive UI.
-
-**Approved:** 2026-10-08. Continue phase numbering at 238; v1.45 and Phase 237 remain complete. The planning milestone version is separate from the eventual package release version.
-
-**Validated in Phase 238 (2026-10-09):** Reproducible seeded preview, eleven-route source-bound evidence, 355-item acceptance inventory and bounded agent review. Both baseline requirements and all 24 refinement requirements are complete.
-
-**Validated in Phase 243 (2026-10-11):** All six plans and 16/16 verification must-haves passed on candidate `2f7560e97778d914a7639cbae308bb66fb7c528f`. The exact-SHA required CI run, 31-journey browser receipt, candidate-bound preview, visual review, scoped recommendation and limitations are indexed in `243-EVIDENCE-INDEX.md`. DR-243-01 remains a disclosed medium visual-clarity risk.
-
-**Target features:**
-- A reproducible current-main preview and source-bound baseline covering all eleven operator routes, shared controls and important states.
-- Readable hierarchy, consistent typography/spacing/controls/navigation, and coherent domain language using the existing Threadline identity and primitives.
-- Complete investigation and operations journeys: timelines, transactions/diffs, row and actor history, coverage, evidence, exports, redaction and retention.
-- Responsive layouts, actual browser zoom, light/dark/System appearance, keyboard/touch access, truthful pending/error/disconnected states and purposeful reduced-motion-aware feedback.
-- Automated verification plus bounded agent visual review; prove relevant checks run in required CI and deliver a reproducible review preview.
-
-**Confirmed defaults:** Equal engineer/operator priority in the UI; integrating Elixir developers remain the package's primary adopters. Code-first Impeccable workflow. Reuse the completed Threadline/Scrypath/Accrue/Mailglass research with targeted followups only. Paid visual judging remains parked.
-
-**Boundaries:** Preserve host authorization, tenant scope, redaction, capture/semantics/exploration separation, public 1.x APIs, routes and Phoenix optionality. No rebrand, framework migration, public component package or incidental backend expansion. Source candidates require fresh browser proof before classification. Start implementation from current main using configured isolation; preserve this checkout's unrelated edits and carry over planning/product context.
-
-**Inputs:** `PRODUCT.md`, `.impeccable/config.json`, `.planning/UI-MILESTONE-PREFLIGHT.md`, the domain reference and Brand Book. All 26 atomic requirements are approved and complete. Phases 238–243 are complete; Phase 243 passed 16/16 must-haves on the exact candidate and records a scoped readiness recommendation with disclosed limitations. See `.planning/ROADMAP.md` and the Phase 243 evidence index. No successor milestone is selected; re-derive the baseline before selecting work.
-
-</details>
+Scope was approved2026-11-10. The explicit current grant covers the review branch/ordinary PR/existing CI and bounded fixes; merge/tag/version/publish/risk acceptance remain separate. REL-01 retains its future natural-release trigger. Brand sources remain authoritative; no React/Fablebook adapter, public Storybook distribution, new login API or runtime dependency was introduced.
 
 ## Latest Milestone Shipped: v1.47 Release on autopilot (2026-10-29)
 
@@ -57,348 +37,9 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 **Closeout:** `override_closeout`, audit `tech_debt`. REL-01's next-release clause is deferred-with-trigger: the first natural release PR must reach green CI with no CHANGELOG-dating PR (archived `247.1-REL01-EVIDENCE.md`). Carried debt includes W-1 (directory-only `exclude-paths`), W-2 (`deps:` lock-only bumps), W-4 (no alert on a red Release@main), F4 (Dependabot #92 red by design), F6 (stale deps-health #61), F7 (no CI-02 regression guard; main wall drifted to 486 s), and T-247-46/47 (accepted-risk entries needed). Full list: `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
 
-## Prior shipped milestone: v1.45 1.0 API Contract
+## Earlier milestone history
 
-**Goal:** Lock down a public API that adopters can depend on for all of 1.x (typespecs, docs, one obvious entry point per job, consistent return shapes, a deliberate support floor), then declare **1.0.0**.
-
-**Opened:** 2026-10-02 on local branch `milestone/v1.44` (phases continue from 231). The canonical rung scope is in `.planning/MILESTONE-GUIDE.txt` §7. **Closed:** 2026-10-07 after 5 calendar days.
-
-**Baseline re-derived 2026-10-02:** about 129 of 169 public functions in non-hidden modules have no `@spec`, including all 17 on the `Threadline` facade. The history read paths overlap: `history/3`, `row_history/4` and `row_history_page/4`, plus `actor_history/2` and `actor_window/3`, are each exposed through `Threadline`, `Threadline.Query` and `Threadline.Investigation`. PG 14 reaches end of life on 2026-11-12. Main CI is green at 0.12.0.
-
-**Target features:**
-- Complete `@spec`/`@doc` on the public surface. Hide internal helpers. Add a gate so coverage can't regress.
-- Consolidate the overlapping entry points with deprecations, including the deferred bounded default limit for `history/3`.
-- Consistent return shapes across the public API.
-- A supported-table-shapes guide and a redaction threat model.
-- A deliberate decision on the `Capture.AuditTransaction` ↔ `Semantics.AuditAction` runtime edge.
-- The Elixir 1.15 / PostgreSQL 15 support-floor decision is closed; the minimum CI lane is the supported floor, while current/latest remain tested-on evidence.
-- Carried from v1.44: the partition-weight refresh is complete in Phase 236; async for pure-read `DataCase` tests remains deferred.
-- Declare 1.0.0 through release-please and sync its distribution docs — shipped; PR #79 and PR #80 are merged, and Hex serves 1.0.0 with docs.
-- Closeout: 7 phases, 47 plans, 116 planned tasks, 25/25 requirements, and 153/153 verification must-haves. All 16 PR #80 checks passed. See the archived v1.45 audit for integration evidence and disclosed debt.
-- The early 2026-10-08 post-release baseline recommended narrow sustainment. Later maintainer UI feedback and explicit scope approval selected v1.46; retain the earlier assessment as historical evidence.
-
-## Prior shipped milestone: v1.44 Behavioral Depth: Properties, Twins, Telemetry (2026-10-02)
-
-**Delivered:** behavioral proof, observability and a faster, more honest suite. Released as 0.12.0 (#73, #74, #75).
-
-- **Capture and bench (224):**
-  - A `gen.triggers` rerun chain rolls back to a clean `pg_proc`, proven by a DB-backed property.
-  - `bench/` compiles bare.
-- **Partitioned CI (225, 230):**
-  - Weighted `mix test --partitions` runs, one database per partition.
-  - The test step sum went from 846 s to 507 s (-40.1%), net of every test added.
-  - 34 prose-to-literal assertions cut under a KEEP/CUT rubric.
-- **Properties (226, 227):**
-  - Cursor paging, ChangeDiff, redaction policy and export round-trip (pure). No redaction leak, exact `as_of`, and retention cutoff/dry-run agreement (DB-backed, through `Threadline.Test.DbProperty`).
-  - Each has a mutation control. The properties found a bare-CR CSV defect, a retention dry-run under-count and silent redaction misconfiguration, and all three are fixed.
-- **Telemetry (228):**
-  - The 14-event `Threadline.Telemetry` registry: export `:completed`/`:failed`, and a retention purge span plus `batch_purged`.
-  - Actor identity and free text are stripped from emitted metadata (breaking).
-  - `guides/telemetry.md` with a doc-parity test.
-- **Adopter API and health (229):**
-  - `history/3` `:limit`.
-  - `Threadline.Health.legacy_key_findings/1`.
-  - `health.coverage --strict` / `--all-schemas`, and unknown switches raise.
-
-**Carried debt:** `.planning/milestones/v1.44-MILESTONE-AUDIT.md` `tech_debt`: stale partition weights, info-level review items, and Nyquist VALIDATION.md still draft for all 7 phases.
-
-**Decided not to build (v1.44 research):** `mix threadline.gen.backfill` (the tested SQL in the upgrade guide is right-sized; HLTH-03 detects instead), an `:invalid_config` finding (the fail-fast raise is stricter), `[:threadline, :query, ...]` telemetry (duplicates `[:repo, :query]`), and telemetry from Mix task bodies.
-
-## Prior shipped milestone: v1.43 Supply Chain, CI Economy and Repo Hygiene (2026-09-30)
-
-**Delivered:** a supply-chain gate, platform currency, a repo-hygiene guard and measured CI economy. Released as 0.11.1 (#55, #56, #59) and 0.11.2 (#66, #67, #68, #69).
-
-- **Supply chain (215):**
-  - Advisories cleared in all three lockfiles.
-  - A required Hex audit gate: Hex >= 2.5.1, `--check-locked`, and global ignores refused.
-  - Suppressions need a reason and a review-by date.
-  - A weekly `deps-health` issue lane.
-- **Platform currency (216):**
-  - Committed `.tool-versions` with an exact OTP pin, installed strictly everywhere.
-  - Node 24 actions and a supported min-lane runner.
-- **Repo hygiene (217, 223):**
-  - A required `bin/verify-repo-hygiene` guard (8 families, `--self-test`).
-  - A forward scrub of 319 files, with no history rewrite.
-  - `@tag :tmp_dir` plus `mix verify.temp_leaks`.
-- **CI economy (218, 219, 222):**
-  - A weekly flake lane.
-  - Duplicate jobs cut, and Browser-full limited to its own projects.
-  - Deps-only `_build` caches: a warm run costs 49 billed runner-min instead of 55 at BASE-01, and the critical path is 547 s instead of 623 s.
-  - SEED-006 closed on data.
-- **Newest toolchain and legibility (220, 221):**
-  - A voting `latest` lane on Elixir 1.20.4 / OTP 29.1.1 / PG 18.6.
-  - Subject-first check names and time-to-red order.
-  - `CI required` pinned to GitHub Actions, and least-privilege tokens.
-- **Audit debt (223):**
-  - Credential-free release checkouts.
-  - The mint fix released through a commit override.
-  - Round-2 hygiene findings fixed.
-
-**Carried debt:** `.planning/milestones/v1.43-MILESTONE-AUDIT.md` `tech_debt`, and the v1.43 rows in STATE.md Deferred Items (MILESTONES.md lists them).
-
-**Deferred to v1.44 (from v1.42):** all three were resolved in v1.44. The `gen.triggers` `down` orphan is fixed (224), health `--strict` shipped (229), and `mix threadline.gen.backfill` was decided against on research.
-
-## Prior shipped milestone: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
-
-**Delivered:** correct, collision-free capture for every table shape, released as 0.11.0 (#52/#53/#54).
-
-- **Identifiers and collision-free emission (208, 209):**
-  - Deterministic handling of names longer than 63 bytes.
-  - One per-table capture function per table, which is the security fix.
-  - No CASCADE drops.
-- **PK-agnostic capture (210):**
-  - The key is resolved from `pg_index` at migrate time, with a `primary_key:` override.
-  - 0.10.x triggers keep working, and overhead stays within 1.07x of 0.10.2.
-- **Read-side agreement (211):**
-  - Exact key matching for `history`/`as_of`, and `RowKey` for composite and override keys.
-  - `audit_changes_row_history_idx` ships in install and in `mix threadline.gen.row_history_index`.
-- **Detection and adopter twins (212):**
-  - Five trigger health findings, gated by `verify_coverage` and shown in `health.coverage`.
-  - Safe under PgBouncer and for a zero-grant role.
-  - Every tricky shape is covered in the example app and the hex evaluator.
-- **Upgrade guide and 0.11.0 (213):**
-  - Backfill and rollback-cleanup SQL extracted from the guide and executed on real PostgreSQL.
-  - The release was cut through release-please.
-
-**Next milestone goals:** v1.43 Supply Chain, CI Economy and Repo Hygiene, the second rung of the ladder to 1.0.0 in `.planning/MILESTONE-GUIDE.txt` §7. Carried debt: `.planning/milestones/v1.42-MILESTONE-AUDIT.md`.
-
-## Prior shipped milestone: v1.41 Green, Clean, and Honest (2026-09-24)
-
-
-**Goal (achieved with one accepted-pending gap):** Get the repository into a genuinely clean, green, publishable state, then ratchet software quality wherever the improvement can be made mechanical and gated.
-
-**Delivered:**
-- **Green bringup (198)**: red-test baseline retired on its merits (83 → 0 on CI), browser lane cut by a third with `timeout-minutes` everywhere, hazard workflows deleted, Hex publish behind a `production-hex` required-reviewer Environment, `main` protected by a git-tracked ruleset requiring the one check CI emits.
-- **Decouple (199)**: suite and gates self-contained in the source tree; `mix ci.all` passes with `.planning/` renamed away.
-- **Public surface + rendered output (200, 201)**: HexDocs, tarball, guide graph, `.github/` and rendered HTML free of planning vocabulary.
-- **Releases (202, 205)**: 0.10.0 and 0.10.1 on hex.pm with release-please-managed pins and a PR bump rehearsal; shipped work merged back into the milestone branch.
-- **Real gates + structure (203, 204)**: full-default Credo, Dialyzer, xref and warnings-as-errors in `ci.all`; `style.ex` split behind a byte-hash lock; structural ceiling 42 → 0.
-- **Installer + trigger-migration correctness (206, 207)**: distinct migration versions, correct `gen.triggers` rerun migrations, and the real `storage_schema` default documented and doc-contract-guarded.
-
-**Known gap:** GREEN-07 (`origin/main` contains every local commit and CI concludes `success`) is accepted-pending per `198-39-DECISION.md`.
-
-**Archives:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`, `.planning/milestones/v1.41-MILESTONE-AUDIT.md`, `.planning/milestones/v1.41-phases/`
-
-**Next milestone goals:** v1.42 Capture Correctness for Real Table Shapes — first rung of the ladder to 1.0.0 in `.planning/MILESTONE-GUIDE.txt` §7.
-
-## Prior shipped milestone: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
-
-**Goal (achieved with one ratified gap):** Make evaluating and improving the `/audit` operator UI fast and *monotonic* — an adversarial multi-lens critic panel over deterministic capture, feeding the design-system ledger's ratchet so on-brand improvements land and regressions are blocked, with far less human review time.
-
-**Delivered:**
-- **Scorecard-cube ledger (Phase 194)** — ledger v2 records `page × persona × lens` with per-lens monotonicity, evidence-referenced bumps, and a freshness-tested `DESIGN-SYSTEM.md` per-lens projection; all guards deterministic inside `mix ci.all`.
-- **Mechanical floor + tiered capture (Phase 194)** — deterministic checkers (token-grid, spacing, type-size, radius/shadow/motion, WCAG dark+light contrast, control count, card nesting, scroll cost, accent hues) behind `mix verify.mechanical`; Tier A/B/C capture matrix emitting full per-cell evidence bundles from `/audit/__stress`.
-- **Validated critic panel (Phase 195)** — local-only `e2e/critic/` Claude-vision runner (per-persona P1–P5 + graphic-design + brand-veto), versioned anchored rubrics, refute-test battery, and a synthetic-twin golden oracle gated on Spearman-ρ ranking (rhythm + brand validated) before any ratchet influence; Anthropic SDK stayed an `e2e` devDependency.
-- **Forward-only gate + first proven iteration (Phase 196)** — full loop (capture → critique → propose → re-evaluate → guard) behind a full-panel net-positive gate with Goodhart/guard-the-guards protections; first human-ratified improvement (retention+density ACCEPT Δ+7) with the first `ratchet.signoffs` entry; maintainer gates automated (zero-UAT).
-- **Coverage growth, closeout & debt register (Phase 197)** — one further ratified iteration, loop-measurement hardening (critic-verdict cache, persona-fanout collapse), adversarial closeout confirming the deterministic floor can't regress and all invariants hold, and a residual design-debt register with owner + reopen-trigger per row. **PROOF-02 shortfall ratified:** the paid loop was parked on spend/value before the full 2–3-page sweep completed (2/3 verified; see `197-VERIFICATION.md`).
-
-**Archives:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`, `.planning/milestones/v1.40-phases/`
-
-**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone` (quality-mapping milestone is the standing candidate); paid critic scoring stays parked until explicitly un-parked.
-
-## Prior shipped milestone: v1.39 Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03)
-
-**Goal (achieved):** Make Threadline's adoption trust boundary current, measured, and durable by ranking software-quality risks, hardening configurable storage-schema behavior, repairing release/docs drift, and improving CI/CD efficiency without hiding risk.
-
-**Delivered features:**
-- **Quality baseline audit (Phase 189)** — repo-evidence ranking of the weakest software-quality dimensions with confidence, consequence, and top fixes; separated must-fix from good-enough/N-A; triaged open residuals and seeds; narrowed the milestone instead of broadening scope.
-- **Custom storage-schema confidence (Phase 190)** — end-to-end proof for `storage_schema: "audit"` across capture/query/evidence/governance/retention/export/operator paths; prefix-free Ecto schemas source-locked against the fixed default; quoted generated migration identifiers; real dual-schema PostgreSQL integration test; non-public host-schema support for `support.tickets` and redaction inspection.
-- **Release/version/docs trust repair (Phase 191)** — README, guides, evaluator docs, upgrade path, adoption backlog, and package metadata reconciled to `0.9.0` behind a central drift-guard doc-contract test; 0.6.x→0.9.x upgrade path; verb-lane README/ExDoc routing.
-- **CI/CD measurement and low-risk efficiency (Phase 192)** — recorded baseline, then deps/Playwright/npm caches, min/current compatibility matrix, PR + publish concurrency, pinned PgBouncer, aligned job names/CONTRIBUTING lists/`mix ci.*`, behind contract + dep-floor guards.
-- **Closeout evidence and next-step decision (Phase 193)** — 15/15 traceability + verification/CI evidence index, ranked residual-risk register (owner + reopen-trigger per item), and a clear v1.40/hold recommendation.
-
-**Archives:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`, `.planning/milestones/v1.39-MILESTONE-AUDIT.md`
-
-**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone`; otherwise hold per the no-signal default.
-
-## Prior shipped milestone: v1.38 Operator UI Page-by-Page IA & Design-System Polish (2026-06-30)
-
-**Goal (achieved):** Make the operator UI feel deliberate, navigable, and task-led page by page while preserving v1.37's internal design-system substrate and the host-app-friendly library boundary.
-
-**Target features:**
-- **Baseline audit and guard repair** — current screenshots, route/selector inventory, stale planning cleanup, and any broken guardrail repair before page edits.
-- **PhoenixStorybook example/dev lane** — component/state stories for the existing private operator components without making PhoenixStorybook a root `threadline` dependency or public component API.
-- **Shell, home, and Timeline cleanup** — clear nav, page titles, active states, orientation affordances, primary tasks, filters, result states, and responsive behavior.
-- **Coverage audit-readiness flow** — schema scope, readiness hierarchy, duplicate remediation, and contextual transitions into Timeline without page-level distraction.
-- **Detail, governance, and export surfaces** — transaction, actor, row history, redaction, retention, evidence, and export pages reviewed as coherent operator workflows.
-- **A11y, motion, docs, and closeout** — keyboard/focus/reduced-motion checks, visual QA matrix, docs alignment, and an adversarial review that prevents regressions.
-
-**Archives:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`, `.planning/milestones/v1.38-MILESTONE-AUDIT.md`, `.planning/milestones/v1.38-phases/`
-
-**Next milestone goals:** Define fresh requirements with `/gsd-new-milestone`; otherwise hold per the no-signal default.
-
-## Prior shipped milestone: v1.37 Operator Surface Design-System Stress Test & Component System (2026-06-20)
-
-**Goal (achieved):** Turn the frozen-token / class-soup `/audit` operator surface into a systematically audited, internally-componentized design system, verified fractally from foundations through primitives, groups, pages, flows, copy, accessibility, motion, and final adversarial closeout.
-
-**Shipped:**
-- **Stress-lab harness and ledger** - `/audit/__stress`, static ugly-data fixtures, scored ledger, `DESIGN-SYSTEM.md` projection, and screenshot ratchet guards.
-- **Internal design system** - private primitives, overlays, form controls, data-display helpers, layout/meta-components, and group stories with contract tests and no public component API.
-- **Operator shell and data surfaces** - consistent navigation, page headers, breadcrumbs, pager, theme picker, copyable full-value refs, data states, coverage flattening, destructive action confirmation, and page stress coverage.
-- **Copy, accessibility, and motion closeout** - brand/domain copy sweep, WCAG/APG source and browser guards, reduced-motion proof, automated accessibility-tree evidence, screenshot regression, residual CI classification, and adversarial review.
-
-**Archives:** `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-REQUIREMENTS.md`, `.planning/milestones/v1.37-MILESTONE-AUDIT.md`, `.planning/milestones/v1.37-phases/`
-
-**Next milestone goals:** Superseded by shipped v1.38 page-by-page operator UI polish.
-
-## Prior shipped milestone: v1.36 Operator Surface Light Mode (2026-06-14)
-
-**Goal (achieved):** Implement decision [165-01] (supersedes dark-only [136-01]): `theme: :dark | :light | :system` host config on `threadline_operator_surface/2`, default `:dark`, rendered server-side as a `data-tl-theme` attribute driving a pure-CSS light token lane — zero JS, zero FOUC, CSP-proof, designed-not-recolored.
-
-**Shipped:**
-- **Theme mechanism + host API** — compile-validated `theme:` mount option; `data-tl-theme` on the LiveView roots; scoped `color-scheme`; `:system` via scoped `prefers-color-scheme`; `style.ex` + `style_contract_test.exs` amended source-first (seven light refutes → theme-aware assertions; runtime `theme-toggle` ban retained).
-- **45-token light lane** — all 45 color-bearing `--tl-*` tokens (19 seeded from the brand light lane, 26 designed; status tints the keystone decision); the stray shell-nav-inset rgba tokenized.
-- **Component retune** — ~9 dark-effect families (glass chrome, drawer scrim/shadow, focus glow, home-card effects, shell-nav inset) + explicit light review of coverage/timeline/diff data-viz surfaces (the Grafana lesson), user-approved live in both modes.
-- **Accessibility** — light/system AA contrast mirror with an alpha-aware compositing parser; per-mode focus-ring 3:1 and interaction-state contracts; dark phase-143 contract byte-stable.
-- **Verification + docs + brand** — `__light__` screenshot lane (local-only), example app demonstrating `theme: :system`, `theme:` documented under doc-contract; `brandbook/tokens.{json,css}` at full 45-token parity (bidirectional parity test) + dual-mode pressure-test + UI-theming-posture note.
-
-**Archives:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`, `.planning/milestones/v1.36-MILESTONE-AUDIT.md`
-
-**Next milestone goals:** Define fresh requirements via `/gsd:new-milestone`; otherwise hold per the no-signal default. Candidate carry-forwards: THEME-TOGGLE-01 (runtime theme picker, on adopter demand), the transaction-page desktop layout bug, and operator-surface polish todos.
-
-## Prior shipped milestone: v1.35 Unified Logo & Brand Book v2 (2026-06-12)
-
-**Goal (achieved):** Replace the icon-beside-plain-text logo with a unified, tournament-selected identity and elevate the brandbook into a standalone professional HTML brand book — all text/SVG, self-contained.
-
-**Shipped:**
-- **C13 "topstitch-geist" identity** — user-selected through a two-round logo tournament (verbatim feedback, mechanical HC gates); a single stitch arc rising from the word's cut d/l ascenders, pure paths, portable in GitHub's font-less SVG sandbox.
-- **Brand book v2** — full 8-asset family (designed light primary, chipless self-flipping favicon, tagline isolated to the `-subtitle` variant), standalone `brandbook/index.html` with misuse gallery, imagery section, and a Dark/Light/System preview toggle; pressure-test 128/150 vs the 79/150 baseline.
-- **Product rollout** — operator-surface logo component (on the `var(--tl-*)` contract, `style.ex` untouched), example-app favicon, README `<picture>` dark/light header; 886 tests, zero new failures.
-- **Light-mode strategy decided** — decision [165-01] supersedes [136-01]: dark stays default/brand-primary; `theme: :dark | :light | :system` host config approved; no runtime toggle in v1; v1.36 "Operator Surface Light Mode" seeded (SEED-004) with a 5-phase breakdown.
-
-**Archives:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`, `.planning/milestones/v1.35-MILESTONE-AUDIT.md`, `.planning/milestones/v1.35-phases/`
-
-**Next milestone goals:** v1.36 Operator Surface Light Mode when chosen (seed: SEED-004); otherwise hold per the no-signal default.
-
-## Prior shipped milestone: v1.34 Local Docker Admin UI DX (2026-06-07)
-
-**Goal (achieved):** Make the Docker-backed Phoenix operator demo easy to start, refresh, inspect, stop, and run alongside other local Docker projects without port or cache pain.
-
-**Shipped:**
-- **Canonical demo helper** — `bin/demo-up` is the helper-first entrypoint for the seeded `/audit` demo, with project name, credentials, URLs, lifecycle commands, readiness checks, and failure log guidance.
-- **Local isolation** — Compose/Dockerfile behavior keeps ports localhost-bound, resources project-scoped, dependencies cache-friendly, PgBouncer opt-in, and rebuilds explicit through `--build`.
-- **Lifecycle commands** — `--status`, `--logs`, `--down`, and `--fresh` operate against the same profile-aware Compose project.
-- **Reader-first docs** — contributor/example docs explain shortest path, refresh/stop/reset, project-name/port behavior, cleanup, stale-code troubleshooting, and why `.dev` hostnames are rejected.
-- **Opt-in friendly host** — shared-proxy mode supports `threadline.localhost` through the external `proxy` network while keeping `127.0.0.1:<port>` as the fallback.
-
-**Archives:** `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-
-**Next milestone goals:** Hold until `$gsd-new-milestone` defines fresh requirements.
-
-## Prior shipped milestone: v1.33 Brand Review + Direction Selection (2026-06-06)
-
-**Goal (achieved):** Make the v1.32 `brandbook/` artifacts visible, reviewable, and decision-complete before any public README/GitHub/HexDocs/marketing rollout starts.
-
-**Shipped:**
-- **Review packet** — Phase 150 inventoried the HTML brandbook, logo assets, visual specimens, tokens, and copy guidance for human review.
-- **Light-surface logo role** — `brandbook/logo-primary-light.svg` and usage guidance make README/GitHub/light documentation logo usage explicit.
-- **Direction decision** — Phase 151 recorded targeted revisions as the selected path; alternate concepts, public rollout, and runtime UI changes remained out of scope.
-- **Targeted cleanup** — Phase 152 rewrote brandbook-facing copy so the artifacts present current Threadline brand truth rather than process history.
-- **Verification** — Phase 153 passed JSON/SVG/HTML parsing, direct-open browser, desktop/mobile screenshot, historical scan, binary-exclusion, inventory, and file-size checks.
-
-**Archives:** `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`, `.planning/milestones/v1.33-MILESTONE-AUDIT.md`, `.planning/milestones/v1.33-phases/`
-
-**Next milestone goals:** Superseded by v1.34 Local Docker Admin UI DX. Public README rollout, HexDocs brand treatment, landing page, social-card PNG export, and legal/trademark review remain deferred.
-
-## Prior shipped milestone: v1.32 Brand System Foundation (2026-06-05)
-
-**Goal (achieved):** Produce a high-fidelity, source-control-ready Threadline brand system that is strategically pressure-tested, graphically credible, accessible, implementation-ready, and useful for future README/docs/marketing/UI work without changing runtime product UI or public docs in this milestone.
-
-**Shipped:**
-- **Process correction** — reverted the premature one-shot brandbook commit, then reopened the work through requirements, roadmap, phases, verification, and audit.
-- **Brand source docs** — `brandbook/brand-book.md` and `brandbook/pressure-test.md` capture brand DNA, pressure-test scores, voice, microcopy, artifacts, and QA rules.
-- **Source-controlled artifacts** — `brandbook/index.html`, JSON/CSS tokens, SVG logo system, social card, and useful visual specimens.
-- **Verification** — JSON/SVG parse checks, browser desktop/mobile checks, image-load checks, contrast checks, file-size check, and binary-exclusion check.
-
-**Archives:** `.planning/milestones/v1.32-ROADMAP.md`, `.planning/milestones/v1.32-REQUIREMENTS.md`, `.planning/milestones/v1.32-MILESTONE-AUDIT.md`
-
-**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements; candidate follow-ups are README/docs rollout, HexDocs theme, or marketing site only if explicitly selected.
-
-## Prior shipped milestone: v1.31 Operator Surface: Insane Polish (2026-06-05)
-
-**Goal (achieved):** A systematic second pass over the entire `/audit` operator surface (the adopter-mounted admin UI, not the demo app), bringing every screen to one consistent, brand-aligned, mobile-first baseline on a hardened BEM + `--tl-*` token design system.
-
-**Shipped:**
-- **Baseline evidence and seed enrichment** — Phase 134/135 evidence plus Phase 144 errata close the screenshot audit, state matrix, seed recipes, and persona/IA decisions.
-- **Design-system hardening** — Phase 136 plus Phase 144 source-first catalog/freeze work locks the `.tl-*` class catalog, `--tl-*` token contract, operation primitives, and dark-only brand constraints.
-- **Operator-surface polish** — Phases 137-139 bring Prove, Find, Home, and grouped navigation to the same primitive and responsive baseline.
-- **Earned flows** — Phase 140 ships record-first lookup, correlation paste/deep-link, first-class row history, and Timeline/Evidence export carry-forward.
-- **Motion, responsive, accessibility, and regression guard** — Phases 141-143 verify motion governance, 375/768/1280 responsive behavior, accessibility primitives, screenshot diff, and screenshot-regression guard.
-
-**Archives:** `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`, `.planning/milestones/v1.31-MILESTONE-AUDIT.md`
-
-**Next milestone goals:** **Hold** until `$gsd-new-milestone` defines fresh requirements; v1.28 External Pilot remains signal-gated.
-
-## Prior shipped milestone: v1.30 Adoption Evidence Automation (2026-05-29)
-
-**Goal (achieved):** Close shift-left automation gaps on the existing help-desk demo journey (WALKTHROUGH §5, Track A golden path, minimal browser E2E) without new fiction or host STG pretense.
-
-**Shipped:**
-- **ConnCase §5 + walkthrough tighten** — ✓ Phase 131 (2026-05-29)
-- **Playwright gap suite + CI job** — ✓ Phase 132 (2026-05-29)
-- **Evaluator playbook + doc contracts** — ✓ Phase 133 (2026-05-29)
-
-**Archives:** `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
-
-**Next milestone (queued):** **Hold** — v1.28 External Pilot only on sustained real-adopter signal.
-
-## Prior shipped milestone: v1.29 First-Hour Parity (2026-05-29)
-
-**Goal (achieved):** Eliminate remaining adopter-facing first-hour footguns and close non-blocking verify/planning debt — without pretending to be a pilot or expanding product surface.
-
-**Shipped:**
-- **README + phx-gen-auth mount parity** — ✓ Phase 128 (2026-05-28)
-- **WALKTHROUGH truth** — ✓ Phase 129 (2026-05-29): `mix threadline.verify_coverage` from example cwd; navigation-first row history; doc-contract locks
-- **Verify/planning hygiene** — ✓ Phase 130 (2026-05-29): Nyquist 125 archived + finalized; SUMMARY frontmatter SSOT; NYQ-01 + PLAN-01 closed
-- **Planning metadata hygiene** — ✓ Phase 130.1 (2026-05-29): ROADMAP/REQUIREMENTS authority aligned; Nyquist waivers for 128–129; audit tech debt closed
-
-**Archives:** `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`, `.planning/milestones/v1.29-MILESTONE-AUDIT.md`
-
-<details>
-<summary>v1.29 planning snapshot (archived)</summary>
-
-**Assessment source:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
-
-</details>
-
-## Prior shipped milestone: v1.27 Distribution & First-Hour Finish
-
-**Goal (achieved):** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
-
-**Shipped:**
-- **Hex 0.6.0 distribution truth** — Phase 122 (2026-05-28)
-- **First-hour `ecto_repos` config** — Phase 123 (2026-05-28)
-- **First-hour doc finish** — Phase 124: IEx-first §6, ADOPT-AUTH contract, `:schemas` reification docs, evidence host-write boundary, four-lane integration-contracts vocabulary
-- **Example app `:schemas` demonstration** — Phase 127 (2026-05-28): runnable help-desk schema map on operator mount; integration + doc-contract proof for row-history sub-route (D-14)
-
-**Next milestone (queued):** **Hold** after v1.29 — **v1.28 External Pilot** only on sustained real-adopter signal.
-
-## Prior milestone context: v1.27 planning snapshot
-
-<details>
-<summary>v1.27 planning snapshot (archived)</summary>
-
-**Goal:** Close the gap between "library is built in-repo" and "adopter can evaluate and wire the first hour from Hex and docs without maintainer context."
-
-**Target features:**
-- **Hex 0.6.0 distribution truth** — ✓ Phase 122 (2026-05-28)
-- **First-hour `ecto_repos` config** — ✓ Phase 123 (2026-05-28)
-- **First-hour doc finish** — ✓ Phase 124 (2026-05-28)
-- **Gap closure** — ✓ Phases 125–127 (authority surfaces, Nyquist sign-off, `:schemas` example demo)
-
-</details>
-
-## Prior milestone shipped: v1.26 Auth Lane Breadth
-
-**Goal (achieved):** Give Phoenix SaaS teams on `phx.gen.auth`-style session auth a first-party cookbook and CI-backed proof for `Threadline.Plug` and operator mount seams — without replacing the Sigra reference app or inventing Threadline-owned auth.
-
-**Shipped:**
-- `guides/integrations/phx-gen-auth.md` — host-owned `MyApp.AuditActor`, Plug order, admin `authorize_fn`, explicit non-goals (AUTH-GUIDE-01–03)
-- **`phx-gen-auth-reference`** lane in `guides/upgrade-path.md` with four-lane matrix row and honest proof anchors (guide + root tests)
-- Root `phx_gen_auth_integration_test.exs` — actor from `current_scope`, 1-arity admin gate, Plug smoke without Sigra (AUTH-PROOF-01–03)
-- Getting-started §5/§6 auth-neutral first; README four-lane Start here; evaluator neutrality; doc-contract locks (ADOPT-AUTH-01–03)
-
-**Next milestone (queued):** **Hold** (default) or optional **v1.29 First-Hour Parity** — **v1.28 External Pilot** only on sustained real-adopter signal; v1.22 DEFER trio only on procurement pressure.
+The full prior milestone chronology remains in the [complete project snapshot](history/2026-11-12-pre-251-PROJECT.md). Cumulative requirements, context, constraints, key decisions and evolution remain below without scope or authority changes.
 
 ## Shipped capabilities (cumulative)
 - Mountable in-tree LiveView operator surface (`Threadline.OperatorSurface.Router`) with `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Code.ensure_loaded?(Phoenix.LiveView)` gating keeps capture-only adopters Plug-only at install time.
@@ -416,226 +57,14 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 > **Evidence CLI errata:** `mix verify.evidence` was planned for early milestones but never shipped; runnable viewer is `mix threadline.evidence.show` only.
 
-## Prior milestone shipped: v1.25 Adopter-Ready Release & First-Hour Truth
-
-**Goal (achieved):** Make the shipped v1.22–v1.24 stack truthfully adoptable from Hex and remove first-hour doc/example friction — without compliance expansion or a second synthetic walkthrough.
-
-**Shipped:**
-- **threadline 0.6.0** — CHANGELOG, ExDoc Evidence group, `mix verify.release`, install-snippet SSOT `~> 0.6` across adopter surfaces
-- Narrative docs center `Threadline.Audit.transaction/3` in `guides/how-threadline-works.md` with README/getting-started discovery alignment and doc-contract locks
-- Example first-hour runbook — `:api` session plugs, Choose your path / Track A–B, Mix task ownership tables; `mix verify.example` green
-- Evidence-plane doc authority — split-guide map (no phantom hub), semver-not-milestone adopter prose, `0.5.x → 0.6.x` upgrade bullet
-- Evaluator one-pager at `guides/evaluating-threadline.md`; adoption-pilot verify ladder without stale test counts
-
-**Archives:** `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`, `.planning/milestones/v1.25-MILESTONE-AUDIT.md`
-
-## Prior milestone shipped: v1.24 Audited Write Path & Adopter Truth
-
-**Goal (achieved):** Package the manual audited-transaction recipe into a first-class library helper, adopt it in the reference app and getting-started guide, and repair reference/doc truth for 0.5.x evaluators — without compliance-platform expansion.
-
-**Shipped:**
-- `Threadline.Audit.transaction/3` — actor GUC + domain callback + optional `record_action/2` + `action_id` linkage in one call; PostgreSQL integration tests and doc contracts
-- Example app primary write paths (`Blog`, `HelpDesk`, Oban touch) and `guides/getting-started-saas.md` adopt the helper; correlation/audit tests unchanged
-- Adopter truth: `evidence_authorize_fn` on sigra-reference mount; adoption-pilot at **0.5.0** / `~> 0.5`; canonical `mix threadline.evidence.show` locked in doc contracts; WALK-03-02 prose fix (WR-110-001)
-
-## Prior milestone shipped: v1.23 Realistic-Demo Walkthrough
-
-**Goal (achieved):** Synthetic first-adopter walkthrough — realistic help-desk reference app, Sigra auth, demo seeds, maintainer runbook, observe-only dry-run, and triage of filed findings.
-
-**Shipped:**
-- Five-table help-desk domain in `examples/threadline_phoenix/` with capture, semantics, and operator-surface integration
-- Sigra signup/login/session lane; `/audit` via `:operator_browser` + host authorize callbacks
-- `mix demo.seed` / `mix demo.reset` with manifest-driven deterministic fiction and hero audit incidents
-- `WALKTHROUGH.md` (§0–§5), findings template + classification protocol, Phase 109 dry-run, Phase 110 triage (0001–0003 fixed, RUN-01/02/03 pass on validation re-walk)
-- Zero `lib/threadline/**` commits for inventory fixes; `mix ci.all` green at closeout
-
-**Next milestone goals:** _(superseded by v1.24 — see later shipped milestone sections above)_
-
-## Prior latest milestone: v1.22 Policy / Evidence Plane
-
-**Goal (achieved):** Persist durable, append-only evidence records for Threadline-owned governance facts; expose them consistently through Phoenix-optional library APIs, Mix tasks, and a host-gated `/audit/evidence` LiveView; lock the narrow contract in docs and tests — without widening into a compliance platform, auth model, or tenancy model.
-
-**Shipped:**
-- Append-only evidence schema and `Threadline.Evidence` public context — six bounded subjects with stable provenance metadata, machine-readable detail payloads, and explicit non-goal language for host business policy.
-- Three-tier proof vocabulary (`Threadline.Evidence.Proof`) distinguishing proven facts, inferred posture, and unsupported claims — same verdict language across library, Mix-task, and mounted LiveView surfaces.
-- Phoenix-optional library API plus Mix-task parity — **canonical:** `mix threadline.evidence.show` with a stable JSON contract for CI, procurement, and audit handoff.
-- Mounted `/audit/evidence` LiveView with overview-first drill-down, URL-driven navigation, host-owned auth gate, and truthful mounted fallbacks — no new operator UI family, no Threadline-owned RBAC.
-- Public docs and contract tests lock the narrow evidence-plane claim and the explicit non-goals (no legal hold, no immutable-storage guarantee, no generic compliance pack, no Threadline-owned RBAC/tenancy DSL).
-- Phase 99 named rerun bundle (`mix verify.doc_contract` + 5-file evidence-plane seam bundle + `mix verify.example`) locks the contract on the current tree; reran green at closeout (122 tests, 0 failures).
-- Verification backfill chain (Phases 100/101/102) closed Phase 95/96/98 verification gaps with current-tree proof and finalized Nyquist validation artifacts.
-- Authority surface reconciliation and milestone re-audit (Phase 103) flipped the v1.22 audit to `status: passed` with 12/12 requirements satisfied, `closeout_readiness: green`.
-
-**Next milestone goals:**
-- Apply real-adopter pressure on the evidence-plane contract before adding scope. v1.23 framing should start from feedback on the shipped narrow surface, not from speculative compliance-pack design.
-- Re-evaluate DEFER-01 (compliance report packs), DEFER-02 (legal hold / approval flows), and DEFER-03 (immutable archive guarantees) only when concrete adopter pressure exists; do not preemptively expand the proof vocabulary.
-- Preserve the host-owned auth/tenancy boundary that has held through v1.15 → v1.22.
-
-**Post-close judgment (2026-05-27):**
-- Shipping the narrow evidence-plane contract first (rather than a generic compliance pack) was the right move — the rerun bundle is now the authoritative source for the procurement / audit-of-audit claim, and future milestones can build on it instead of re-litigating it.
-- The verification backfill pattern (Phases 100/101/102) is now repeatable shape for closing audit gaps without widening scope; capture this as a reusable closeout play.
-- D-02 (archive vs. closeout-gate separation) and D-16 (`.planning/`-only boundary on closeout-gate phases) held cleanly through Phase 103 — bake into the standard closeout playbook.
-
-## Prior milestone shipped: v1.21 Scoped Support / Operator Proof (Phases 85-94, 2026-05-25)
-
-**Goal (achieved):** Turn the existing host-owned `scope_query_fn` seam into a truthful, first-party support-safe lane on the shipped `/audit` surface without widening Threadline into an auth, tenancy, or compliance platform.
-
-**Shipped:**
-- Narrowed the support-lane claim to the exact current-tree proof set: timeline, actor, transaction, support-scoped row history / as-of, and export denial posture through host-owned seams.
-- Coverage and policy surfaces now stay explicit as admin/global or unsupported for support-scoped sessions, with denial and fallback UX aligned across LiveView, HTTP, docs, and tests.
-- One canonical `/audit` mount recipe and the example Phoenix app prove admin + support personas honestly on the same host-owned route tree.
-- Phases 90-94 backfilled the missing verification chain, refreshed the authority surfaces, and closed all 12 v1.21 requirements on rerun-backed current-tree evidence.
-
-**Archives:** `.planning/milestones/v1.21-REQUIREMENTS.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-MILESTONE-AUDIT.md`.
-
-## Prior milestone shipped: v1.20 Scale and Governance Depth
-
-**Goal (achieved):** Move Threadline from "capturing and reading" into governed lifecycle management: safe retention pruning, actor-owned saved views, background exports, and enterprise adapter seams, all while preserving the zero-intrusion default posture.
-
-**Shipped:**
-- Governance migrations plus `Threadline.Storage` and `Threadline.ExportQueue` behaviour seams for retention/export state and backend abstraction.
-- Batched retention pruning with run tracking and a Retention History LiveView surface.
-- Actor-owned saved views on the default operator mount path with session-first ownership semantics.
-- Built-in background export runtime supervision, truthful lifecycle transitions, expiry cleanup, and actor-scoped status visibility.
-- Backend-aware export delivery plus configured-path Oban/S3 integration proof and repaired public guidance.
-- Repaired current-tree verification and Nyquist closeout artifacts for Phases 75-79 and 84 so the milestone evidence matches the shipped tree.
-
-## Prior milestone shipped: v1.17 — Operator Surface Foundation (Phases 57-63, 2026-05-06)
-
-**Goal (achieved):** Ship a host-usable operator surface — a mountable LiveView surface inside `threadline` (with Phoenix/LiveView as optional deps) that turns the v1.16 investigation contracts into one-click answers for the documented support questions, while preserving the v1.15 host-owns-auth boundary.
-
-**Shipped:**
-- **Phase 57** — SURF-02 / SURF-03: `phoenix`, `phoenix_live_view`, `phoenix_html`, `phoenix_pubsub` declared `optional: true`; `Threadline.OperatorSurface` namespace module with file-scope `Code.ensure_loaded?(Phoenix.LiveView)` gating; `mix verify.compile_no_optional` alias + dedicated stable-id GitHub Actions job lock the regression-protection contract.
-- **Phase 58** — SURF-01 / AUTH-01–05 / TELEM-01: `threadline_operator_surface` mount macro with optional `:actor_fn` / `:authorize_fn`; fails closed at compile time without a secure pipeline or explicit acknowledgement flag; `:adopter_acknowledges_unauthenticated: true` raises in test and emits a loud `Logger.warning` in prod; telemetry event `[:threadline, :operator_surface, :authorize]` with `:granted | :denied | :error`; `:authorize_fn`-returned scopes threaded into investigation queries.
-- **Phases 59-61** — UI-01 / UI-02 / UI-03: incident drill-down LiveView at `/audit/transactions/:id` rendering `Threadline.incident_bundle/2`; actor window LiveView at `/audit/actors/:kind/:id` rendering `Threadline.actor_history/2` (with `ActorHistoryPage` keyset paging); row history sub-view at `/audit/rows/:table/:pk` rendering `Threadline.history/3` + `Threadline.as_of/4`, reachable from drill-down change rows.
-- **Phase 62** — CLI-01 / SURF-04: `mix threadline.incident <transaction_id>` (with `--json`); `examples/threadline_phoenix` mounts the operator surface end-to-end behind a `phx.gen.auth`-style admin pipeline.
-- **Phase 63** — DOC-01–04: `operator_surface_doc_contract_test.exs` locks macro signature, route literals, and auth section; `guides/operator-surface.md` covers mount, auth, screens, and the CLI task; README, production checklist, and example app README cross-link the new guide; CHANGELOG entry highlights the optional dependency posture and macro.
-
-**Archives:** `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-MILESTONE-AUDIT.md`.
-
-## Prior milestone shipped: v1.15 — Host Integration Completion (Phases 49-52, 2026-05-05)
-
-**Goal (achieved):** Finish the remaining Phoenix host-integration gap so adopters get native request-context wiring, direct Sigra callback composition, and an authenticated incident drill-down baseline without inventing their own glue for the first serious host rollout.
-
-**Shipped:**
-- **Phase 49** — PLUG-01/02: native `Threadline.Plug` context overrides hook, additive-only precedence rules, deterministic invalid-shape failures, and aligned docs/tests.
-- **Phase 50** — SIGRA-04/05: direct `Threadline.Integrations.Sigra` callback wiring through `Threadline.Plug`, example-app router adoption, and drift guards for the canonical callback pair.
-- **Phase 51** — INCIDENT-03/04: authenticated incident drill-down baseline in the Phoenix example app plus incident docs that keep tenancy and richer authorization host-owned.
-- **Phase 52** — ADOPT-03: getting-started, Sigra, README, domain-reference, incident-playbook, and adoption-backlog alignment with cross-doc contract coverage.
-
-**Archives:** `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-MILESTONE-AUDIT.md`, `.planning/milestones/v1.15-phases/`.
-
-## Prior milestone shipped: v1.14 — Drop-in Production Adopter Slice (Phases 44-48, 2026-05-05)
-**Goal (achieved):** Make Threadline genuinely drop-in for a SaaS team running Phoenix + Sigra by closing the actor-mapping mile, publishing realistic operational evidence, shipping the incident playbook/replay path, and packaging the result as `threadline 0.3.0`.
-
-**Shipped:**
-- **Phase 44** — SIGRA-01/02/03: `Threadline.Integrations.Sigra`, example-app Sigra wiring, and `guides/integrations/sigra.md` with doc-contract coverage.
-- **Phase 45** — PERF-01/02/03: reproducible `bench/` harness, tracked baseline artifacts, `mix verify.bench`, and `guides/performance.md`.
-- **Phase 46** — INCIDENT-01/02: `guides/incident-playbook.md`, guarded incident replay script, and smoke/doc-contract coverage.
-- **Phase 47** — ADOPT-01/02: SaaS quickstart, fixture-backed snippet extraction, and a maintainer-walked STG example with disclaimer/evidence guards.
-- **Phase 48** — REL-01/02/03: `0.3.0` packaging surface, release artifact contract, ExDoc regrouping, and `mix verify.release`.
-
-**Archives:** `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-MILESTONE-AUDIT.md`, `.planning/milestones/v1.14-phases/`.
-
-## Prior milestone shipped: v1.13 — Docs Contract Repair (Phases 41–43, 2026-04-26)
-
-**Goal (achieved):** Repair README contract drift on the root project and the Phoenix example so the published docs match the shipped public API surface, and restore the verification artifacts the milestone audit was missing.
-
-**Shipped:**
-- **Phase 41** — DOC-01: Root `README.md` aligned with the shipped public API surface; doc-contract test locks the literals.
-- **Phase 42** — DOC-02: `examples/threadline_phoenix/README.md` and `examples/README.md` aligned with the runnable Phoenix reference app; doc-contract test extended to cover example install/runbook + historical reconstruction literals.
-- **Phase 43** — DOC-03: `41-VERIFICATION.md`, `42-VERIFICATION.md`, and reconciled `v1.13-MILESTONE-AUDIT.md` close the audit evidence gap so DOC-01–03 are counted as verified.
-
-**Archives:** `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-MILESTONE-AUDIT.md`, `.planning/milestones/v1.13-phases/`.
-
-## Prior milestone shipped: v1.12 — Temporal Truth & Safety (Phases 38–40, 2026-04-25)
-
-**Goal (achieved):** Provide a stable foundation for point-in-time row reconstruction with map-first reads, opt-in struct reification, and copy-pasteable operator docs.
-
-**Shipped:**
-- **Phase 38** — ASOF-01/02/05: snapshot-first `Threadline.as_of/4` with delete and genesis-gap handling.
-- **Phase 39** — ASOF-03/04: opt-in struct reification with loose historical loading.
-- **Phase 40** — ASOF-06: Time Travel operator docs and Phoenix example walkthrough.
-
-**Archive:** `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`.
-
-## Last milestone shipped: v1.11 — Composable incident surface (Phase 37, 2026-04-24)
-
-**Goal (achieved):** Close the integrator **composition** gap with a **two-step HTTP JSON** pattern in the reference Phoenix app: **`POST /api/posts`** returns **`audit_transaction_id`**, then **`GET /api/audit_transactions/:id/changes`** returns ordered changes plus **`change_diff`** maps.
-
-**Shipped:**
-- **Phase 37** — COMP-01/02/03: Example incident JSON path in `examples/threadline_phoenix`, `AuditTransactionController`, and `COMP-EXAMPLE-INCIDENT-JSON` doc contract.
-
-## Last milestone shipped: v1.10 — Support-grade exploration primitives (Phases 31–36, 2026-04-24)
-
-**Goal (achieved in-repo):** Turn shipped **capture + semantics + timeline/export** into faster **incident answers** with **small, explicit library APIs** — without new capture semantics or a UI framework.
-
-**Shipped:**
-
-- **Phase 31** — XPLO-01: **`Threadline.ChangeDiff`** + **`Threadline.change_diff/2`** — JSON-serializable field-level projection; documented INSERT/UPDATE/DELETE and `changed_from` absence.
-- **Phase 32** — XPLO-02: **`Threadline.Query.audit_changes_for_transaction/2`** + **`Threadline.audit_changes_for_transaction/2`** — stable ordering for one transaction id.
-- **Phase 33** — XPLO-03: **`## Exploration API routing (v1.10+)`** in **`guides/domain-reference.md`**, production-checklist cross-link, **`Threadline.ExplorationRoutingDocContractTest`**.
-
-**Non-goals (unchanged):** LiveView operator UI; published **`threadline_web`**; new capture / redaction / retention **semantics**; maintainer-attested third-party STG URLs; **Hex** semver bump unless a **separate** release milestone says so.
-
-**Distribution:** **`v0.2.0`** / **`threadline` 0.2.0** on Hex unchanged unless a release decision is made.
-
-## Last milestone shipped: v1.9 — Production confidence at volume (Phases 28–30, 2026-04-24)
-
-**Goal (achieved in-repo):** Credible **ops-at-volume** narrative for telemetry + **`Threadline.Health`**, a durable **audit indexing** cookbook, and **retention-at-scale** guidance grounded in shipped APIs — **docs-first**.
-
-**Shipped:**
-
-- **Phase 28** — OPS-01, OPS-02: per-event telemetry narrative + **`## Trigger coverage (operational)`** in **`guides/domain-reference.md`**; production checklist cross-links.
-- **Phase 29** — IDX-01, IDX-02: **`guides/audit-indexing.md`**, ExDoc extra, doc contract **`test/threadline/audit_indexing_doc_contract_test.exs`**.
-- **Phase 30** — SCALE-01, SCALE-02: **`guides/production-checklist.md`** volume / purge cadence H3 + export & support hooks; **`guides/domain-reference.md`** **`## Operating at scale (v1.9+)`** hub; **`README.md`** Maintainer-band discovery paragraph.
-
-**Non-goals (unchanged):** LiveView operator UI; `threadline_web`; new capture/redaction semantics; Hex semver bump unless a separate release decision is made.
-
-## Last milestone shipped: v1.8 — Close the support loop (Phases 25–27, 2026-04-24)
-
-**Goal (achieved in-repo):** Faster **time-to-answer** in production support via shared **timeline + export** vocabulary, **correlation-aware** filtering, **copy-paste operator docs**, and an **example app** slice that proves the correlation path in CI.
-
-**Shipped:**
-
-- **Phase 25** — LOOP-01: `:correlation_id` on timeline/export with strict `audit_actions` join; validation + integration tests.
-- **Phase 26** — LOOP-02, LOOP-04: Support incident queries in guides; doc contract anchors.
-- **Phase 27** — LOOP-03: Example **`POST /api/posts`** records **`record_action`** in the audited transaction, links **`audit_transactions.action_id`**, **`ThreadlinePhoenixWeb.PostsCorrelationPathTest`**, README correlation + **`export_json`** / **`jq`**.
-
-**Archives:** `.planning/milestones/v1.8-REQUIREMENTS.md`, `.planning/milestones/v1.8-ROADMAP.md`. **Non-goals (unchanged):** LiveView operator UI; `threadline_web` / umbrella; new capture semantics; maintainer-attested third-party STG URLs.
-
-## Last milestone shipped: v1.7 — Reference integration for SaaS (Phases 22–24, 2026-04-24)
-
-**Goal (achieved in-repo):** Give teams a **runnable, minimal Phoenix integration** under **`examples/threadline_phoenix/`** that demonstrates capture and semantics on **HTTP and Oban job paths**, with **`record_action/2`** and cross-links to **`guides/production-checklist.md`** and **`guides/adoption-pilot-backlog.md`** (STG rubric) — integrator-owned host evidence unchanged from v1.6.
-
-**Shipped:**
-
-- **Phase 22** — Path-dep example app, install + `gen.triggers` for `posts`, **`mix verify.example`** in **`mix ci.all`**, README runbook.
-- **Phase 23** — **`Threadline.Plug`** on `:api` pipeline; **`Blog.create_post/2`** with transaction-local GUC; ConnCase audit path test.
-- **Phase 24** — Oban **`PostTouchWorker`**, **`Blog.touch_post_for_job/2`** with **`Threadline.Job`** + **`record_action(:post_title_refreshed_from_queue, …)`**; README **Semantics in jobs** + adoption doc links.
-
-**Archives:** `.planning/milestones/v1.7-REQUIREMENTS.md`, `.planning/milestones/v1.7-ROADMAP.md`.
-
-**Non-goals (unchanged):** LiveView operator UI; new capture/redaction semantics; Hex semver bump unless a separate release decision is made; published `threadline_web` — example stays under **`examples/`**.
-
-## Prior milestone shipped: v1.6 — Host staging / pooler parity (Phase 21, 2026-04-24)
-
-**Goal (achieved in-repo):** Close the gap between **library CI** and **honest host documentation** using integrator-owned templates and evidence pointers — not maintainer attestation of third-party staging.
-
-**Shipped (maintainer affordances):**
-
-- **STG-01** — Fixed-field topology scaffold (`STG-HOST-TOPOLOGY-TEMPLATE`) in **`guides/adoption-pilot-backlog.md`** plus **partial** rationale guidance.
-- **STG-02** — Audited HTTP/job path rubric (`STG-AUDITED-PATH-RUBRIC`) with **OK / Issue / N/A / Not run** and **Evidence / pointer** column.
-- **STG-03** — Rubric rules (no OK without pointer; **N/A** vs **Not run**; CI vs host labeling); **CONTRIBUTING** `## Host STG evidence (integrators)`; production-checklist intro cross-link; doc contracts in **`test/threadline/ci_topology_contract_test.exs`** and **`test/threadline/stg_doc_contract_test.exs`**.
-
-**Non-goals (unchanged):** New capture semantics, exploration API expansion, LiveView UI, or claiming external pilot environments the library does not control — see **Out of Scope** below and **Future** in **`.planning/milestones/v1.6-REQUIREMENTS.md`** (archived v1.6 scope).
-
-## Shipped milestones
-
-**v1.0** through **v1.13** are complete (**v1.13** shipped 2026-04-26, Phases 41–43). Prior milestones live under **`.planning/milestones/`**. **Living roadmap:** **`.planning/ROADMAP.md`**.
-
 ## Requirements
 
 ### Validated
+
+- [x] **ADM-08–34 (v1.48)** — Approved brand and complete existing investigation/inspection/Operations flows, shared example catalog, supported inclusive behavior, current docs/package and source-bound whole acceptance. Independently verified across Phases250–253 and final34-requirement integration; required CI green. Planning completion is not publication.
+
+- [x] **ADM-01–04 (Phase248)** — Locally reconciled current candidate, fail-closed mount and bounded compatible advisory/test remediation with source-bound evidence and independent verification. Hosted/live issue and full canonical/toolchain limits remain explicit.
+- [x] **ADM-05–07 (Phase249)** — Supported jobs/states/renderers/proof owners, coherent original captured-row chronology and separate ordinary/stress/boundary selections, with reference-only approved-brand ownership. Independently verified48/48; rendered adoption remains later scope.
 
 - [x] **REL-02..04, SUP-01..04, CI-01..04, DEBT-01/02 (v1.47)** — Release-PR refresh, fetch retries and Hex pin; SHA-pinned actions, grouped Dependabot, tiered audit gate and deps-health classification; browser timing, per-project browser split (median 461 s), lane-scoped contract tests, partition ratio ≤ 1.15 and hang-proof partitions; debt register closeout and critic retirement. Verified across Phases 244–247.1. REL-01 is deferred-with-trigger. See `.planning/milestones/v1.47-REQUIREMENTS.md` and `.planning/milestones/v1.47-MILESTONE-AUDIT.md`.
 - [x] **UIB/UIS/UII/UIO/UIA/UIV (v1.46)** — All 26 approved operator-refinement requirements across source-bound preview, readable investigation, continuity/recovery, authorized operations, accessibility, browser verification, and candidate review evidence. Verified across Phases 238–243; UIV-02/03 are satisfied with explicit visual-evidence limits. See `.planning/milestones/v1.46-REQUIREMENTS.md` and `.planning/milestones/v1.46-MILESTONE-AUDIT.md`.
@@ -749,9 +178,8 @@ Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, bef
 
 ### Active
 
-- [ ] **REL-01 next-release clause (carried from v1.47)** — the first natural release PR's first CI run is green with no separate CHANGELOG-dating PR, and its landing PR adds its own Unreleased prose (W-3). Trigger and pass conditions: archived `247.1-REL01-EVIDENCE.md`.
-
-No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0) is queued; re-derive the baseline at `/gsd-new-milestone` before selecting it.
+- No new feature milestone is selected. All34v1.48 Admin requirements are validated; implementation is retained on PR105 awaiting separate merge authority.
+- **REL-01** is carried unchanged from v1.47 to the first natural release; it remains separately observable and cannot be closed by local readiness.
 
 ### Out of Scope
 
@@ -770,6 +198,8 @@ No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0
 - **Silently bumping the declared floor or the current lane's Elixir/OTP in CI** — only for runner or dependency breakage, or to make a lane's pin honest (2026-09-26: `otp-version: "27.0"` resolves to 27.0.1). An additive, exactly pinned newest-toolchain lane shipped in v1.43 (Phase 220, `lane: latest`). The Elixir 1.15 / PostgreSQL 15 floor decision shipped in v1.45 and is now recorded in the supported CI lane and adopter table.
 
 ## Context
+
+**Admin delivery (v1.48,2026-11-13):** Phoenix LiveView/HEEx and example-only PhoenixStorybook now share production components/approved assets through complete existing jobs. Host authorizers and scope remain explicit; catalog projections are not credited as SQL/mutation proof. Actual required candidate CI and bounded source/pixel/goal reviews pass, with inherited quality notes retained. No captured-data model or trigger-backed boundary changed.
 
 **Ecosystem gap:** Carbonite (v0.16.x) is the strongest trigger-backed capture substrate in the Elixir ecosystem but is a library, not a platform — it handles what changed but not who did it or why. PaperTrail and ExAudit fill the action-semantics gap but sacrifice correctness (miss direct Repo/SQL writes). No existing library combines both with operator tooling.
 
@@ -801,6 +231,8 @@ No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0
 
 ## Constraints
 
+Standing research, verification, dependency and CI/CD policy: [Research and delivery defaults](conventions/research-verification-and-efficiency.md).
+
 - **Tech stack**: Elixir ≥ 1.15 / OTP ≥ 26 / PostgreSQL ≥ 15 / Ecto 3.x — align with active Phoenix LTS baseline
 - **SQL-native**: no Erlang binary or opaque blob storage; all audit data must be introspectable with plain SQL
 - **Correct by default**: capture must not depend on developers remembering to call library functions on every write path
@@ -819,6 +251,14 @@ No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Apply the approved spool/typography through shared production components | Complete ordinary jobs before broad catalog expansion; preserve exact audit values and plain labels | ✓ v1.48, current matched-source and required-CI proof |
+| Keep PhoenixStorybook in the example dev/test boundary | Reuse Phoenix LiveView/HEEx without a speculative Fablebook adapter or public component API | ✓ v1.48, package/optional/dependency contracts pass |
+| Verify failure-evidence transport and actual assertion modes | A red report must retain geometry/images; observed success does not prove enforcement enabled | ✓ v1.48, marked transport fault plus actual strict zoom/Linux results |
+| Reassess shared successor impact once at milestone close | Earlier phase fingerprints can become stale after approved shared-file changes; evidence-supported deltas preserve history without whole-phase replays | ✓ v1.48, all six current fingerprints passed before archive |
+
+| One semantic inventory for ordinary/stress selection and proof ownership | Separate fixture identity, meaningful states, actual renderers and proof kinds without another registry or false acceptance claims | ✓ Phase249; current source/claim review and lifecycle controls |
+| Stamp fictional business time before capture; retain host authentication materialization | Trigger snapshots must match represented events without backdating unaudited Sigra registration/password/confirmation | ✓ Phase249 domain and authentication contracts; public API unchanged |
+| Keep approved-brand mapping referential until coordinated runtime migration | Role/asset authority and later proof owners are useful without certifying unseen rendering or copying constants | ✓ Phase249 reference contract; runtime adoption starts250 |
 | Trigger-backed capture (not application-hook-based) | Harder to bypass than PaperTrail-style opt-in; correctness is the core value | ✓ Validated (Phase 1) |
 | Carbonite vs custom (Phase 1 gate) | Carbonite metadata path uses patterns incompatible with D-06; Threadline needs D-05 schema | ✓ Path B: custom `TriggerSQL` (see archived gate-01-01.md) |
 | Separate capture vs. semantics models | Actions ≠ changes; transactions ≠ requests; collapsing them is how prior art created gaps | ✓ Good (design principle) |
@@ -903,9 +343,9 @@ No other active requirements. MILESTONE-ARC rank 2 (v1.48 Safe by default, 1.2.0
 | Before/after comparisons are labeled limited when render inputs differ | Different assets, fixtures, route/state, or environment cannot establish pixel equivalence; visual evidence must state its actual comparison boundary. | ✓ Validated (v1.46, UIV-02; explicitly disclosed) |
 | Disconnected operator mutations wait for fresh server-rendered state and are never replayed automatically | Retention and export actions have consequences; native disabled semantics and persisted-state confirmation prevent accidental duplicate writes. | ✓ Validated (v1.46, Phase 242; browser checks and required CI) |
 | Investigation state stays paired with the result it describes during pending navigation and recovery | Operators must not mistake old rows for a new query or lose scope on a pivot; document navigation is treated as navigation rather than a speculative in-place mixed state. | ✓ Validated (v1.46, Phases 239–240) |
-| Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | — Pending (v1.48, D-1) |
-| Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | — Pending (v1.48, D-2) |
-| Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | — Pending (v1.48, D-3) |
+| Operator surface fails closed in fact, not only in docs (2026-10-24) | The router guard accepted any pipeline and the default `authorize_fn` allowed everyone, contradicting the documented fail-closed contract; matching the docs is a security bug fix | ✓ Local correction and independent verification in Phase248; remote/live status remains separate |
+| Detect then fix txid reuse after logical restore (2026-10-24) | `txid` is unique only per cluster; `ON CONFLICT (txid) DO NOTHING` can silently attach new changes to old transactions (Carbonite #45) | Queued separately; outside approved v1.48 Admin scope |
+| Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | Queued separately; this milestone does not raise the support floor |
 | Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
 | Release prose lives under `## Unreleased` in the landing PR; the release workflow dates it (v1.47) | Removes the separate CHANGELOG-dating PR; a stale release PR is refreshed with a CI-triggering token | ✓ Mechanism observed live (#101, REL-02); ⚠️ REL-01 next-release clause pending |
@@ -936,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-29 after v1.47 milestone (Release on autopilot; next: ARC rank 2, v1.48 Safe by default)*
+*Last updated: 2026-11-13 after v1.48 planning completion; PR105 open/unmerged, package1.1.0, release authority separate.*

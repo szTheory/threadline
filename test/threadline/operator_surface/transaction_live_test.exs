@@ -13,7 +13,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true
+      )
     end
   end
 
@@ -138,6 +141,64 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Transaction Not Found"
     end
 
+    test "lost retained context is disclosed on a loaded transaction but direct defaults remain quiet",
+         %{conn: conn} do
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+
+      for query <- [
+            "origin=timeline&unsupported_only=private-value",
+            "origin=unknown&correlation_id=private-value"
+          ] do
+        {:ok, lv, _html} = live(conn, "/audit/transactions/#{txn.id}?#{query}")
+
+        assert has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+
+        assert has_element?(lv, ~s(a[href="/audit/timeline"]))
+      end
+
+      for query <- ["", "?origin=timeline&from="] do
+        {:ok, lv, _html} = live(conn, "/audit/transactions/#{txn.id}#{query}")
+
+        refute has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+      end
+    end
+
+    test "rejects malformed Timeline return context on a missing transaction", %{conn: conn} do
+      uuid = Ecto.UUID.generate()
+
+      assert {:ok, lv, html} =
+               live(
+                 conn,
+                 "/audit/transactions/#{uuid}?origin=timeline&actor_kind=service&actor_id=sync-42&private_scope=secret"
+               )
+
+      assert html =~ ~s|href="/audit/timeline"|
+      refute html =~ "actor_kind"
+      refute html =~ "service"
+      refute html =~ "private_scope"
+
+      assert has_element?(
+               lv,
+               "[role=status]",
+               "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+             )
+    end
+
     test "renders the not-found state for a malformed transaction id", %{conn: conn} do
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/not-a-uuid")
 
@@ -167,6 +228,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Transaction #{String.slice(txn.id, 0, 12)}"
       assert html =~ ~s|title="#{txn.id}"|
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
+    end
+
+    test "absent and explicit anonymous actors never create a person activity link", %{conn: conn} do
+      for actor <- [nil, %{"type" => "anonymous"}] do
+        txn =
+          Repo.insert!(
+            AuditTransaction.changeset(%{
+              txid: :rand.uniform(1_000_000_000),
+              occurred_at: DateTime.utc_now(),
+              actor_ref: actor
+            }),
+            repo_opts()
+          )
+
+        {:ok, lv, _} = live(conn, "/audit/transactions/#{txn.id}")
+        assert has_element?(lv, "h1", "Transaction")
+
+        assert has_element?(
+                 lv,
+                 ~s(button[aria-label="Copy transaction id"][data-tl-copy="#{txn.id}"])
+               )
+
+        refute has_element?(lv, ~s(a[href^="/audit/actors/"]))
+      end
     end
 
     test "keeps transaction and linked action actors and recorded context distinct", %{conn: conn} do
@@ -435,6 +520,56 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                ~s|href="/audit/transactions/#{txn.id}/history/users/tenant%2Frow-transaction?as_of=|
 
       refute html =~ "/history/users/tenant/row-transaction"
+    end
+
+    test "Timeline-origin transaction preserves validated filters on return and history links", %{
+      conn: conn
+    } do
+      captured_at = ~U[2026-05-26 14:30:00Z]
+
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: ~U[2026-05-26 14:30:17Z],
+            correlation_id: "timeline-return"
+          }),
+          repo_opts()
+        )
+
+      Repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "support",
+          table_name: "ticket_replies",
+          table_pk: %{"id" => "reply/1"},
+          op: "update",
+          data_after: %{"id" => "reply/1", "body" => "Thanks — we're closing this out."},
+          changed_fields: ["body"],
+          changed_from: %{"body" => "Earlier reply"},
+          captured_at: captured_at
+        }),
+        repo_opts()
+      )
+
+      query =
+        "origin=timeline&from=2020-01-01T00%3A00%3A00&to=2099-01-01T00%3A00%3A00" <>
+          "&table_schema=support&table=tickets&actor_kind=service_account&actor_id=sync-42" <>
+          "&correlation_id=timeline-return&private_scope=secret"
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}?#{query}")
+
+      encoded_filters =
+        "from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00" <>
+          "&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account" <>
+          "&amp;actor_id=sync-42&amp;correlation_id=timeline-return"
+
+      assert html =~ ~s|href="/audit/timeline?#{encoded_filters}"|
+
+      assert html =~
+               ~s|href="/audit/transactions/#{txn.id}/history/ticket_replies/reply%2F1?origin=timeline&amp;#{encoded_filters}&amp;as_of=2026-05-26T14%3A30%3A00.000000Z"|
+
+      refute html =~ "private_scope"
     end
 
     test "renders a row-history link only for the single-key change (READ-04)", %{conn: conn} do
@@ -927,6 +1062,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert {:ok, _lv, html} = live(conn, "/audit_scoped/transactions/#{txn.id}")
       assert html =~ "Transaction not found"
+    end
+
+    @tag :transaction_snapshot_intent
+    test "scoped transaction history rejects malformed explicit time and clears without losing context",
+         %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at, source: "support"})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "transaction-snapshot"},
+        data_after: %{"id" => "transaction-snapshot", "name" => "Scoped current value"},
+        captured_at: at
+      })
+
+      path = "/audit_scoped/transactions/#{txn.id}/history/users/transaction-snapshot"
+
+      for invalid <- ["as_of=not-a-date", "as_of%5Bpart%5D=not-a-date"] do
+        assert {:ok, lv, _} = live(conn, path <> "?origin=timeline&from=&table=users&" <> invalid)
+        assert has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+        refute has_element?(lv, "h4", "Snapshot as of")
+        refute has_element?(lv, ".tl-subview__panel", "Scoped current value")
+      end
+
+      assert {:ok, lv, _} =
+               live(
+                 conn,
+                 path <>
+                   "?origin=timeline&from=&table=users&as_of=2026-10-03T14%3A00%3A00%2B02%3A00"
+               )
+
+      assert has_element?(lv, ".tl-subview__panel", "Scoped current value")
+      lv |> element("#row-history-as-of-form") |> render_change(%{"as_of" => ""})
+      assert_patch(lv, path <> "?origin=timeline&from=&table=users")
+
+      assert has_element?(
+               lv,
+               ~s(a[href="/audit_scoped/transactions/#{txn.id}?origin=timeline&from=&table=users"]),
+               "Close"
+             )
     end
 
     test "scoped transaction history route hides out-of-scope row history", %{conn: conn} do

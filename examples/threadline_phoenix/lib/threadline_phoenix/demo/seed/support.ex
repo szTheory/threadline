@@ -4,10 +4,59 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   import Ecto.Query
 
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.Semantics.ActorRef
+  alias Threadline.Semantics.{ActorRef, AuditContext}
   alias Threadline.StorageSchema
-  alias ThreadlinePhoenix.HelpDesk.Organization
+  alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket, TicketReply}
   alias ThreadlinePhoenix.Repo
+
+  @doc false
+  def stamp_insert(%Ecto.Changeset{} = changeset, %DateTime{} = timestamp) do
+    changeset
+    |> put_schema_timestamp(:inserted_at, timestamp)
+    |> put_schema_timestamp(:updated_at, timestamp)
+  end
+
+  @doc false
+  def stamp_update(%Ecto.Changeset{} = changeset, %DateTime{} = timestamp) do
+    force_schema_timestamp(changeset, :updated_at, timestamp)
+  end
+
+  @doc false
+  def reply_and_close(
+        %AuditContext{} = audit_context,
+        %Organization{} = organization,
+        %Ticket{} = ticket,
+        reply_attrs,
+        ticket_attrs,
+        %DateTime{} = occurred_at
+      )
+      when is_map(reply_attrs) and is_map(ticket_attrs) do
+    Threadline.Audit.transaction(
+      Repo,
+      [
+        audit_context: audit_context,
+        action: :ticket_replied_and_closed,
+        transaction_meta: %{"organization_id" => to_string(organization.id)}
+      ],
+      fn ->
+        reply_changeset =
+          %TicketReply{ticket_id: ticket.id}
+          |> TicketReply.changeset(reply_attrs)
+          |> stamp_insert(occurred_at)
+
+        with {:ok, reply} <- Repo.insert(reply_changeset),
+             {:ok, updated_ticket} <-
+               ticket
+               |> Ticket.changeset(ticket_attrs)
+               |> stamp_update(occurred_at)
+               |> Repo.update() do
+          %{ticket: updated_ticket, reply: reply}
+        else
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end
+    )
+  end
 
   @doc false
   def put_timestamp(ctx, transaction_id, %DateTime{} = occurred_at)
@@ -117,5 +166,29 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
   def random_days_ago_timestamp do
     days_ago = :rand.uniform(14) - 1
     days_ago_timestamp(days_ago)
+  end
+
+  defp put_schema_timestamp(
+         %Ecto.Changeset{data: %{__struct__: schema}} = changeset,
+         field,
+         timestamp
+       ) do
+    if field in schema.__schema__(:fields) do
+      Ecto.Changeset.put_change(changeset, field, timestamp)
+    else
+      changeset
+    end
+  end
+
+  defp force_schema_timestamp(
+         %Ecto.Changeset{data: %{__struct__: schema}} = changeset,
+         field,
+         timestamp
+       ) do
+    if field in schema.__schema__(:fields) do
+      Ecto.Changeset.force_change(changeset, field, timestamp)
+    else
+      changeset
+    end
   end
 end

@@ -12,23 +12,26 @@
     --tl-space-10: 40px;
     --tl-space-12: 48px;
 
-    --tl-font-family: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --tl-font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --tl-font-family: "Threadline Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tl-font-heading: "Threadline Familjen Grotesk", "Threadline Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tl-font-mono: "Threadline IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     --tl-font-size-xs: 12px;
     --tl-font-size-sm: 13px;
     --tl-font-size-dense: 13px;
     --tl-font-size-body: 16px;
-    --tl-font-size-label: 14px;
-    --tl-font-size-ui: 15px;
-    --tl-font-size-heading: 20px;
-    --tl-font-size-title: 24px;
+    --tl-font-size-label: 12px;
+    --tl-font-size-ui: 16px;
+    --tl-font-size-heading: 28px;
+    --tl-font-size-title: 28px;
     --tl-font-size-display: 32px;
-    --tl-line-body: 1.5;
-    --tl-line-label: 1.4;
+    --tl-line-body: 1.55;
+    --tl-line-label: 1.2;
     --tl-line-heading: 1.2;
+    --tl-line-metadata: 1.4;
+    --tl-line-mono: 1.5;
     --tl-line-display: 1.15;
     --tl-weight-regular: 400;
-    --tl-weight-medium: 500;
+    --tl-weight-medium: 600;
     --tl-weight-strong: 600;
     /* Letter-spacing scale: caps labels track wider, display tracks tighter. */
     --tl-tracking-caps: 0.12em;
@@ -65,8 +68,8 @@
     --tl-color-backdrop: rgba(2, 4, 10, 0.62);
     --tl-color-border: var(--tl-color-slate-line);
     /* Slate Line */
-    --tl-color-border-strong: #2E3D5C;
-    --tl-color-border-focus: #7FA9FF;
+    --tl-color-border-strong: #73819C;
+    --tl-color-border-focus: #4F8CFF;
     --tl-color-text: var(--tl-color-fog);
     /* Fog */
     --tl-color-muted: #A3AFC2;
@@ -102,12 +105,14 @@
     --tl-color-neutral-bg: rgba(115, 129, 156, 0.15);
     --tl-color-neutral-text: #B5C0D2;
     --tl-color-neutral-border: #2E3D5C;
-    --tl-color-op-insert-bg: var(--tl-color-success-bg);
-    --tl-color-op-insert-text: var(--tl-color-success-text);
-    --tl-color-op-update-bg: var(--tl-color-info-bg);
-    --tl-color-op-update-text: var(--tl-color-info-text);
-    --tl-color-op-delete-bg: var(--tl-color-danger-bg);
-    --tl-color-op-delete-text: var(--tl-color-danger);
+    --tl-color-op-insert-bg: #10332B;
+    --tl-color-op-insert-text: #5AE0A2;
+    --tl-color-op-update-bg: #14284F;
+    --tl-color-op-update-text: #8DB4FF;
+    --tl-color-op-delete-bg: #3A1B23;
+    --tl-color-op-delete-text: #FF8585;
+    --tl-color-op-redacted-bg: #3A2A0A;
+    --tl-color-op-redacted-text: #F6C86B;
     --tl-color-brand-rail: #0B1020;
 
     --tl-radius-xs: 3px;
@@ -152,7 +157,7 @@
     --tl-breakpoint-desktop: 1280px;
     --tl-muted-bg: var(--tl-color-surface);
     --tl-hit-area: 40px;
-    --tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
+    --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
     --tl-gap-inline: var(--tl-space-2);
     --tl-gap-stack: var(--tl-space-4);
     --tl-gap-section: var(--tl-space-8);
@@ -195,10 +200,10 @@
     --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
     --tl-color-backdrop: rgba(15, 23, 40, 0.42);
     --tl-color-border: #C9D3E2;
-    --tl-color-border-strong: #A7B4C8;
+    --tl-color-border-strong: #76849F;
     --tl-color-border-focus: #1557C0;
     --tl-color-text: #0F1728;
-    --tl-color-muted: #3B4762;
+    --tl-color-muted: #56647E;
     --tl-color-muted-soft: #73819C;
     --tl-color-accent: #1557C0;
     --tl-color-accent-strong: #0E459B;
@@ -226,11 +231,19 @@
     --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
     --tl-color-neutral-text: #3B4762;
     --tl-color-neutral-border: #C9D3E2;
+    --tl-color-op-insert-bg: #DDF2E8;
+    --tl-color-op-insert-text: #136C47;
+    --tl-color-op-update-bg: #DDE9FB;
+    --tl-color-op-update-text: #1557C0;
+    --tl-color-op-delete-bg: #F9E1E1;
+    --tl-color-op-delete-text: #A33434;
+    --tl-color-op-redacted-bg: #FBEFD2;
+    --tl-color-op-redacted-text: #8A5512;
     --tl-color-brand-rail: #0F1728;
     --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
     --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
     --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
-    --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+    --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
   }
 
   @media (prefers-color-scheme: light) {
@@ -245,10 +258,10 @@
       --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
       --tl-color-backdrop: rgba(15, 23, 40, 0.42);
       --tl-color-border: #C9D3E2;
-      --tl-color-border-strong: #A7B4C8;
+      --tl-color-border-strong: #76849F;
       --tl-color-border-focus: #1557C0;
       --tl-color-text: #0F1728;
-      --tl-color-muted: #3B4762;
+      --tl-color-muted: #56647E;
       --tl-color-muted-soft: #73819C;
       --tl-color-accent: #1557C0;
       --tl-color-accent-strong: #0E459B;
@@ -276,11 +289,19 @@
       --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
       --tl-color-neutral-text: #3B4762;
       --tl-color-neutral-border: #C9D3E2;
+      --tl-color-op-insert-bg: #DDF2E8;
+      --tl-color-op-insert-text: #136C47;
+      --tl-color-op-update-bg: #DDE9FB;
+      --tl-color-op-update-text: #1557C0;
+      --tl-color-op-delete-bg: #F9E1E1;
+      --tl-color-op-delete-text: #A33434;
+      --tl-color-op-redacted-bg: #FBEFD2;
+      --tl-color-op-redacted-text: #8A5512;
       --tl-color-brand-rail: #0F1728;
       --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
       --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
       --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
-      --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+      --tl-focus-ring: 0 0 0 2px var(--tl-color-border-focus);
     }
   }
 

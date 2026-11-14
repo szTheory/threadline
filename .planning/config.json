@@ -21,7 +21,7 @@
     "verifier": true,
     "auto_advance": true,
     "skip_discuss": false,
-    "_auto_chain_active": false,
+    "_auto_chain_active": true,
     "research_before_questions": true,
     "discuss_default_research_synthesis": true,
     "discuss_use_subagent_research": true,
@@ -51,13 +51,14 @@
       "assessment_supersedes_prior_thread": true
     },
     "nyquist_validation": true,
-    "use_worktrees": true
+    "use_worktrees": true,
+    "compact_content": true
   },
   "granularity": "coarse",
   "model_profile": "adaptive",
   "model_profile_overrides": {
     "codex": {
-      "opus": "gpt-6-sol",
+      "opus": "gpt-6.1-sol",
       "sonnet": "gpt-6-luna",
       "haiku": "gpt-6-luna"
     },
@@ -67,5 +68,23 @@
       "haiku": "claude-sonnet-5-5"
     }
   },
-  "commit_docs": true
+  "commit_docs": true,
+  "runtime": "codex",
+  "effort": {
+    "routing_tier_defaults": {
+      "light": "xhigh",
+      "standard": "xhigh",
+      "heavy": "high"
+    },
+    "agent_overrides": {
+      "gsd-plan-checker": "high",
+      "gsd-code-reviewer": "high",
+      "gsd-verifier": "high"
+    }
+  },
+  "model_overrides": {
+    "gsd-plan-checker": "gpt-6.1-sol",
+    "gsd-code-reviewer": "gpt-6.1-sol",
+    "gsd-verifier": "gpt-6.1-sol"
+  }
 }

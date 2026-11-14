@@ -1,7 +1,8 @@
 # Integration Contracts
 
 Threadline exposes a small set of concrete integration seams. This guide is the
-canonical breadth contract for those seams.
+canonical breadth contract for those seams. Use them to connect capture,
+request/job context, and optional Threadline Admin to your host app.
 
 The contract is intentionally code-shaped:
 
@@ -164,7 +165,7 @@ contracts.
 
 ## Operator-surface composition via `authorize_fn` and `export_authorize_fn`
 
-The operator surface is required for the **`phoenix-surface`** lane and for
+Threadline Admin is required for the **`phoenix-surface`** lane and for
 reference lanes that mount `threadline_operator_surface/2`. It is one breadth
 contract with two transport faces:
 
@@ -177,10 +178,10 @@ The host still owns authentication and authorization semantics. Threadline
 standardizes where those hooks plug in; it does not define who the user is,
 which roles exist, or how tenancy is modeled.
 
-That same boundary applies to the evidence plane. Evidence writes are
+That same boundary applies to host-written evidence. Evidence writes are
 host-owned via `Threadline.Evidence` `record_*`; Threadline does not
 auto-populate attestations from retention, health, or export paths. The
-evidence plane captures governance and support-scope posture the host chooses
+recorded evidence describes operational settings and support access the host chooses
 to record, but it does not introduce a Threadline-owned RBAC system, tenancy
 DSL, approval workflow, legal-hold flow, or vendor-reporting suite.
 
@@ -241,14 +242,13 @@ policy, or blanket permission vocabulary.
 
 ### Secure-by-default mount boundary
 
-`threadline_operator_surface/2` is the supported mount boundary. It requires one
-of these conditions at compile time:
-
-- mount inside a router scope that already has `pipe_through`
-- provide `:authorize_fn`
-- explicitly acknowledge unauthenticated mounting
-
-Anything outside that boundary is outside the supported surface story.
+`threadline_operator_surface/2` is the supported mount boundary. Retain the
+host's `pipe_through` middleware for its authentication and tenant policy, but
+`pipe_through` alone does not authorize this mount. At compile time, provide a
+usable unary `:authorize_fn` or the exact literal
+`:adopter_acknowledges_unauthenticated: true` for an intentionally public
+surface. The acknowledgement behaves the same way in tests and production and
+does not add an authentication mechanism.
 
 When that mount also receives `actor_fn`, the public router installs the
 actor-to-session bridge before the LiveView routes. That keeps actor-owned saved
@@ -322,7 +322,7 @@ authorize_fn.(mirror)
 That fallback is part of the public contract. If you want one host-owned
 authorization function to cover both transport faces, write it against
 `%{assigns: assigns}` rather than LiveView-only helpers. If you need a stricter
-export posture than the mounted surface, provide `export_authorize_fn` as a
+export authorization policy than the mounted surface, provide `export_authorize_fn` as a
 deliberate override rather than teaching two primary authorization vocabularies.
 
 Both transport faces share the same telemetry event
@@ -347,6 +347,6 @@ supervision and external storage infrastructure.
 ## Next steps
 
 - Return to [Getting started](getting-started-saas.md) for the Adopt lane.
-- Mount and authorize the screens with the [Operator surface guide](operator-surface.md).
+- Mount and authorize the screens with the [Threadline Admin guide](operator-surface.md).
 - If Sigra owns request authentication in your host, continue with the
   [Sigra reference integration](integrations/sigra.md).

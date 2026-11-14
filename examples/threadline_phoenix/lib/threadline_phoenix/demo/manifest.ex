@@ -7,8 +7,8 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   See `examples/threadline_phoenix/DEMO-MANIFEST.md` for the human-readable contract.
 
   `demo_last_tuesday` is the absolute UTC instant for operator filters when walkthrough
-  prose says “last Tuesday” — derived as seven days before `demo_epoch` at 14:30 UTC
-  (2026-05-20, a Tuesday relative to epoch 2026-05-27).
+  prose says “last Tuesday” — the preceding calendar Tuesday to `demo_epoch` at 14:30 UTC
+  (2026-05-26, before the Wednesday epoch on 2026-05-27).
   """
 
   defmodule UUID do
@@ -60,7 +60,7 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   end
 
   @demo_epoch ~U[2026-05-27 12:00:00Z]
-  @demo_last_tuesday ~U[2026-05-20 14:30:00Z]
+  @demo_last_tuesday ~U[2026-05-26 14:30:00Z]
 
   # Named actor literals (D-06) — used in seed clusters and DEMO-MANIFEST.md
   @actor_zendesk_sync "zendesk-sync"
@@ -118,7 +118,7 @@ defmodule ThreadlinePhoenix.Demo.Manifest do
   @doc "Frozen demo “today” for timeline backfill and filters."
   def epoch, do: @demo_epoch
 
-  @doc "Absolute UTC for walkthrough “last Tuesday” operator filters."
+  @doc "Absolute UTC for the calendar Tuesday before the demo epoch."
   def last_tuesday, do: @demo_last_tuesday
 
   @doc "Deterministic organization id (`:acme`, `:globex`, `:offboarded_co`)."

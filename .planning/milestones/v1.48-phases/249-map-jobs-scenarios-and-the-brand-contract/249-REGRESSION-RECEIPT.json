@@ -1,0 +1,25 @@
+{
+  "source": "04d41a2ace210bc2fa8eaab4538eb6a65c44016a",
+  "prior_milestone_phase": "248",
+  "scope": "six prior-phase mount/HTTP/public/doc/discovery contracts plus current independent inventory seam; not whole-root/fullrepeat/canonical/browser",
+  "resolution": "Generic workflow test-command resolver does not recognize Mix; run explicit named project scoped alias instead of claiming its true/no-op is a tested pass. No config mutation.",
+  "args": [
+    "mix",
+    "verify.test",
+    "test/threadline/operator_surface/router_test.exs",
+    "test/threadline/operator_surface/gating_test.exs",
+    "test/threadline/operator_surface/controllers/export_controller_test.exs",
+    "test/threadline/public_surface_contract_test.exs",
+    "test/threadline/code_walkthrough_doc_contract_test.exs",
+    "test/threadline/browser_journey_evidence_contract_test.exs",
+    "test/threadline/operator_surface/operator_evidence_contract_test.exs"
+  ],
+  "timeout_s": 600,
+  "exit_code": 0,
+  "elapsed_s": 8.476,
+  "result": "122 tests, 0 failures",
+  "limits": [
+    "Scoped prior/current contract checks only",
+    "No whole-root/fullrepeat/canonical/browser/hosted result"
+  ]
+}

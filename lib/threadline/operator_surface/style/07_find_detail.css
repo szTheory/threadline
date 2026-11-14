@@ -4,8 +4,9 @@
     min-width: 0;
     color: var(--tl-color-text);
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
     overflow-wrap: anywhere;
     font-variant-numeric: tabular-nums;
   }
@@ -28,8 +29,8 @@
 
   .tl-value--redacted {
     border-radius: var(--tl-radius-sm);
-    background: var(--tl-color-warning-bg);
-    color: var(--tl-color-warning-text);
+    background: var(--tl-color-op-redacted-bg);
+    color: var(--tl-color-op-redacted-text);
     padding: 0 var(--tl-space-1);
   }
 
@@ -67,8 +68,9 @@
   .tl-diff__arrow {
     color: var(--tl-color-muted);
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-filter-summary {
@@ -126,9 +128,9 @@
     min-width: 0;
     gap: var(--tl-space-2);
     color: var(--tl-color-text);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
-    font-weight: var(--tl-weight-medium);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-weight: var(--tl-weight-regular);
   }
 
   .tl-remediation {
@@ -147,8 +149,9 @@
     background: var(--tl-color-warning-bg);
     color: var(--tl-color-warning-text);
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
     overflow-wrap: anywhere;
   }
 
@@ -157,8 +160,9 @@
     align-items: center;
     min-height: var(--tl-control-height-compact);
     color: var(--tl-color-accent);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-family: var(--tl-font-family);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
     font-weight: var(--tl-weight-strong);
   }
 
@@ -190,8 +194,9 @@
     background: var(--tl-color-warning-bg);
     color: var(--tl-color-warning-text);
     cursor: pointer;
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-family: var(--tl-font-family);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
     font-weight: var(--tl-weight-strong);
     list-style: none;
     transition-property: color, background-color, border-color, box-shadow;
@@ -300,8 +305,8 @@
     display: grid;
     gap: var(--tl-space-1);
     color: var(--tl-color-muted);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-job__title strong {
@@ -326,12 +331,15 @@
     color: var(--tl-color-muted);
     font-size: var(--tl-font-size-label);
     line-height: var(--tl-line-label);
+    font-weight: var(--tl-weight-strong);
+    letter-spacing: var(--tl-tracking-caps);
   }
 
   .tl-job__meta dd {
     margin: 0;
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-metadata);
     font-variant-numeric: tabular-nums;
   }
 
@@ -352,8 +360,8 @@
     background: var(--tl-color-surface);
     color: var(--tl-color-text);
     box-shadow: var(--tl-shadow-border);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-param--muted {
@@ -364,14 +372,18 @@
     min-width: 0;
     overflow-wrap: anywhere;
     font-family: var(--tl-font-mono);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-job__note {
     margin: 0;
     padding: var(--tl-space-2) var(--tl-space-3);
     border-radius: var(--tl-radius-md);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-job__note--error {
@@ -400,21 +412,25 @@
 
   .tl-section__title {
     margin: 0;
-    font-size: var(--tl-font-size-body);
-    line-height: var(--tl-line-body);
+    font-family: var(--tl-font-heading);
+    font-size: var(--tl-font-size-heading);
+    line-height: var(--tl-line-heading);
     font-weight: var(--tl-weight-strong);
   }
 
   .tl-evidence__ref,
   .tl-evidence__meta code {
     font-family: var(--tl-font-mono);
-    font-size: var(--tl-font-size-label);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-evidence__meta {
     color: var(--tl-color-muted);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-policy__section--drift .tl-policy__section-header {
@@ -474,14 +490,17 @@
 
   .tl-policy__table {
     font-family: var(--tl-font-mono);
-    font-weight: var(--tl-weight-strong);
+    font-size: var(--tl-font-size-dense);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-mono);
   }
 
   .tl-policy__status,
   .tl-policy__hint {
     color: var(--tl-color-muted);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-policy__hint,
@@ -492,8 +511,9 @@
   .tl-policy__warning {
     margin-top: var(--tl-space-1);
     color: var(--tl-color-danger);
-    font-size: var(--tl-font-size-label);
-    line-height: var(--tl-line-label);
+    font-size: var(--tl-font-size-sm);
+    font-weight: var(--tl-weight-regular);
+    line-height: var(--tl-line-metadata);
   }
 
   .tl-policy__details {

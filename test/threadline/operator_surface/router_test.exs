@@ -2,51 +2,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.RouterTest do
     use ExUnit.Case, async: true
 
+    @mount_error "Threadline.OperatorSurface.Router.threadline_operator_surface/2 requires either a one-argument `authorize_fn` or the exact `adopter_acknowledges_unauthenticated: true` opt-out. `pipe_through` alone does not authorize access. Add `authorize_fn: &MyApp.Audit.authorize_operator/1`, or use the exact opt-out only when this surface is intentionally unauthenticated."
+
     describe "threadline_operator_surface/2 macro validation" do
       test "Case 1: raises CompileError when called without pipe_through or explicit auth opts" do
-        assert_raise CompileError,
-                     ~r/Threadline Operator Surface must be mounted inside a secure pipeline\. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`\./,
-                     fn ->
-                       Code.compile_quoted(
-                         quote do
-                           defmodule Threadline.OperatorSurface.RouterTest.UnsafeMount do
-                             use Phoenix.Router
-                             require Threadline.OperatorSurface.Router
+        error =
+          assert_raise CompileError, fn ->
+            Code.compile_quoted(
+              quote do
+                defmodule Threadline.OperatorSurface.RouterTest.UnsafeMount do
+                  use Phoenix.Router
+                  require Threadline.OperatorSurface.Router
 
-                             Threadline.OperatorSurface.Router.threadline_operator_surface(
-                               "/threadline"
-                             )
-                           end
-                         end
-                       )
-                     end
-      end
-
-      test "Case 2: compiles successfully with pipe_through" do
-        modules =
-          Code.compile_quoted(
-            quote do
-              defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
-                use Phoenix.Router
-                require Threadline.OperatorSurface.Router
-
-                pipeline :browser do
-                  plug(:accepts, ["html"])
-                end
-
-                scope "/" do
-                  pipe_through(:browser)
                   Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
                 end
               end
-            end
-          )
+            )
+          end
 
-        # Cleanup compiled modules
-        for {module, _} <- modules do
-          :code.delete(module)
-          :code.purge(module)
+        assert error.description == @mount_error
+      end
+
+      test "pipeline-only host mount fails with the actionable call-site diagnostic" do
+        source = ~S"""
+        defmodule Threadline.OperatorSurface.RouterTest.PipedMount do
+          use Phoenix.Router
+          require Threadline.OperatorSurface.Router
+
+          pipeline :browser do
+            plug(:accepts, ["html"])
+          end
+
+          scope "/" do
+            pipe_through(:browser)
+            Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline")
+          end
         end
+        """
+
+        error =
+          assert_raise CompileError, fn ->
+            Code.compile_string(source, "operator_surface_mount_fixture.ex")
+          end
+
+        assert error.file == "operator_surface_mount_fixture.ex"
+        assert error.line == 11
+        assert error.description == @mount_error
+      end
+
+      test "missing, nil, false and literal non-function authorizers fail closed" do
+        for option <- [
+              "authorize_fn: nil",
+              "authorize_fn: false",
+              "authorize_fn: true",
+              "authorize_fn: :not_a_function",
+              "authorize_fn: 17",
+              "authorize_fn: {:ok, :scope}",
+              "authorize_fn: {:not, :a, :function}",
+              "authorize_fn: []",
+              "authorize_fn: %{}"
+            ] do
+          assert_invalid_mount!(option)
+        end
+      end
+
+      test "literal acknowledgements other than true do not opt out" do
+        for option <- [
+              "adopter_acknowledges_unauthenticated: false",
+              "adopter_acknowledges_unauthenticated: nil",
+              "adopter_acknowledges_unauthenticated: :yes",
+              "adopter_acknowledges_unauthenticated: \"yes\""
+            ] do
+          assert_invalid_mount!(option)
+        end
+      end
+
+      test "statically recognizable callback arities other than one fail closed" do
+        for option <- [
+              "authorize_fn: fn -> :ok end",
+              "authorize_fn: fn _socket, _conn -> :ok end",
+              "authorize_fn: &__MODULE__.auth/0",
+              "authorize_fn: &__MODULE__.auth/2"
+            ] do
+          assert_invalid_mount!(option)
+        end
+      end
+
+      test "guarded multi-argument callback fails with the mount authorization diagnostic" do
+        assert_invalid_mount!("authorize_fn: fn socket, _conn when is_map(socket) -> :ok end")
       end
 
       test "Case 3: compiles successfully without pipe_through but with authorize_fn" do
@@ -147,7 +190,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   pipe_through(:browser)
 
                   Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline",
-                    theme: :system
+                    theme: :system,
+                    adopter_acknowledges_unauthenticated: true
                   )
                 end
               end
@@ -311,6 +355,68 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         purge_modules(modules)
       end
 
+      test "one-argument anonymous callbacks and opaque expressions compile without invocation" do
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.InlineFnMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/inline",
+                  authorize_fn: fn _socket -> :ok end
+                )
+              end
+
+              defmodule Threadline.OperatorSurface.RouterTest.OpaqueFnMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                @authorize_fn &__MODULE__.authorize/1
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/opaque",
+                  authorize_fn: @authorize_fn
+                )
+
+                def authorize(_socket) do
+                  send(self(), :authorize_fn_called)
+                  :ok
+                end
+              end
+            end
+          )
+
+        refute_received :authorize_fn_called
+        purge_modules(modules)
+      end
+
+      test "guarded unary authorization callback compiles" do
+        modules =
+          Code.compile_quoted(
+            quote do
+              defmodule Threadline.OperatorSurface.RouterTest.GuardedUnaryMount do
+                use Phoenix.Router
+                require Threadline.OperatorSurface.Router
+
+                Threadline.OperatorSurface.Router.threadline_operator_surface("/guarded-unary",
+                  authorize_fn: fn socket when is_map(socket) -> :ok end,
+                  exports: false
+                )
+              end
+            end
+          )
+
+        purge_modules(modules)
+      end
+
+      test "local unary short captures survive Phoenix route compilation and run at mount time" do
+        assert_local_authorizer_runtime!("&authorize(&1)", :short_capture)
+      end
+
+      test "local unary named captures survive Phoenix route compilation and run at mount time" do
+        assert_local_authorizer_runtime!("&authorize/1", :named_capture)
+      end
+
       test "exports option suppresses only the HTTP export controller routes" do
         modules =
           Code.compile_quoted(
@@ -353,6 +459,77 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       for {module, _} <- modules do
         :code.delete(module)
         :code.purge(module)
+      end
+    end
+
+    defp assert_invalid_mount!(options) do
+      module = Module.concat(__MODULE__, "RejectedMount#{System.unique_integer([:positive])}")
+
+      source = """
+      defmodule #{inspect(module)} do
+        use Phoenix.Router
+        require Threadline.OperatorSurface.Router
+        Threadline.OperatorSurface.Router.threadline_operator_surface("/threadline", #{options})
+      end
+      """
+
+      error =
+        assert_raise CompileError, fn ->
+          Code.compile_string(source, "invalid_operator_surface_mount.ex")
+        end
+
+      assert error.description == @mount_error
+      assert error.file == "invalid_operator_surface_mount.ex"
+      assert error.line == 4
+    end
+
+    defp assert_local_authorizer_runtime!(capture, callback_tag) do
+      module = Module.concat(__MODULE__, "LocalCaptureMount#{System.unique_integer([:positive])}")
+
+      source = """
+      defmodule #{inspect(module)} do
+        use Phoenix.Router
+        require Threadline.OperatorSurface.Router
+
+        def authorize(_socket) do
+          send(self(), {:authorize_fn_called, #{inspect(callback_tag)}})
+          :ok
+        end
+
+        Threadline.OperatorSurface.Router.threadline_operator_surface("/local-capture",
+          authorize_fn: #{capture},
+          exports: false
+        )
+      end
+      """
+
+      modules = Code.compile_string(source, "local_authorizer_mount_fixture.ex")
+
+      try do
+        refute_received {:authorize_fn_called, ^callback_tag}
+
+        route =
+          Phoenix.Router.routes(module)
+          |> Enum.find(&(&1.path == "/local-capture"))
+
+        assert %{metadata: %{phoenix_live_view: {_view, _action, _opts, live_session}}} = route
+
+        hooks = live_session.extra.on_mount
+        auth_hook = Enum.find(hooks, &match?({Threadline.OperatorSurface.Auth, _}, &1.id))
+        assert auth_hook
+
+        {_auth_module, authorize_opts} = auth_hook.id
+
+        socket = %Phoenix.LiveView.Socket{
+          endpoint: MyApp.Endpoint,
+          router: module,
+          assigns: %{__changed__: %{}}
+        }
+
+        assert {:cont, _socket} = auth_hook.function.(authorize_opts, %{}, %{}, socket)
+        assert_receive {:authorize_fn_called, ^callback_tag}
+      after
+        purge_modules(modules)
       end
     end
 

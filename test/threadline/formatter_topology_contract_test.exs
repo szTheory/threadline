@@ -20,6 +20,7 @@ defmodule Threadline.FormatterTopologyContractTest do
 
   test "repository formatter configs give representative Elixir files exactly one owner" do
     owners = formatter_owners(Path.join(@root, ".formatter.exs"))
+    owner_files = Enum.map(owners, &{&1, owned_files(&1)})
     root_config = owner!(owners, @root).config
 
     assert Keyword.get(root_config, :subdirectories, []) == [
@@ -29,15 +30,20 @@ defmodule Threadline.FormatterTopologyContractTest do
 
     assert "scripts/**/*.{ex,exs}" in Keyword.fetch!(root_config, :inputs)
 
-    assert ownership_errors(@representative_paths, owners) == [],
+    assert ownership_errors(@representative_paths, owner_files) == [],
            "every representative path must have exactly one formatter owner"
 
+    # The overlap control only needs to add a second owner to this representative path.
+    # Keep it literal to avoid traversing unrelated dependency and build trees.
     overlapping =
       update_owner(owners, @root, fn config ->
-        Keyword.update!(config, :inputs, &["bench/**/*.exs" | &1])
+        Keyword.update!(config, :inputs, &["bench/audit_capture_bench.exs" | &1])
       end)
 
-    assert ownership_errors(["bench/audit_capture_bench.exs"], overlapping) == [
+    overlapping_owner = owner!(overlapping, @root)
+    overlapping_owner_files = replace_owner_files(owner_files, overlapping_owner)
+
+    assert ownership_errors(["bench/audit_capture_bench.exs"], overlapping_owner_files) == [
              {"bench/audit_capture_bench.exs", :overlap, [@root, Path.join(@root, "bench")]}
            ]
 
@@ -46,7 +52,10 @@ defmodule Threadline.FormatterTopologyContractTest do
         Keyword.update!(config, :inputs, &List.delete(&1, "*.{ex,exs}"))
       end)
 
-    assert ownership_errors(["bench/audit_capture_bench.exs"], uncovered) == [
+    uncovered_owner = owner!(uncovered, Path.join(@root, "bench"))
+    uncovered_owner_files = replace_owner_files(owner_files, uncovered_owner)
+
+    assert ownership_errors(["bench/audit_capture_bench.exs"], uncovered_owner_files) == [
              {"bench/audit_capture_bench.exs", :uncovered, []}
            ]
   end
@@ -71,14 +80,14 @@ defmodule Threadline.FormatterTopologyContractTest do
     [owner | children]
   end
 
-  defp ownership_errors(paths, owners) do
+  defp ownership_errors(paths, owned_files_by_owner) do
     Enum.flat_map(paths, fn relative_path ->
       absolute_path = Path.join(@root, relative_path)
 
       matching_roots =
-        owners
-        |> Enum.filter(&(absolute_path in owned_files(&1)))
-        |> Enum.map(& &1.root)
+        owned_files_by_owner
+        |> Enum.filter(fn {_owner, files} -> MapSet.member?(files, absolute_path) end)
+        |> Enum.map(fn {owner, _files} -> owner.root end)
         |> Enum.sort()
 
       case matching_roots do
@@ -94,6 +103,16 @@ defmodule Threadline.FormatterTopologyContractTest do
     |> Keyword.fetch!(:inputs)
     |> Enum.flat_map(&Path.wildcard(Path.join(root, &1), match_dot: true))
     |> MapSet.new()
+  end
+
+  defp replace_owner_files(owned_files_by_owner, changed_owner) do
+    changed_files = owned_files(changed_owner)
+
+    Enum.map(owned_files_by_owner, fn {owner, files} ->
+      if owner.root == changed_owner.root,
+        do: {changed_owner, changed_files},
+        else: {owner, files}
+    end)
   end
 
   defp owner!(owners, root), do: Enum.find(owners, &(&1.root == root))

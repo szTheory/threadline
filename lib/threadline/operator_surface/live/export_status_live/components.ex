@@ -11,6 +11,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.UI
     alias Threadline.Query.FilterParams
 
+    attr(:id, :string, default: "export-jobs")
     attr(:jobs_count, :integer, required: true)
     attr(:default_limit, :integer, required: true)
     attr(:job_groups, :list, required: true)
@@ -18,7 +19,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def job_history(assigns) do
       ~H"""
-              <section id="export-jobs" data-testid="export-jobs">
+              <section id={@id} data-testid="export-jobs">
                 <%!-- Export history is intentionally recent-only rather than keyset-paginated.
                       Report the actual rendered count without overstating a short table;
                       when the cap is reached, use @default_limit instead of a literal. --%>
@@ -38,7 +39,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-job-list">
                     <article
                       :for={job <- group.jobs}
-                      id={"export-job-#{job.id}"}
+                      id={if @id == "export-jobs", do: "export-job-#{job.id}", else: "#{@id}-job-#{job.id}"}
                       class={["tl-job", job_modifier(job)]}
                       data-testid="export-job"
                     >

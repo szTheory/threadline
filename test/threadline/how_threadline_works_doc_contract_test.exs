@@ -72,6 +72,17 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
     assert String.contains?(doc, "Threadline.OperatorSurface.Router")
     assert String.contains?(doc, "Threadline.Export.Orchestrator")
     assert String.contains?(doc, "Threadline.Evidence")
+    assert String.contains?(doc, "Threadline Admin")
+
+    for layer <- [
+          "**capture layer**",
+          "**semantics layer**",
+          "**exploration and operations layer**"
+        ] do
+      assert String.contains?(doc, layer)
+    end
+
+    refute String.contains?(doc, "evidence plane")
 
     refute String.contains?(doc, "Threadline.Capture.TriggerSQL")
     refute String.contains?(doc, "Threadline.Capture.RedactionPolicy")

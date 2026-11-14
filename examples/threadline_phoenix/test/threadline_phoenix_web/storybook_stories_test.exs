@@ -1,6 +1,7 @@
 defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   @moduledoc false
   use ExUnit.Case, async: true
+  require Phoenix.LiveViewTest
 
   @storybook_root "storybook"
   @backend_path "lib/threadline_phoenix_web/storybook.ex"
@@ -15,7 +16,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"Overlays", "overlays"},
     {"Data Display", "data_display"},
     {"Groups", "groups"},
-    {"Patterns", "patterns"}
+    {"Patterns", "patterns"},
+    {"Operations", "operations"}
   ]
 
   @ugly_cases ~w(
@@ -253,6 +255,121 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     refute source =~ "page.timeline"
     refute source =~ "footgun."
     refute source =~ "operator-stress"
+  end
+
+  test "Phase252 Operations Export is a pure static composition of the production renderer" do
+    source = story_file!("operations/exports.story.exs")
+    assert source =~ "ExportStatusLive.Components.job_history"
+
+    for reference <- [
+          "route.exports",
+          "job.operator-export-status",
+          "source-exports-6",
+          "proof-exports-1",
+          "scenario.acme-4521-investigation"
+        ] do
+      assert source =~ reference
+    end
+
+    module = ThreadlinePhoenixWeb.Storybook.Operations.ExportsStory
+    Code.ensure_loaded!(module)
+
+    html =
+      Phoenix.LiveViewTest.render_component(
+        fn assigns -> apply(module, :render, [assigns]) end,
+        %{}
+      )
+
+    ids = Regex.scan(~r/<[^>]+\bid="([^"]+)"/, html, capture: :all_but_first) |> List.flatten()
+
+    assert length(ids) == length(Enum.uniq(ids)),
+           "static compositions must retain unique document IDs"
+
+    assert html =~ "Static Operations Export"
+    assert html =~ "data-testid=\"export-jobs\""
+    assert html =~ "walk-acme-4521-close"
+    assert html =~ "Queued"
+    assert html =~ "Pending"
+    assert html =~ "Failed"
+    assert html =~ "Static examples do not establish permissions"
+    # Embedded CSS mentions phx attributes; only actual tag attributes are controls.
+    refute Regex.match?(~r/<[^>]*\sphx-(?:submit|click)=/, html)
+    refute source =~ "Demo.Seed"
+    refute source =~ "Repo."
+    fixtures = ThreadlinePhoenixWeb.Storybook.Fixtures
+
+    assert apply(fixtures, :operations_exports, [:ordinary]) ==
+             apply(fixtures, :operations_exports, [:ordinary])
+  end
+
+  test "Phase252 Retention uses shared read-only production history and preview" do
+    source = story_file!("operations/retention.story.exs")
+
+    live_source =
+      File.read!("../../lib/threadline/operator_surface/live/retention_history_live.ex")
+
+    assert source =~ "RetentionHistoryLive.Components"
+    assert source =~ "Components.run_history"
+    assert source =~ "Components.retention_preview"
+    assert live_source =~ "RetentionHistoryLive.Components"
+    assert live_source =~ "Components.run_history"
+    assert live_source =~ "Components.retention_preview"
+    module = ThreadlinePhoenixWeb.Storybook.Operations.RetentionStory
+    Code.ensure_loaded!(module)
+
+    html =
+      Phoenix.LiveViewTest.render_component(
+        fn assigns -> apply(module, :render, [assigns]) end,
+        %{}
+      )
+
+    assert html =~ "Static Operations Retention"
+    assert html =~ "Estimated AuditChange candidates"
+    assert html =~ "sequential estimates, not a snapshot"
+    assert html =~ "Empty-transaction cleanup is disabled"
+    assert html =~ "Pending"
+    refute Regex.match?(~r/<[^>]*\sphx-(?:submit|click)=/, html)
+    ids = Regex.scan(~r/<[^>]+\bid="([^"]+)"/, html, capture: :all_but_first) |> List.flatten()
+    assert length(ids) == length(Enum.uniq(ids))
+    partial = ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:partial)
+    assert partial.retention_summary.latest_completed == "No completed run yet"
+    assert partial.retention_summary.total_deleted == nil
+    assert html =~ "No completed run yet"
+    sample = ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:ordinary)
+    [{_, run}] = sample.runs
+    assert run.deleted_count == 14
+    assert run.duration_ms == 320
+    refute Map.has_key?(sample.preview, :target)
+    assert sample == ThreadlinePhoenixWeb.Storybook.Fixtures.operations_retention(:ordinary)
+
+    for reference <- [
+          "route.retention",
+          "job.operator-retention-operations",
+          "source-retention-preview",
+          "proof-retention-1",
+          "scenario.offboarded-co-retention-boundary"
+        ] do
+      assert source =~ reference
+    end
+  end
+
+  test "Phase252 Operations stories link the existing semantic resource and route inventory" do
+    inventory = Jason.decode!(File.read!("e2e/support/operator-journey-inventory.json"))
+    catalog = Enum.find(inventory["resourceDispositions"], &(&1["id"] == "resource.storybook"))
+
+    for {kind, route} <- [{"exports", "route.exports"}, {"retention", "route.retention"}] do
+      path = "operations/#{kind}.story.exs"
+      source = story_file!(path)
+      reference = Enum.find(catalog["sourceRefs"], &(&1["id"] == "operations-#{kind}"))
+      assert reference, "Operations #{kind} must be linked from the existing catalog resource"
+      assert reference["path"] == "examples/threadline_phoenix/storybook/#{path}"
+      assert source =~ reference["locator"]
+      surface = Enum.find(inventory["surfaces"], &(&1["routeId"] == route))
+      assert source =~ surface["routeId"]
+      assert source =~ surface["jobId"]
+      assert Enum.any?(surface["sourceRefs"], &(&1["path"] == reference["path"]))
+      for proof <- surface["proofRefs"], do: assert(source =~ proof["id"])
+    end
   end
 
   defp rendered_or_source_backed?(source, component, markers) do

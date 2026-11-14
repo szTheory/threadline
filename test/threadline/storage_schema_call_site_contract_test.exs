@@ -462,12 +462,13 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
                "Threadline queries would be invisible to this guard"
 
       owned_names = owned_short_names()
+      cwd = File.cwd!()
 
       results =
         for path <- files,
             source = File.read!(path),
             site <- scan_call_sites(source, owned_names) do
-          Map.put(site, :path, Path.relative_to_cwd(path))
+          Map.put(site, :path, Path.relative_to(path, cwd))
         end
 
       offenses = Enum.filter(results, & &1.offense)

@@ -24,6 +24,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.RowHistoryLiveTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.RowHistoryLiveTest.FakeUser
@@ -99,6 +100,66 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp assert_single_h1(html, text) do
       assert Regex.scan(~r/<h1\b[^>]*>\s*#{Regex.escape(text)}\s*<\/h1>/, html) |> length() == 1
       assert Regex.scan(~r/<h1\b/, html) |> length() == 1
+    end
+
+    @tag :snapshot_intent
+    test "invalid explicit snapshot time is visible and never queries a substituted latest snapshot",
+         %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "snapshot-intent"},
+        data_after: %{"id" => "snapshot-intent", "name" => "Latest must not be substituted"},
+        captured_at: at
+      })
+
+      handler = {__MODULE__, make_ref()}
+      event = Repo.config()[:telemetry_prefix] ++ [:query]
+      :ok = :telemetry.attach(handler, event, &__MODULE__.observe_snapshot_query/4, self())
+      on_exit(fn -> :telemetry.detach(handler) end)
+
+      assert {:ok, lv, _html} = live(conn, "/audit/rows/users/snapshot-intent?as_of=not-a-date")
+      assert has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+      refute has_element?(lv, "h4", "Snapshot as of")
+      refute has_element?(lv, ".tl-subview__panel", "Latest must not be substituted")
+      refute_receive {:snapshot_query, _}, 100
+
+      # Positive control: the same observer must see the actual supported read.
+      assert {:ok, valid, _} =
+               live(conn, "/audit/rows/users/snapshot-intent?as_of=2026-10-03T12%3A00%3A00Z")
+
+      assert has_element?(valid, ".tl-subview__panel", "Latest must not be substituted")
+      assert_receive {:snapshot_query, _}, 1000
+    end
+
+    @tag :snapshot_intent
+    test "clearing an explicit time keeps blank intent and retained filters", %{conn: conn} do
+      at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: at})
+
+      insert_change(txn, %{
+        table_pk: %{"id" => "snapshot-clear"},
+        data_after: %{"id" => "snapshot-clear", "name" => "Current captured value"},
+        captured_at: at
+      })
+
+      assert {:ok, lv, _} =
+               live(
+                 conn,
+                 "/audit/rows/users/snapshot-clear?origin=timeline&from=&table=users&as_of=2026-10-03T14%3A00%3A00%2B02%3A00"
+               )
+
+      assert has_element?(lv, ".tl-subview__panel", "Current captured value")
+      lv |> element("#row-history-as-of-form") |> render_change(%{"as_of" => ""})
+      assert_patch(lv, "/audit/rows/users/snapshot-clear?origin=timeline&from=&table=users")
+      refute has_element?(lv, "[role=alert]", "This snapshot time is invalid.")
+    end
+
+    def observe_snapshot_query(_event, _measurements, metadata, pid) do
+      if is_binary(metadata[:query]) and String.contains?(metadata.query, ~s("captured_at" <=)) do
+        send(pid, {:snapshot_query, metadata.query})
+      end
     end
 
     test "first-class row-history route renders its semantic shell without a transaction id", %{
@@ -237,14 +298,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_patch(lv, "/audit/rows/users/row-path-1?as_of=2026-10-03T12%3A00%3A00Z")
     end
 
-    test "timeline origin keeps only canonical filters through as-of and safe return", %{
+    test "timeline origin preserves validated filters separately from row identity", %{
       conn: conn
     } do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
 
       insert_change(txn, %{
-        table_name: "users",
+        table_name: "ticket_replies",
         table_pk: %{"id" => "row-context"},
         data_after: %{"id" => "row-context", "name" => "Context Value"},
         changed_fields: ["id", "name"],
@@ -252,15 +313,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       })
 
       path =
-        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&private_scope=secret"
+        "/audit/rows/ticket_replies/row-context?origin=timeline&from=2020-01-01T00:00:00" <>
+          "&to=2099-01-01T00:00:00&table_schema=support&table=tickets" <>
+          "&actor_kind=service_account&actor_id=sync-42&correlation_id=rel-42&private_scope=secret"
 
       assert {:ok, lv, html} = live(conn, path)
 
       assert html =~
-               ~s|href="/audit/timeline?table=users&amp;actor_kind=service&amp;correlation_id=rel-42"|
+               ~s|href="/audit/timeline?from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account&amp;actor_id=sync-42&amp;correlation_id=rel-42"|
 
       assert html =~
-               ~s|href="/audit/rows/users/row-context?origin=timeline&amp;table=users&amp;actor_kind=service&amp;correlation_id=rel-42&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+               ~s|href="/audit/rows/ticket_replies/row-context?origin=timeline&amp;from=2020-01-01T00%3A00%3A00&amp;to=2099-01-01T00%3A00%3A00&amp;table_schema=support&amp;table=tickets&amp;actor_kind=service_account&amp;actor_id=sync-42&amp;correlation_id=rel-42&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+
+      assert html =~ "Row history - ticket_replies"
+      refute html =~ "Row history - tickets"
 
       refute html =~ "private_scope"
 
@@ -270,7 +336,95 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert_patch(
         lv,
-        "/audit/rows/users/row-context?origin=timeline&table=users&actor_kind=service&correlation_id=rel-42&as_of=2026-10-03T12%3A00%3A00Z"
+        "/audit/rows/ticket_replies/row-context?origin=timeline&from=2020-01-01T00%3A00%3A00&to=2099-01-01T00%3A00%3A00&table_schema=support&table=tickets&actor_kind=service_account&actor_id=sync-42&correlation_id=rel-42&as_of=2026-10-03T12%3A00%3A00Z"
+      )
+    end
+
+    test "unsupported retained row-history intent is disclosed without inventing a direct-entry warning",
+         %{conn: conn} do
+      for query <- [
+            "origin=timeline&unsupported_only=private-value",
+            "origin=unknown&correlation_id=private-value"
+          ] do
+        {:ok, lv, _html} = live(conn, "/audit/rows/users/context-row?#{query}")
+
+        assert has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+
+        assert has_element?(lv, ~s(a[href="/audit/timeline"]))
+      end
+
+      for query <- ["", "?origin=timeline&from="] do
+        {:ok, lv, _html} = live(conn, "/audit/rows/users/context-row#{query}")
+
+        refute has_element?(
+                 lv,
+                 "[role=status]",
+                 "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+               )
+      end
+    end
+
+    test "invalid timeline filters discard the entire retained context", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "users",
+        table_pk: %{"id" => "row-invalid-context"},
+        data_after: %{"id" => "row-invalid-context", "name" => "Context Value"},
+        changed_fields: ["id", "name"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, lv, html} =
+               live(
+                 conn,
+                 "/audit/rows/users/row-invalid-context?origin=timeline&table=users&actor_kind=service&actor_id=sync-42&private_scope=secret"
+               )
+
+      assert html =~ ~s|href="/audit/timeline"|
+      assert html =~ ~s|href="/audit/rows/users/row-invalid-context?as_of=|
+      refute html =~ "actor_kind"
+      refute html =~ "private_scope"
+
+      assert has_element?(
+               lv,
+               "[role=status]",
+               "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing."
+             )
+    end
+
+    test "explicit empty from marker survives row-history as-of changes", %{conn: conn} do
+      captured_at = ~U[2026-10-03 12:00:00.000000Z]
+      txn = insert_transaction(%{occurred_at: captured_at})
+
+      insert_change(txn, %{
+        table_name: "ticket_replies",
+        table_pk: %{"id" => "reply-blank"},
+        data_after: %{"id" => "reply-blank", "body" => "Blank marker"},
+        changed_fields: ["id", "body"],
+        captured_at: captured_at
+      })
+
+      assert {:ok, lv, html} =
+               live(conn, "/audit/rows/ticket_replies/reply-blank?origin=timeline&from=")
+
+      assert html =~ ~s|href="/audit/timeline?from="|
+
+      assert html =~
+               ~s|href="/audit/rows/ticket_replies/reply-blank?origin=timeline&amp;from=&amp;as_of=2026-10-03T12%3A00%3A00.000000Z"|
+
+      render_change(element(lv, "form[phx-change='update-as-of']"), %{
+        "as_of" => "2026-10-03T12:00"
+      })
+
+      assert_patch(
+        lv,
+        "/audit/rows/ticket_replies/reply-blank?origin=timeline&from=&as_of=2026-10-03T12%3A00%3A00Z"
       )
     end
 

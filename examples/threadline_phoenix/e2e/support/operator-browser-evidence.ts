@@ -24,13 +24,32 @@ export async function login(page: Page, email = "admin@example.com") {
   await expect(page).toHaveURL("/", { timeout: 30_000 });
 }
 
+// Clipboard isolation for navigation/keyboard checks; this never calls the native clipboard.
+export async function installControlledClipboard(page: Page) {
+  await page.addInitScript(`(() => {
+    const state = { count: 0, installed: false, lastValue: null };
+    Object.defineProperty(window, "__phase251CopyCounter", { value: state });
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
+      writeText: async function(value) { state.count += 1; state.lastValue = value; }
+    }});
+    const original = document.execCommand.bind(document);
+    document.execCommand = function(command, showUI, value) {
+      if (command === "copy") { state.count += 1; return false; }
+      return original(command, showUI, value);
+    };
+    state.installed = true;
+  })();`);
+}
+
 export async function seedPaths(page: Page) {
   await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const link = page.getByTestId("timeline-row").first().getByTestId("transaction-link");
   await expect(link).toBeVisible();
   const transaction = await link.getAttribute("href");
-  expect(transaction).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  expect(transaction).toMatch(/^\/audit\/transactions\/[^/?#]+(?:\?[^#]*)?$/);
   await page.goto(transaction!);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const rowLink = page.getByTestId("transaction-change-row").filter({ hasText: "tickets" }).getByTestId("row-history-link").first();
   await expect(rowLink).toBeVisible();
   const drawer = await rowLink.getAttribute("href");
@@ -122,7 +141,7 @@ async function startBoundEvidence(page: Page, browser: Browser, info: TestInfo, 
     const observation = await root.evaluate((el) => {
       const style = getComputedStyle(el);
       const names = ["--tl-color-bg", "--tl-color-text", "--tl-color-paper", "--tl-color-ink", "--tl-motion-base", "--tl-font-size-body"];
-      return { preference: (el.querySelector('input[name="theme"]:checked') as HTMLInputElement)?.value ?? "unknown", mountedTheme: el.getAttribute("data-tl-theme") ?? "unknown", effectiveTheme: style.colorScheme, osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
+      return { preference: (el.querySelector('button[name="theme"][aria-pressed="true"]') as HTMLButtonElement)?.value ?? "unknown", mountedTheme: el.getAttribute("data-tl-theme") ?? "unknown", effectiveTheme: style.colorScheme, systemScheme: matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark", osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
     });
     const renderedDom = await page.locator("body").evaluate((body) => {
       const values = [body.textContent ?? ""];

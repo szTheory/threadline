@@ -112,6 +112,8 @@
   }
 
   .tl-alert {
+    min-width: 0;
+    overflow-wrap: anywhere;
     margin: var(--tl-space-3) var(--tl-space-4);
     padding: var(--tl-space-3) var(--tl-space-4);
     border: 1px solid var(--tl-color-border);

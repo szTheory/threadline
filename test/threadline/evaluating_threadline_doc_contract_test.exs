@@ -44,6 +44,11 @@ defmodule Threadline.EvaluatingThreadlineDocContractTest do
     assert String.contains?(guide, "mix verify.example")
     assert String.contains?(guide, "mix verify.hex_evaluator")
     assert String.contains?(guide, "adoption-evidence-playbook.md")
+    assert String.contains?(guide, "Threadline Admin")
+    assert String.contains?(guide, "local package readiness")
+    assert String.contains?(guide, "required CI for that candidate")
+    assert String.contains?(guide, "does not establish adopter understanding")
+    assert String.contains?(guide, "### Historical release context")
   end
 
   test "evaluating guide states host-owned boundaries and STG template pointers (PILOT-02)" do

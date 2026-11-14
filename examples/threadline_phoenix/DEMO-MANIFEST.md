@@ -12,7 +12,7 @@ with per-entity names such as `org/acme` or `user/closer@acme.example.com`.
 | Key | UTC instant | Notes |
 |-----|-------------|-------|
 | `demo_epoch` | `2026-05-27T12:00:00Z` | Frozen “today” for seed backfill and filters |
-| `demo_last_tuesday` | `2026-05-20T14:30:00Z` | Operator filters when prose says “last Tuesday” (7 days before epoch) |
+| `demo_last_tuesday` | `2026-05-26T14:30:00Z` | Operator filters for the preceding calendar Tuesday before the Wednesday epoch |
 
 Configured in `config/dev.exs` as `:demo_epoch` and `:demo_seed_password`.
 
@@ -55,11 +55,30 @@ See [DEMO_USERS.md](./DEMO_USERS.md) for passwords and walkthrough step mapping.
 Evidence `subject_ref` for org Y purge names `offboarded-co` and org UUID `93cba30e-e2d5-5d95-9c50-7023f4c3eda5`
 (see Phase 108 WALK-04 and `mix threadline.evidence.show`).
 
+## Ordinary scenario selection
+
+The ordinary investigation is `scenario.acme-4521-investigation` in the shared
+[operator journey inventory](./e2e/support/operator-journey-inventory.json). Start with
+one `mix demo.reset`, sign in as `admin@example.com`, and follow the `walk-acme-4521-close`
+correlation from Home through Timeline, its transaction, the reply history drawer, and
+direct row history. The seed uses the stable Acme organization and closer persona from
+`ThreadlinePhoenix.Demo.Manifest`, ticket 4521, and the seeded `ticket_replies` insert.
+
+The event time is `Manifest.last_tuesday()` (`2026-05-26T14:30:00Z`); the audit action's
+`AuditAction.inserted_at` remains its physical recording time. The record_id resolved from the seeded ticket_replies change at runtime is the selected key; it does not promise a stable database primary key. The internal note is deliberately redacted in the
+captured row. A source contract and database contract own those facts; this mapping is not
+a new browser receipt.
+
+Do not use stress fixtures as ordinary scenario data. Named empty, unavailable, denied,
+long-content, Unicode, boundary, and repeated-label examples remain separate selections.
+
 ## State recipes
 
-How to reach every meaningful operator-surface state from the enriched seed — no re-seeding, no `--profile` flags.
+How to reach every meaningful operator-surface state from the enriched seed — no `--profile` flags.
 
-**One-command story:** `mix demo.reset && mix demo.seed` is the only seed entrypoint. States are _reached_ (log in as X, open path Y, apply filter Z), never re-seeded. No `--profile` flag is used or needed.
+**Clean setup:** `mix demo.reset` is the one-command clean setup. It truncates and seeds the canonical demo fixture, so the E2E runner invokes it once and does not follow it with another seed command. States are _reached_ (log in as X, open path Y, apply filter Z), never re-seeded.
+
+**Direct seed:** `mix demo.seed` is a separate, guarded in-place operation against existing rows. Re-running the pipeline can have repeated effects, so use reset when you need a clean setup. The existing reset-then-seed regression only checks that its fixture sequence does not raise; it does not establish a general idempotence guarantee.
 
 | Screen | State | Login | Filter / Path | Notes |
 |--------|-------|-------|---------------|-------|

@@ -36,7 +36,7 @@ defmodule Threadline.PersonaRoutingDocContractTest do
     read_rel!(["README.md"])
     |> String.split("## Start here", parts: 2)
     |> Enum.at(1, "")
-    |> String.split("## Evidence plane", parts: 2)
+    |> String.split("## Check audit coverage and operations", parts: 2)
     |> hd()
   end
 
@@ -66,8 +66,8 @@ defmodule Threadline.PersonaRoutingDocContractTest do
 
     assert String.starts_with?(readme, "<picture>")
     assert String.contains?(readme, ~S|media="(prefers-color-scheme: dark)"|)
-    assert String.contains?(readme, "brandbook/logo-primary.svg")
-    assert String.contains?(readme, "brandbook/logo-primary-light.svg")
+    assert String.contains?(readme, "brand/assets/logo/threadline-lockup-dark.svg")
+    assert String.contains?(readme, "brand/assets/logo/threadline-lockup-light.svg")
     assert String.contains?(readme, ~S|alt="Threadline"|)
   end
 

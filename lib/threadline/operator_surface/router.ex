@@ -4,10 +4,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Mounts Threadline's operator interface in a Phoenix router with host-owned
     authorization and query scoping.
 
-    This module enforces a secure-by-default mount by requiring either:
-    1. A `pipe_through` directive in the enclosing router scope.
-    2. An explicit `:authorize_fn` option.
-    3. An explicit `:adopter_acknowledges_unauthenticated` option.
+    A mount must provide a usable one-argument `:authorize_fn` or the exact
+    literal `adopter_acknowledges_unauthenticated: true` opt-out. A host
+    `pipe_through` remains responsible for middleware such as authentication,
+    sessions and CSRF, but does not establish Threadline authorization.
 
     ## HTTP endpoints
 
@@ -26,8 +26,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @doc """
     Adds the Threadline operator LiveView and sibling HTTP routes to the host router.
 
-    The macro requires a secure enclosing pipeline, `:authorize_fn`, or an
-    explicit acknowledgement that the mount is unauthenticated.
+    The macro requires a usable one-argument `:authorize_fn` or an explicit
+    literal acknowledgement that the mount is intentionally unauthenticated.
+    Keep the host's `pipe_through` middleware; it does not replace
+    `:authorize_fn`.
 
     ## Mount options
 
@@ -41,17 +43,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     - `:theme` — `:dark | :light | :system`; defaults to `:dark`. Selects the default server-rendered operator-surface theme lane. `:system` follows the visitor's OS preference through scoped CSS only. A runtime dark/light/system theme picker is available in the shell (session-backed and resolved server-side; a response cookie mirrors the choice); Threadline adds no JavaScript and no local storage.
     """
     defmacro threadline_operator_surface(path, opts \\ []) do
-      has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)
+      has_auth_fn? = usable_authorize_fn_ast?(Keyword.get(opts, :authorize_fn))
       has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
-      has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated, false)
+      has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated) === true
       exports_enabled? = Keyword.get(opts, :exports, true)
+      {opts, authorize_fn_defs} = normalize_authorize_fn(opts, has_auth_fn?)
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line
 
       validate_theme!(Keyword.get(opts, :theme, :dark), caller_file, caller_line)
 
       quote do
-        unquote(secure_mount_guard(has_auth_fn?, has_ack?, caller_file, caller_line))
+        unquote_splicing(authorize_fn_defs)
+        unquote(secure_mount_guard(has_auth_fn? or has_ack?, caller_file, caller_line))
 
         import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
@@ -139,27 +143,145 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # Expands, in the host router, to a compile-time check that the surface is
-    # mounted behind a pipeline, an `:authorize_fn`, or an explicit
-    # acknowledgement that it is unauthenticated.
-    defp secure_mount_guard(has_auth_fn?, has_ack?, caller_file, caller_line) do
+    # Literal function forms are checked without evaluating the option AST.
+    # Dynamic expressions remain opaque and are checked by the existing
+    # fail-closed runtime callback handling.
+    defp usable_authorize_fn_ast?(nil), do: false
+
+    defp usable_authorize_fn_ast?({:fn, _meta, clauses}) when is_list(clauses) do
+      clauses != [] and
+        Enum.all?(clauses, &(authorize_fn_clause_arity(&1) == 1))
+    end
+
+    defp usable_authorize_fn_ast?({:&, _meta, [{:/, _arity_meta, [_function, arity]}]})
+         when is_integer(arity),
+         do: arity == 1
+
+    defp usable_authorize_fn_ast?({:&, _meta, [expression]}) do
+      case capture_placeholder_arity(expression) do
+        {:ok, 1} -> true
+        {:ok, _arity} -> false
+        :unknown -> false
+      end
+    end
+
+    defp usable_authorize_fn_ast?(ast), do: not literal_non_function_ast?(ast)
+
+    # Plug.Builder can only escape remote function captures in router options,
+    # so normalize supported local callbacks into a unique helper on the host router.
+    defp normalize_authorize_fn(opts, true) do
+      case Keyword.fetch(opts, :authorize_fn) do
+        {:ok, {:fn, _meta, clauses}} ->
+          generate_authorize_fn(opts, clauses)
+
+        {:ok, {:&, _meta, [{:/, _arity_meta, [{function, function_meta, nil}, 1]}]}}
+        when is_atom(function) ->
+          socket = Macro.var(:authorize_socket, nil)
+          body = {function, function_meta, [socket]}
+          generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
+
+        {:ok, {:&, _meta, [expression]}} ->
+          normalize_authorize_capture(opts, expression)
+
+        _ ->
+          {opts, []}
+      end
+    end
+
+    defp normalize_authorize_fn(opts, _not_usable), do: {opts, []}
+
+    defp normalize_authorize_capture(opts, expression) do
+      case capture_placeholder_arity(expression) do
+        {:ok, 1} ->
+          socket = Macro.var(:authorize_socket, nil)
+
+          body =
+            Macro.prewalk(expression, fn
+              {:&, _placeholder_meta, [1]} -> socket
+              node -> node
+            end)
+
+          generate_authorize_fn(opts, [{:->, [], [[socket], body]}])
+
+        _ ->
+          {opts, []}
+      end
+    end
+
+    defp generate_authorize_fn(opts, clauses) do
+      name = String.to_atom("__threadline_authorize_fn_#{System.unique_integer([:positive])}")
+
+      definitions = Enum.map(clauses, &authorize_fn_clause(name, &1))
+      capture = quote(do: &(__MODULE__.unquote(name) / 1))
+      {Keyword.put(opts, :authorize_fn, capture), definitions}
+    end
+
+    defp authorize_fn_clause(name, {:->, meta, [arguments, body]}) do
+      head =
+        case arguments do
+          [{:when, when_meta, guarded_arguments}] when length(guarded_arguments) >= 2 ->
+            {patterns, [guard]} = Enum.split(guarded_arguments, -1)
+            {:when, when_meta, [{name, meta, patterns}, guard]}
+
+          arguments ->
+            {name, meta, arguments}
+        end
+
+      {:def, Keyword.put(meta, :generated, true), [head, [do: body]]}
+    end
+
+    defp authorize_fn_clause_arity({:->, _meta, [arguments, _body]}) when is_list(arguments) do
+      case arguments do
+        [{:when, _when_meta, guarded_arguments}] when length(guarded_arguments) >= 2 ->
+          length(guarded_arguments) - 1
+
+        arguments ->
+          length(arguments)
+      end
+    end
+
+    defp authorize_fn_clause_arity(_clause), do: nil
+
+    defp capture_placeholder_arity(ast) do
+      {_ast, arities} =
+        Macro.prewalk(ast, [], fn
+          {:&, _meta, [arity]} = node, arities when is_integer(arity) and arity > 0 ->
+            {node, [arity | arities]}
+
+          node, arities ->
+            {node, arities}
+        end)
+
+      case arities do
+        [] -> :unknown
+        values -> {:ok, Enum.max(values)}
+      end
+    end
+
+    defp literal_non_function_ast?(value)
+         when is_atom(value) or is_number(value) or is_binary(value) or is_list(value),
+         do: true
+
+    defp literal_non_function_ast?({:%, _meta, _parts}), do: true
+    defp literal_non_function_ast?({:%{}, _meta, _entries}), do: true
+    defp literal_non_function_ast?({:<<>>, _meta, _parts}), do: true
+    defp literal_non_function_ast?({:{}, _meta, _values}), do: true
+
+    defp literal_non_function_ast?(value) when is_tuple(value) and tuple_size(value) == 2,
+      do: true
+
+    defp literal_non_function_ast?(_ast), do: false
+
+    # Expands, in the host router, to a compile-time check that authorization
+    # is explicit. A pipeline alone never satisfies the mount contract.
+    defp secure_mount_guard(mount_authorized?, caller_file, caller_line) do
       quote do
-        _scopes = @phoenix_top_scopes || %{pipes: []}
-
-        _has_pipe? =
-          _scopes
-          |> List.wrap()
-          |> Enum.any?(fn
-            %{pipes: [_ | _]} -> true
-            _ -> false
-          end)
-
-        if not (_has_pipe? or unquote(has_auth_fn?) or unquote(has_ack?)) do
+        if not unquote(mount_authorized?) do
           raise CompileError,
             file: unquote(caller_file),
             line: unquote(caller_line),
             description:
-              "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
+              "Threadline.OperatorSurface.Router.threadline_operator_surface/2 requires either a one-argument `authorize_fn` or the exact `adopter_acknowledges_unauthenticated: true` opt-out. `pipe_through` alone does not authorize access. Add `authorize_fn: &MyApp.Audit.authorize_operator/1`, or use the exact opt-out only when this surface is intentionally unauthenticated."
         end
       end
     end

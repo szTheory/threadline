@@ -1,0 +1,114 @@
+{
+  "source": "4f1481b34f622f62138c52a37833771dc88f3819",
+  "scope": "Plan03 original snapshot chronology and bounded Sigra materialization correction; merged files match final focused-tested source",
+  "checks": [
+    {
+      "command": "mix test test/threadline_phoenix/demo_contract_test.exs test/threadline_phoenix/demo/retention_tail_env_contract_test.exs test/threadline_phoenix/demo_manifest_test.exs test/threadline_phoenix_web/walkthrough_happy_path_test.exs test/threadline_phoenix_web/walkthrough_evidence_test.exs",
+      "exit_code": 0,
+      "tests": 41,
+      "failures": 0
+    },
+    {
+      "command": "mix format --check-formatted",
+      "exit_code": 0
+    },
+    {
+      "command": "mix compile --warnings-as-errors",
+      "exit_code": 0
+    }
+  ],
+  "source_identity": [
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex",
+      "tested_blob": "98836f8bd6aa3bb29a06f568ad1208922e65c1eb",
+      "merged_blob": "98836f8bd6aa3bb29a06f568ad1208922e65c1eb"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex",
+      "tested_blob": "aacf38fd491d2e8321b6f85b56621840502b0efd",
+      "merged_blob": "aacf38fd491d2e8321b6f85b56621840502b0efd"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex",
+      "tested_blob": "a0420d0a3ba123f04cfa2f7c36f8b031e427aee3",
+      "merged_blob": "a0420d0a3ba123f04cfa2f7c36f8b031e427aee3"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex",
+      "tested_blob": "b9024926d018c824725c4511a2fa07cbdd594d66",
+      "merged_blob": "b9024926d018c824725c4511a2fa07cbdd594d66"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/filler.ex",
+      "tested_blob": "fbed3101c6505ce3572aaecf2f0c508384a5f9ef",
+      "merged_blob": "fbed3101c6505ce3572aaecf2f0c508384a5f9ef"
+    },
+    {
+      "path": "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex",
+      "tested_blob": "0e832daeadb20408b85289dc7ba904bd34255e8d",
+      "merged_blob": "0e832daeadb20408b85289dc7ba904bd34255e8d"
+    },
+    {
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs",
+      "tested_blob": "8266a998980f08f563b5dfa44823f91b33157ffc",
+      "merged_blob": "8266a998980f08f563b5dfa44823f91b33157ffc"
+    }
+  ],
+  "original_auth_helper_block": "byte-identical to preplan f89f051c",
+  "isolation_reconciliation": {
+    "status": "merged_removed",
+    "warnings": [
+      {
+        "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-PLAN.md",
+        "disposition": "parent planning correction narrows Task2 to accepted audited-row boundary"
+      },
+      {
+        "path": ".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-AUTH-MATERIALIZATION-FIX.md",
+        "disposition": "required bounded corrective proof report; no product expansion"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "verify-schema-drift",
+      "exit_code": 0,
+      "result": {
+        "block": false,
+        "drift_detected": false,
+        "blocking": false,
+        "schema_files": [],
+        "orms": [],
+        "unpushed_orms": [],
+        "message": "",
+        "skipped": false
+      }
+    },
+    {
+      "gate": "verify-codebase-drift",
+      "exit_code": 0,
+      "result": {
+        "block": false,
+        "skipped": true,
+        "reason": "no-structure-md",
+        "action_required": false,
+        "directive": "none",
+        "elements": []
+      }
+    },
+    {
+      "gate": "ui-safety-gate",
+      "exit_code": 0,
+      "result": {
+        "frontend": true,
+        "hasUiFiles": false,
+        "hasFrontendEvidence": false,
+        "hasUiSpec": true,
+        "block": false
+      }
+    }
+  ],
+  "limits": [
+    "No full-repeat/canonical/browser/hosted run",
+    "Plan04 independent judgment and phase goal verification remain pending"
+  ]
+}

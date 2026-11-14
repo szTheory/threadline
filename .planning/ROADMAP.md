@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- [x] **v1.48 Threadline Admin: brand and complete journeys** — Completed planning 2026-11-13; six phases,36 plans,34/34 requirements. [Archive](milestones/v1.48-ROADMAP.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md). PR105 is open/unmerged; package remains1.1.0.
 - [x] **v1.47 Release on autopilot** — Phases 244–247.1; completed 2026-10-29. Five phases (including gap phase 247.1), 66 plans, 68 tasks, 13/14 requirements; REL-01 deferred-with-trigger (accepted at close). Audit: tech_debt. No package release (no merge changed the shipped package; Hex stays 1.1.0). Roadmap archive: milestones/v1.47-ROADMAP.md; requirements: milestones/v1.47-REQUIREMENTS.md; audit: milestones/v1.47-MILESTONE-AUDIT.md.
 - [x] **v1.46 Operator UI Refinement** — Phases 238–243; completed 2026-10-11. Six phases, 27 plans, 49 tasks, 26/26 requirements. Audit: tech_debt, with no unmet requirements or broken flows. Roadmap archive: milestones/v1.46-ROADMAP.md; requirements: milestones/v1.46-REQUIREMENTS.md; audit: milestones/v1.46-MILESTONE-AUDIT.md.
 - [x] **v1.45 1.0 API Contract** — Phases 231–237; shipped as 1.0.0 on 2026-10-07. Archive: milestones/v1.45-ROADMAP.md.
@@ -17,12 +18,13 @@
 - [x] **v1.35 Unified Logo and Brand Book v2** — Phases 159–165; shipped on 2026-06-12. Archive: milestones/v1.35-ROADMAP.md.
 - [x] **v1.34 Local Docker Admin UI DX** — Phases 154–158; shipped on 2026-06-07. Archive: milestones/v1.34-ROADMAP.md.
 
-Earlier milestones are recorded in MILESTONES.md and their archives under milestones/.
 
-## Current Position
+Earlier milestones are recorded in [MILESTONES](MILESTONES.md).
 
-The latest published package is Hex 1.1.0. v1.47 is a completed planning milestone and local Git tag; it shipped no package release because no merge changed the shipped package. No milestone is active. REL-01's next-release clause is bound to the first natural release (see the archived 247.1-REL01-EVIDENCE.md): that release PR's first CI run must be green with no separate CHANGELOG-dating PR.
+## Current position
+
+No active implementation phase or new milestone is selected. v1.48 completes all six phases248–253,36plan contributions and34requirements, with independent goal/integration verification and required candidate CI green. [Closeout](milestones/v1.48-CLOSEOUT.md) preserves exact evidence and historical limits.
 
 ## Next
 
-Re-derive the baseline using .planning/MILESTONE-GUIDE.txt and .planning/MILESTONE-ARC.md, then start `/gsd-new-milestone`. MILESTONE-ARC rank 2 is v1.48 Safe by default (operator surface fail-closed, txid-reuse detection, CSV/header hardening, Elixir 1.17 / OTP 27 floor) as 1.2.0; its first releasable merge is also REL-01's trigger.
+[PR105](https://github.com/szTheory/threadline/pull/105) is ready for the separate merge decision. The existing grant covers the review branch/PR/CI and bounded repairs; no merge, tag, version or publication follows automatically. FutureREL-01 still needs its actual first natural release PR/own Unreleased prose/first green run. Retained [lessons](research/2026-11-12-autonomous-run-retrospective.md) guide future work; no new milestone or UI rebuild is inferred.

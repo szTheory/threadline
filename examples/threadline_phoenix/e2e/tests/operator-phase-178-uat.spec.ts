@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 // Phase 178 Tier B — the real-engine half of the per-page / flow stress pass
@@ -58,6 +59,9 @@ const DESKTOP_CENTERING_WIDTHS = [1024, 1440];
 const CENTERING_TOLERANCE_PX = 24;
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -398,11 +402,12 @@ async function openPruneModal(page: Page) {
   await expect(liveRoot).toHaveClass(/phx-connected/);
 
   const pruneButton = page
-    .getByRole("button", { name: /^Prune now$/ })
+    .getByRole("button", { name: "Preview retention", exact: true })
     .first();
   await expect(pruneButton).toBeVisible();
   await expect(pruneButton).toBeEnabled();
   await pruneButton.click();
+  await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
 
   await expectVisibleWithPruneState(page.locator(PRUNE_MODAL), page);
   const content = page.locator(PRUNE_CONTENT);

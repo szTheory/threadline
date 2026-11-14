@@ -9,9 +9,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
 
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
-    alias Threadline.Query.FilterParams
 
     def mount(_params, _session, socket) do
       repo =
@@ -24,20 +24,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       parsed_uri = URI.parse(uri)
       path = parsed_uri.path || ""
       base_path = surface_root(path)
+      query_params = decode_query(parsed_uri.query)
       table = params["table"]
       record_id = params["record_id"]
-      origin = if params["origin"] == "timeline", do: :timeline, else: :default
-      filters_raw = FilterParams.filters_raw_from_params(params)
 
-      context_query =
-        if origin == :timeline, do: FilterParams.canonical_query(filters_raw), else: ""
+      {origin, context_query} = Helpers.retained_timeline_context(query_params)
+      {as_of, snapshot_invalid?} = snapshot_request(params["as_of"])
 
       {:noreply,
        assign(socket,
          base_path: base_path,
          table: table,
          record_id: record_id,
-         as_of: parse_as_of(params["as_of"]),
+         context_lost?: origin == :lost,
+         as_of: as_of,
+         snapshot_invalid?: snapshot_invalid?,
          history_path: row_history_path(base_path, table, record_id, origin, context_query),
          close_path: timeline_path(base_path, origin, context_query)
        )}
@@ -84,10 +85,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             table={@table}
             record_id={@record_id}
             as_of={@as_of}
+            snapshot_invalid?={@snapshot_invalid?}
             base_path={@base_path}
             close_path={@close_path}
             history_path={@history_path}
             return_label="Timeline"
+            context_lost?={assigns[:context_lost?] || false}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
             scope={@threadline_scope}
@@ -97,17 +100,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    defp parse_as_of(nil), do: nil
-    defp parse_as_of(""), do: nil
+    defp snapshot_request(value) when value in [nil, ""], do: {nil, false}
 
-    defp parse_as_of(value) when is_binary(value) do
+    defp snapshot_request(value) when is_binary(value) do
       case DateTime.from_iso8601(value) do
-        {:ok, dt, _offset} -> dt
-        _ -> nil
+        {:ok, dt, _offset} -> {dt, false}
+        _ -> {nil, true}
       end
     end
 
-    defp parse_as_of(_), do: nil
+    defp snapshot_request(_), do: {nil, true}
+
+    defp decode_query(nil), do: %{}
+
+    defp decode_query(query) do
+      URI.decode_query(query)
+    rescue
+      ArgumentError -> %{}
+    end
 
     defp surface_root(path) when is_binary(path) do
       case Regex.run(~r/^(.*)\/rows\/[^\/]+\/[^\/]+$/, path) do

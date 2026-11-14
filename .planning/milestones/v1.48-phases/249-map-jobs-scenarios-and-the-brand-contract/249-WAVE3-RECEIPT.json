@@ -1,0 +1,145 @@
+{
+  "source": "fa49973a62f30bee027cbbaffd400d30d57bc399",
+  "scope": "merged focused Node inventory and example seed/doc/reset group; initial format failure corrected; no rootwide/canonical/fullrepeat/browser",
+  "checks": [
+    {
+      "label": "node",
+      "args": [
+        "./node_modules/.bin/tsx",
+        "--test",
+        "support/operator-ci-evidence.test.ts",
+        "support/operator-route-evidence.test.ts"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 3.664
+    },
+    {
+      "label": "format",
+      "args": [
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exit_code": 1,
+      "elapsed_s": 0.558
+    },
+    {
+      "label": "format-fix",
+      "args": [
+        "mix",
+        "format",
+        "test/threadline_phoenix/demo_manifest_contract_test.exs"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.318
+    },
+    {
+      "label": "format-recheck",
+      "args": [
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.312
+    },
+    {
+      "label": "example",
+      "args": [
+        "mix",
+        "test",
+        "test/threadline_phoenix/demo_contract_test.exs",
+        "test/threadline_phoenix/demo/retention_tail_env_contract_test.exs",
+        "test/threadline_phoenix/demo_manifest_test.exs",
+        "test/threadline_phoenix/demo_manifest_contract_test.exs",
+        "test/threadline_phoenix/walkthrough_doc_contract_test.exs",
+        "test/threadline_phoenix/demo_reset_test.exs",
+        "test/threadline_phoenix_web/walkthrough_happy_path_test.exs",
+        "test/threadline_phoenix_web/walkthrough_evidence_test.exs"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 15.374
+    }
+  ],
+  "passed": true,
+  "result": "30 Node tests and 66 example tests pass; formatting failure corrected and rechecked",
+  "reviewed_revision": "b18a59a66c9f03c57933bc1f8a72b611fa0c2579",
+  "independent_mapping_review": "clean; M01 reopened by supplemental source audit then closed; M02 and deduplicated populated-proof warnings closed",
+  "source_identity": [
+    {
+      "path": "examples/threadline_phoenix/DEMO-MANIFEST.md",
+      "reviewed_blob": "1f9da7bb47e3f50cc7f4294eee14afb9b97707a1",
+      "current_blob": "1f9da7bb47e3f50cc7f4294eee14afb9b97707a1"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts",
+      "reviewed_blob": "3056730aa25ee70ef71d39d4c7c595ae1835fd41",
+      "current_blob": "3056730aa25ee70ef71d39d4c7c595ae1835fd41"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-journey-inventory.json",
+      "reviewed_blob": "6df9087ba37a80c37ab9a3818fd78ae354a7bb9b",
+      "current_blob": "6df9087ba37a80c37ab9a3818fd78ae354a7bb9b"
+    },
+    {
+      "path": "examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts",
+      "reviewed_blob": "cdfd850fb470bdf2dc320ca66fca0bd057bf6b45",
+      "current_blob": "cdfd850fb470bdf2dc320ca66fca0bd057bf6b45"
+    },
+    {
+      "path": "examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_contract_test.exs",
+      "reviewed_blob": "e324b6e62fcd3423bc7c567f2fa6eb6894753633",
+      "current_blob": "b9da02376d6ee664a269d61ef70a45d5a090ac9d",
+      "equivalence": "Formatting-only wrapping; full Elixir AST identical; fresh merged example test group passes."
+    }
+  ],
+  "isolation_reconciliation": {
+    "status": "merged_removed",
+    "warnings": []
+  },
+  "gates": [
+    {
+      "gate": "verify-schema-drift",
+      "exit_code": 0,
+      "result": {
+        "block": false,
+        "drift_detected": false,
+        "blocking": false,
+        "schema_files": [],
+        "orms": [],
+        "unpushed_orms": [],
+        "message": "",
+        "skipped": false
+      }
+    },
+    {
+      "gate": "verify-codebase-drift",
+      "exit_code": 0,
+      "result": {
+        "block": false,
+        "skipped": true,
+        "reason": "no-structure-md",
+        "action_required": false,
+        "directive": "none",
+        "elements": []
+      }
+    },
+    {
+      "gate": "ui-safety-gate",
+      "exit_code": 0,
+      "result": {
+        "frontend": true,
+        "hasUiFiles": false,
+        "hasFrontendEvidence": false,
+        "hasUiSpec": true,
+        "block": false
+      }
+    }
+  ],
+  "limits": [
+    "No canonical/fullrepeat/browser/hosted run",
+    "No runtime brand adoption or fresh visual/accessibility/human-comprehension acceptance",
+    "Descriptorless non-authoritative flags and ADM06 classification gap retained",
+    "Phase goal verification pending"
+  ]
+}

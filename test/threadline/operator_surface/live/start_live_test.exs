@@ -42,6 +42,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true,
         repo: Threadline.Test.Repo,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
@@ -87,6 +88,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_system",
+        adopter_acknowledges_unauthenticated: true,
         repo: Threadline.Test.Repo,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
@@ -110,6 +112,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_unavailable",
+        adopter_acknowledges_unauthenticated: true,
         repo: Threadline.OperatorSurface.StartLiveTest.UnavailableRepo,
         schemas: %{
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
@@ -267,7 +270,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Close coverage gaps before relying on timeline answers"
 
       refute home_health(html) =~
-               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*\d+ tables need audit coverage\s*</
+               ~r/class="tl-chip tl-chip--warning"[^>]*>\s*public: \d+ not audited\s*</
     end
 
     test "renders current actor failed exports as danger without leaking other actors", %{
@@ -442,6 +445,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> render_submit()
 
       assert_redirect(view, "/audit/rows/ticket_replies/reply-123")
+    end
+
+    test "Home preserves complete long record and correlation lookup identities", %{conn: conn} do
+      record_id = "support/" <> String.duplicate("r", 180)
+      {:ok, row_lookup, _} = live(conn, "/audit")
+
+      row_lookup
+      |> form("#tl-record-lookup", %{
+        "record_lookup" => %{"table" => "ticket_replies", "record_id" => record_id}
+      })
+      |> render_submit()
+
+      assert_redirect(
+        row_lookup,
+        "/audit/rows/ticket_replies/" <> URI.encode(record_id, &URI.char_unreserved?/1)
+      )
+
+      correlation = "case / " <> String.duplicate("c", 180)
+      {:ok, correlation_lookup, _} = live(conn, "/audit")
+
+      correlation_lookup
+      |> form("#tl-correlation-lookup", %{"correlation" => %{"correlation_id" => correlation}})
+      |> render_submit()
+
+      assert_redirect(
+        correlation_lookup,
+        "/audit/timeline?" <> URI.encode_query(%{"correlation_id" => correlation})
+      )
     end
 
     test "record-first lookup validates blank and unmapped input without navigating", %{
@@ -661,7 +692,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = posted_conn |> recycle() |> live("/audit_system")
 
         assert html =~ ~s|data-tl-theme="#{theme}"|
-        assert html =~ ~r/name="theme" value="#{theme}" checked(="checked")?/
+
+        selected =
+          html
+          |> LazyHTML.from_fragment()
+          |> LazyHTML.query("button[name='theme'][aria-pressed='true']")
+
+        assert LazyHTML.attribute(selected, "value") == [theme]
       end
     end
 
@@ -703,7 +740,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, _view, html} = live(posted_conn |> recycle(), live_path)
 
       assert html =~ ~s|data-tl-theme="system"|
-      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
+
+      selected =
+        html
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("button[name='theme'][aria-pressed='true']")
+
+      assert LazyHTML.attribute(selected, "value") == ["system"]
       refute html =~ ~r/name="theme" value="sepia"/
     end
   end

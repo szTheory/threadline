@@ -1,4 +1,13 @@
 import { chromium, expect, Page, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { installControlledClipboard, seedPaths } from "../support/operator-browser-evidence.js";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import {
+  captureInvestigationCheckpoint,
+  captureInvestigationHalf,
+  readInvestigationMaterialization,
+} from "../support/operator-investigation-pair.js";
 import {
   setAndReadTabZoom,
   withIsolatedZoomContext,
@@ -8,6 +17,19 @@ const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const closeCorrelation = "walk-acme-4521-close";
 const rowTable = "ticket_replies";
+const investigationTitle = "Acme 4521 whole investigation";
+const investigationFrom = "2020-01-01T00:00";
+const investigationTo = "2099-01-01T00:00";
+const demoManifest = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../../DEMO-MANIFEST.md"), "utf8");
+const closerId = demoManifest.match(/^\| Acme closer \| `closer@acme\.example\.com` \| `([^`]+)` \|$/m)?.[1];
+if (!closerId) throw new Error("DEMO-MANIFEST.md does not declare the Acme closer identity");
+
+function investigationSearch() {
+  const params = new URLSearchParams([
+    ["from", investigationFrom], ["to", investigationTo], ["table", rowTable], ["correlation_id", closeCorrelation],
+  ]);
+  return `/audit/timeline?${params.toString()}`;
+}
 
 async function login(page: Page) {
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
@@ -76,8 +98,308 @@ async function discoverTicketReplyRecordId(page: Page) {
 }
 
 test.describe("operator earned-flow browser UAT", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, info) => {
+    if (info.title === investigationTitle) {
+      await page.context().addInitScript(() => {
+        const probe = {
+          calls: [] as Array<{ value: string; trustedActivation: boolean }>,
+          pending: [] as Array<() => void>,
+          fallbackCalls: 0,
+          resolveNext() { this.pending.shift()?.(); },
+        };
+        (window as any).__threadlinePhase250Clipboard = probe;
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: {
+            writeText(value: string) {
+              probe.calls.push({ value, trustedActivation: navigator.userActivation?.isActive === true });
+              return new Promise<void>((resolve) => probe.pending.push(resolve));
+            },
+          },
+        });
+        document.execCommand = (() => {
+          probe.fallbackCalls += 1;
+          return false;
+        }) as typeof document.execCommand;
+      });
+    }
     await login(page);
+  });
+
+  test(investigationTitle, async ({ page, browser }, info) => {
+    const pairHalf = process.env.THREADLINE_PHASE250_PAIR_HALF;
+    if (pairHalf !== undefined && pairHalf !== "before" && pairHalf !== "after") {
+      throw new Error("Selected paired capture requires an explicit before/after half");
+    }
+    // Ordinary CI exercises the seeded job; historical capture custody is opt-in.
+    const half = pairHalf ?? "after";
+    const snapshot = pairHalf ? readInvestigationMaterialization().snapshot : undefined;
+    if (snapshot) {
+      const [action] = snapshot.actions as Array<Record<string, any>>;
+      const [transaction] = snapshot.transactions as Array<Record<string, any>>;
+      const replyChange = snapshot.changes.find((change: any) => change.table_name === rowTable) as any;
+      const ticketChange = snapshot.changes.find((change: any) => change.table_name === "tickets") as any;
+      expect(transaction.occurred_at).not.toBe(action.inserted_at);
+      expect(replyChange.data_after.body).toBe("Thanks — we're closing this out.");
+      expect(replyChange.data_after.internal_note_body).toBe("[REDACTED]");
+      expect(ticketChange.data_after.status).toBe("closed");
+      expect(ticketChange.data_after.closed_at).toBe("2026-05-26T14:30:00");
+    }
+
+    const timelineUrl = investigationSearch();
+    await page.goto(timelineUrl);
+    await expectLiveViewConnected(page);
+    const actualUrl = new URL(page.url());
+    expect(actualUrl.pathname + actualUrl.search).toBe(timelineUrl);
+    await expect(page.locator("#filter-from")).toHaveValue(investigationFrom);
+    await expect(page.locator("#filter-to")).toHaveValue(investigationTo);
+    await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+    await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+
+    const selectedRow = page.getByTestId("timeline-row")
+      .filter({ hasText: closeCorrelation })
+      .filter({ hasText: rowTable });
+    await expect(selectedRow).toHaveCount(1);
+    await expect(selectedRow).toContainText("INSERT");
+    const eventTime = await selectedRow.locator("time").getAttribute("datetime");
+    expect(eventTime).not.toBeNull();
+    expect(new Date(eventTime!).toISOString()).toBe("2026-05-26T14:30:00.000Z");
+    const actorControl = selectedRow.locator(`[data-tl-copy="user/${closerId}"]`).first();
+    await expect(actorControl).toBeVisible();
+    await expect(actorControl).toHaveAttribute("data-tl-copy", `user/${closerId}`);
+
+    const transactionLink = selectedRow.getByTestId("transaction-link");
+    const transactionHref = await transactionLink.getAttribute("href");
+    expect(transactionHref).not.toBeNull();
+    const transactionUrl = new URL(transactionHref!, page.url());
+    const transactionMatch = transactionUrl.pathname.match(/^\/audit\/transactions\/([^/]+)$/);
+    expect(transactionMatch).not.toBeNull();
+    const transaction = snapshot?.transactions[0] as Record<string, any> | undefined ?? {
+      id: transactionMatch![1], occurred_at: eventTime!,
+    };
+    expect(transactionUrl.pathname).toBe(`/audit/transactions/${transaction.id}`);
+    await transactionLink.click();
+    await expect(page).toHaveURL(transactionUrl.toString());
+    await expectLiveViewConnected(page);
+
+    const transactionRows = page.getByTestId("transaction-change-row");
+    await expect(transactionRows).toHaveCount(2);
+    await expect(page.getByText("ticket_replied_and_closed", { exact: true })).toBeVisible();
+    await expect(page.getByText("2 tables", { exact: true })).toBeVisible();
+    await expect(page.getByText("2 changes", { exact: true })).toBeVisible();
+    const actualChangeIds = await transactionRows.evaluateAll((rows) => rows.map((row) => row.id.replace(/^change-/, "")).sort());
+    if (snapshot) expect(actualChangeIds).toEqual(snapshot.changes.map((change: any) => change.id).sort());
+    expect(new Set(actualChangeIds).size).toBe(2);
+    const changeIdentity = async (table: string) => {
+      const row = transactionRows.filter({ hasText: table });
+      await expect(row).toHaveCount(1);
+      const href = await row.getByTestId("row-history-link").getAttribute("href");
+      expect(href).not.toBeNull();
+      const path = new URL(href!, page.url()).pathname;
+      const prefix = `/audit/transactions/${transaction.id}/history/${table}/`;
+      expect(path.startsWith(prefix)).toBe(true);
+      const id = decodeURIComponent(path.slice(prefix.length));
+      expect(id).toMatch(/^[^/?#]+$/);
+      return { table_pk: { id } };
+    };
+    const replyChange = snapshot?.changes.find((change: any) => change.table_name === rowTable) as any ?? await changeIdentity(rowTable);
+    const ticketChange = snapshot?.changes.find((change: any) => change.table_name === "tickets") as any ?? await changeIdentity("tickets");
+    if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "transaction", "transaction-detail");
+
+    const replyRow = transactionRows.filter({ hasText: rowTable });
+    await expect(replyRow).toContainText("Thanks — we're closing this out.");
+    await expect(replyRow).toContainText("[REDACTED]");
+    const ticketRow = transactionRows.filter({ hasText: "tickets" });
+    const statusField = ticketRow.locator(".tl-change__field").filter({ has: page.getByText("status", { exact: true }) });
+    await expect(statusField.locator(".tl-diff__cell").last()).toContainText("closed");
+    const closedAtField = ticketRow.locator(".tl-change__field").filter({ has: page.getByText("closed_at", { exact: true }) });
+    await expect(closedAtField.locator(".tl-diff__cell").last()).toContainText("2026-05-26T14:30:00");
+    const transactionRendered = await page.locator(".threadline-ui").evaluate((element) => {
+      const values = [element.textContent ?? ""];
+      for (const node of [element, ...Array.from(element.querySelectorAll("*"))]) {
+        for (const attribute of Array.from(node.attributes)) values.push(attribute.value);
+      }
+      return values.join("\n");
+    });
+    expect(transactionRendered).not.toContain("synthetic-secret-canary-239-6f71");
+
+    // The ticket's earlier state is reconstructed through its existing row-history route.
+    const ticketHistoryLink = ticketRow.getByTestId("row-history-link");
+    const ticketHistoryHref = await ticketHistoryLink.getAttribute("href");
+    expect(ticketHistoryHref).not.toBeNull();
+    const ticketHistoryUrl = new URL(ticketHistoryHref!, page.url());
+    expect(ticketHistoryUrl.pathname).toBe(`/audit/transactions/${transaction.id}/history/tickets/${ticketChange.table_pk.id}`);
+    await ticketHistoryLink.click();
+    await expectPath(page, ticketHistoryUrl.pathname);
+    await expectLiveViewConnected(page);
+    const ticketDrawer = page.getByTestId("row-history-drawer");
+    await expect(ticketDrawer).toBeVisible();
+    const ticketHistoryTimes = await ticketDrawer.locator(".tl-subview__timeline li time").evaluateAll((nodes) => nodes.map((node) => (node as HTMLTimeElement).dateTime));
+    const priorEventIndex = ticketHistoryTimes.findIndex((time) => new Date(time).getTime() < new Date(transaction.occurred_at).getTime());
+    expect(priorEventIndex, "The seeded ticket must retain an earlier captured state for the before side of its close").toBeGreaterThanOrEqual(0);
+    await ticketDrawer.locator(".tl-subview__timeline li").nth(priorEventIndex).getByRole("link").click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("as_of")).not.toBeNull();
+    await expectLiveViewConnected(page);
+    await expect(ticketDrawer.getByText("status", { exact: true })).toBeVisible();
+    await expect(ticketDrawer.getByText("open", { exact: true })).toBeVisible();
+    await expect(ticketDrawer.getByText("closed_at", { exact: true })).toBeVisible();
+    await expect(ticketDrawer.getByText("null", { exact: true })).toBeVisible();
+    if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "ticket-prior", "prior-ticket-history-snapshot");
+    await ticketDrawer.getByRole("link", { name: "Close", exact: true }).click();
+    await expectPath(page, `/audit/transactions/${transaction.id}`);
+    await expectLiveViewConnected(page);
+
+    if (half === "after") {
+      const transactionReplyRow = page.getByTestId("transaction-change-row").filter({ hasText: rowTable });
+      const transactionReplyHistoryLink = transactionReplyRow.getByTestId("row-history-link");
+      const transactionReplyHistoryHref = await transactionReplyHistoryLink.getAttribute("href");
+      expect(transactionReplyHistoryHref).not.toBeNull();
+      const transactionReplyHistoryUrl = new URL(transactionReplyHistoryHref!, page.url());
+      expect(transactionReplyHistoryUrl.pathname).toBe(`/audit/transactions/${transaction.id}/history/${rowTable}/${replyChange.table_pk.id}`);
+      await transactionReplyHistoryLink.click();
+      await expectPath(page, transactionReplyHistoryUrl.pathname);
+      await expectLiveViewConnected(page);
+      const strictHistory = page.getByTestId("row-history-drawer");
+      await expect(strictHistory).toBeVisible();
+      await expect(strictHistory).toContainText("Row timeline");
+      await expect(strictHistory).toContainText("Thanks — we're closing this out.");
+      await expect(strictHistory).toContainText("[REDACTED]");
+      if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "reply-history", "transaction-origin-reply-history");
+
+      const historyCopy = strictHistory.locator(`.tl-ref button[data-tl-copy="${replyChange.table_pk.id}"]`).first();
+      await expect(historyCopy).toBeVisible();
+      await historyCopy.focus();
+      await page.keyboard.press("Enter");
+      const historyStatus = historyCopy.locator("xpath=..").locator("[data-tl-copy-status]");
+      await expect(historyStatus).toHaveText("Copying…");
+      await expect(historyCopy).toBeFocused();
+      const historyCalls = await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.calls);
+      expect(historyCalls).toEqual([{ value: replyChange.table_pk.id, trustedActivation: true }]);
+      await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.resolveNext());
+      await expect(historyStatus).toHaveText("Copied.");
+      await expect(historyCopy).toBeFocused();
+      expect(await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.fallbackCalls)).toBe(0);
+
+      await strictHistory.getByRole("link", { name: "Close", exact: true }).click();
+      await expectPath(page, `/audit/transactions/${transaction.id}`);
+      await expectLiveViewConnected(page);
+      const openTimeline = page.getByRole("link", { name: "Open timeline", exact: true }).first();
+      await expect(openTimeline).toBeVisible();
+      await openTimeline.click();
+      await expectPath(page, "/audit/timeline");
+      await expectLiveViewConnected(page);
+      const expectedTimelineUrl = new URL(timelineUrl, page.url()).toString();
+      await expect(page).toHaveURL(expectedTimelineUrl);
+      for (const [selector, expected] of [["#filter-from", investigationFrom], ["#filter-to", investigationTo], ["#filter-table", rowTable], ["#filter-correlation-id", closeCorrelation]] as const) {
+        await expect(page.locator(selector)).toHaveValue(expected);
+      }
+      const restoredRow = page.getByTestId("timeline-row")
+        .filter({ hasText: closeCorrelation })
+        .filter({ hasText: rowTable });
+      await expect(restoredRow).toHaveCount(1);
+    } else {
+
+      // Legacy before evidence records the routes the current UI actually supports.
+      // It is intentionally weaker than the required transaction-origin after route.
+      const expectedTimelineUrl = new URL(timelineUrl, page.url()).toString();
+      for (let step = 0; step < 8 && page.url() !== expectedTimelineUrl; step += 1) {
+        await page.goBack();
+        await expectLiveViewConnected(page);
+      }
+      await expect(page).toHaveURL(expectedTimelineUrl);
+      await expect(page.locator("#filter-from")).toHaveValue(investigationFrom);
+      await expect(page.locator("#filter-to")).toHaveValue(investigationTo);
+      await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+      await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+
+      const restoredRow = page.getByTestId("timeline-row")
+        .filter({ hasText: closeCorrelation })
+        .filter({ hasText: rowTable });
+      const historyLink = restoredRow.getByTestId("timeline-row-history-link");
+      const historyHref = await historyLink.getAttribute("href");
+      expect(historyHref).not.toBeNull();
+      const historyUrl = new URL(historyHref!, page.url());
+      expect(historyUrl.pathname).toBe(`/audit/rows/${rowTable}/${replyChange.table_pk.id}`);
+      expect(historyUrl.searchParams.get("origin")).toBe("timeline");
+      for (const key of ["from", "to", "table", "correlation_id"] as const) {
+        expect(historyUrl.searchParams.get(key)).toBe(new URL(timelineUrl, page.url()).searchParams.get(key));
+      }
+      await historyLink.click();
+      await expectPath(page, historyUrl.pathname);
+      await expectLiveViewConnected(page);
+      const drawer = page.getByTestId("row-history-drawer");
+      await expect(drawer).toBeVisible();
+      await expect(drawer).toContainText("Row timeline");
+      await expect(drawer).toContainText("Thanks — we're closing this out.");
+      await expect(drawer).toContainText("[REDACTED]");
+      await expect(drawer.locator("h3")).toHaveAttribute("title", `${rowTable} / ${replyChange.table_pk.id}`);
+      const drawerEventTime = await drawer.locator("time").first().getAttribute("datetime");
+      expect(drawerEventTime).not.toBeNull();
+      expect(new Date(drawerEventTime!).toISOString()).toBe("2026-05-26T14:30:00.000Z");
+      const drawerRendered = await drawer.evaluate((element) => {
+        const values = [element.textContent ?? ""];
+        for (const node of [element, ...Array.from(element.querySelectorAll("*"))]) {
+          for (const attribute of Array.from(node.attributes)) values.push(attribute.value);
+        }
+        return values.join("\n");
+      });
+      expect(drawerRendered).not.toContain("synthetic-secret-canary-239-6f71");
+      if (pairHalf) await captureInvestigationCheckpoint(page, browser, info, "reply-history", "timeline-origin-reply-history");
+
+      await drawer.getByRole("link", { name: "Close", exact: true }).click();
+      await expectPath(page, "/audit/timeline");
+      await expectLiveViewConnected(page);
+      expect(new URL(page.url()).search).toBe(new URL(timelineUrl, page.url()).search);
+      await expect(page.locator("#filter-from")).toHaveValue(investigationFrom);
+      await expect(page.locator("#filter-to")).toHaveValue(investigationTo);
+      await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+      await expect(page.locator("#filter-correlation-id")).toHaveValue(closeCorrelation);
+    }
+
+    if (half === "before") {
+      const copy = page.locator(`.tl-ref button[data-tl-copy="${replyChange.table_pk.id}"]`).first();
+      await expect(copy).toBeVisible();
+      await copy.focus();
+      await page.keyboard.press("Enter");
+      const status = copy.locator("xpath=..").locator("[data-tl-copy-status]");
+      await expect(status).toHaveText("Copying…");
+      await expect(copy).toBeFocused();
+      await expect(copy).not.toHaveClass(/is-copied/);
+      const calls = await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.calls);
+      expect(calls).toEqual([{ value: replyChange.table_pk.id, trustedActivation: true }]);
+      await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.resolveNext());
+      await expect(status).toHaveText("Copied.");
+      await expect(copy).toBeFocused();
+      expect(await page.evaluate(() => (window as any).__threadlinePhase250Clipboard.fallbackCalls)).toBe(0);
+    }
+
+    const currentUrl = new URL(page.url());
+    const filtersRestored = currentUrl.pathname === "/audit/timeline" &&
+      currentUrl.searchParams.get("from") === investigationFrom && currentUrl.searchParams.get("to") === investigationTo &&
+      currentUrl.searchParams.get("table") === rowTable && currentUrl.searchParams.get("correlation_id") === closeCorrelation;
+    expect(filtersRestored).toBe(true);
+    if (snapshot) {
+      const [action] = snapshot.actions as Array<Record<string, any>>;
+      const journey = {
+        timelineUrl: currentUrl.pathname + currentUrl.search,
+        actionId: action.id,
+        transactionId: transaction.id,
+        changeIds: actualChangeIds,
+        replyId: replyChange.table_pk.id,
+        ticketId: ticketChange.table_pk.id,
+        actorId: action.actor_ref.id,
+        eventTime: transaction.occurred_at,
+        actionInsertedAt: action.inserted_at,
+        copyValue: replyChange.table_pk.id,
+        copyStatus: "Copied.",
+        keyboardActivation: true,
+        filtersRestored,
+        navigationMode: half === "before" ? "legacy-before" : "strict-after",
+        copyContext: half === "before" ? "timeline" : "transaction-history",
+        returnMode: half === "before" ? "browser-back" : "ui-links",
+      };
+      await captureInvestigationHalf(page, browser, info, journey);
+    }
   });
 
   test("Home record lookup reaches first-class row history", async ({
@@ -394,4 +716,153 @@ test.describe("operator earned-flow browser UAT", () => {
     expect(exportHtml).toContain("Evidence export context");
     expect(exportHtml).toContain("acme-4521-close");
   });
+});
+
+
+test("Phase251 retained-context recovery", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const message = "Some Timeline filters could not be restored. Return to Timeline to choose filters before continuing.";
+  const transactionPath = new URL(seeded.transaction, page.url()).pathname;
+  const drawerPath = new URL(seeded.drawer, page.url()).pathname;
+  for (const path of [transactionPath, seeded.row, drawerPath]) {
+    await page.goto(`${path}?origin=timeline&unsupported_only=private-value`);
+    await expectLiveViewConnected(page);
+    const notice = page.getByTestId("timeline-context-loss");
+    await expect(notice).toBeVisible();
+    await expect(notice).toHaveText(message);
+    const drawer = page.getByTestId("row-history-drawer");
+    if (await drawer.isVisible()) {
+      const close = drawer.getByRole("link", { name: "Close", exact: true });
+      await close.focus();
+      await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+      await expect(close).toBeFocused();
+      expect(await page.evaluate(() => (window as any).__phase251CopyCounter.installed)).toBe(true);
+      await page.keyboard.press("Enter");
+    } else {
+      await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
+    }
+    const recoveryPath = path === drawerPath ? transactionPath : "/audit/timeline";
+    await expect.poll(() => new URL(page.url()).pathname).toBe(recoveryPath);
+    expect(new URL(page.url()).searchParams.has("unsupported_only")).toBe(false);
+    if (recoveryPath === transactionPath) {
+      await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
+      await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+    }
+  }
+
+  await page.goto(investigationSearch());
+  await expectLiveViewConnected(page);
+  const expected = [...new URL(page.url()).searchParams.entries()];
+  await page.getByTestId("timeline-row").first().getByTestId("transaction-link").click();
+  await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
+  await page.getByTestId("transaction-change-row").filter({ hasText: rowTable }).getByTestId("row-history-link").first().click();
+  await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+  await expect(page.getByTestId("timeline-context-loss")).toHaveCount(0);
+  await page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true }).click();
+  const timelineReturn = page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true });
+  const returnHref = await timelineReturn.getAttribute("href");
+  expect(returnHref).toBeTruthy();
+  expect([...new URL(returnHref!, page.url()).searchParams.entries()]).toEqual(expected);
+  await timelineReturn.click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  expect([...new URL(page.url()).searchParams.entries()]).toEqual(expected);
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 standalone snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.row, page.url()).pathname;
+  const retained = "origin=timeline&from=&table=tickets";
+  for (const value of ["not-a-date", "2026-02-30T12:00:00Z"]) {
+    await page.goto(`${path}?${retained}&as_of=${encodeURIComponent(value)}`);
+    await expectLiveViewConnected(page);
+    const drawer = page.getByTestId("row-history-drawer");
+    await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid. Enter a valid date and time, or clear the field to view the latest snapshot.");
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+    await expect(drawer.getByRole("link", { name: "Close", exact: true })).toBeFocused();
+    const latest = drawer.getByRole("link", { name: "View latest snapshot", exact: true });
+    expect(new URL((await latest.getAttribute("href"))!, page.url()).searchParams.get("from")).toBe("");
+    await latest.click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+    await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  }
+  await page.goto(`${path}?${retained}&as_of=2026-05-26T16%3A30%3A00%2B02%3A00`);
+  await expectLiveViewConnected(page);
+  let drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ }).locator("time")).toHaveAttribute("datetime", "2026-05-26T14:30:00Z");
+  await page.reload();
+  await expectLiveViewConnected(page);
+  drawer = page.getByTestId("row-history-drawer");
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("");
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 transaction snapshot intent", async ({ page }) => {
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  const path = new URL(seeded.drawer, page.url()).pathname;
+  const transaction = new URL(seeded.transaction, page.url()).pathname;
+  await page.goto(`${path}?origin=timeline&from=&table=tickets&as_of=not-a-date`);
+  await expectLiveViewConnected(page);
+  const drawer = page.getByTestId("row-history-drawer");
+  await expect(drawer.getByRole("alert")).toContainText("This snapshot time is invalid.");
+  await expect(drawer.getByRole("heading", { name: /^Snapshot as of/ })).toHaveCount(0);
+  await drawer.getByRole("link", { name: "View latest snapshot", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await drawer.getByLabel("View snapshot at", { exact: true }).fill("2026-05-26T14:30");
+  await expect.poll(() => new URL(page.url()).searchParams.get("as_of")).toBe("2026-05-26T14:30:00Z");
+  const close = drawer.getByRole("link", { name: "Close", exact: true });
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => new URL(page.url()).pathname).toBe(transaction);
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  expect(new URL(page.url()).searchParams.has("as_of")).toBe(false);
+  await page.getByRole("navigation", { name: "Breadcrumb", exact: true }).getByRole("link", { name: "Timeline", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/audit/timeline");
+  expect(new URL(page.url()).searchParams.get("from")).toBe("");
+  expect(new URL(page.url()).searchParams.get("table")).toBe("tickets");
+  await expectNoHorizontalOverflow(page);
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
+});
+
+
+test("Phase251 narrow history close control", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await installControlledClipboard(page);
+  await login(page);
+  const seeded = await seedPaths(page);
+  await page.goto(seeded.row + "?as_of=not-a-date");
+  await expectLiveViewConnected(page);
+  await page.evaluate(() => document.fonts.ready);
+  const close = page.getByTestId("row-history-drawer").getByRole("link", { name: "Close", exact: true });
+  const textLines = await close.evaluate((element) => {
+    const text = Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim() === "Close");
+    if (!text) throw new Error("Close label text is missing");
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return Array.from(range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0).length;
+  });
+  expect(textLines).toBe(1);
+  await close.focus();
+  await page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expectPath(page, "/audit/timeline");
+  expect(await page.evaluate(() => (window as any).__phase251CopyCounter.count)).toBe(0);
 });

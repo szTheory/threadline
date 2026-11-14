@@ -4,7 +4,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     scope "/" do
       pipe_through(:browser)
-      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        adopter_acknowledges_unauthenticated: true
+      )
     end
   end
 
@@ -189,6 +192,46 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Verify dummy event handlers for pagination
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})
+    end
+
+    test "nonhuman actors sharing an id retain kind-specific history and exact pivots", %{
+      conn: conn
+    } do
+      id = "integration-" <> String.duplicate("x", 160)
+      kinds = ~w(service_account job system)
+
+      transactions =
+        for kind <- kinds, _ <- 1..2 do
+          {kind,
+           insert_transaction(%{
+             occurred_at: DateTime.utc_now(),
+             actor_ref: %{"type" => kind, "id" => id}
+           })}
+        end
+
+      for kind <- kinds do
+        {:ok, lv, _} = live(conn, "/audit/actors/#{kind}/#{id}")
+        assert has_element?(lv, ".tl-detail-header__title", "#{kind} actor")
+        assert has_element?(lv, ~s(button[aria-label="Copy actor id"][data-tl-copy="#{id}"]))
+
+        assert has_element?(
+                 lv,
+                 ~s(a[href="/audit/timeline?actor_kind=#{kind}&actor_id=#{id}"]),
+                 "Open timeline"
+               )
+
+        for {owner_kind, txn} <- transactions do
+          if owner_kind == kind do
+            assert has_element?(
+                     lv,
+                     ~s(a[href="/audit/transactions/#{txn.id}"]),
+                     "Open transaction"
+                   )
+          else
+            refute has_element?(lv, ~s(a[href="/audit/transactions/#{txn.id}"]))
+          end
+        end
+      end
     end
 
     test "actor evidence opens Timeline with only the supported actor filters", %{conn: conn} do

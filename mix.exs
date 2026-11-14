@@ -47,7 +47,8 @@ defmodule Threadline.MixProject do
       aliases: aliases(),
       package: package(),
       name: "Threadline",
-      description: "Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL",
+      description:
+        "An audit trail library for Phoenix that records every row change in PostgreSQL, so you can follow what happened.",
       source_url: @source_url,
       docs: docs(),
       dialyzer: [
@@ -490,7 +491,7 @@ defmodule Threadline.MixProject do
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
       files:
-        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
+        ~w(lib guides brand/assets/logo/threadline-lockup-dark.svg brand/assets/logo/threadline-lockup-light.svg brand/assets/icon/favicon.svg brand/assets/fonts/web/FamiljenGrotesk-normal-400-700.woff2 brand/assets/fonts/web/Geist-normal-400-700.woff2 brand/assets/fonts/web/IBMPlexMono-normal-400.woff2 brand/assets/fonts/web/IBMPlexMono-normal-500.woff2 brand/assets/fonts/OFL-FamiljenGrotesk.txt brand/assets/fonts/OFL-Geist.txt brand/assets/fonts/OFL-IBMPlexMono.txt .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
       # Maintainer-only tooling must never cross into the published package.
       # The stress harness and the release pin rewriter are
       # repository instruments with no meaning inside a host application, and a
@@ -514,17 +515,18 @@ defmodule Threadline.MixProject do
       "#{@source_url}/blob/#{doc_source_ref()}/examples/threadline_phoenix/README.md"
 
     design_system_url = "#{@source_url}/blob/#{doc_source_ref()}/DESIGN-SYSTEM.md"
+    paired_logo_files = docs_paired_logo_files()
 
     [
       main: "readme",
       extra_section: "Guides",
       source_ref: doc_source_ref(),
       source_url: @source_url,
-      favicon: "brandbook/favicon.svg",
-      # Preserve the README's theme-aware picture in generated docs. The Hex
-      # archive carries only the two referenced logos plus the favicon, so
-      # repository-only brand guidance does not become consumer payload.
-      assets: %{"brandbook" => "brandbook"},
+      logo: "brand/assets/logo/threadline-lockup-dark.svg",
+      favicon: "brand/assets/icon/favicon.svg",
+      # ExDoc's installed copy_assets supports a list of named file contents.
+      # Keep generated README artwork local without copying the rest of brand/.
+      assets: %{paired_logo_files => "brand/assets/logo"},
       before_closing_head_tag: &before_closing_head_tag/1,
       before_closing_body_tag: &before_closing_body_tag/1,
       extras: [
@@ -656,9 +658,26 @@ defmodule Threadline.MixProject do
     ]
   end
 
+  defp docs_paired_logo_files do
+    [
+      {"threadline-lockup-dark.svg", "brand/assets/logo/threadline-lockup-dark.svg"},
+      {"threadline-lockup-light.svg", "brand/assets/logo/threadline-lockup-light.svg"}
+    ]
+    |> Enum.map(fn {target, source} ->
+      {target, File.read!(Path.join(__DIR__, source))}
+    end)
+  end
+
   defp before_closing_head_tag(:html) do
     """
     <style>
+      .sidebar .sidebar-projectImage img {
+        height: auto;
+        max-height: none;
+        max-width: none;
+        width: 96px;
+      }
+
       .threadline-mermaid {
         margin: 1.5rem 0;
         max-width: 100%;
@@ -832,8 +851,39 @@ defmodule Threadline.MixProject do
           scheduleRender();
         }
 
+        const updateProjectLogo = () => {
+          const logo = document.querySelector(".sidebar .sidebar-projectImage img");
+          const src = logo?.getAttribute("src");
+          if (!logo || !src) return;
+
+          const logoUrl = new URL(src, document.baseURI);
+          const generatedLogo = "/assets/logo.svg";
+          const pairedLogoSuffixes = [
+            "/brand/assets/logo/threadline-lockup-dark.svg",
+            "/brand/assets/logo/threadline-lockup-light.svg"
+          ];
+          const pairedLogoSuffix = pairedLogoSuffixes.find((suffix) =>
+            logoUrl.pathname.endsWith(suffix)
+          );
+          const prefix = logoUrl.pathname.endsWith(generatedLogo)
+            ? logoUrl.pathname.slice(0, -generatedLogo.length)
+            : pairedLogoSuffix === undefined
+              ? undefined
+              : logoUrl.pathname.slice(0, -pairedLogoSuffix.length);
+          if (prefix === undefined) return;
+
+          const variant = document.body.classList.contains("dark") ? "dark" : "light";
+          logoUrl.pathname = prefix + "/brand/assets/logo/threadline-lockup-" + variant + ".svg";
+          const themedLogo = logoUrl.toString();
+
+          if (logo.src !== themedLogo) logo.src = themedLogo;
+        };
+
+        updateProjectLogo();
+
         new MutationObserver((mutations) => {
           if (mutations.some((mutation) => mutation.attributeName === "class")) {
+            updateProjectLogo();
             scheduleRender();
           }
         }).observe(document.body, {attributes: true, attributeFilter: ["class"]});

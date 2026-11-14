@@ -1,0 +1,133 @@
+{
+  "phase": "248",
+  "plan": "248-04",
+  "mode": "observer_instrumented_diagnostic_not_plain_acceptance_gate",
+  "plain_acceptance_gate": false,
+  "user_grant": {
+    "instruction": "yes i approve that",
+    "max_invocations": 1,
+    "consumed": true,
+    "proposal_sha256": "876854ff343434c204312f67196662550ba974c3bb652d89e842a1cca20936c4"
+  },
+  "source": "8bdb4ac0d1073c34e2d9719709ad568004777b2e",
+  "reviewed_code": "9b695ca25b41be882902ddfb06716141e5a462db",
+  "source_unchanged": true,
+  "command": "THREADLINE_PROPERTY_SCALE=5 timeout --signal=TERM --kill-after=60s 55m elixir -r <private-observer.exs> -S mix verify.flake --formatter ExUnit.CLIFormatter --formatter Threadline.LocalFileObserver",
+  "budget_s": 3300,
+  "grace_s": 60,
+  "property_scale": 5,
+  "max_cases": 36,
+  "headers": 1,
+  "clean_summaries": 0,
+  "seeds": [
+    584294
+  ],
+  "suite_exit": 2,
+  "capture_exit": 0,
+  "wrapper_exit": 1,
+  "wrapper_elapsed_s": 727.45,
+  "shell_elapsed_s": 727,
+  "exunit_elapsed_s": 723.7,
+  "exunit_async_s": 453.9,
+  "exunit_sync_s": 269.8,
+  "properties": 32,
+  "tests": 3400,
+  "failures": 1,
+  "excluded": 3,
+  "classifier": "broken",
+  "failure": {
+    "module": "Threadline.FormatterTopologyContractTest",
+    "file": "test/threadline/formatter_topology_contract_test.exs",
+    "test_line": 21,
+    "wait_line": 42,
+    "timeout_ms": 60000,
+    "operation": "replace changed owner files -> Path.wildcard -> file.call",
+    "event_elapsed_ms": 60750
+  },
+  "observation": {
+    "scope": "observed diagnostic only; sampling is not a complete trace",
+    "terminal": true,
+    "source": "8bdb4ac0d1073c34e2d9719709ad568004777b2e",
+    "reviewed_code": "9b695ca25b41be882902ddfb06716141e5a462db",
+    "failures": [
+      {
+        "module": "Elixir.Threadline.FormatterTopologyContractTest",
+        "name": "test repository formatter configs give representative Elixir files exactly one owner",
+        "event_elapsed_ms": 60750,
+        "event_duration_us": 0,
+        "window_start_mono_ms": -576460705517,
+        "window_end_mono_ms": -576460644767,
+        "window_start_wall_ms": 1794429617854,
+        "window_end_wall_ms": 1794429678394,
+        "samples": 184,
+        "sample_interval_ms": {
+          "p50": 264,
+          "p95": 435,
+          "max": 5781
+        },
+        "sampling_cost_ms": {
+          "p50": 0,
+          "p95": 25,
+          "max": 4686
+        },
+        "queue": {
+          "min": 0,
+          "p50": 17,
+          "p95": 30,
+          "max": 34
+        },
+        "reduction_progress": 429209,
+        "distinct_reduction_values": 184,
+        "sampled_functions": {
+          "prim_file,list_dir_nif,1": 29,
+          "prim_file,read_info_nif,2": 34,
+          "erts_internal,dirty_nif_finalizer,1": 43,
+          "prim_file,del_dir_nif,1": 7,
+          "prim_file,read_file_nif,1": 39,
+          "prim_file,get_cwd_nif,0": 4,
+          "file_io_server,do_start,4": 12,
+          "prim_file,del_file_nif,1": 5,
+          "prim_file,make_dir_nif,1": 5,
+          "prim_file,set_owner_nif,3": 1,
+          "prim_file,set_permissions_nif,2": 1,
+          "gen_server,loop,7": 4
+        },
+        "statuses": {
+          "runnable": 113,
+          "running": 66,
+          "waiting": 5
+        },
+        "scheduler_run_queue_max": 126
+      }
+    ],
+    "samples": 2690,
+    "peak_queue": 41,
+    "max_observer_cost_ms": 4686,
+    "source_unchanged": true,
+    "hashes": {
+      "repeat.log": "b8586ee5de3adbd67c95c6582d60b0304f5abf392c680549dcbfb90b249ce06e",
+      "observations/run-1/events.log": "065b7289562b68b381e63dcde2f47e0498e3903ac95543fe37f05625d7547d9e",
+      "observations/run-1/samples.log": "1d29755662f5d4cf798cb973c897fe50181c8b9890030b9a2536a09fab138219"
+    },
+    "limits": [
+      "A sample is not a per-operation trace and does not identify a request path.",
+      "Observer scheduling/process-info sampling has variable overhead; report actual intervals and costs.",
+      "Progressing reductions and changing functions do not rule out shorter intermittent stalls.",
+      "No exclusive cause or reliable speedup inferred; no plain acceptance substitution."
+    ]
+  },
+  "observer_sha256": "09199b6132e45cd326a23dcc87114cfae367a01ff3a362dbe73ec6d558830edc",
+  "database": {
+    "version": "15.17",
+    "ownership": "task-owned loopback; shared services untouched",
+    "max_connections": 100,
+    "stopped_after_zero_clients": true
+  },
+  "limits": [
+    "Diagnostic only; no required plain acceptance gate satisfied.",
+    "Alias stops after failed first suite; no later suites or automatic retry.",
+    "Observed progress/queue pressure does not rule out short stalls or prove an exclusive cause.",
+    "Observer has material variable sampling overhead; no reliable latency improvement claim.",
+    "Further full repeat requires a new actual grant."
+  ]
+}

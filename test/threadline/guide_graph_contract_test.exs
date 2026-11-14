@@ -259,6 +259,8 @@ defmodule Threadline.GuideGraphContractTest do
        "CONTRIBUTING.md",
        "CHANGELOG.md",
        "DESIGN-SYSTEM.md",
+       "brand/assets/README.md",
+       "priv/fonts/README.md",
        "examples/threadline_phoenix/README.md"
      ] ++ Path.wildcard("guides/**/*.md"))
     |> Map.new(&{&1, File.read!(&1)})

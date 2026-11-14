@@ -6,7 +6,7 @@ defmodule Threadline.ReadmeDocContractTest do
   alias Threadline.Test.Repo
 
   @quick_start_start "## Quick Start"
-  @quick_start_end "## Operator Surface"
+  @quick_start_end "## Threadline Admin"
 
   test "readme quickstart fixtures module is loadable" do
     assert Code.ensure_loaded?(Threadline.ReadmeQuickstartFixtures)
@@ -46,6 +46,25 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/domain-reference.md")
   end
 
+  test "README uses the approved theme-paired lockups and product introduction" do
+    readme = File.read!("README.md")
+
+    assert String.contains?(
+             readme,
+             ~s|<source media="(prefers-color-scheme: dark)" srcset="brand/assets/logo/threadline-lockup-dark.svg">|
+           )
+
+    assert String.contains?(
+             readme,
+             ~s|<img alt="Threadline" src="brand/assets/logo/threadline-lockup-light.svg" width="420">|
+           )
+
+    assert String.contains?(readme, "**Follow what happened.**")
+    assert String.contains?(readme, "Threadline is an audit trail library for Phoenix apps.")
+    assert String.contains?(readme, "adds Threadline Admin")
+    assert String.contains?(readme, "[guides/operator-surface.md](guides/operator-surface.md)")
+  end
+
   test "README links the public docs hubs for adopters and operators" do
     readme = File.read!("README.md")
 
@@ -78,7 +97,7 @@ defmodule Threadline.ReadmeDocContractTest do
       readme
       |> String.split("## Start here", parts: 2)
       |> Enum.at(1, "")
-      |> String.split("## Evidence plane", parts: 2)
+      |> String.split("## Check audit coverage and operations", parts: 2)
       |> hd()
 
     assert String.contains?(start_section, "evaluating-threadline.md")
@@ -88,13 +107,15 @@ defmodule Threadline.ReadmeDocContractTest do
     # Hub refute (guides/evidence-plane.md) is centralized in SemverAdopterDocContractTest.
     readme = File.read!("README.md")
 
-    assert String.contains?(readme, "## Evidence plane")
+    assert String.contains?(readme, "## Check audit coverage and operations")
+    assert String.contains?(readme, ~s|<a id="evidence-plane"></a>|)
+    refute String.contains?(readme, "## Evidence plane")
     assert String.contains?(readme, "guides/how-threadline-works.md")
     assert String.contains?(readme, "guides/upgrade-path.md")
     assert String.contains?(readme, "guides/domain-reference.md")
     assert String.contains?(readme, "host-owned")
     assert String.contains?(readme, "legal hold")
-    assert String.contains?(readme, "immutable-storage")
+    assert String.contains?(readme, "host runtime and storage")
     refute String.contains?(readme, "| Lane | Claim type |")
     refute String.contains?(readme, "mix threadline.evidence.show")
   end
@@ -111,7 +132,8 @@ defmodule Threadline.ReadmeDocContractTest do
   test "README keeps the operator surface section as a short pointer" do
     readme = File.read!("README.md")
 
-    assert String.contains?(readme, "## Operator Surface")
+    assert String.contains?(readme, "## Threadline Admin")
+    assert String.contains?(readme, ~s|<a id="operator-surface"></a>|)
     assert String.contains?(readme, "canonical first-hour Phoenix walkthrough")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")

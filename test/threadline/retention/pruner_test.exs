@@ -64,6 +64,33 @@ defmodule Threadline.Retention.PrunerTest do
     pruner
   end
 
+  test "Phase252 target protocol is allowlisted and rejects stale or mismatched exact-PID requests" do
+    pid = start_application_supervisor!()
+    assert {:ok, target} = Pruner.target_snapshot()
+    assert Enum.sort(Map.keys(target)) == [:pid, :repo, :sleep_ms, :storage_schema]
+    assert target.pid == pid
+    assert target.repo == Repo
+
+    assert {:error, :unavailable} =
+             Pruner.trigger_if_target(%{target | sleep_ms: target.sleep_ms + 1})
+
+    assert {:error, :unavailable} =
+             Pruner.trigger_if_target(%{target | repo: __MODULE__.WrongRepo})
+
+    assert {:error, :unavailable} =
+             Pruner.trigger_if_target(%{target | storage_schema: "other_store"})
+
+    assert {:error, :unavailable} = Pruner.trigger_if_target(Map.put(target, :unknown, true))
+    assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+    stop_supervised!(Pruner)
+    replacement = start_application_supervisor!()
+    assert replacement != pid
+    assert {:error, :unavailable} = Pruner.trigger_if_target(target)
+    assert Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 0
+    assert :ok = Pruner.trigger()
+    assert_eventually(fn -> Repo.aggregate(RetentionRun, :count, :id, repo_opts()) == 1 end)
+  end
+
   test "application-owned startup marks running RetentionRuns older than 24h as failed" do
     Repo.delete_all(RetentionRun, repo_opts())
 

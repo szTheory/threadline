@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Query
     alias Threadline.Query.FilterParams
 
     @default_window_hours 24
@@ -58,6 +59,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def correlation_path(base_path, _correlation_id), do: base_path
 
     @doc false
+    def transaction_path(base_path, transaction_id, filters_raw, preserve_empty_from?)
+        when is_binary(base_path) and is_map(filters_raw) and is_boolean(preserve_empty_from?) do
+      path = "#{base_path}/transactions/#{encode_segment(transaction_id)}"
+
+      case timeline_origin_query(filters_raw, preserve_empty_from?) do
+        {:ok, query} -> path <> "?" <> query
+        :error -> path
+      end
+    end
+
+    @doc false
     def table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
     def table_ref(_change), do: Presentation.secondary_ref("", 30)
 
@@ -79,11 +91,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def safe_row_history_path(base_path, change, schemas, filters_raw)
         when is_binary(base_path) and is_map(schemas) and is_map(filters_raw) do
+      safe_row_history_path(base_path, change, schemas, filters_raw, false)
+    end
+
+    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw), do: nil
+
+    def safe_row_history_path(
+          base_path,
+          change,
+          schemas,
+          filters_raw,
+          preserve_empty_from?
+        )
+        when is_binary(base_path) and is_map(schemas) and is_map(filters_raw) and
+               is_boolean(preserve_empty_from?) do
       with {table, record_id} <- routeable_row_identity(change),
            route_table when is_binary(route_table) <-
              row_history_route_table(schemas, table, host_table_schema(change)) do
         path = "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
-        query = canonical_origin_query(filters_raw)
+
+        query =
+          case timeline_origin_query(filters_raw, preserve_empty_from?) do
+            {:ok, query} -> query
+            :error -> ""
+          end
 
         if query == "", do: path, else: path <> "?" <> query
       else
@@ -92,11 +123,109 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw), do: nil
+    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw, _preserve_empty_from?),
+      do: nil
 
-    defp canonical_origin_query(filters_raw) do
-      filter_query = FilterParams.canonical_query(filters_raw)
-      Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
+    @timeline_filter_keys ~w(from to table_schema table actor_kind actor_id correlation_id)
+    @unsupported_filters "These Timeline filters are not supported. Update the filters before applying them."
+
+    # Validate the original UI/stored input before normalization can discard it.
+    # The shared parser deliberately keeps its unknown-key-dropping contract.
+    @doc false
+    def validate_ui_filter_input(%{} = params) do
+      cond do
+        not Enum.all?(params, fn {key, value} -> is_binary(key) and is_binary(value) end) ->
+          {:error, @unsupported_filters}
+
+        map_size(params) > 0 and map_size(Map.take(params, @timeline_filter_keys)) == 0 ->
+          {:error, @unsupported_filters}
+
+        true ->
+          with {:ok, filters} <- FilterParams.parse(params),
+               :ok <- validate_timeline_filters(filters) do
+            {:ok, filters}
+          else
+            {:error, message} -> {:error, message}
+          end
+      end
+    end
+
+    def validate_ui_filter_input(_params), do: {:error, @unsupported_filters}
+
+    @doc false
+    def retained_timeline_context(%{} = params) do
+      case params["origin"] do
+        "timeline" ->
+          filter_params = Map.drop(params, ["origin", "as_of"])
+
+          case validate_ui_filter_input(filter_params) do
+            {:ok, _filters} ->
+              query = FilterParams.canonical_query(filter_params)
+              query = preserve_empty_from(query, filter_params["from"] == "")
+              {:timeline, query}
+
+            _ ->
+              {:lost, ""}
+          end
+
+        origin when origin in [nil, ""] ->
+          {:default, ""}
+
+        _ ->
+          {:lost, ""}
+      end
+    end
+
+    def retained_timeline_context(_params), do: {:lost, ""}
+
+    @doc false
+    def timeline_filter_query(%{} = params) do
+      if params["origin"] == "timeline" do
+        filters_raw = FilterParams.filters_raw_from_params(params)
+        preserve_empty_from? = Map.has_key?(params, "from") and params["from"] == ""
+
+        validated_filter_query(filters_raw, preserve_empty_from?)
+      else
+        :error
+      end
+    end
+
+    def timeline_filter_query(_params), do: :error
+
+    defp timeline_origin_query(filters_raw, preserve_empty_from?) do
+      case validated_filter_query(filters_raw, preserve_empty_from?) do
+        {:ok, filter_query} ->
+          {:ok, Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")}
+
+        :error ->
+          :error
+      end
+    end
+
+    defp preserve_empty_from(query, true) do
+      cond do
+        query == "" -> "from="
+        String.starts_with?(query, "from=") -> query
+        true -> "from=&" <> query
+      end
+    end
+
+    defp preserve_empty_from(query, false), do: query
+
+    defp validated_filter_query(filters_raw, preserve_empty_from?) do
+      with {:ok, filters} <- FilterParams.parse(filters_raw),
+           :ok <- validate_timeline_filters(filters) do
+        query = FilterParams.canonical_query(filters_raw)
+        {:ok, preserve_empty_from(query, preserve_empty_from?)}
+      else
+        _ -> :error
+      end
+    end
+
+    defp validate_timeline_filters(filters) do
+      Query.validate_timeline_filters!(filters)
+    rescue
+      error in ArgumentError -> {:error, error.message}
     end
 
     defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do
@@ -356,6 +485,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp filter_label(key), do: key
 
     @doc false
+    def invalid_filter_message(@unsupported_filters), do: @unsupported_filters
+
     def invalid_filter_message(message) do
       target = invalid_filter_target(message)
 
@@ -483,6 +614,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         "delete" -> "tl-change--delete"
         _ -> nil
       end
+    end
+
+    def canonical_filters(filters_raw) do
+      case FilterParams.canonical_query(filters_raw) do
+        "" -> %{"from" => ""}
+        query -> URI.decode_query(query)
+      end
+    end
+
+    def future_leaning_window?(filters) do
+      now = DateTime.utc_now()
+
+      filters
+      |> Keyword.take([:from, :to])
+      |> Enum.any?(fn {_key, value} ->
+        match?(%DateTime{}, value) and DateTime.compare(value, now) == :gt
+      end)
     end
   end
 end

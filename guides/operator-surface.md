@@ -1,7 +1,10 @@
-# Operator Surface
+<a id="operator-surface"></a>
 
-The Threadline Operator Surface provides mountable LiveView screens for investigating
-row mutations, actor histories, and transaction contexts inside your host application.
+# Threadline Admin
+
+Threadline is an audit trail library for Phoenix apps. Threadline Admin provides
+mountable LiveView screens for investigating row mutations, actor histories, and
+transaction contexts inside your host application.
 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 
@@ -91,10 +94,10 @@ mount option, validated at compile time to one of `:dark | :light | :system`
   (a `@media (prefers-color-scheme: light)` lane keyed on the rendered
   `data-tl-theme` attribute). It is correct on the first paint / dead render.
 
-Operators can also choose a runtime server-posted dark/light/system theme picker
-from the shell. The form uses native radio controls with values `system`,
-`light`, and `dark`, includes a hidden `_csrf_token`, and submits through the
-`Apply theme` button with POST `{base_path}/theme`. The controller allowlists
+Operators can choose System, Light, or Dark from three native submit buttons
+in the header. Each button submits its `theme` value immediately to
+POST `{base_path}/theme`; `aria-pressed` and a visible Selected marker identify
+the current choice. The form includes a hidden `_csrf_token`. The controller allowlists
 those values, stores the choice in the session and `tl_theme` cookie, then
 redirects back to a same-origin referring operator page. The route is guarded by
 the same mounted `authorize_fn` decision as the LiveView pages and requires the
@@ -158,12 +161,17 @@ threadline_operator_surface "/",
 
 ## Security and Authorization (Fail-Closed Default)
 
-Threadline adopts a **fail-closed security posture by default**. The `threadline_operator_surface/2` macro requires a secure mount. Multi-tenancy and authorization stay host-owned.
+Threadline adopts a **fail-closed security posture by default**. The
+`threadline_operator_surface/2` macro requires explicit mount authorization;
+multi-tenancy and authorization stay host-owned. Keep the host router's
+`pipe_through` middleware so your application's authentication and tenant
+policy still run, but `pipe_through` alone does not authorize this mount.
 
-Unless explicitly bypassed, the macro will fail at compile time unless one of the following is true:
-1. The route `scope` has at least one `pipe_through`.
-2. The `:authorize_fn` option is provided.
-3. The `:adopter_acknowledges_unauthenticated: true` option is explicitly supplied (this raises in test and loudly logs a warning in prod).
+At compile time, provide a usable unary `:authorize_fn`, or set the exact
+`:adopter_acknowledges_unauthenticated: true` option only for an intentionally
+public surface. The acknowledgement must be the literal `true`. It is accepted
+the same way in tests and production; it does not install authentication or
+authorization.
 
 ### `:authorize_fn`
 
@@ -180,7 +188,9 @@ callback should return:
   carries it into investigation queries where implemented today, but it does
   not define a roles DSL, page-level authorization model, or universal scope
   narrowing contract.
-- any other value - Denied.
+- Any other return value is denied. If the callback raises, the LiveView mount
+  halts and redirects to `/`, while an HTTP export request returns `403`.
+  These outcomes are reported as `:denied` or `:error` authorization telemetry.
 
 Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`). See [Telemetry](telemetry.md) for every event and its keys.
 
@@ -458,7 +468,7 @@ Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / D
 The operator surface ships with **no external asset pipeline and no JavaScript dependencies**. Everything it needs is embedded inline by the mounted LiveViews at render time:
 
 - **Styles** — a single scoped `<style>` block rendered by the operator shell.
-- **Fonts** — Geist and IBM Plex Mono as `@font-face` data-URIs embedded at compile time.
+- **Fonts** — Familjen Grotesk, Geist and IBM Plex Mono from the [approved brand assets](../brand/assets/README.md#fonts) as `@font-face` data-URIs embedded at compile time.
 - **Copy helper** — a tiny, dependency-free `<script>` that powers the "Copy" affordance on correlation and transaction ids. It binds one delegated listener; there is no host LiveSocket hook to register.
 
 This keeps the surface a true drop-in: mount it and the screens render fully styled, with no `assets/` build step.
@@ -488,6 +498,32 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{exception: module}`; alert on this for sustained drift.
+
+## Retention preview and confirmation
+
+On `/audit/policy/retention`, **Preview retention** reads candidate counts without
+starting a prune. The counts are sequential estimates for the configured worker store,
+not an atomic promise of how many rows a later run will delete. They are transient
+and are not saved as the run's outcome. The operator's or tenant's query scope does
+not narrow this global worker store.
+
+After a ready preview, **Review and confirm** opens the confirmation dialog. Read
+the scope and estimates, then type the exact displayed policy name before using
+**Prune now**. An empty or incorrect name does not start or audit a prune.
+**Keep audit data** or Escape cancels; a later attempt requires a new preview.
+
+If the worker restarts, its target or policy changes, or a target mismatch is
+detected, the view refuses confirmation rather than choosing a different store.
+Refresh the history and open a new preview. A persistent mismatch requires the
+host owner to align the existing Repo, storage schema and Retention configuration
+with the worker, then restart it as needed. This adds no public target-inspection
+endpoint. The existing worker entrypoint Pruner.trigger/0 is unchanged.
+
+History shows recorded outcomes separately from preview estimates. Queued counts
+may be placeholders; running counts are checkpoints, and failed checkpoints may
+be incomplete. Missing counts are unknown; a recorded zero remains zero. If
+acceptance cannot be confirmed, check the run history before another deliberate
+attempt; the UI does not automatically replay a prune.
 
 ## Operational paths
 

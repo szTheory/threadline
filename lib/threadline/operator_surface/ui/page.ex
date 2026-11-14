@@ -260,6 +260,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     attr(:header_theme, :string, default: nil)
     attr(:current, :atom, default: nil)
     attr(:coverage, :map, default: %{uncovered_count: 0})
+    attr(:coverage_schema, :string, default: "public")
     attr(:base_path, :string, default: nil)
     attr(:error, :string, default: nil)
     attr(:coverage_enabled, :boolean, default: false)
@@ -283,6 +284,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
           :if={@base_path}
           theme={@header_theme || @theme}
           coverage={@coverage}
+          coverage_schema={@coverage_schema}
           base_path={@base_path}
           error={@error}
           coverage_enabled={@coverage_enabled}

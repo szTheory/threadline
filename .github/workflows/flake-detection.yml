@@ -106,6 +106,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bin/ci-sha-gate --workflow flake-detection.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --upstream ci.yml
 
+      - name: Set up Node for browser journey contract
+        if: steps.gate.outputs.decision == 'run'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+      - name: Install locked E2E dependencies for browser journey contract
+        if: steps.gate.outputs.decision == 'run'
+        working-directory: examples/threadline_phoenix/e2e
+        run: npm ci
+
       - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         if: steps.gate.outputs.decision == 'run'
         id: beam

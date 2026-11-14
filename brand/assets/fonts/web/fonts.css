@@ -1,0 +1,5 @@
+@font-face{font-family:'Familjen Grotesk';font-style:normal;font-weight:400 700;font-display:swap;src:url('FamiljenGrotesk-normal-400-700.woff2') format('woff2')}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 700;font-display:swap;src:url('Geist-normal-400-700.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('IBMPlexMono-normal-400.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('IBMPlexMono-normal-500.woff2') format('woff2')}
+/* Latin subsets; for other scripts use the files in ../variable. */

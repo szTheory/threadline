@@ -25,7 +25,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
       "Threadline.change_diff(linked_change.audit_change)"
     ],
     "lib/threadline/operator_surface/router.ex" => [
-      "has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)"
+      "adopter_acknowledges_unauthenticated: true"
     ],
     "lib/threadline/export/orchestrator.ex" => [
       "storage.put(csv_content)"
@@ -36,7 +36,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     blocks = elixir_blocks(File.read!(@walkthrough_path))
 
     assert length(blocks) in 12..18
-    assert length(blocks) == 14
+    assert length(blocks) == 15
 
     Enum.with_index(blocks, 1)
     |> Enum.each(fn {block, index} ->
@@ -123,7 +123,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
       File.read!("README.md")
       |> String.split("## Start here", parts: 2)
       |> Enum.at(1, "")
-      |> String.split("## Evidence plane", parts: 2)
+      |> String.split("## Check audit coverage and operations", parts: 2)
       |> hd()
 
     labels =
@@ -181,13 +181,14 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     project = Threadline.MixProject.project()
     favicon = project[:docs][:favicon]
 
-    assert favicon == "brandbook/favicon.svg"
+    assert favicon == "brand/assets/icon/favicon.svg"
     assert File.exists?(favicon)
     assert favicon in project[:package][:files]
 
     svg = File.read!(favicon)
-    assert String.contains?(svg, "aria-label=\"Threadline\"")
-    assert String.contains?(svg, "prefers-color-scheme: dark")
+    assert String.contains?(svg, "role=\"img\"")
+    assert String.contains?(svg, "<title>Threadline</title>")
+    assert String.contains?(svg, "prefers-color-scheme:dark")
   end
 
   defp elixir_blocks(doc) do

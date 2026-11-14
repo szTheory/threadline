@@ -1,0 +1,23 @@
+{
+  "source": "8311dc64ac4b7f0b686e27de41839899803139c7",
+  "reviewed_product_code": "2495891863f5a0fbaab8800a787d668daeb67625",
+  "authorization": "User: Approve one repeat",
+  "authorization_consumed": true,
+  "command": "MIX_ENV=test THREADLINE_PROPERTY_SCALE=5 timeout --signal=TERM --kill-after=60s 55m mix verify.flake",
+  "suite_exit": 2,
+  "capture_exit": 0,
+  "elapsed_s": 2611,
+  "budget_s": 3300,
+  "grace_s": 60,
+  "classification": "flaky",
+  "reason": "passed 6 time(s) then failed on iteration 7",
+  "headers": 7,
+  "clean_summaries": 6,
+  "failed_seed": 500886,
+  "failure": "FormatterTopologyContractTest: repository formatter configs give representative Elixir files exactly one owner; ExUnit timeout60000ms inside recursive wildcard expansion",
+  "source_unchanged": true,
+  "log_sha256": "053a996abfade63a34883cce8986bf3c6b947a21e27be80f7af0a9d3beadb7a1",
+  "no_further_full_repeat_authorized": true,
+  "receipt_artifact": "248-RENEWED-REPEAT-RECEIPT.json",
+  "portable_record_note": "The private raw log location is omitted; the complete immutable log remains in private execution metadata and is identified by log_sha256."
+}

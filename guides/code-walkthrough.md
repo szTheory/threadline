@@ -153,6 +153,7 @@ Source: the public Plug callback in `Threadline.Plug`.
 The Plug builds transient context and assigns it to the connection. There is intentionally no repository call here.
 
 ```elixir
+# ...
 def call(conn, %{actor_fn: actor_fn, context_overrides_fn: context_overrides_fn}) do
   context =
     %AuditContext{
@@ -411,27 +412,28 @@ The public investigation layer is the better extension point for operator questi
 
 Source: `Threadline.OperatorSurface.Router`.
 
-The optional Phoenix surface is compiled only when LiveView is present. At mount time the macro requires a host pipeline, an authorization callback, or an explicit unauthenticated acknowledgement.
+The optional Phoenix surface is compiled only when LiveView is present. The
+macro preserves the host's `pipe_through` middleware, but `pipe_through` alone
+does not authorize this mount. Provide a usable unary `:authorize_fn`, or use
+the exact literal `:adopter_acknowledges_unauthenticated: true` only when the
+surface is intentionally public. That acknowledgement has the same compile-time
+meaning in tests and production.
 
 ```elixir
-defmacro threadline_operator_surface(path, opts \\ []) do
-  has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)
-  has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
-  has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated, false)
-  exports_enabled? = Keyword.get(opts, :exports, true)
-  theme = Keyword.get(opts, :theme, :dark)
-  caller_file = __CALLER__.file
-  caller_line = __CALLER__.line
+scope "/admin" do
+  pipe_through [:browser, :admin_auth]
 
-  unless theme in [:dark, :light, :system] do
-    raise CompileError,
-      file: caller_file,
-      line: caller_line,
-      description: "Threadline Operator Surface theme must be one of :dark | :light | :system"
-  end
-
-  # ...
+  threadline_operator_surface "/audit",
+    authorize_fn: &MyApp.Audit.authorize_operator/1
 end
+```
+
+For a deliberately public surface, keep any host middleware you need and state
+that intent explicitly:
+
+```elixir
+threadline_operator_surface "/audit",
+  adopter_acknowledges_unauthenticated: true
 ```
 
 Inside the omitted quoted router definition, LiveViews and controller exports receive distinct auth paths because a LiveView `on_mount` hook cannot guard ordinary controller routes.
@@ -441,15 +443,22 @@ Inside the omitted quoted router definition, LiveViews and controller exports re
 Sources: the public `Threadline.OperatorSurface.Router` and
 `Threadline.OperatorSurface.Auth` contracts.
 
-The main mount can rely on the host's secure pipeline or authorization callback. More sensitive coverage, policy, and evidence capabilities default to false. Once authorization returns a scope, Threadline treats it as opaque and invokes the host's query transformer.
+The main mount requires a usable `:authorize_fn` or an explicit public-surface
+acknowledgement; the host's secure pipeline still runs, but `pipe_through` alone
+does not authorize it. More sensitive coverage, policy, and evidence
+capabilities default to false. Once authorization returns a scope, Threadline
+treats it as opaque and invokes the host's query transformer.
 
 ```elixir
-threadline_operator_surface "/audit",
-  pipe_through: [:browser, :require_admin],
-  repo: MyApp.Repo,
-  authorize_fn: &MyApp.AuditAccess.authorize/1,
-  scope_query_fn: &MyApp.AuditAccess.scope_query/3,
-  coverage_authorize_fn: &MyApp.AuditAccess.authorize_coverage/1
+scope "/admin" do
+  pipe_through [:browser, :require_admin]
+
+  threadline_operator_surface "/audit",
+    repo: MyApp.Repo,
+    authorize_fn: &MyApp.AuditAccess.authorize/1,
+    scope_query_fn: &MyApp.AuditAccess.scope_query/3,
+    coverage_authorize_fn: &MyApp.AuditAccess.authorize_coverage/1
+end
 ```
 
 Threadline cannot infer a tenant predicate from arbitrary host data. The host must provide both the authorized scope and the function that applies it.

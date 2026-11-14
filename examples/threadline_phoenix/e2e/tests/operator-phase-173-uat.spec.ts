@@ -1,3 +1,4 @@
+import { installControlledClipboard } from "../support/operator-browser-evidence.js";
 import { expect, Locator, Page, test } from "@playwright/test";
 
 // Shift-left of Phase 173's two human-UAT items (173-HUMAN-UAT.md):
@@ -20,6 +21,9 @@ const adminEmail = "admin@example.com";
 const matrixStory = "group.page-header.current";
 
 async function login(page: Page) {
+  if (process.env.THREADLINE_PHASE253_CONTROLLED_CLIPBOARD === "1") {
+    await installControlledClipboard(page);
+  }
   await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
   const form = page.locator("#login_form");
   await form.getByLabel("Email").fill(adminEmail);
@@ -120,8 +124,10 @@ test.describe("Phase 173 UAT #2 — overlay dismissal, focus, stacking", () => {
       /phx-connected/,
     );
 
-    const open = () =>
-      page.getByRole("button", { name: "Prune now" }).last().click();
+    const open = async () => {
+      await page.getByRole("button", { name: "Preview retention", exact: true }).click();
+      await page.getByRole("button", { name: "Review and confirm", exact: true }).click();
+    };
     const modal = page.locator("#prune-confirm");
 
     // Open → dialog semantics present.

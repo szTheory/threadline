@@ -45,6 +45,44 @@ defmodule Threadline.Retention.Pruner do
     end
   end
 
+  @doc false
+  def target_snapshot do
+    case Process.whereis(__MODULE__) do
+      nil -> {:error, :not_started}
+      pid -> call_target(pid, :target_snapshot)
+    end
+  end
+
+  @doc false
+  def trigger_if_target(%{pid: pid} = target) when is_pid(pid),
+    do: call_target(pid, {:prune_if_target, target})
+
+  def trigger_if_target(_target), do: {:error, :unavailable}
+
+  defp call_target(pid, message) do
+    GenServer.call(pid, message)
+  catch
+    :exit, {:noproc, _reason} ->
+      {:error, :unavailable}
+
+    :exit, _reason ->
+      # Losing acknowledgement does not retract a message from the original
+      # worker or prove that its acceptance transaction did not commit.
+      case message do
+        {:prune_if_target, _target} -> {:error, :acceptance_unknown}
+        _ -> {:error, :unavailable}
+      end
+  end
+
+  defp target(state) do
+    %{
+      pid: self(),
+      repo: state.repo,
+      storage_schema: state.storage_schema,
+      sleep_ms: state.sleep_ms
+    }
+  end
+
   @doc """
   Returns whether the named pruner runtime is currently available.
   """
@@ -91,6 +129,16 @@ defmodule Threadline.Retention.Pruner do
        storage_opts: storage_opts,
        task_start: &Task.start/1
      }}
+  end
+
+  @impl true
+  def handle_call(:target_snapshot, _from, state), do: {:reply, {:ok, target(state)}, state}
+
+  def handle_call({:prune_if_target, expected}, _from, state) do
+    reply =
+      if expected == target(state), do: accept_or_coalesce(state), else: {:error, :unavailable}
+
+    {:reply, reply, state}
   end
 
   @impl true

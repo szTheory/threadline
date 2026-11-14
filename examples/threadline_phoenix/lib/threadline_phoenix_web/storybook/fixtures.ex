@@ -172,6 +172,245 @@ defmodule ThreadlinePhoenixWeb.Storybook.Fixtures do
   def component_assigns(:states), do: component_assigns("states")
   def component_assigns(:foundations), do: component_assigns("foundations")
 
+  @doc false
+  def operation_cases,
+    do: [:ordinary, :empty, :loading, :error, :denied, :partial, :zero, :many, :long_text]
+
+  @doc false
+  def operations_exports(scene)
+      when scene in [
+             :ordinary,
+             :empty,
+             :loading,
+             :error,
+             :denied,
+             :partial,
+             :zero,
+             :many,
+             :long_text
+           ] do
+    jobs =
+      case scene do
+        :ordinary ->
+          [operation_export(scene, "completed")]
+
+        :partial ->
+          [
+            operation_export(scene, "completed")
+            |> Map.put(:file_path, nil)
+            |> Map.put(:started_at, nil)
+          ]
+
+        :many ->
+          Enum.map(
+            ["completed", "queued", "pending", "running", "failed"],
+            &operation_export(scene, &1)
+          )
+
+        :long_text ->
+          [
+            operation_export(scene, "failed")
+            |> Map.put(:id, sample("long_id"))
+            |> Map.put(:query_params, %{"correlation_id" => sample("long_string")})
+          ]
+
+        _ ->
+          []
+      end
+
+    groups =
+      jobs
+      |> Enum.group_by(&Threadline.OperatorSurface.Presentation.export_readiness/1)
+      |> Enum.sort_by(fn {_key, jobs} ->
+        Threadline.OperatorSurface.Presentation.export_readiness_rank(hd(jobs))
+      end)
+      |> Enum.map(fn {_key, jobs} ->
+        %{
+          title: Threadline.OperatorSurface.Presentation.export_readiness_title(hd(jobs)),
+          jobs: jobs
+        }
+      end)
+
+    %{
+      scene: scene,
+      jobs_count: length(jobs),
+      default_limit: 40,
+      job_groups: groups,
+      base_path: "/audit"
+    }
+  end
+
+  defp operation_export(scene, status) do
+    alias ThreadlinePhoenix.Demo.Manifest
+    epoch = Manifest.epoch()
+
+    id =
+      if scene == :ordinary,
+        do: operation_id("export/completed-downloadable"),
+        else: operation_id("static/export/#{scene}/#{status}")
+
+    %Threadline.Governance.ExportJob{
+      id: id,
+      status: status,
+      query_params: %{"correlation_id" => Manifest.correlation_id(:acme_4521_close)},
+      actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: Manifest.user_id(:admin)},
+      file_path:
+        if(status == "completed", do: "static-example-not-a-created-file.csv", else: nil),
+      error_message: if(status == "failed", do: "Static failed delivery projection", else: nil),
+      started_at:
+        if(status in ["completed", "failed", "running"],
+          do: DateTime.add(epoch, -20, :minute),
+          else: nil
+        ),
+      completed_at:
+        if(status in ["completed", "failed"], do: DateTime.add(epoch, -18, :minute), else: nil),
+      expires_at: nil,
+      inserted_at: epoch,
+      updated_at: epoch
+    }
+  end
+
+  @doc false
+  def operations_retention(scene)
+      when scene in [
+             :ordinary,
+             :empty,
+             :loading,
+             :error,
+             :denied,
+             :partial,
+             :zero,
+             :many,
+             :long_text
+           ] do
+    alias ThreadlinePhoenix.Demo.Manifest
+    epoch = Manifest.epoch()
+
+    ordinary = %Threadline.Governance.RetentionRun{
+      id: operation_id("retention_run/completed-small"),
+      status: "completed",
+      deleted_count: 14,
+      duration_ms: 320,
+      started_at: DateTime.add(epoch, -2, :day),
+      completed_at: DateTime.add(DateTime.add(epoch, -2, :day), 1, :second),
+      inserted_at: epoch,
+      updated_at: epoch
+    }
+
+    runs =
+      case scene do
+        :ordinary ->
+          [ordinary]
+
+        :partial ->
+          [
+            %{
+              ordinary
+              | id: operation_id("static/retention/partial"),
+                status: "pending",
+                deleted_count: nil,
+                duration_ms: nil,
+                started_at: nil,
+                completed_at: nil
+            }
+          ]
+
+        :many ->
+          [
+            ordinary,
+            %{
+              ordinary
+              | id: operation_id("static/retention/failed"),
+                status: "failed",
+                deleted_count: nil,
+                error_message: "prune_error"
+            },
+            %{
+              ordinary
+              | id: operation_id("retention_run/completed-large"),
+                deleted_count: 18_342,
+                duration_ms: 9_120
+            }
+          ]
+
+        :long_text ->
+          [%{ordinary | id: sample("long_id"), deleted_count: 9_999_999_999}]
+
+        _ ->
+          []
+      end
+
+    finished_runs = Enum.filter(runs, &(&1.status in ["completed", "failed"]))
+    latest_completed = Enum.find(runs, &(&1.status == "completed"))
+
+    recorded_counts =
+      Enum.flat_map(finished_runs, fn run ->
+        if is_nil(run.deleted_count), do: [], else: [run.deleted_count]
+      end)
+
+    first_failed = Enum.find(runs, &(&1.status == "failed"))
+    prefix = "operation-retention-#{scene}"
+
+    preview_state =
+      case scene do
+        :loading -> :loading
+        state when state in [:error, :denied] -> :error
+        state when state in [:ordinary, :partial, :zero, :long_text] -> :ready
+        _ -> :idle
+      end
+
+    preview =
+      if preview_state == :ready do
+        %{
+          result: %{
+            deleted_changes: if(scene == :zero, do: 0, else: 14),
+            deleted_transactions: if(scene == :zero, do: 0, else: 1)
+          },
+          policy: %Threadline.Retention.Policy{
+            enabled: true,
+            delete_empty_transactions: scene != :partial,
+            window_seconds: 30 * 86_400
+          },
+          generated_at: epoch
+        }
+      end
+
+    %{
+      scene: scene,
+      runs: Enum.map(runs, &{"#{prefix}-#{&1.id}", &1}),
+      runs_count: length(runs),
+      default_limit: 40,
+      retention_summary: %{
+        latest_status:
+          if(runs == [],
+            do: "None",
+            else: Threadline.OperatorSurface.Presentation.status_label(hd(runs).status)
+          ),
+        latest_completed:
+          if(is_nil(latest_completed),
+            do: "No completed run yet",
+            else:
+              Threadline.OperatorSurface.Presentation.human_time(latest_completed.completed_at)
+          ),
+        total_deleted: if(recorded_counts == [], do: nil, else: Enum.sum(recorded_counts)),
+        missing_deletion_counts: length(finished_runs) - length(recorded_counts),
+        failure_count: Enum.count(runs, &(&1.status == "failed")),
+        first_failed_dom_id: first_failed && "#{prefix}-#{first_failed.id}"
+      },
+      retention_actions: %{evidence_path: nil},
+      streamed: false,
+      table_id: prefix,
+      preview_state: preview_state,
+      preview: preview
+    }
+  end
+
+  defp operation_id(key) do
+    alias ThreadlinePhoenix.Demo.Manifest.UUID
+    namespace = UUID.v5_binary(UUID.dns_namespace(), "threadline.demo")
+    UUID.format(UUID.v5_binary(namespace, key))
+  end
+
   defp stress_assigns(case_name) do
     case_name
     |> stress_story_id!()

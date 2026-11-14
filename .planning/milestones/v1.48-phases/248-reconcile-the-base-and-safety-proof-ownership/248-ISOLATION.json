@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "plan": "248-01",
+  "adapter": {
+    "mode": "orchestrator-worktree",
+    "base_ref": "head",
+    "created": true,
+    "candidate_branch": "agent-v148-admin",
+    "current_main_sha": "d35b9422fb2a83897902c2276cb94ecf5129a5e3",
+    "expected_base": "bd95469c29cfd2cfc86576ad375768d3a0510a95",
+    "observed_initial_head": "bd95469c29cfd2cfc86576ad375768d3a0510a95",
+    "observed_initial_tree": "9fcc9e7c92bcf8b4cd57c560fa2ac3c431c9b85e",
+    "fork_equals_expected_base": true,
+    "current_main_is_ancestor": true
+  },
+  "executor": {
+    "agent_id": "agent-p248-01-1794356908",
+    "worker_pid": 70518,
+    "worktree_id": "agent-p248-01-1794356908",
+    "branch": "worktree-agent-p248-01-1794356908",
+    "repository_relative_path": ".claude/worktrees/v148-admin-orchestrator/.claude/worktrees/agent-p248-01-1794356908",
+    "observed_git_root_relative_path": ".claude/worktrees/v148-admin-orchestrator/.claude/worktrees/agent-p248-01-1794356908",
+    "observed_physical_cwd_relative_path": ".claude/worktrees/v148-admin-orchestrator/.claude/worktrees/agent-p248-01-1794356908",
+    "descriptor": "codex exec --cd <repository-relative worktree path>",
+    "descriptor_target_matches_observed_root": true,
+    "descriptor_cwd_matches_observed_cwd": true,
+    "launch_attempt": 2
+  },
+  "preserved_candidate": {
+    "worktree_id": "v146-phase241-orchestrator",
+    "repository_relative_path": ".claude/worktrees/v146-phase241-orchestrator",
+    "branch": "agent-241-01",
+    "head": "0f9347f207d9395565faa4a3b0280804c4c14e1b",
+    "head_tree": "2b989aa87d88e6ae43dd6cfd74a7bebe76fb3bb1",
+    "base_sha": "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2",
+    "current_main_sha": "d35b9422fb2a83897902c2276cb94ecf5129a5e3",
+    "retained_inventory_count": 31,
+    "retained_patch_sha256": "7bb1328b375ed9c9b656d22785e089831122b002b6892554e8ce476d2b7c9074",
+    "complete_status_sha256": "863d6375a0a13223ab4db8b8ed196a8d3ed29cc9a61999f1a065c24c73d2c8d1"
+  },
+  "launch_evidence": {
+    "receipt_file": "threadline-248-wave1-launch.json",
+    "receipt_sha256": "3e6d843f276bd8dd61f36c401129fea4ce33142a1bc6047624811bae4a0a15cf",
+    "manifest_file": "threadline-248-wave1-manifest.json",
+    "manifest_sha256": "9d0560f8ccb2e080c18abfccd0301edd2d445e07edc4bcf46f343ddd363756e5",
+    "worker_record_file": "agent-p248-01-1794356908.worker.json",
+    "worker_record_sha256_at_observation": "da926e80969951f6cc089e0bfaef96a0927caebb4a943723c637a1ee1a1f9b1a",
+    "worker_state_at_observation": "running",
+    "worker_started_at": "2026-11-11T00:31:10.328Z"
+  }
+}
