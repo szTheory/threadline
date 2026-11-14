@@ -1,24 +1,24 @@
 # Milestone Arc: Threadline
 
-**Updated:**2026-11-13 after v1.48 planning completion
-**Active milestone:** None selected. v1.48 is complete and archived; PR105 remains open/unmerged, package1.1.0.
-**Posture:** The maintainer brought new signed-off brand/UI direction and approved the six-phase scope after adversarial revision. Start the complete existing-Admin refresh now, with a current-main baseline, direct fail-closed mount correction and explicit issue #61/#90 acceptance/release gates. Broader foundation work stays separately queued; scope approval is not residual-risk or publication approval.
+**Updated:** 2026-11-14 after the v1.2.0 GitHub release and post-release CI baseline
+**Active milestone:** None selected. v1.48 is complete, archived and merged; PR #105 landed at `b9dba172`. PR #106 squash-merged at `93d57ddb`; GitHub published tag/release v1.2.0. Hex still lists 1.1.0 while `production-hex` approval is pending.
+**Posture:** v1.48 stays closed. REL-01's first natural release handoff is observed and GitHub release is complete; only the protected Hex publication remains. The min/latest weight refresh is prepared locally; fresh CI ratios and the scheduled flake run must verify it before milestone selection. Keep future milestone labels provisional and do not reopen v1.48.
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
 
-## Current ranking (2026-11-10)
+## Current ranking (2026-11-14; provisional pending post-refresh signals)
 
-The approved [roadmap](ROADMAP.md), [requirements](milestones/v1.48-REQUIREMENTS.md) and [v1.48 synthesis](research/v1.48-SUMMARY.md) govern execution. The prior foundation-first proposal is retained as a research input, superseded by the approved direct-gate sequence. Remaining future milestone labels are provisional and will be re-ranked at close.
+The approved [roadmap](ROADMAP.md), [requirements](milestones/v1.48-REQUIREMENTS.md) and [v1.48 synthesis](research/v1.48-SUMMARY.md) govern the completed milestone. The 2026-11-14 baseline covers post-release main CI, the Hex handoff, the open flake report and three-run partition timings. The prior foundation-first proposal is retained as a research input, superseded by the approved direct-gate sequence. Future milestone labels remain provisional pending the post-refresh CI ratios and scheduled flake result.
 
 | Rank | Milestone or candidate | Outcome | Status |
 | --- | --- | --- | --- |
-| Complete, awaiting merge | v1.48 Threadline Admin | Approved identity and complete existing jobs, PhoenixStorybook/LiveView catalog and real route proofs, truthful package/release readiness | Six phases/34 requirements verified; PR105 open/unmerged |
-| Next candidate | Remaining Safe by default | Restore/transaction-ID behavior, CSV/header/SQL/PgBouncer hardening, security guidance and separately proposed support-floor policy; narrow approved mount guard is owned by current Phase 248 | Separately queued; no finding waived by this label |
+| Complete, merged | v1.48 Threadline Admin | Approved identity and complete existing jobs, PhoenixStorybook/LiveView catalog and real route proofs, truthful package/release readiness | Six phases/34 requirements verified; PR #105 merged, repair PR #107 merged, no new milestone selected |
+| Next candidate | Remaining Safe by default | Restore/transaction-ID behavior, CSV/header/SQL/PgBouncer hardening, security guidance and separately proposed support-floor policy; the fail-closed mount guard shipped in Phase 248 | Still provisional; re-rank after the post-refresh CI and scheduled flake signals; no finding waived by this label |
 | Candidate | Honest specs | Dependency-free mutation replay, valuable contract-test keep/merge/delete, coverage/floor/twin probes | Re-rank at close |
 | Candidate | Measured performance | Capture/control benchmark, retention orphan drain, adopter indexes, timeline bound and measured guide | Re-rank at close |
 | Candidate | Lean dependency tree | Smaller required tree, narrow local helpers, runtime-cycle/tooling boundaries | Re-rank at close |
 | Complete | v1.47 Release on autopilot | Prior CI/release/supply-chain work; no package release, REL-01 live tail carried | Closed 2026-10-29 |
 
-Current-main required CI passed at the recorded baseline, but newer scheduled advisory and broken-suite reports remain open. Phase 248 refreshes diagnosis and owns bounded remediation and blocking disposition. Do not treat old required-CI success as a current all-clear. Evidence and limits: `research/2026-11-10-brand-admin/milestone-live-baseline.json`.
+Main required CI passed all 17 jobs on the release merge SHA `93d57ddb` in [run 43558647541](https://github.com/szTheory/threadline/actions/runs/43558647541). Three consecutive main runs showed min ratios of 2.20, 2.00, and 2.07, and latest ratios of 1.79, 1.75, and 1.92; every lane passed, but the min/latest ratios exceeded the 1.15 target. The per-lane weights were refreshed locally from all 12 timing TSVs per lane (207 test files) using the existing rules: max for min, median for latest. No post-refresh CI run exists yet, so recovery is not claimed. Open Flake Detection issue #90 is also stale: its Nov 9 failures were both browser contract checks missing Playwright; PR #105 added the locked E2E install before repeats. Leave the issue open until the scheduled detector passes. The Release workflow verified green CI on `93d57ddb` and is waiting at the required `production-hex` approval; Hex remains 1.1.0. Evidence and limits: [REL-01](milestones/v1.47-phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-REL01-EVIDENCE.md).
 
 The maintainer explicitly confirmed PhoenixStorybook with Phoenix LiveView/HEEx now, no React migration, and a possible Fablebook switch only once ready and deliberately chosen. No speculative adapter is in scope. The brand authority is `brand/BRAND.md` and `brand/brand.json`; Accrue remains WIP comparison evidence.
 
@@ -140,6 +140,6 @@ Signal-gated long horizon:
 Full per-milestone record: `.planning/MILESTONES.md`. The superseded "hold" arc (2026-06-07) is in git history.
 
 
-## Current position after v1.48 planning completion
+## Current position after v1.2.0 GitHub release and post-release baseline (2026-11-14)
 
-All six phases/36plan contributions/34requirements pass independent goal/integration checks and existing required candidate CI. The [archive](milestones/v1.48-ROADMAP.md) and [closeout](milestones/v1.48-CLOSEOUT.md) retain actual proof and limits; [lessons](research/2026-11-12-autonomous-run-retrospective.md) record the long-run repairs and metadata dependency. The next concrete decision is merging PR105; no new milestone, package bump, tag or publication is selected automatically. REL-01 remains a separate first-natural-release obligation. Future candidate rankings above stay provisional and need a fresh evidence-based selection rather than another default UI rebuild.
+All six phases/36 plan contributions/34 requirements pass independent goal/integration checks and candidate CI; PR #105 is on main. The [archive](milestones/v1.48-ROADMAP.md) and [closeout](milestones/v1.48-CLOSEOUT.md) retain completion-time proof and limits; [lessons](research/2026-11-12-autonomous-run-retrospective.md) record the long-run repairs and metadata dependency. REL-01 is observed; #106 merged and GitHub published v1.2.0. Hex is still 1.1.0 because the protected production approval is pending. The post-release baseline refreshed min/latest lane weights from three main runs; future CI and the scheduled flake detector must confirm the effect. No new milestone is selected. Keep candidates provisional; do not reopen v1.48 or infer another Admin/UI milestone.

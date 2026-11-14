@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v1.48
 status: completed
 stopped_at: Phase 253 complete — all phases complete
-last_updated: "2026-11-14T03:01:22.338Z"
-last_activity: 2026-11-13
-last_activity_desc: v1.48 planning archived; PR105 awaits separate merge decision
-state_head: de811cb4fe323a34b292b2fbf9417f88fb6b8b28
+last_updated: "2026-11-14T05:22:44.000Z"
+last_activity: 2026-11-14
+last_activity_desc: v1.48 remains complete; v1.2.0 GitHub release is tagged and Hex publication awaits approval
+state_head: 93d57ddbd1a4f8e12ddd74055708e3c2c440d9e6
 progress:
   total_phases: 6
   completed_phases: 6
@@ -20,22 +20,22 @@ current_phase: null
 
 ## Project reference
 
-See [PROJECT](PROJECT.md), updated2026-11-13 after v1.48 planning completion. Core value remains durable row-change capture linked to actor/intent/context through host-owned triggers.
+See [PROJECT](PROJECT.md), updated 2026-11-14 after the v1.2.0 GitHub release and post-release CI baseline. Core value remains durable row-change capture linked to actor/intent/context through host-owned triggers.
 
 ## Current position
 
-v1.48 Threadline Admin is complete and archived:6/6phases,36/36plan contributions,34/34requirements. Independent goal/integration and required implementation-candidate CI pass. [Closeout](milestones/v1.48-CLOSEOUT.md) retains custody and exact limits. [PR105](https://github.com/szTheory/threadline/pull/105) remains open/unmerged; final record-only head uses existing CI. No new milestone is selected.
+v1.48 Threadline Admin is complete and archived: 6/6 phases, 36/36 plan contributions, 34/34 requirements. PR #105 merged as `b9dba172`; repair PR #107 merged as `5fcac23`. Release PR #106 squash-merged as `93d57ddb`; GitHub published tag/release v1.2.0. Main CI passed all 17 jobs on that SHA in [run 43558647541](https://github.com/szTheory/threadline/actions/runs/43558647541). [Closeout](milestones/v1.48-CLOSEOUT.md) retains completion evidence and limits. No new milestone is selected; v1.48 stays closed.
 
 ## Retained lessons and boundaries
 
 The requested [run retrospective](research/2026-11-12-autonomous-run-retrospective.md) and [living retrospective](RETROSPECTIVE.md) retain real failures, applied process improvements and measured limits. No global runtime/token/CI speedup is claimed. All owned apps/isolated PostgreSQL are stopped; raw proof/data/cache and the unrelated maintainer tool-version edit are preserved.
 
-The current grant covers the review branch/PR/CI and bounded repair only. Merge/tag/version/publication/risk acceptance and a new milestone require their actual decision. No full-root/default-browser/localrealzoom/native-clipboard/foreground window is renewed. REL-01 remains separately pending until its first natural release PR/own Unreleased prose/first green run. Existing non-authoritative descriptor/edge and inherited design/sampling observations remain disclosed in the archive.
+The approved repair and first natural release handoff are complete. REL-01 is observed: #106 carried its own Unreleased prose, the release pin-sync ran, and required CI passed on the final release head. #106 is now merged and GitHub has tag/release v1.2.0. The Release workflow verified green CI on main, then paused at the required `production-hex` reviewer gate; Hex still lists 1.1.0. Publishing remains a separate maintainer decision. The min/latest CI partition weights were refreshed locally from the last three main-run timing artifacts; they need to reach main before CI can verify whether ratios return to target. Flake issue #90 remains open until the scheduled detector confirms the Playwright setup fix. Full evidence and limits are in [REL-01](milestones/v1.47-phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-REL01-EVIDENCE.md). No full-root/default-browser/localrealzoom/native-clipboard/foreground window is renewed. Existing non-authoritative descriptor/edge and inherited design/sampling observations remain disclosed in the archive.
 
 ## Open-artifact audit
 
-Current open items:0. New acknowledgments/overrides:0. The scanner retains78 prior historical acknowledgments across earlier work; none is newly accepted or claimed fixed here. FutureREL-01 remains observable rather than hidden in that count.
+Current open items: 0. New acknowledgments/overrides: 0. The scanner retains 78 prior historical acknowledgments across earlier work; none is newly accepted or claimed fixed here. REL-01 is observed in its evidence file rather than hidden in this count.
 
 ## Next actor
 
-Parent finishes final-head existing CI, then hands back the concrete separate merge decision. No human UAT or further local check is requested.
+The maintainer is the next actor for the `production-hex` approval; no publish was performed. The weight refresh is local and must be pushed through a reviewed PR before post-refresh CI can validate it. Then confirm the Hex version and monitor the next scheduled Flake Detection run plus three post-refresh min/latest ratios. Keep milestone candidates provisional until those signals land; do not reopen v1.48.

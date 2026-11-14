@@ -10,11 +10,11 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-The v1.48 Admin planning milestone is complete: six phases248–253,36plan contributions and34/34requirements. Independent goal/integration checks and existing required candidate CI pass. [PR105](https://github.com/szTheory/threadline/pull/105) is open/unmerged; source version remains1.1.0 and no package/tag/publication is performed. The next decision is merge; no new milestone is selected. [Closeout](milestones/v1.48-CLOSEOUT.md) and [retained lessons](research/2026-11-12-autonomous-run-retrospective.md) preserve current outcomes and limits.
+The v1.48 Admin milestone is complete and archived: six phases 248–253, 36 plan contributions and 34/34 requirements. PR #105 merged as `b9dba172`; repair PR #107 merged as `5fcac23`. PR #106 squash-merged as `93d57ddb`, creating GitHub tag/release v1.2.0. Main CI passed all 17 jobs on that SHA in [run 43558647541](https://github.com/szTheory/threadline/actions/runs/43558647541); the Release workflow's CI verification also passed and `Publish to Hex.pm` is waiting for `production-hex` approval. Hex still lists 1.1.0. See [release evidence](milestones/v1.47-phases/247.1-close-gap-rel-01-rel-02-releasable-type-guard-and-release-pr/247.1-REL01-EVIDENCE.md). No new milestone is selected. v1.48 remains complete and closed.
 
 **Previous release history:**
 
-Threadline **1.1.0** is published on Hex.pm with ExDoc (released 2026-10-24, before v1.47 opened). The **v1.47 — Release on autopilot** quality milestone closed on 2026-10-29: five phases (244–247 plus gap phase 247.1), 66 plans, 68 tasks, and 13/14 requirements. REL-01 is deferred-with-trigger and was accepted at close. The milestone audit is `tech_debt`. No v1.47 merge changed the shipped package (all `ci:`/`chore:`/`docs:`, except the CI-only `fix(ci):` #100 that opened the now-closed #101), so v1.47 is a planning milestone tag, not a Hex release; the published package remains 1.1.0.
+Threadline **1.1.0** is the latest version published on Hex.pm with ExDoc (released 2026-10-24, before v1.47 opened). The **v1.47 — Release on autopilot** quality milestone closed on 2026-10-29: five phases (244–247 plus gap phase 247.1), 66 plans, 68 tasks, and 13/14 requirements. REL-01 was deferred-with-trigger and accepted at close; its first-natural-release clause is now observed after #105/#106 (see the evidence file). The milestone audit is `tech_debt`. GitHub's v1.2.0 release/tag now exists and source main is 1.2.0; Hex publication is waiting for `production-hex` approval.
 
 **Shipped state (updated 2026-10-29, America/New_York):**
 - origin/main is at `ba0d80aa` (PR #103). v1.47 landed through squash PRs #91 and #93–#103 (except #101, the closed release PR). Release PR #101 ("release 1.1.1", opened by the CI-only `fix(ci):` PR #100) was closed unmerged after the releasable-type guard landed; there is no 1.1.1 tag.
@@ -27,7 +27,7 @@ Engineers and support staff can complete the existing investigation and permitte
 
 All34 requirements and six independent phase goals are verified. Current required CI includes both voting browser projects, all31 required journey identities and strict actual200% tab zoom. Original failed attempts, restart loss, new controlled-pair custody and inherited design/sampling limits remain explicit; no universal accessibility or human-comprehension claim is made. See [requirements](milestones/v1.48-REQUIREMENTS.md), [audit](milestones/v1.48-MILESTONE-AUDIT.md) and [roadmap](milestones/v1.48-ROADMAP.md).
 
-Scope was approved2026-11-10. The explicit current grant covers the review branch/ordinary PR/existing CI and bounded fixes; merge/tag/version/publish/risk acceptance remain separate. REL-01 retains its future natural-release trigger. Brand sources remain authoritative; no React/Fablebook adapter, public Storybook distribution, new login API or runtime dependency was introduced.
+Scope was approved2026-11-10. The original grant covered the review branch/ordinary PR/existing CI and bounded fixes; merges, tags, version changes, publication and risk acceptance remained separate decisions. PR #107 and then release PR #106 were merged only after their respective maintainer authorizations. REL-01's natural-release trigger is observed; GitHub published the v1.2.0 tag/release, while Hex publication remains behind its separate required approval. Brand sources remain authoritative; no React/Fablebook adapter, public Storybook distribution, new login API or runtime dependency was introduced.
 
 ## Latest Milestone Shipped: v1.47 Release on autopilot (2026-10-29)
 
@@ -178,8 +178,8 @@ The full prior milestone chronology remains in the [complete project snapshot](h
 
 ### Active
 
-- No new feature milestone is selected. All34v1.48 Admin requirements are validated; implementation is retained on PR105 awaiting separate merge authority.
-- **REL-01** is carried unchanged from v1.47 to the first natural release; it remains separately observable and cannot be closed by local readiness.
+- No new feature milestone is selected. All 34 v1.48 Admin requirements are validated and PR #105 is merged on main; v1.48 remains archived and complete.
+- **REL-01** is observed on the first natural release PR: #106 opened fresh, carried its own Unreleased prose, and required CI passed on final head `032aea5` without a separate changelog-dating PR. #106 later merged and GitHub published tag/release v1.2.0. The Release workflow verified CI on main and is waiting for `production-hex` approval; Hex still lists 1.1.0.
 
 ### Out of Scope
 
@@ -348,13 +348,13 @@ Standing research, verification, dependency and CI/CD policy: [Research and deli
 | Support floor Elixir 1.17 / OTP 27 (2026-10-24) | 1.15 / OTP 26 are outside upstream security windows; matches the current CI lane | Queued separately; this milestone does not raise the support floor |
 | Retire the parked UI-critic loop to a tag (2026-10-24) | About 14.1k lines of code and tests plus about 2.3 MB of fixtures (420 scorecard files) with no active use; restorable from tag `archive/ui-critic-loop` | ✓ Done (v1.47 Phase 246) |
 | Rolling quality posture with standing merge grant (2026-10-24) | Maintainer attention elsewhere; foundation work proceeds autonomously, one release per milestone, re-ranked from evidence | ✓ Adopted |
-| Release prose lives under `## Unreleased` in the landing PR; the release workflow dates it (v1.47) | Removes the separate CHANGELOG-dating PR; a stale release PR is refreshed with a CI-triggering token | ✓ Mechanism observed live (#101, REL-02); ⚠️ REL-01 next-release clause pending |
+| Release prose lives under `## Unreleased` in the landing PR; the release workflow dates it (v1.47) | Removes the separate CHANGELOG-dating PR; a stale release PR is refreshed with a CI-triggering token | ✓ Mechanism observed live (#101, REL-02); ✓ first natural release clause observed on #106 (REL-01, 2026-11-14) |
 | release-please `exclude-paths` covers the unshipped directories, and ship-nothing work never uses a releasable type (v1.47, 247.1) | A CI-only `fix(ci):` PR opened release PR #101 for a package with no change | ✓ Good (0 release PRs on main since #103); ⚠️ Revisit: root files are guarded only by the type rule (W-1, W-2) |
 | Tiered dependency audit: runtime advisories fail required CI, dev/test/example-only advisories file an issue (v1.47, SUP-03) | Keeps the release lane green on advisories that cannot reach adopters | ✓ Good |
 | SHA-pinned actions with one grouped monthly Dependabot PR; Hex security comes from `hex.audit`, not Dependabot (v1.47, SUP-01/02) | Dependabot serves no Hex advisories or SHA-pin alerts | ✓ Good; ⚠️ #92 needs its own `ci(deps):` PR |
 | Repo-file contract tests run on the current lane only; min/latest run toolchain-sensitive tests (v1.47, CI-03) | Contract tests are toolchain-independent, so running them three times is waste; local `mix test` stays whole | ✓ Good |
 | CI landings decided by pre-registered, hash-pinned replays and capped hosted cohorts (v1.47, 247) | Prevents tuning to noise and retrying until a run passes; INVALID canaries are recorded as INVALID | ✓ Good (CI-02 461 s, CI-03 ≤ 1.15) |
-| Accept a requirement as deferred-with-trigger when only a future natural event can prove it (v1.47, REL-01) | No releasable change was pending, so forcing a release to prove it would have been cosmetic | — Pending (first natural release) |
+| Accept a requirement as deferred-with-trigger when only a future natural event can prove it (v1.47, REL-01) | No releasable change was pending, so forcing a release to prove it would have been cosmetic | ✓ Observed on the first natural release PR #106 (2026-11-14); evidence in `247.1-REL01-EVIDENCE.md` |
 
 ## Evolution
 
@@ -376,4 +376,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-11-13 after v1.48 planning completion; PR105 open/unmerged, package1.1.0, release authority separate.*
+*Last updated: 2026-11-14 after PR #106 merged and GitHub v1.2.0 release; Hex publication remains behind its separate approval.*
