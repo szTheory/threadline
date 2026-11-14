@@ -277,3 +277,8 @@ Two frozen specs are clean/zero findings. Same-origin/path/committed-query asser
 ## Fifth natural CI: persisted red data and explicit zoom enforcement
 
 Frozen transport delta is clean/zero findings. Red reports retained without changing voting/cancellation; geometry files/log precede unchanged predicates. Actual deliberate failure persists outputs, original4 pass and89CI contracts pass. The erroneous absent-directory claim is withdrawn after exact-path verification of preserved source/copy hashes and allowed transform. Bounded mode refresh confirms existing assertion branch enabled via CIfield and mode emitted; hostedtrue remains pending. See [repair record](253-CI-REPAIR-05.md).
+
+
+## Sixth-CI bounded correction review
+
+Independent code reviewer checks all seven frozen source hashes in `ci-fix6-review-input-01.json`, matching evidence hashes, golden segment parity, exact preserved paths and actual same-fixture RED/GREEN. Clean: zero critical/warning/info/necessity findings. Wide-m input strengthens the premise but is explicitly not identical to Linux's original t glyph. Full warning, shell/control/text containment and no clipping/tolerance relaxation are confirmed. Current style/size, format and strict Credo pass; Linux exact-candidate CI and phase acceptance remain pending. No new execution by reviewer.

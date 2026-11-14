@@ -98,3 +98,8 @@ SECURED24/24 retained, zero open/no accepted risks; both frozen hashes match. Sa
 ## Fifth natural CI: persisted red data and explicit zoom enforcement
 
 SECURED24/24, zero open/no accepted risks. Allthree frozen hashes match. !cancelled upload retains failed reports but no failed leg can votegreen; missing files still error. No permission/destination/retention change; diagnostics use bounded layout data and synthetic screenshot. Strict guard remains. Explicit1 enables assertion-only zoom mode, not extra actions; actual post-env workflow receipt02 matches currenthash. Next hostedmode true/real Linux bounds pending. See [repair record](253-CI-REPAIR-05.md).
+
+
+## Sixth-CI alert-wrap delta
+
+Independent security reviewer verifies seven source hashes and sixteen immutable evidence hashes from `ci-fix6-review-input-01.json`. SECURED: original24/24 mitigations retained, zero open threats, no accepted risk. Existing wrapping properties become unconditional; no escaping/masking/data-mutation/clipping/ellipsis change. The full escaped HEEx warning remains asserted. Actual RED exits1, GREEN02 has four expected first-attempt passes; sandbox GREEN01 is retained as failed setup. Five logical table maps match across five snapshots. Exact-candidate Linux CI and phase acceptance remain pending; no reviewer execution or mutation.

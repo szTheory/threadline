@@ -7,21 +7,22 @@ runtime_revision: "e42d295c910e11918a1df224a1307c369a2a8767"
 original_reviewed_revision: "4f35334f20fc4c8a89ac46d446b9fbb3b6b46672"
 original_runtime_revision: "79e74fc4f16f125fe20b5bcb0db09bc2a047c26a"
 baseline_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
-status: "changes-requested; real browser zoom evidence complete; Linux long-filter containment unresolved"
+status: "bounded UI corrections verified; Linux exact-candidate CI and phase acceptance pending"
+f09_evidence_source_head: "291b1592904a5f2f0d6c7c32f8a65fe6e28c1a99 plus frozen uncommitted correction"
 zoom_evidence_revision: "02204881bc294d0b5d99e71aea234d2f0393b871"
 zoom_evidence_ci_run: "43535007690"
 score: 20
 score_max: 24
 original_score: 16
 original_findings: 8
-open_findings: 1
+open_findings: 0
 carried_observations: "inherited Timeline-reference wrapping; newly visible unchanged640-host summary compression, outside F03 allocation delta"
-delta: "F01 resolved by executed exact-tab real2x observations; F09 Linux long-filter containment remains open; no whole-CI acceptance"
+delta: "F01 resolved by hosted exact-tab real2x observations; F09 bounded alert-wrap correction verified locally; Linux exact-candidate CI and whole-phase acceptance pending"
 ---
 
 # Phase 253 — UI Review
 
-**Record structure:** the original 16/24 assessment and eight findings below are preserved as historical judgments. Frontmatter and the latest appended delta reflect the current bounded assessment; the original16→19→20 score history remains intact. **Current boundary:** F01 real200% zoom is resolved by the fifth-CI executed observations; Linux long-filter containment remains unresolved. Neither the phase nor its required CI is accepted.
+**Record structure:** the original 16/24 assessment and eight findings below are preserved as historical judgments. Frontmatter and the latest appended delta reflect the current bounded assessment; the original16→19→20 score history remains intact. **Current boundary:** F01 real200% zoom is resolved; F09's identified alert-wrap correction is verified within the supplied local bounds. Linux exact-candidate CI and whole-phase acceptance remain pending. The retained20/24 score is not a new full six-pillar assessment after these CI repairs.
 
 **Audited:** 2026-11-13
 **Baseline:** approved [UI-SPEC](253-UI-SPEC.md), approved brand, and retained Phase 252 appearance.
@@ -404,3 +405,31 @@ The supplied forced-false diagnostic exits1 and creates the declared JSON/PNG ou
 All earlier findings, source/pixel custody limits and correction history remain preserved. In particular, the earlier static-review assertion that Before/After axis labels inherit16px body text was wrong: `.tl-change__field` in `06_layout_primitives.css:375`–`:379` supplies the approved12px label role, while adjacent values explicitly use13px. The original source-only forward scan missed that inherited cascade; no new assurance is derived from that mistake. Lost historical raw captures are not restored by this CI evidence, and no new historical-source, snapshot-guard, human-comprehension or blanket accessibility claim follows.
 
 Parent acts next on the existing bounded Linux geometry investigation and requirement/CI records. The reviewer needs no maintainer acknowledgment and renews no stopped native-Mac, full/default-browser or local-realzoom execution.
+
+## Sixth natural CI — bounded F09 correction proof
+
+**Scope:** supplied source/receipt/geometry review and actual viewing of three existing PNGs; no test, capture, browser/app, network/DB operation or retry by this reviewer. Read [the frozen correction manifest](../../tmp/253-recovery/ci-fix6-review-input-01.json) and verified all23 declared source/evidence hashes, with no mismatches. The manifest and app receipt identify source HEAD `291b1592904a5f2f0d6c7c32f8a65fe6e28c1a99` **plus the frozen uncommitted correction**, not an unchanged committed runtime. The actual app receipt binds both changed CSS file hashes, reports the owned fixture/supervised worker, and is stopped with exit0. This is bounded current correction proof, not a new whole-source review or the earlier17PNG replay.
+
+### F09 — RESOLVED for the identified alert-wrap correction; Linux confirmation pending
+
+The original outside-Main hypothesis was not supported. Sixth-run Linux PNGs showed the warning's unbroken identifier extending beyond its contained border. The old diagnostic scanned element bounding rectangles, so its empty list did not exclude text overflow within an element. The now-measured owner is `TimelineLive.Filters.query_feedback/1`, `lib/threadline/operator_surface/live/timeline_live/filters.ex:41`, rendering the complete unknown-table warning through `.tl-alert--info[role=status]`. Base `.tl-alert` previously had no wrapping protection; `09_responsive.css` supplied it only at viewport widths below768px.
+
+The matched local reproduction uses the same fixed filter window,226-character table token with wide `m` glyphs,232-character correlation token, fixture,1280×900 desktop viewport, browser, Dark theme and defaultzoom for before/after. It deliberately strengthens the original Linux `t` token; it is not the identical Linux input or environment. The genuine RED receipt exits1 without injection: initial and settled document width2566 at viewport1280, alert client/scroll width966/2285 and text Range right2565.8125. Fonts are loaded; all seven form controls fit, and no element rectangle is outside. These measurements attribute the reproduced root overflow directly to warning text.
+
+After the correction, desktop initial and settled document width is1280, alert client/scroll width966/966 and text Range right1225.921875 inside its280–1248 border; the403-character complete warning text length is preserved. The mobile-project desktop-layout observation also reports document1280 and contained text, with all controls inside/visible. This is wrapping, not concealed overflow, truncated warning data or a weakened fit predicate.
+
+Each following PNG was actually opened with `view_image` in this delta:
+
+- [Before desktop](../../tmp/253-recovery/ci6-alert-red-01-artifacts/operator-route-states-Time-ab699-with-a-long-unbroken-filter-desktop-chromium/timeline-long-filter-state.png): warning token visibly escapes the right viewport while its border fits.
+- [After desktop](../../tmp/253-recovery/ci6-alert-green-02-artifacts/operator-route-states-Time-ab699-with-a-long-unbroken-filter-desktop-chromium/timeline-long-filter-state.png): full warning wraps into its existing border; form, chips, recovery copy and Clear filters remain visible. The following empty state moves down by the added text lines, as expected.
+- [After mobile-project desktop layout](../../tmp/253-recovery/ci6-alert-green-02-artifacts/operator-route-states-Time-ab699-with-a-long-unbroken-filter-mobile-chromium/timeline-long-filter-state.png): same full warning is contained with desktop layout. Its larger raster reflects the project image scale; it is neither a375px screenshot nor proof of real browser zoom. Narrow375 checks are established by the passing test execution, not this image.
+
+Only the two existing properties, `min-width:0` and `overflow-wrap:anywhere`, move from the mobile rule into base `.tl-alert` at `05_feedback.css:114`. This least disruptive remedy preserves the complete recovery message at every viewport and adds no clipping, global overflow hiding or typography change. The strengthened original browser case asserts the visible warning contains all226 token characters, exactly one measured warning exists, text is contained, and the original strict document/control predicates pass at1280 and375. The separate query-identity case remains intact. Updating the stylesheet fixture/lock documents the intended two-property promotion; it does not invent a new visual baseline for unrelated UI.
+
+The actual four-case GREEN report records4 expected,0 unexpected/skipped/flaky, with retries0 in the command. The earlier green01 browser-launch failure is retained as exit1; green02 is the actual successful execution. All five logical table count/full-row-hash maps are exactly equal across five bracketing snapshots, supporting fixture stability without claiming a new seed, reset or database mutation proof.
+
+**Disposition:** close F09 for this measured correction. Required Linux exact-candidate CI must still verify the affected declaration and inventory on the final candidate; the previous Linux red result remains historical and is not relabeled green. F01's earlier actual-measurement closure and subsequent hosted strict-mode proof remain separate; this defaultzoom local packet adds no real2x or clipboard claim. Unknown descriptor flags, old source/capture custody limits and the explicit12px-axis correction remain preserved. There is no full-phase, REL-01 or blanket accessibility acceptance here.
+
+Read the retained [sixth-run zoom observations](../../tmp/253-recovery/ci6-real-zoom-observations.json): the ordinary result explicitly records `acceptMode:true` and three factor2/zero-overflow observations; the seven inspection observations again report factor2/zero overflow. This resolves the prior mode-wiring caveat for that hosted run without rerunning zoom locally. Read [the service-stop receipt](../../tmp/253-recovery/ci6-scoped-services-stop.json): the owned app is gone and PostgreSQL stop exits0. Neither successful zoom nor clean shutdown substitutes for the corrected warning's pending exact-candidate Linux check.
+
+The prior20/24 score is retained as the latest six-pillar score, without a new full rescore from this bounded fix. No currently unresolved identified correction remains in this report; inherited wrapping/narrow-metric observations remain carried observations. Parent acts next on the already scoped natural Linux CI and requirement records. No maintainer acknowledgment or local retry is requested.

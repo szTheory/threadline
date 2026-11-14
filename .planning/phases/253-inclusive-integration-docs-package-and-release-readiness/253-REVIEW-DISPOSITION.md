@@ -1,5 +1,9 @@
 # Review disposition — current local source, acceptance pending
 
+**Current bounded correction:** seven source hashes in `ci-fix6-review-input-01.json` are independently verified. Code is clean; security remains24/24 with zero open/no accepted risk; UI closes F01 from hosted real2x and F09 from the actual same-fixture text-overflow RED/GREEN plus three viewed images. UI score20/24 remains unchanged. Final source is the reviewed working-tree correction based on `291b1592904a5f2f0d6c7c32f8a65fe6e28c1a99`; exact-candidate Linux CI and final goal refresh remain pending. Historical assessments below retain their original revisions and limits. [Sixth-CI repair](253-CI-REPAIR-06.md) is the current source/evidence boundary. Parent continues the approved push/CI cycle; no user action is needed.
+
+## Historical local checkpoint
+
 Current frozen source/runtime is `e42d295c910e11918a1df224a1307c369a2a8767`. All reports are independent automated judgments, not human comprehension or risk acceptance. Original findings and every bounded delta are preserved in their owning reports. Code review is clean for the four-file closing delta. Security closes24/24 source mitigations with0open/noacceptedrisk. UI is20/24 with real2x proof still blocking.
 
 | Finding / owner | Current disposition | Proof / limit |

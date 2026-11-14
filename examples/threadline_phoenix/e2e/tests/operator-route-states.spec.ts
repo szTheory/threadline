@@ -1153,7 +1153,10 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   const e = process.env.THREADLINE_E2E_EVIDENCE === "1" ? await startEvidence(page, browser, info) : undefined;
   await page.goto("/audit/timeline");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
-  const longTable = "unmatched_table_" + "t".repeat(210);
+  // Wide glyphs exercise unbroken warning text across platform font metrics.
+  await page.locator("#filter-from").fill("2026-05-25T14:30");
+  await page.locator("#filter-to").fill("2026-05-26T14:30");
+  const longTable = "unmatched_table_" + "m".repeat(210);
   const longCorrelation = "unmatched_correlation_" + "x".repeat(210);
   const tableFilter = page.locator("#filter-table");
   const correlationFilter = page.locator("#filter-correlation-id");
@@ -1177,6 +1180,9 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   await expect(correlationFilter).toHaveValue(longCorrelation);
   expect(longTable).toHaveLength(226);
   expect(longCorrelation).toHaveLength(232);
+  const tableWarning = page.locator(".tl-alert--info[role='status']").filter({ hasText: "Table filter" });
+  await expect(tableWarning).toBeVisible();
+  await expect(tableWarning).toContainText(longTable);
   await page.setViewportSize({ width: 1280, height: 900 });
   const controlsFit = async () => page.evaluate(() => {
     const form = document.querySelector<HTMLElement>("#timeline-filters")!;
@@ -1187,6 +1193,22 @@ test("Timeline delayed query exposes pending then real empty result with a long 
       viewportWidth,
       documentWidth: document.documentElement.scrollWidth,
       fontStatus: document.fonts.status,
+      alertText: Array.from(document.querySelectorAll<HTMLElement>("#tl-main .tl-alert--info"))
+        .filter((element) => element.textContent?.includes("Table filter"))
+        .map((element) => {
+          const bounds = element.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const textRects = Array.from(range.getClientRects()).filter((rect) => rect.width > 0);
+          return {
+            clientWidth: element.clientWidth, scrollWidth: element.scrollWidth,
+            left: bounds.left, right: bounds.right,
+            textLength: element.textContent?.length,
+            textLeft: Math.min(...textRects.map((rect) => rect.left)),
+            textRight: Math.max(...textRects.map((rect) => rect.right)),
+            contained: element.scrollWidth <= element.clientWidth && textRects.every((rect) => rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1),
+          };
+        }),
       overflowing: Array.from(document.querySelectorAll<HTMLElement>("#tl-main, #tl-main *"))
         .map((element) => {
           const rect = element.getBoundingClientRect();
@@ -1212,12 +1234,12 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   writeFileSync(layoutPath, JSON.stringify(layoutObservation));
   console.log("THREADLINE_LONG_FILTER_LAYOUT=" + JSON.stringify(layoutObservation));
   await info.attach("timeline-long-filter-layout-settle", { path: layoutPath, contentType: "application/json" });
-  if (!desktopControls.shellFits) {
-    const screenshotPath = info.outputPath("timeline-long-filter-overflow.png");
-    await page.screenshot({ path: screenshotPath });
-    await info.attach("timeline-long-filter-overflow", { path: screenshotPath, contentType: "image/png" });
-  }
+  const screenshotPath = info.outputPath("timeline-long-filter-state.png");
+  const screenshot = await page.screenshot({ path: screenshotPath });
+  await info.attach("timeline-long-filter-state", { body: screenshot, contentType: "image/png" });
   expect(desktopControls.shellFits).toBe(true);
+  expect(desktopControls.alertText).toHaveLength(1);
+  expect(desktopControls.alertText.every((alert) => alert.contained)).toBe(true);
   expect(desktopControls.controls.every((control) => control.visible && control.inside)).toBe(true);
   await page.setViewportSize({ width: 375, height: 900 });
   await page.evaluate(async () => {
@@ -1226,6 +1248,8 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   });
   const narrowControls = await controlsFit();
   expect(narrowControls.shellFits).toBe(true);
+  expect(narrowControls.alertText).toHaveLength(1);
+  expect(narrowControls.alertText.every((alert) => alert.contained)).toBe(true);
   expect(narrowControls.controls.every((control) => control.visible && control.inside)).toBe(true);
   await expect(tableFilter).toBeVisible();
   await expect(correlationFilter).toBeVisible();

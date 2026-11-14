@@ -950,17 +950,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Timeline rows must fix narrow-width overflow at row/control level, not hide horizontal overflow"
   end
 
-  test "phase 250 Timeline feedback wraps long filter values on mobile" do
-    src = StyleSource.read!()
+  test "Timeline feedback wraps long filter values at every viewport width" do
+    base = File.read!("lib/threadline/operator_surface/style/05_feedback.css")
+    refute base =~ "@media"
 
-    mobile =
-      src
-      |> String.split("@media (max-width: 767px) {")
-      |> Enum.at(1)
-      |> String.split("@media (min-width: 768px)")
-      |> List.first()
-
-    assert_selector_contains(mobile, ".tl-alert", [
+    assert_selector_contains(base, ".tl-alert", [
       "min-width: 0;",
       "overflow-wrap: anywhere;"
     ])
