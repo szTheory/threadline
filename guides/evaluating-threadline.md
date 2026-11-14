@@ -8,7 +8,7 @@ It is **not** a compliance procurement sign-off or legal attestation of your env
 
 ## What the current Threadline release packages
 
-Threadline **1.1.0** is the version in this checkout (`mix.exs` `@version`). Check [Hex](https://hex.pm/packages/threadline) for the published package; the [Distribution preflight](adoption-pilot-backlog.md) records the release workflow and publication evidence. <!-- x-release-please-version -->
+Threadline **1.2.0** is the version in this checkout (`mix.exs` `@version`). Check [Hex](https://hex.pm/packages/threadline) for the published package; the [Distribution preflight](adoption-pilot-backlog.md) records the release workflow and publication evidence. <!-- x-release-please-version -->
 
 ### Historical release context
 

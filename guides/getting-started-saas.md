@@ -23,7 +23,7 @@ Add Threadline to `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:threadline, "~> 1.1.0"}
+    {:threadline, "~> 1.2.0"}
   ]
 end
 ```

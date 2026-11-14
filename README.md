@@ -66,7 +66,7 @@ The broader public surface includes `Threadline.Plug`, `Threadline.record_action
 Add the current Threadline package coordinate to your dependencies:
 
 ```elixir
-{:threadline, "~> 1.1.0"}
+{:threadline, "~> 1.2.0"}
 ```
 
 Then follow [Getting started with Threadline in a Phoenix SaaS app](guides/getting-started-saas.md)

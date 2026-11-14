@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/szTheory/threadline/compare/v1.1.0...v1.2.0) (2026-11-14)
+
+
+### Features
+
+* refresh Threadline Admin and complete audit workflows ([#105](https://github.com/szTheory/threadline/issues/105)) ([b9dba17](https://github.com/szTheory/threadline/commit/b9dba1725c281a6661ec683019520ec8b2581b1f))
+
 ## [1.1.0](https://github.com/szTheory/threadline/compare/v1.0.1...v1.1.0) (2026-10-23)
 
 

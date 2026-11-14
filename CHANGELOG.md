@@ -21,6 +21,10 @@
 
 ## Unreleased — highlights
 
+_Nothing yet for the next release._
+
+## [1.2.0] - 2026-11-14
+
 The optional Phoenix surface is presented as Threadline Admin, with the approved
 brand assets, connected investigation and Operations flows, and clearer adoption
 and upgrade guidance. The capture layer and supported dependency ranges remain
