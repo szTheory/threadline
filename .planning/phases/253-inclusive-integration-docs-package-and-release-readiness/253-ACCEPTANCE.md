@@ -4,9 +4,9 @@ Status: local source/inventory reconciliation and the named scoped proofs are re
 
 ## Authorities and current local proof
 
-- Current generic authority: [source checklist](../../../test/fixtures/operator_surface/source-surface-checklist.json),427 distinct rows (423 active and4 explicit exclusions). [Route inventory](../../../test/fixtures/operator_surface/route-inventory.json) retains11 routes, one degraded extra state and415 historical capture-item identities; its item count is not substituted for current source coverage.
+- Current generic authority: [source checklist](../../../test/fixtures/operator_surface/source-surface-checklist.json),430 distinct rows with436 source anchors and4 explicit exclusion notes. [Route inventory](../../../test/fixtures/operator_surface/route-inventory.json) retains11 routes,418 items and one degraded extra state, totaling430 identities. Three real Phase253 declarations were added after first-CI independent census failure; existing IDs remain unchanged.
 - Semantic authority: [journey inventory](../../../examples/threadline_phoenix/e2e/support/operator-journey-inventory.json),34 declaration rows (31 required,3 explicitly nonvoting),16 surfaces,5 resource dispositions,7 carry dispositions and11 scenarios. Source order and identities remain unchanged.
-- Actual inventory/CI metadata owners execute33 cases with0 failures; rendered/fixture/journey root owners execute24 cases with0 failures. These establish their stated structure/rendering boundaries. All existing negative/source/duplicate controls remain. No inventory edits were necessary because current anchors and declarations resolve.
+- Earlier metadata33/rendered24 checks remain historical evidence within their boundaries. First requiredCI exposed three missing independently discovered declarations; their existing-registry ownership is now fixed, and the affected156-owner check set passes with negative/source/duplicate controls retained. Whole semantic browser/required-CI acceptance remains pending.
 - Current mounted/inclusive/capture proof and its source/data limits are in [paired evidence](253-PAIR-EVIDENCE.md), [sampling](253-SAMPLING.md) and [execution adjustments](253-EXECUTION.md). Required candidate CI remains pending even where local behavior passes.
 
 ## Mounted routes
@@ -460,6 +460,9 @@ Each row below has exactly one current static disposition. S means the actual cu
 | `state.phase251.255a960ff0c3` | state | S: current static/render contract; no standalone runtime claim | examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts |
 | `state.phase251.b83a7acdcf97` | state | S: current static/render contract; no standalone runtime claim | examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts |
 | `state.phase252.retention-no-replay` | state | S: current static/render contract; no standalone runtime claim | examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts |
+| `state.phase253.forced-colors` | state | S: current independent source ownership; full executed semantic/browser acceptance pending | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts |
+| `state.phase253.served-headlines` | state | S: current independent source ownership; full executed semantic/browser acceptance pending | examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts |
+| `state.phase253.host-containment` | state | S: current independent source ownership; full executed semantic/browser acceptance pending | examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts |
 
 ## Semantic declarations and voting status
 

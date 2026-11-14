@@ -1184,16 +1184,41 @@ test("Timeline delayed query exposes pending then real empty result with a long 
     const controls = Array.from(form.querySelectorAll<HTMLElement>("input, button, a"));
     return {
       shellFits: document.documentElement.scrollWidth <= viewportWidth,
+      viewportWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      fontStatus: document.fonts.status,
+      overflowing: Array.from(document.querySelectorAll<HTMLElement>("#tl-main, #tl-main *"))
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return { tag: element.tagName, id: element.id, class: element.className, left: rect.left, right: rect.right, width: rect.width, position: style.position, whiteSpace: style.whiteSpace, overflowWrap: style.overflowWrap, minWidth: style.minWidth };
+        })
+        .filter((element) => element.width > 0 && (element.left < -1 || element.right > viewportWidth + 1))
+        .slice(0, 16),
       controls: controls.map((control) => {
         const rect = control.getBoundingClientRect();
         return { visible: rect.width > 0 && rect.height > 0, inside: rect.left >= 0 && rect.right <= viewportWidth };
       }),
     };
   });
+  const initialDesktopControls = await controlsFit();
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
   const desktopControls = await controlsFit();
+  await info.attach("timeline-long-filter-layout-settle", { body: Buffer.from(JSON.stringify({ initial: initialDesktopControls, settled: desktopControls })), contentType: "application/json" });
+  if (!desktopControls.shellFits) {
+    await info.attach("timeline-long-filter-containment", { body: Buffer.from(JSON.stringify(desktopControls)), contentType: "application/json" });
+    await info.attach("timeline-long-filter-overflow", { body: await page.screenshot(), contentType: "image/png" });
+  }
   expect(desktopControls.shellFits).toBe(true);
   expect(desktopControls.controls.every((control) => control.visible && control.inside)).toBe(true);
   await page.setViewportSize({ width: 375, height: 900 });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
   const narrowControls = await controlsFit();
   expect(narrowControls.shellFits).toBe(true);
   expect(narrowControls.controls.every((control) => control.visible && control.inside)).toBe(true);
@@ -1232,7 +1257,15 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await expect(page.locator("#filter-from")).toHaveValue("2020-01-01T00:00");
   await expect(page.locator("#filter-to")).toHaveValue("2099-01-01T00:00");
   const transactionHref = await page.getByTestId("transaction-link").getAttribute("href");
-  expect(transactionHref).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  expect(transactionHref).not.toBeNull();
+  const transactionUrl = new URL(transactionHref!, page.url());
+  expect(transactionUrl.pathname).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+  expect(transactionUrl.origin).toBe(new URL(page.url()).origin);
+  expect(transactionUrl.searchParams.get("origin")).toBe("timeline");
+  expect(transactionUrl.searchParams.get("from")).toBe("2020-01-01T00:00");
+  expect(transactionUrl.searchParams.get("to")).toBe("2099-01-01T00:00");
+  expect(transactionUrl.searchParams.get("table")).toBe("ticket_replies");
+  expect(transactionUrl.searchParams.get("correlation_id")).toBe(queryA);
   await page.setViewportSize({ width: 1280, height: 900 });
   const desktopOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(desktopOverflow).toBe(false);

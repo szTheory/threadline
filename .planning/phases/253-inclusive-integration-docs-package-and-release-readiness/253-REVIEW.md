@@ -269,3 +269,7 @@ Independent typed code review is clean across both packet02 hashes, zero finding
 ## Third natural CI: one-line assertion and actual owner proof
 
 One-line frozen assertion correction is clean, zero findings. Exact12px matches inherited label role; the prior ≥14/body16 review premise was wrong. Independent source/harness checks confirm only import resolution and pre-navigation clipboard doubles differ; raw report proves20 named cases passed once without skips/errors. Later target/selection/focus/paired-layout/overflow checks remain. See [repair record](253-CI-REPAIR-03.md).
+
+## Fourth natural CI: query context and readiness diagnostics
+
+Two frozen specs are clean/zero findings. Same-origin/path/committed-query assertions preserve exact pending-A href; font settling changes no strict predicate/tolerance/timeout. Raw report confirms four first-attempt original-case passes. Both initial local bounds already fit, so no Linux cause/resolution is established. See [repair record](253-CI-REPAIR-04.md).

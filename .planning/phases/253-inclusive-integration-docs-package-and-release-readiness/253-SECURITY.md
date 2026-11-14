@@ -90,3 +90,7 @@ Same independent security reviewer confirms SECURED,24/24 retained, zero open/no
 ## Third natural CI: one-line assertion and actual owner proof
 
 SECURED,24/24 retained, zero open/no accepted risks. Frozen one-file hash matches; exact12 follows existing label role. Targets, action text, selection, focus, copy and layout controls remain unchanged. Actual selected20-case exit0/no skips/flake evidence is bounded; failed setup/supplementary SQL diagnostic stays disclosed. See [repair record](253-CI-REPAIR-03.md).
+
+## Fourth natural CI: query context and readiness diagnostics
+
+SECURED24/24 retained, zero open/no accepted risks; both frozen hashes match. Same-origin transaction paths and retained committed filters are enforced; exact pending href remains. Fonts/two frames and initial/settled diagnostics preserve strict guards, with no production/authorization/clipboard/limit changes. Local4 proof is default-zoom selected only; Linux failure unaccepted. See [repair record](253-CI-REPAIR-04.md).

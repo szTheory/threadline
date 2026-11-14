@@ -364,3 +364,7 @@ Same independent UI reviewer confirms both packet02 hashes and intended named co
 ## Third natural CI: one-line assertion and actual owner proof
 
 Same reviewer confirms exact axis12px from ancestor .tl-change__field at06_layout_primitives.css375–379, overriding its earlier unsupported body16 assurance. Adjacent values explicitly use dense13. Keep direct-arrow/wide-pairing eligibility and actual runtime geometry requirements. Parent selected20 cases pass without retry; no production change/new pixels or F01 real2x closure follows. See [repair record](253-CI-REPAIR-03.md).
+
+## Fourth natural CI: query context and readiness diagnostics
+
+Same reviewer approves both frozen hashes, committed-query invariants, unchanged strict desktop/narrow predicates and retained initial/settled data. Actual four local cases pass without retries. Font readiness is only a hypothesis; retain any initial Linux overflow even if settled success. No runtime UI changed/new pixels needed. Actual seven inspection factor2 observations are valid; F01 remains partial until ordinary declaration completes. See [repair record](253-CI-REPAIR-04.md).

@@ -98,7 +98,14 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
     }).first().getByTestId("transaction-link");
     await expect(transactionLink).toBeVisible();
     const transactionHref = await transactionLink.getAttribute("href");
-    expect(transactionHref).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+    expect(transactionHref).not.toBeNull();
+    const transactionUrl = new URL(transactionHref!, String(baseURL));
+    expect(transactionUrl.pathname).toMatch(/^\/audit\/transactions\/[^/?]+$/);
+    expect(transactionUrl.origin).toBe(new URL(page.url()).origin);
+    expect(transactionUrl.searchParams.get("origin")).toBe("timeline");
+    expect(transactionUrl.searchParams.get("table")).toBe("ticket_replies");
+    expect(transactionUrl.searchParams.get("from")).toBe(new URL(page.url()).searchParams.get("from"));
+    expect(transactionUrl.searchParams.get("to")).toBe(new URL(page.url()).searchParams.get("to"));
     await page.goto(new URL(transactionHref!, String(baseURL)).toString());
     await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
     const transactionZoom = await setAndReadTabZoom(context, page);
