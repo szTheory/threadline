@@ -142,6 +142,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
     const browserVersion = execFileSync(chromium.executablePath(), ["--version"], { encoding: "utf8" }).trim();
     const result = {
       browserVersion,
+      acceptMode,
       playwrightVersion: require("@playwright/test/package.json").version,
       tabId: zoom.tabId,
       tabUrl: zoom.url,

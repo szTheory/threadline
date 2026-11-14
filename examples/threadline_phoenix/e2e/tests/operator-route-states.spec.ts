@@ -1207,10 +1207,15 @@ test("Timeline delayed query exposes pending then real empty result with a long 
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
   });
   const desktopControls = await controlsFit();
-  await info.attach("timeline-long-filter-layout-settle", { body: Buffer.from(JSON.stringify({ initial: initialDesktopControls, settled: desktopControls })), contentType: "application/json" });
+  const layoutObservation = { initial: initialDesktopControls, settled: desktopControls };
+  const layoutPath = info.outputPath("timeline-long-filter-layout.json");
+  writeFileSync(layoutPath, JSON.stringify(layoutObservation));
+  console.log("THREADLINE_LONG_FILTER_LAYOUT=" + JSON.stringify(layoutObservation));
+  await info.attach("timeline-long-filter-layout-settle", { path: layoutPath, contentType: "application/json" });
   if (!desktopControls.shellFits) {
-    await info.attach("timeline-long-filter-containment", { body: Buffer.from(JSON.stringify(desktopControls)), contentType: "application/json" });
-    await info.attach("timeline-long-filter-overflow", { body: await page.screenshot(), contentType: "image/png" });
+    const screenshotPath = info.outputPath("timeline-long-filter-overflow.png");
+    await page.screenshot({ path: screenshotPath });
+    await info.attach("timeline-long-filter-overflow", { path: screenshotPath, contentType: "image/png" });
   }
   expect(desktopControls.shellFits).toBe(true);
   expect(desktopControls.controls.every((control) => control.visible && control.inside)).toBe(true);

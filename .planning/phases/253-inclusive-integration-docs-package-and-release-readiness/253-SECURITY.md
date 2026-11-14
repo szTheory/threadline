@@ -94,3 +94,7 @@ SECURED,24/24 retained, zero open/no accepted risks. Frozen one-file hash matche
 ## Fourth natural CI: query context and readiness diagnostics
 
 SECURED24/24 retained, zero open/no accepted risks; both frozen hashes match. Same-origin transaction paths and retained committed filters are enforced; exact pending href remains. Fonts/two frames and initial/settled diagnostics preserve strict guards, with no production/authorization/clipboard/limit changes. Local4 proof is default-zoom selected only; Linux failure unaccepted. See [repair record](253-CI-REPAIR-04.md).
+
+## Fifth natural CI: persisted red data and explicit zoom enforcement
+
+SECURED24/24, zero open/no accepted risks. Allthree frozen hashes match. !cancelled upload retains failed reports but no failed leg can votegreen; missing files still error. No permission/destination/retention change; diagnostics use bounded layout data and synthetic screenshot. Strict guard remains. Explicit1 enables assertion-only zoom mode, not extra actions; actual post-env workflow receipt02 matches currenthash. Next hostedmode true/real Linux bounds pending. See [repair record](253-CI-REPAIR-05.md).

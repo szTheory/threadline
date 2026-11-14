@@ -273,3 +273,7 @@ One-line frozen assertion correction is clean, zero findings. Exact12px matches 
 ## Fourth natural CI: query context and readiness diagnostics
 
 Two frozen specs are clean/zero findings. Same-origin/path/committed-query assertions preserve exact pending-A href; font settling changes no strict predicate/tolerance/timeout. Raw report confirms four first-attempt original-case passes. Both initial local bounds already fit, so no Linux cause/resolution is established. See [repair record](253-CI-REPAIR-04.md).
+
+## Fifth natural CI: persisted red data and explicit zoom enforcement
+
+Frozen transport delta is clean/zero findings. Red reports retained without changing voting/cancellation; geometry files/log precede unchanged predicates. Actual deliberate failure persists outputs, original4 pass and89CI contracts pass. The erroneous absent-directory claim is withdrawn after exact-path verification of preserved source/copy hashes and allowed transform. Bounded mode refresh confirms existing assertion branch enabled via CIfield and mode emitted; hostedtrue remains pending. See [repair record](253-CI-REPAIR-05.md).

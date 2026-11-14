@@ -7,19 +7,21 @@ runtime_revision: "e42d295c910e11918a1df224a1307c369a2a8767"
 original_reviewed_revision: "4f35334f20fc4c8a89ac46d446b9fbb3b6b46672"
 original_runtime_revision: "79e74fc4f16f125fe20b5bcb0db09bc2a047c26a"
 baseline_revision: "74fe8df2b2520868d464eca93054492fc93a2cad"
-status: "changes-requested; required real browser zoom proof remains blocking"
+status: "changes-requested; real browser zoom evidence complete; Linux long-filter containment unresolved"
+zoom_evidence_revision: "02204881bc294d0b5d99e71aea234d2f0393b871"
+zoom_evidence_ci_run: "43535007690"
 score: 20
 score_max: 24
 original_score: 16
 original_findings: 8
 open_findings: 1
 carried_observations: "inherited Timeline-reference wrapping; newly visible unchanged640-host summary compression, outside F03 allocation delta"
-delta: "F03 Retention allocation resolved by post-restart current-state proof; F01 remains blocking"
+delta: "F01 resolved by executed exact-tab real2x observations; F09 Linux long-filter containment remains open; no whole-CI acceptance"
 ---
 
 # Phase 253 — UI Review
 
-**Record structure:** the original 16/24 assessment and eight findings below are preserved. The current changed-only assessment, score and remaining findings are in **Bounded delta 1** at the end; frontmatter reflects that latest assessment.
+**Record structure:** the original 16/24 assessment and eight findings below are preserved as historical judgments. Frontmatter and the latest appended delta reflect the current bounded assessment; the original16→19→20 score history remains intact. **Current boundary:** F01 real200% zoom is resolved by the fifth-CI executed observations; Linux long-filter containment remains unresolved. Neither the phase nor its required CI is accepted.
 
 **Audited:** 2026-11-13
 **Baseline:** approved [UI-SPEC](253-UI-SPEC.md), approved brand, and retained Phase 252 appearance.
@@ -368,3 +370,37 @@ Same reviewer confirms exact axis12px from ancestor .tl-change__field at06_layou
 ## Fourth natural CI: query context and readiness diagnostics
 
 Same reviewer approves both frozen hashes, committed-query invariants, unchanged strict desktop/narrow predicates and retained initial/settled data. Actual four local cases pass without retries. Font readiness is only a hypothesis; retain any initial Linux overflow even if settled success. No runtime UI changed/new pixels needed. Actual seven inspection factor2 observations are valid; F01 remains partial until ordinary declaration completes. See [repair record](253-CI-REPAIR-04.md).
+
+## Fifth natural CI — executed real200% zoom evidence delta
+
+**Scope:** read-only assessment of the supplied fifth-CI observations, raw log, current zoom helper/assertion owners and frozen two-file failure-observability patch. No execution, app/browser launch, network/DB action or source edit by this reviewer. No new visual capture or broad source/copy audit. The original reviewed implementation identities above remain historical; this delta binds only its specified executed evidence to candidate `02204881bc294d0b5d99e71aea234d2f0393b871`, run `43535007690`.
+
+### F01 — RESOLVED within the required real-zoom evidence boundary
+
+Read [the observation payload](../../tmp/253-recovery/ci5-real-zoom-observations.json) and independently parsed both complete JSON observations from [the raw desktop job log](../../tmp/253-recovery/ci-fifth-job-132261758559.log). Both parsed payloads exactly equal the retained observation JSON. This establishes executed observations, rather than screenshot-derived zoom or an inferred device-scale factor.
+
+- Ordinary Home, Timeline and Transaction observations retain the same owned tab identity, and each reports actual zoom factor2. All three report CSS viewport640×450 and document/client width640, with zero whole-page horizontal overflow. Every named interactive target is found, visible, reachable and focused. Timeline overlay opening, Escape dismissal and focus return are all observed true. The transaction navigation preserves committed query context; native/full-ID disclosure and row-history targets are reachable.
+- All seven inspection checkpoints report actual factor2 on their own same owned tab: Coverage, Evidence, Redaction policy, Exports, reconnect status, Retention history and Retention confirmation. Each has zero document overflow. Interactive targets are found, visible, reachable and focused. The reconnect status is visible/reachable and correctly does not receive focus as a noninteractive status. The short Retention confirmation has CSS viewport640×210 and reachable policy input/Keep audit data; the declaration also retains dialog cancellation and focus-return assertions.
+- The actual helper at `examples/threadline_phoenix/e2e/support/operator-tab-zoom.ts:51` identifies the exact owned loopback URL, calls `chrome.tabs.setZoom(tab.id, 2)`, reads `chrome.tabs.getZoom(tab.id)`, rejects URL mismatch and rejects any factor other than2. The10 actual observations therefore meet the missing real-browser-zoom proof; DPR2 alone is not the evidence. The raw job's sole reported failing declaration is the separate Timeline long-filter case, after the ordinary Transaction observation and all seven inspection observations were emitted.
+
+**Assertion-mode limit:** ordinary control/overflow assertions are gated by `THREADLINE_ZOOM_ACCEPT` in `operator-zoom-proof.spec.ts:9`. The supplied log does not establish that flag was enabled, and no checked-in setting was found. Closure here independently evaluates the actual recorded measurements—all satisfy the required control/overflow/overlay predicates—and does not claim the gated strict mode ran. Exact-tab zoom checks and Before/After stacking remain unconditional. This evidence closes F01's missing actual2x boundary; it does not certify every route, arbitrary data, every accessibility criterion or the full CI inventory.
+
+### F09 — OPEN: Linux Timeline long-filter containment remains unresolved
+
+**Scope/pillar:** current acceptance-blocking containment failure affecting Experience Design; production cause and exact overflowing owner are unproven. **Owner/reference:** `examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts:1142`, fifth-run failure at `:1215`, with unchanged strict `shellFits === true` assertion now at `:1220`. **Route/state/trigger:** Timeline delayed query followed by a real unmatched result with long unbroken table/correlation filters on desktop Chromium/Linux. **Observed consequence:** the executed whole-document fit predicate is false after font readiness/settling, so that declaration fails before its later narrow checks. This is a real failed containment requirement; it is not evidence that browser zoom failed or proof of a specific CSS defect. Missing failure-body transport prevents reliable owner attribution in that original run.
+
+**Remedy:** retain this red result and obtain the initial/settled geometry plus actual failing PNG from the next already-authorized bounded Linux execution. Use those rectangles to identify the source owner before changing production layout. Preserve the existing strict document-fit/control-containment predicates; do not widen tolerances or infer a font cause from the passing local observations. The four original local route cases report no retries/skips/flakes and pass, which demonstrates the local condition only.
+
+### Frozen failure-observability patch
+
+Both files exactly match [the frozen patch manifest](../../tmp/253-recovery/ci-fix5-review-input-01.json). Against its candidate baseline, `operator-route-states.spec.ts` now writes initial/settled geometry JSON to the test output directory, logs it, attaches its path and persists/attaches an actual screenshot when containment fails. The same strict predicates and their order remain; no production CSS, timeout, tolerance or viewport change is present. `.github/workflows/ci.yml` adds `if: ${{ !cancelled() }}` to the existing executed-report upload, preserving the partial red report and attachments without turning a failed browser job green. This is an appropriate evidence-transport repair and warrants no new product pixels.
+
+The supplied forced-false diagnostic exits1 and creates the declared JSON/PNG outputs; it validates transport only. It does not reproduce or resolve the Linux overflow. The original four-case local receipt exits0, and workflow-contract receipt exits0; neither replaces the next natural Linux result. Failure evidence should remain inspectable even when the browser step fails.
+
+### Score, historical corrections and next boundary
+
+**20/24 remains unchanged:** Copywriting4, Visuals4, Color4, Typography3, Spacing3, Experience Design2. No visual-product score is increased by evidence transport. Actual real2x is now proven for the named checkpoints, while the observed long-filter containment gap prevents an increased Experience Design score. F01 closes; F09 remains open. Required CI, descriptor/inventory reconciliation and REL-01 are not accepted by this delta; unknown descriptor flags remain unknown.
+
+All earlier findings, source/pixel custody limits and correction history remain preserved. In particular, the earlier static-review assertion that Before/After axis labels inherit16px body text was wrong: `.tl-change__field` in `06_layout_primitives.css:375`–`:379` supplies the approved12px label role, while adjacent values explicitly use13px. The original source-only forward scan missed that inherited cascade; no new assurance is derived from that mistake. Lost historical raw captures are not restored by this CI evidence, and no new historical-source, snapshot-guard, human-comprehension or blanket accessibility claim follows.
+
+Parent acts next on the existing bounded Linux geometry investigation and requirement/CI records. The reviewer needs no maintainer acknowledgment and renews no stopped native-Mac, full/default-browser or local-realzoom execution.
