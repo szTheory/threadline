@@ -38,7 +38,7 @@ key-files:
 key-decisions:
   - Keep approved contrast roles in existing functional --tl-* variables, with no runtime role registry.
   - Embed only the supplied dark/light SVG sources; hide decorative SVGs from assistive technology and retain the existing home destination.
-requirements-completed: []
+requirements-completed: ["ADM-08", "ADM-09", "ADM-12", "ADM-16"]
 coverage:
   - id: D1
     description: Existing Admin semantic tokens match approved dark/light role pairs and keep operation, artwork, link, focus, and control roles distinct.
@@ -150,3 +150,8 @@ The source, semantic oracles, and CSS byte lock are committed. No browser captur
 ## Parent reconciliation
 
 The parent stopped an optional audit after the immutable implementation handoff and reverted only its unrequested detector-ignore configuration commit. The three tested product commits are intact. The transport exit reflects that interruption, not a failed product check. Token usage is unavailable for the interrupted turn; no estimate is reported as measured usage. Final phase-level browser and independent review remain pending.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

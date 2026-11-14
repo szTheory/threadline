@@ -1,81 +1,67 @@
 ---
 phase: 249-map-jobs-scenarios-and-the-brand-contract
-verified: 2026-11-12T07:06:44Z
+verified: "2026-11-14T02:55:52Z"
 status: passed
 score: 48/48 must-haves verified
-covered_files:
-  - .planning/REQUIREMENTS.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-PLAN.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-02-PLAN.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-02-SUMMARY.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-PLAN.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-SUMMARY.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CLAIM-JUDGMENT.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-FINAL-AFFECTED-RECEIPT.json
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-MAPPING-REVIEW.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REGRESSION-RECEIPT.json
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-DISPOSITION.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-FIX-RECEIPT.json
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-FIX.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-SECURITY.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-UI-REVIEW.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-UI-SPEC.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-VALIDATION.md
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-WAVE2-RECEIPT.json
-  - .planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-WAVE3-RECEIPT.json
-  - brand/BRAND.md
-  - brand/assets/README.md
-  - brand/brand.json
-  - examples/threadline_phoenix/DEMO-MANIFEST.md
-  - examples/threadline_phoenix/WALKTHROUGH.md
-  - examples/threadline_phoenix/e2e/run-e2e.sh
-  - examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts
-  - examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
-  - examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/filler.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/temporal.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex
-  - examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex
-  - examples/threadline_phoenix/test/threadline_phoenix/demo/advisory_lock_pinning_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo/retention_tail_env_contract_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_contract_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs
-  - examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs
-  - lib/threadline/capture/trigger_sql.ex
-  - lib/threadline/operator_surface/router.ex
-  - lib/threadline/operator_surface/stress_fixtures.ex
-  - test/fixtures/operator_surface/route-inventory.json
-  - test/threadline/operator_surface/controllers/export_controller_test.exs
-  - test/threadline/operator_surface/live/row_history_live_test.exs
-  - test/threadline/operator_surface/operator_evidence_contract_test.exs
-  - test/threadline/operator_surface/row_history_component_test.exs
-  - test/threadline/operator_surface/transaction_live_test.exs
-covered_digest: "v4:sha256:9c85104d4b60c01820454f244a1f0aeb8c617112f0070fbb25f17ec5d0e3f705"
+covered_files: [".planning/REQUIREMENTS.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-PLAN.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-01-SUMMARY.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-02-PLAN.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-02-SUMMARY.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-PLAN.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-03-SUMMARY.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-PLAN.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-04-SUMMARY.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CLAIM-JUDGMENT.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-CONTEXT.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-FINAL-AFFECTED-RECEIPT.json",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-MAPPING-REVIEW.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-PROBE-RECORD.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REGRESSION-RECEIPT.json",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-DISPOSITION.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-FIX-RECEIPT.json",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW-FIX.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-REVIEW.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-SECURITY.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-UI-REVIEW.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-UI-SPEC.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-VALIDATION.md",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-WAVE2-RECEIPT.json",".planning/phases/249-map-jobs-scenarios-and-the-brand-contract/249-WAVE3-RECEIPT.json",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-REVIEW.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-SECURITY.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-UI-REVIEW.md",".planning/tmp/253-recovery/ci7-browser-measurements.json",".planning/tmp/253-recovery/ci7-outcome.json",".planning/tmp/253-recovery/ci7-tested-merge.json",".planning/tmp/253-recovery/milestone-coverage-crosscheck.json",".planning/tmp/253-recovery/milestone-manager-before-audit.json",".planning/tmp/253-recovery/milestone-successor-impact-input.json",".planning/tmp/253-recovery/pre-close-open-audit-02.json",".planning/tmp/253-recovery/pre-close-terminal-normalization.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093457672/operator-ci-executed-mobile-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093845867/operator-ci-receipt-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093945117/operator-ci-executed-desktop-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-jobs.json",".planning/tmp/253-recovery/seventh-ci-runs.json",".planning/v1.48-INTEGRATION.md",".planning/v1.48-MILESTONE-AUDIT.md","brand/BRAND.md","brand/assets/README.md","brand/brand.json","examples/threadline_phoenix/DEMO-MANIFEST.md","examples/threadline_phoenix/WALKTHROUGH.md","examples/threadline_phoenix/e2e/run-e2e.sh","examples/threadline_phoenix/e2e/support/operator-ci-evidence.test.ts","examples/threadline_phoenix/e2e/support/operator-journey-inventory.json","examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts","examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/reset.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/anchors.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/exports.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/filler.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/personas.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/retention_tail.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/support.ex","examples/threadline_phoenix/lib/threadline_phoenix/demo/seed/temporal.ex","examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex","examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex","examples/threadline_phoenix/storybook/operations/exports.story.exs","examples/threadline_phoenix/storybook/operations/retention.story.exs","examples/threadline_phoenix/test/threadline_phoenix/demo/advisory_lock_pinning_test.exs","examples/threadline_phoenix/test/threadline_phoenix/demo/retention_tail_env_contract_test.exs","examples/threadline_phoenix/test/threadline_phoenix/demo_contract_test.exs","examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_contract_test.exs","examples/threadline_phoenix/test/threadline_phoenix/demo_manifest_test.exs","examples/threadline_phoenix/test/threadline_phoenix/demo_reset_test.exs","examples/threadline_phoenix/test/threadline_phoenix/walkthrough_doc_contract_test.exs","examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_evidence_test.exs","examples/threadline_phoenix/test/threadline_phoenix_web/walkthrough_happy_path_test.exs","lib/threadline/capture/trigger_sql.ex","lib/threadline/operator_surface/live/export_status_live/components.ex","lib/threadline/operator_surface/live/retention_history_live/components.ex","lib/threadline/operator_surface/router.ex","lib/threadline/operator_surface/stress_fixtures.ex","test/fixtures/operator_surface/route-inventory.json","test/threadline/operator_surface/controllers/export_controller_test.exs","test/threadline/operator_surface/live/row_history_live_test.exs","test/threadline/operator_surface/operator_evidence_contract_test.exs","test/threadline/operator_surface/row_history_component_test.exs","test/threadline/operator_surface/transaction_live_test.exs"]
+covered_digest: "v4:sha256:7dbe1382f03e47fc745fc8872460658e0f64a847988094fa3ac0e3d2000ae940"
 behavior_unverified: 0
 overrides_applied: 0
 decision_coverage:
   honored: 0
   total: 0
   not_honored: []
+successor_impact:
+  status: passed
+  current_candidate: "5be2caf71010cb386cf9b4392db799f4e55c0808"
+  scope: "Bounded successor-source impact and normal records; original goal contract and verdict retained"
+  compared_from: "8e1396ef394e902da9b60a1c53105dbefa8f2cdb"
+  historical_verified: "2026-11-12T07:06:44Z"
+  historical_score: "48/48 must-haves verified"
+  historical_covered_digest: "v4:sha256:9c85104d4b60c01820454f244a1f0aeb8c617112f0070fbb25f17ec5d0e3f705"
+  historical_report_sha256: "c1d2d2059a79fac92dd4880bf3ed9ed97a6d872eb1dfc23defb20c139ece8298"
+  historical_report_copy: ".planning/tmp/253-recovery/pre-successor-impact-reports/249-VERIFICATION.md"
+  original_source_identity_fields_remain_historical: true
+  basis: ["current independent integration trace", "inspected relevant successor source diffs", "current exact-candidate CI and retained independent owner reviews"]
+  regressions: []
+  product_gaps: []
+  new_runtime_execution: false
+  human_uat_created: false
 ---
+
+# Current successor-impact verification — Phase249
+
+**Existing inventory and coherent help-desk scenarios. Current verdict: passed.** The original **48/48 must-haves verified** score is retained; this is a bounded current-goal successor-impact assessment at `5be2caf71010cb386cf9b4392db799f4e55c0808`, not a new full-phase audit or runtime replay.
+
+The SDK previously marked the old digest stale after approved successor shared-source/record edits. That staleness is real and is preserved in [the pre-audit manager snapshot](../../tmp/253-recovery/milestone-manager-before-audit.json). This refresh first checks the actual relevant changes against the original guarantees, then binds current covered inputs. [The frozen successor packet](../../tmp/253-recovery/milestone-successor-impact-input.json) preserves every original report SHA and covered-input identity; [this exact original report copy](../../tmp/253-recovery/pre-successor-impact-reports/249-VERIFICATION.md) matches byte-for-byte. Only the three separately bound [terminal normalizations](../../tmp/253-recovery/pre-close-terminal-normalization.json) occurred after that input freeze.
+
+## Current goal impact
+
+| Original guarantee | Successor impact and actual support | Disposition |
+| --- | --- | --- |
+| One existing route/job/state/action authority with real renderer/proof owners | Parsed comparison with the original passed source shows `schemaVersion`, both `votingProjects`, all34 semantic `rows`, all11 scenarios, brand references and carry dispositions unchanged. Changes are in `surfaces`/`resourceDispositions`: locator migration to validated navigation/preview owners and explicit Operations renderer/story links. The validator adds those real sources plus a stale-preview mutation control, preserving missing/duplicate/source checks. Current integration traces16 surfaces and all34 requirement paths;31 required cross-project receipt identities actually execute. | VERIFIED |
+| Coherent ordinary identities, chronology and audit snapshots | Direct source comparison finds no change to business seed/manifest/reset, host router, approved brand data or `StressFixtures` after Phase249. Original UUID/epoch/write-time chronology and snapshot evidence therefore retain their actual boundary. Current Acme4521 whole investigation, Home/actor/history and operation flows consume those fixtures successfully. No new DB materialization or arbitrary-clock equivalence is claimed. | VERIFIED |
+| Ordinary and named boundary/stress data remain distinct | Catalog additions are deterministic read-only projections using the existing manifest IDs/epoch and production renderers; no Repo/seed/mutation/file output replaces business data. The existing scenario selection and stress allowlist remain. Operations stories and current catalog smoke pass separately from live route/authorization/mutation proof. Runner-only supervised-preview setup is independently reviewed and remains distinct from default cleanup and the isolated valid mutation. | VERIFIED |
+
+The original48/48 score and its planning-vs-execution limits remain accepted. Current430 generic IDs,34 semantic declarations and31 required executed receipt identities are different inventories, not interchangeable coverage counts. No second registry or new fixture authority is introduced.
+
+## Current evidence and limits
+
+[Independent current integration](../../v1.48-INTEGRATION.md) traces12 provider/consumer contracts,16 actual mounted/HTTP routes and seven complete flows, with no missing connection, orphan runtime export or broken flow. [The milestone audit](../../v1.48-MILESTONE-AUDIT.md) and its exact crosscheck reconcile34 assigned requirements across the requirements table, original goal verdicts and owning-plan contribution metadata. These are supporting independent traces, not substitutes for the source/invariant evidence above.
+
+[Actual current CI](../253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md) passes all17 existing jobs for head5be2 via tested PR merge2e66f6. The already independently reconciled raw reports contain225 desktop/217 mobile first-attempt passes,29/37 explicit skips, zero unexpected/flaky/global errors or extra attempts; all31 required unique identities actually passed once. Both dedicated desktop actual2x declarations pass with ordinary `acceptMode:true`. Original invalid/skipped/evidence-only/mobile-zoom rows remain explicit; no broad all-device or all-state claim follows. The unchanged root/package/optional/support gates and retained original/repair reviews provide their named complementary boundaries. No test, suite, app, browser, network, database, capture, retry or new whole-source/security/UI/custody audit was run for this impact check.
+
+The canonical digest covers the current original input set plus relevant added source/evidence/phase artifacts; generated live verification reports and the253 fingerprint are excluded to prevent a self/cross-output cycle. Existing source, completed-record and immutable evidence identities are current; historical receipts retain their own original conditions. No original pixel loss is restored, no future live REL-01 event is completed, and no merge/version/tag/publication/spend/risk/native-clipboard/foreground authority or stopped local execution is renewed.
+
+**Next actor: parent** checkpoints these six current reports and runs the ordinary SDK archive/readiness lifecycle. No new user acknowledgment or routine human verification is needed. A later planning-directory move preserves these exact pre-archive report bytes as historical evidence; this digest is not a claim that moved/deleted live paths remain a future current fingerprint.
+
+---
+
+# Original verification and history — preserved
+
+The remainder is retained verbatim as the historical assessment at its original verification time and source/runtime identities. Old “current”/next-actor/pending paragraphs refer to that checkpoint. They are not rewritten into current executions. The current successor-impact conclusion above supersedes only freshness/next-action statements where supported; original findings, flags, sampling/custody and release limits remain preserved.
+
+
 
 # Phase 249: Map jobs, scenarios and the brand contract — Verification Report
 

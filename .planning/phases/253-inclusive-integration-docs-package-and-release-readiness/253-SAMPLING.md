@@ -55,3 +55,8 @@ After-only: forced-color focused Apply; after-navigation settled forced-color Fa
 
 
 Current same-verifier result: the prescribed local paired-custody gap is **closed**. Six of nine requirements are locally satisfied; roadmap remains3/5 because real2x/exactcandidateCI are still required and unproven. No further local repair/source gap remains from this assessment. FutureREL01stays separate. Original loss/verdict/history remain preserved; this closes current custody with new controlled evidence, not restored original pixels. Parent completes only normal closeout record hashing, then the maintainer decides on the concrete review-branch/PR/requiredCI action. No human UAT or new local audit/repeat is requested.
+
+
+## Sixth-CI correction sample
+
+The bounded alert-wrap pair holds the fixed May25–26 window, same226-character wide-m identifier,232-character correlation, same logical fixture maps, browser, dark theme and1280×900/defaultzoom. Actual RED text escapes; final wraps fully. Three new PNGs are independently viewed: before/final desktop and final mobile-project desktop layout. The latter is not a375px or real2x image;375 containment comes from the actual passing original tests. Four original cases pass retries0. Separate hosted real2x observations explicitly record ordinary acceptance:true and both ordinary/inspection factor2/zero-overflow checkpoints. Exact-candidate required CI remains pending. [UI review](253-UI-REVIEW.md) and [repair06](253-CI-REPAIR-06.md) bind sources, images and retained setup failures.

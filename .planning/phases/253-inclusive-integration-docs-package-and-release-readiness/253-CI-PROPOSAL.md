@@ -1,5 +1,7 @@
 # Proposed natural required CI — concrete local candidate
 
+**Current hosted outcome:** [required candidate CI is green](253-CI-RESULTS.md) at `5be2caf71010cb386cf9b4392db799f4e55c0808`, including both voting browser projects,31/31 required receipt identities, strict actual2x and the corrected full-text warning. Final independent goal assessment and normal completion writeback remain next. Historical pending/authority checkpoints below are superseded by this actual result, not erased. REL-01 remains separate and pending; no merge/tag/publish/risk acceptance is inferred.
+
 **Authorized and executed:** the maintainer approved this concrete scope. Branch `admin-v1-48-review` and [PR #105](https://github.com/szTheory/threadline/pull/105) were created at reviewed tip `d35b5fa75c82b01dc17fd29efe3c71b3afb9fc59`. [First natural CI](https://github.com/szTheory/threadline/actions/runs/43521523982) completed red; attributable source/fixture/browser-contract repairs and bounded verification are active. This document preserves the proposal below as historical context; its former wait is superseded. No user action is currently needed.
 
 **Original proposal:** Recommended next external action: push the integrated `agent-v148-admin` candidate to a new `admin-v1-48-review` branch in `szTheory/threadline`, then open an ordinary pull request targeting `main` to trigger the existing Linux requiredCI. This creates a remote branch/PR and uses ordinary GitHub Actions resources. It does not merge, bump, tag or publish.

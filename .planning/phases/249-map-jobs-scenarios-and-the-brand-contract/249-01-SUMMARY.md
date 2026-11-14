@@ -37,7 +37,7 @@ key-decisions:
   - "Record authentication, surface capability, organization scope, support disposition, and no-page HTTP behavior as separate facts."
   - "Treat E2E and source-contract references as proof owners with explicit limitations; no browser or visual acceptance is claimed."
   - "Record brand assets, embedded fonts, conditional PhoenixStorybook, HelpDesk writes, and mailbox preview as shared resources or dev tools, not user jobs."
-requirements-completed: [ADM-05]
+requirements-completed: ["ADM-05"]
 coverage:
   - id: D1
     description: "The Acme #4521 Home-to-Timeline-to-transaction-to-row-history route slice has source, actor, correlation, dynamic record, and return-context references."
@@ -154,3 +154,8 @@ Plan 04 can extend this same inventory. The mapped proof references remain owner
 ---
 *Phase: 249-map-jobs-scenarios-and-the-brand-contract*
 *Completed: 2026-11-11*
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

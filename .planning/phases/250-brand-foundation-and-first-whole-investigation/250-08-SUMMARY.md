@@ -38,7 +38,7 @@ key-decisions:
 patterns-established:
   - "Reject nonlocal route evidence and stale canonical selection"
   - "Test the actual selector, responsive disclosure and real document CSP boundary before acceptance"
-requirements-completed: []
+requirements-completed: ["ADM-08", "ADM-09", "ADM-10", "ADM-11", "ADM-12", "ADM-13", "ADM-14", "ADM-16", "ADM-17"]
 actuals:
   tokens: null
   executor_usage: null
@@ -98,3 +98,8 @@ The final retained [run retrospective](../../research/2026-11-12-autonomous-run-
 ## Self-Check: PASSED
 
 Both planned tasks have their actual selected proof and independent confirmation. The required original data/before and failed attempts are intact. Parent keeps service custody and manifest-owned final cleanup after phase verification.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

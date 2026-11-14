@@ -2,14 +2,20 @@
 phase: "253-inclusive-integration-docs-package-and-release-readiness"
 plan: "02"
 subsystem: "testing"
-status: "pending-verification"
-requirements-completed: []
-requirements-partial: ["ADM-26", "ADM-28", "ADM-31", "ADM-32", "ADM-33"]
+status: complete
+requirements-completed: ["ADM-26", "ADM-28", "ADM-31", "ADM-32", "ADM-33"]
+requirements-partial: []
 actuals: {"tasks": 2, "tokens": null}
-completed: null
+completed: 2026-11-13
 ---
 
 # Plan02 — Current browser entry probes; real zoom pending
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
+
+**Current evidence:** the sixth natural hosted CI executes both actual200% tab-zoom declarations successfully; ordinary output explicitly records `acceptMode:true`. Independent UI review closes F01. The subsequent alert-wrap correction has a real same-fixture RED/GREEN, four original desktop/mobile first-attempt passes and bounded independent review. Final exact-candidate CI and goal assessment remain pending, so this summary does not preempt their verdict. Original local failures and historical evidence below remain unchanged. See [current repair record](253-CI-REPAIR-06.md) and [UI review](253-UI-REVIEW.md).
+
+## Historical implementation checkpoint
 
 Both source tasks are implemented. Existing Retention entry assertions now use Preview retention, then Review and confirm only when a dialog is intended; final Prune now remains inside the dialog. Focus, trap/return, Escape, outside click, required-field, no-write, target-size, reduced-motion and screenshot visibility assertions remain. The scope warning replaces the obsolete run-summary ordering premise, and failed outcomes require unknown count/duration wording rather than a false zero. Screenshot baselines are unchanged.
 
@@ -24,3 +30,8 @@ The actual isolated full-Chromium zoom declaration timed out before its first zo
 | 1 | f965dfcb | Current preview/dialog entry and local clipboard setup |
 | 2 | 2046ce13 | Current mobile/screenshot entries and outcome wording |
 | 2 follow-up | b1be81ce | Current native theme probes; real zoom remains pending |
+
+
+## Actual hosted closure
+
+The required candidate run now passes both desktop actual2x declarations with strict mode explicitly enabled, all17 jobs and31 required journey identities. [CI results](253-CI-RESULTS.md) retain exact head/merge/attempt/skip/measurement limits. This closes this plan contribution; final whole-phase goal assessment remains independent. Historical local failures are preserved and no local retry/native/foreground grant is renewed.

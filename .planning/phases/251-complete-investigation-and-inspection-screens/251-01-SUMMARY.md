@@ -32,7 +32,7 @@ key-decisions:
   - "Remove redundant queued focus handlers instead of adding an ineffective selector guard"
 patterns-established:
   - "Exact nonzero retries-disabled mounted outcomes plus immutable matched capsule identities"
-requirements-completed: []
+requirements-completed: ["ADM-15", "ADM-19"]
 actuals:
   tokens: null
   executor_usage: null
@@ -82,3 +82,8 @@ Requirements are partial contributions here; phase-wide ADM completion awaits in
 ## Self-Check: PASSED
 
 The named commits and local evidence/summary artifacts exist. The final source-bound gate receipts establish the selected checks; phase-wide independent acceptance remains pending.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

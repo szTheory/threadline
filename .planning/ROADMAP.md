@@ -45,7 +45,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] **Phase 250: Brand foundation and first whole investigation** - Support completes one branded investigation through real host routes. (completed 2026-11-12)
 - [x] **Phase 251: Complete investigation and inspection screens** - Every remaining investigation and inspection job uses the proven design. (completed 2026-11-13)
 - [x] **Phase 252: Complete operations and connected catalog review** - Export and Retention jobs remain safe and useful catalog states connect to real proofs. (completed 2026-11-13)
-- [ ] **Phase 253: Inclusive integration, docs, package and release readiness** - The complete existing Admin is accepted against current evidence with truthful release limits.
+- [x] **Phase 253: Inclusive integration, docs, package and release readiness** - The complete existing Admin is accepted against current evidence with truthful release limits. (completed 2026-11-13)
 
 ## Phase Details
 
@@ -181,7 +181,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 3. Readers find the new identity and truthful language consistently in current README/guides/example docs/ExDoc; working assets, anchors, code contracts and migrated tests agree, and the package ships only needed assets/fonts/licenses while optional Phoenix/LiveView, host CSS/font/script and dev/test Storybook boundaries hold.
 4. Maintainers can reconcile every existing route/job/state disposition with current behavior, database, host-route and browser proof, matched before/after capture identities and bounded independent design/copy review; required existing canonical gates and CI establish the exact candidate without new jobs, redundant cross-product runs or weakened checks.
 5. Maintainers receive migration notes, evidence limits, measured CI/CD conclusions and a truthful package/release recommendation that keeps unresolved safety/proof gates and REL-01 visible; local readiness grants no version bump, risk acceptance, merge or publication authority and cannot complete the live next-release clause.
-**Plans**: 11 initially accepted plans plus one bounded corrective quality plan (12 plans,21 tasks). Pending zoom/CI acceptance remains explicit; source-ready independent local work continues in the same context.
+**Plans**: 11 initially accepted plans plus one bounded corrective quality plan (12 plans,21 tasks). All12 plan contributions are complete; actual strict zoom and exact-candidate CI pass.
 **Wave 1**
 - [x] 253-01 — Runner-only worker readiness and mounted blank confirmation
 - [x] 253-04 — README discovery and contracts
@@ -191,10 +191,10 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] 253-08 — Migration and legacy-font guidance
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 253-02 — Remaining Retention selector migrations
+- [x] 253-02 — Remaining Retention selector migrations
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 253-03 — Inclusive jobs, headline font and matched captures
+- [x] 253-03 — Inclusive jobs, headline font and matched captures
 
 **Wave 4 — local corrective quality**
 - [x] 253-12 — Preserve behavior while closing the actual strict-lint gate
@@ -206,7 +206,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 - [x] 253-10 — Independent reviews and acceptance records
 
 **Wave 7 — final verification and real external boundary**
-- [ ] 253-11 — Final goal and concrete external CI decision
+- [x] 253-11 — Final goal and concrete external CI decision
 
 **Cross-cutting constraints:** <!-- gsd:generated -->
 - Current README, example, package/module and Admin guide use Threadline Admin and truthful operational language while stable technical names and incoming anchors work.
@@ -216,7 +216,7 @@ Granularity is `coarse`; the six approved delivery boundaries remain intact beca
 
 ## Progress
 
-Execution order:248→249→250→251→252→253. Phases248–252 are independently verified complete;33 of36 local plan contributions are materialized and ADM01–25 locally complete. Phase252 passes39/39 scoped truths, with clean source review,12/12 security mitigations/no open threats, UI22/24 and fresh final-source catalog width proof. Its3 non-authoritative descriptorless flags/2 unclassified edges remain explicit. Phase253 has11 initially accepted plans plus corrective Plan12/21tasks and complete9requirement/14decision coverage; reviewed source and current package evidence are integrated in the parent; nine local plan contributions are materialized with explicit evidence limits;02/03 remain pending real-zoom/required-CI and11 final assessment/external decision. Phase248's accepted plain repeat remains historical evidence and its full-repeat stop stays in force. Totals:six phases,five complete,thirty-six planned plans,thirty-three local plan contributions. No hosted or publication authority is implied.
+Execution order248→249→250→251→252→253 is complete: six independently verified phases,36/36 plan contributions,34/34 requirements. Phase253 final goal passes5/5roadmap/9of9requirements; required candidate CI is green with31/31 journey identities and actual strict2x proof. Source/security/visual correction reviews are complete. Existing non-authoritative descriptor/edge flags and selected-sampling limits remain disclosed; no risk waiver is inferred. The consumed full-repeat/native/foreground stops and separate futureREL-01 gate remain binding.
 
 | Phase | Plans Complete | Status | Completed |
 | --- | --- | --- | --- |
@@ -225,11 +225,8 @@ Execution order:248→249→250→251→252→253. Phases248–252 are independe
 | 250. Brand foundation and first whole investigation | 8/8 | Complete    | 2026-11-12 |
 | 251. Complete investigation and inspection screens | 4/4 | Complete    | 2026-11-13 |
 | 252. Complete operations and connected catalog review | 4/4 | Complete    | 2026-11-13 |
-| 253. Inclusive integration, docs, package and release readiness | 9/12 local | Local assessment/custody closed; realzoom/requiredCI pending | - |
+| 253. Inclusive integration, docs, package and release readiness | 12/12 | Complete    | 2026-11-13 |
 
 ## Next
 
-Continue already authorized Phase253 inclusive integration, docs, package and release readiness. Reuse accepted252 source/reviews and earlier research, resolve only remaining scope/proof ambiguity, and group affected checks to avoid repeated intake and evidence transcription. Migrate old Retention entry probes/positive-Pruner fixture, then assess supported inclusive jobs, current docs/package and truthful canonical/CI/release limits. No acknowledgment is needed. Preserve consumed full-repeat and native-clipboard/foreground/hosted/external-action limits; only a genuinely new consequential authority or scope decision goes to the maintainer.
-
-
-Local253handoff: same-verifier6of9requirements/3of5roadmap truths, local custody repaired with a retained new paired-source packet. Only real2x/exactcandidateCI remain actual required proof gaps; REL01futurelivegate stays separate. User acts next on the concrete review-branch/PR/requiredCI decision; no human UAT or new local audit/repeat is needed. Phase253/milestone remain incomplete.
+Complete the required v1.48 milestone audit and ordinary planning archive/retrospective. All implementation phases are complete; no new phase or milestone is selected. PR #105 remains open/unmerged with required candidate CI green. Parent continues authorized bookkeeping; no user action is needed unless the audit finds a real scope/risk decision. Merge, version, tag and publication remain outside the existing grant; carried REL-01 awaits its actual first natural release trigger.

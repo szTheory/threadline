@@ -1,53 +1,10 @@
 ---
 phase: 252-complete-operations-and-connected-catalog-review
-verified: 2026-11-13T14:20:42Z
+verified: "2026-11-14T02:55:52Z"
 status: passed
 score: 39/39 must-haves verified
-covered_files:
-  - .planning/REQUIREMENTS.md
-  - .planning/ROADMAP.md
-  - .planning/STATE.md
-  - .planning/conventions/research-verification-and-efficiency.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-PLAN.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-01-SUMMARY.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-02-PLAN.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-02-SUMMARY.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-03-PLAN.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-03-SUMMARY.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-04-PLAN.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-04-SUMMARY.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-CONTEXT.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-PROBE-RECORD.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-REVIEW.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-SECURITY.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-UAT.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-UI-REVIEW.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-UI-SPEC.md
-  - .planning/phases/252-complete-operations-and-connected-catalog-review/252-VALIDATION.md
-  - .planning/research/2026-11-12-autonomous-run-retrospective.md
-  - examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
-  - examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts
-  - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts
-  - examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex
-  - examples/threadline_phoenix/storybook/index.exs
-  - examples/threadline_phoenix/storybook/operations/exports.story.exs
-  - examples/threadline_phoenix/storybook/operations/index.exs
-  - examples/threadline_phoenix/storybook/operations/retention.story.exs
-  - examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs
-  - lib/threadline/operator_surface/live/export_status_live/components.ex
-  - lib/threadline/operator_surface/live/retention_history_live.ex
-  - lib/threadline/operator_surface/live/retention_history_live/components.ex
-  - lib/threadline/operator_surface/style/02_base_shell.css
-  - lib/threadline/retention/pruner.ex
-  - test/fixtures/operator_surface/route-inventory.json
-  - test/fixtures/operator_surface/source-surface-checklist.json
-  - test/threadline/operator_surface/live/retention_history_live_test.exs
-  - test/threadline/retention/pruner_test.exs
-  - test/threadline/retention_test.exs
-covered_digest: "v4:sha256:0c321003bcad6f9b303e392f6bbc011b0fe78eb9eb582de60c645610d9e4fb9e"
+covered_files: [".planning/REQUIREMENTS.md",".planning/ROADMAP.md",".planning/STATE.md",".planning/conventions/research-verification-and-efficiency.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-01-PLAN.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-01-SUMMARY.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-02-PLAN.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-02-SUMMARY.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-03-PLAN.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-03-SUMMARY.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-04-PLAN.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-04-SUMMARY.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-CONTEXT.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-PAIR-EVIDENCE.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-PROBE-RECORD.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-REVIEW-DISPOSITION.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-REVIEW.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-SECURITY.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-UAT.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-UI-REVIEW.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-UI-SPEC.md",".planning/phases/252-complete-operations-and-connected-catalog-review/252-VALIDATION.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-REVIEW.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-SECURITY.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-UI-REVIEW.md",".planning/research/2026-11-12-autonomous-run-retrospective.md",".planning/tmp/253-recovery/ci7-browser-measurements.json",".planning/tmp/253-recovery/ci7-outcome.json",".planning/tmp/253-recovery/ci7-tested-merge.json",".planning/tmp/253-recovery/milestone-coverage-crosscheck.json",".planning/tmp/253-recovery/milestone-manager-before-audit.json",".planning/tmp/253-recovery/milestone-successor-impact-input.json",".planning/tmp/253-recovery/pre-close-open-audit-02.json",".planning/tmp/253-recovery/pre-close-terminal-normalization.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093457672/operator-ci-executed-mobile-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093845867/operator-ci-receipt-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093945117/operator-ci-executed-desktop-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-jobs.json",".planning/tmp/253-recovery/seventh-ci-runs.json",".planning/v1.48-INTEGRATION.md",".planning/v1.48-MILESTONE-AUDIT.md","examples/threadline_phoenix/e2e/support/operator-journey-inventory.json","examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts","examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","examples/threadline_phoenix/e2e/tests/operator-storybook.spec.ts","examples/threadline_phoenix/lib/threadline_phoenix_web/storybook/fixtures.ex","examples/threadline_phoenix/storybook/index.exs","examples/threadline_phoenix/storybook/operations/exports.story.exs","examples/threadline_phoenix/storybook/operations/index.exs","examples/threadline_phoenix/storybook/operations/retention.story.exs","examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs","lib/threadline/operator_surface/components/surface_header.ex","lib/threadline/operator_surface/live/export_status_live/components.ex","lib/threadline/operator_surface/live/retention_history_live.ex","lib/threadline/operator_surface/live/retention_history_live/components.ex","lib/threadline/operator_surface/style/02_base_shell.css","lib/threadline/operator_surface/style/03_page_home.css","lib/threadline/operator_surface/style/04_controls.css","lib/threadline/operator_surface/style/05_feedback.css","lib/threadline/operator_surface/style/08_overlays_motion.css","lib/threadline/operator_surface/style/09_responsive.css","lib/threadline/retention/pruner.ex","test/fixtures/operator_surface/route-inventory.json","test/fixtures/operator_surface/source-surface-checklist.json","test/threadline/operator_surface/live/retention_history_live_test.exs","test/threadline/retention/pruner_test.exs","test/threadline/retention_test.exs"]
+covered_digest: "v4:sha256:321d4aa5fd1f71a3356aa87839887019e0c0198cbc34a5738d16b55119fed1b4"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -57,7 +14,57 @@ re_verification:
     - "Current 320/375/768px Storybook smoke after the final Retention text and partial-summary changes."
   gaps_remaining: []
   regressions: []
+successor_impact:
+  status: passed
+  current_candidate: "5be2caf71010cb386cf9b4392db799f4e55c0808"
+  scope: "Bounded successor-source impact and normal records; original goal contract and verdict retained"
+  compared_from: "534801fa6742d728cee40d9c3042f0785e633cb9"
+  historical_verified: "2026-11-13T14:20:42Z"
+  historical_score: "39/39 must-haves verified"
+  historical_covered_digest: "v4:sha256:0c321003bcad6f9b303e392f6bbc011b0fe78eb9eb582de60c645610d9e4fb9e"
+  historical_report_sha256: "70d647c8c3fe559b4d2d775d81f4572d6d5fc5b656d8536869725f061ea586ae"
+  historical_report_copy: ".planning/tmp/253-recovery/pre-successor-impact-reports/252-VERIFICATION.md"
+  original_source_identity_fields_remain_historical: true
+  basis: ["current independent integration trace", "inspected relevant successor source diffs", "current exact-candidate CI and retained independent owner reviews"]
+  regressions: []
+  product_gaps: []
+  new_runtime_execution: false
+  human_uat_created: false
 ---
+
+# Current successor-impact verification — Phase252
+
+**Safe operations and shared catalog. Current verdict: passed.** The original **39/39 must-haves verified** score is retained; this is a bounded current-goal successor-impact assessment at `5be2caf71010cb386cf9b4392db799f4e55c0808`, not a new full-phase audit or runtime replay.
+
+The SDK previously marked the old digest stale after approved successor shared-source/record edits. That staleness is real and is preserved in [the pre-audit manager snapshot](../../tmp/253-recovery/milestone-manager-before-audit.json). This refresh first checks the actual relevant changes against the original guarantees, then binds current covered inputs. [The frozen successor packet](../../tmp/253-recovery/milestone-successor-impact-input.json) preserves every original report SHA and covered-input identity; [this exact original report copy](../../tmp/253-recovery/pre-successor-impact-reports/252-VERIFICATION.md) matches byte-for-byte. Only the three separately bound [terminal normalizations](../../tmp/253-recovery/pre-close-terminal-normalization.json) occurred after that input freeze.
+
+## Current goal impact
+
+| Original guarantee | Successor impact and actual support | Disposition |
+| --- | --- | --- |
+| Separately authorized scoped Export, truthful status/recovery and completed download | Direct comparison from the final passed Phase252 source shows no change to ExportStatusLive/components, HTTP controller/auth or operation domain owners. Current scope carry, status-distinction, protected-download and pointer/Enter/Space offline recovery owners pass. Integration traces actor/status/expiry checks to actual consumers. Queue acceptance is still not completion; retained lifecycle proof stays bound to its unchanged source. | VERIFIED |
+| Preview → deliberate confirmation/cancel → event-time authorization/target → persisted outcome/no replay | RetentionHistoryLive/components, Retention/Pruner/domain and authorization runtime owners are unchanged after252. Later probes migrate the preview-first entry while retaining exact-token/refusal/no-write/focus/cancel/reconnect controls. The original isolated mutation/SQL proof remains valid at that unchanged boundary; ordinary current CI previews/cancels and does not fabricate a new valid deletion. Runner-only real-worker readiness and actual2x confirmation are separately reviewed/currently executed. | VERIFIED |
+| Shared production patterns in existing example dev/test Storybook | Operation stories, fixture projections and production component owners are unchanged after252. Later catalog test changes add only the explicitly opt-in pre-navigation controlled clipboard hook. Current Operations stories and320/375/768 smoke pass alongside the previous exact five-case width correction. Static catalog proof remains separate from permissions, SQL, downloads and mutation/reconnect outcomes. | VERIFIED |
+
+Shared CSS/header/inventory changes are bounded by253's actual source reviews, named host/width/forced-focus/real2x checks and retained source-paired comparison. They do not alter operation safety semantics. The original39/39 score,12/12 source mitigation result,22/24 historical UI judgment, three descriptorless flags/two unclassified edges and raw custody/sampling limits remain preserved. UAT's new `complete` terminal label still explicitly means automated/non-authoritative judgment, not human UAT or a newly wired engine prohibition.
+
+## Current evidence and limits
+
+[Independent current integration](../../v1.48-INTEGRATION.md) traces12 provider/consumer contracts,16 actual mounted/HTTP routes and seven complete flows, with no missing connection, orphan runtime export or broken flow. [The milestone audit](../../v1.48-MILESTONE-AUDIT.md) and its exact crosscheck reconcile34 assigned requirements across the requirements table, original goal verdicts and owning-plan contribution metadata. These are supporting independent traces, not substitutes for the source/invariant evidence above.
+
+[Actual current CI](../253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md) passes all17 existing jobs for head5be2 via tested PR merge2e66f6. The already independently reconciled raw reports contain225 desktop/217 mobile first-attempt passes,29/37 explicit skips, zero unexpected/flaky/global errors or extra attempts; all31 required unique identities actually passed once. Both dedicated desktop actual2x declarations pass with ordinary `acceptMode:true`. Original invalid/skipped/evidence-only/mobile-zoom rows remain explicit; no broad all-device or all-state claim follows. The unchanged root/package/optional/support gates and retained original/repair reviews provide their named complementary boundaries. No test, suite, app, browser, network, database, capture, retry or new whole-source/security/UI/custody audit was run for this impact check.
+
+The canonical digest covers the current original input set plus relevant added source/evidence/phase artifacts; generated live verification reports and the253 fingerprint are excluded to prevent a self/cross-output cycle. Existing source, completed-record and immutable evidence identities are current; historical receipts retain their own original conditions. No original pixel loss is restored, no future live REL-01 event is completed, and no merge/version/tag/publication/spend/risk/native-clipboard/foreground authority or stopped local execution is renewed.
+
+**Next actor: parent** checkpoints these six current reports and runs the ordinary SDK archive/readiness lifecycle. No new user acknowledgment or routine human verification is needed. A later planning-directory move preserves these exact pre-archive report bytes as historical evidence; this digest is not a claim that moved/deleted live paths remain a future current fingerprint.
+
+---
+
+# Original verification and history — preserved
+
+The remainder is retained verbatim as the historical assessment at its original verification time and source/runtime identities. Old “current”/next-actor/pending paragraphs refer to that checkpoint. They are not rewritten into current executions. The current successor-impact conclusion above supersedes only freshness/next-action statements where supported; original findings, flags, sampling/custody and release limits remain preserved.
+
+
 
 # Phase 252: Complete operations and connected catalog review — Verification Report
 

@@ -14,8 +14,8 @@ tech-stack:
 key-files:
   created: []
   modified: [README.md, examples/threadline_phoenix/README.md, test/threadline/readme_doc_contract_test.exs, test/threadline/example_phoenix_readme_contract_test.exs, test/threadline/persona_routing_doc_contract_test.exs]
-requirements-completed: []
-requirements-partial: [ADM-29]
+requirements-completed: [ADM-29]
+requirements-partial: []
 actuals:
   tokens: null
   tasks: 1
@@ -32,6 +32,8 @@ coverage:
 ---
 
 # Plan04 — Current discovery without broken incoming links
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 README now names Threadline Admin and its record/history/coverage/operation jobs, explains capture on registered tables and supplied actor context, and replaces visible Evidence plane wording with a concrete coverage/operations heading. The existing evidence-plane and operator-surface fragments remain explicit anchors; the example also preserves mounted-operator-boundary. Technical OperatorSurface/API/route/guide names and version/setup/support boundaries remain stable. Header theme preferences are described as the actual native form; System mount behavior remains documented.
 

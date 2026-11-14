@@ -49,18 +49,18 @@
 ### Catalog and inclusive use
 
 - [x] **ADM-25**: The existing PhoenixStorybook catalog connects useful primitives, patterns, assemblies and screen states to the existing fixture/journey inventory and real host-route proofs without a duplicate registry.
-- [ ] **ADM-26**: Changed controls and complete jobs have correct accessible names, keyboard order, actual focused target, visible focus and focus return across the supported interactions.
-- [ ] **ADM-27**: Representative ordinary and high-risk journeys work at narrow/reflow and embedded-container widths and actual browser zoom, measured against the intended container rather than a shrink-wrapped child.
-- [ ] **ADM-28**: Both themes, touch, selected forced-colors states and reduced-motion behavior preserve operation/status meaning and supported interaction without color-only or motion-only feedback.
+- [x] **ADM-26**: Changed controls and complete jobs have correct accessible names, keyboard order, actual focused target, visible focus and focus return across the supported interactions.
+- [x] **ADM-27**: Representative ordinary and high-risk journeys work at narrow/reflow and embedded-container widths and actual browser zoom, measured against the intended container rather than a shrink-wrapped child.
+- [x] **ADM-28**: Both themes, touch, selected forced-colors states and reduced-motion behavior preserve operation/status meaning and supported interaction without color-only or motion-only feedback.
 
 ### Documentation, package and acceptance
 
-- [ ] **ADM-29**: Current README, guides, example documentation and ExDoc discover the new identity and truthful language with working asset/anchor/code contracts; runtime/package/brand tests migrate with their owning references.
-- [ ] **ADM-30**: The package contains only needed shipped logos/fonts/assets and licenses while preserving optional Phoenix/LiveView, host CSS/font/script boundaries and dev/test-only PhoenixStorybook with no React or Fablebook dependency.
-- [ ] **ADM-31**: Each affected visual batch has comparable route/scenario/clock/theme/browser/viewport/zoom captures with distinct before/after source and served-asset identities, plus bounded independent design/copy review.
-- [ ] **ADM-32**: Final acceptance reconciles every route/job/state disposition against current behavioral, database, host-route and browser proof; static stories, image counts or digests never substitute for those claims.
-- [ ] **ADM-33**: Existing canonical gates and required CI establish the exact candidate without new workflow jobs, exhaustive cross-product runs or weakened checks; recurring additions protect distinct failure classes and CI/CD efficiencies follow measurements.
-- [ ] **ADM-34**: Maintainers receive truthful package/release readiness, migration notes and the remaining live-release gate status; no package bump, risk acceptance or publish/merge authority is inferred from the planning milestone.
+- [x] **ADM-29**: Current README, guides, example documentation and ExDoc discover the new identity and truthful language with working asset/anchor/code contracts; runtime/package/brand tests migrate with their owning references.
+- [x] **ADM-30**: The package contains only needed shipped logos/fonts/assets and licenses while preserving optional Phoenix/LiveView, host CSS/font/script boundaries and dev/test-only PhoenixStorybook with no React or Fablebook dependency.
+- [x] **ADM-31**: Each affected visual batch has comparable route/scenario/clock/theme/browser/viewport/zoom captures with distinct before/after source and served-asset identities, plus bounded independent design/copy review.
+- [x] **ADM-32**: Final acceptance reconciles every route/job/state disposition against current behavioral, database, host-route and browser proof; static stories, image counts or digests never substitute for those claims.
+- [x] **ADM-33**: Existing canonical gates and required CI establish the exact candidate without new workflow jobs, exhaustive cross-product runs or weakened checks; recurring additions protect distinct failure classes and CI/CD efficiencies follow measurements.
+- [x] **ADM-34**: Maintainers receive truthful package/release readiness, migration notes and the remaining live-release gate status; no package bump, risk acceptance or publish/merge authority is inferred from the planning milestone.
 
 ## Constraints and deferred scope
 
@@ -77,7 +77,7 @@
 
 ## Traceability
 
-The roadmap assigns each of the 34 requirements to exactly one of approved Phases 248–253. Cross-cutting implementation can occur earlier; final ownership is singular. No requirement is complete at initialization.
+The roadmap assigns each of the 34 requirements to exactly one of approved Phases 248–253. Cross-cutting implementation can occur earlier; final ownership is singular. All34 are now independently verified complete; their original initialization had none complete.
 
 | Requirement | Phase | Status |
 | --- | --- | --- |
@@ -106,14 +106,14 @@ The roadmap assigns each of the 34 requirements to exactly one of approved Phase
 | ADM-23 | Phase 252 | Complete |
 | ADM-24 | Phase 252 | Complete |
 | ADM-25 | Phase 252 | Complete |
-| ADM-26 | Phase 253 | Pending |
-| ADM-27 | Phase 253 | Pending |
-| ADM-28 | Phase 253 | Pending |
-| ADM-29 | Phase 253 | Pending |
-| ADM-30 | Phase 253 | Pending |
-| ADM-31 | Phase 253 | Pending |
-| ADM-32 | Phase 253 | Pending |
-| ADM-33 | Phase 253 | Pending |
-| ADM-34 | Phase 253 | Pending |
+| ADM-26 | Phase 253 | Complete |
+| ADM-27 | Phase 253 | Complete |
+| ADM-28 | Phase 253 | Complete |
+| ADM-29 | Phase 253 | Complete |
+| ADM-30 | Phase 253 | Complete |
+| ADM-31 | Phase 253 | Complete |
+| ADM-32 | Phase 253 | Complete |
+| ADM-33 | Phase 253 | Complete |
+| ADM-34 | Phase 253 | Complete |
 
-**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253;5complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.
+**Coverage:** 34/34 requirements mapped exactly once across approved Phases 248–253;34complete, no orphaned or duplicate mappings. REL-01 remains the separately carried live-release gate above.

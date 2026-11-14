@@ -1,84 +1,68 @@
 ---
 phase: 250-brand-foundation-and-first-whole-investigation
-verified: 2026-11-12T23:35:05Z
+verified: "2026-11-14T02:55:52Z"
 status: passed
 score: 76/76 must-haves verified
-covered_files:
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-01-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-01-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-02-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-02-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-03-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-03-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-04-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-04-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-05-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-05-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-06-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-06-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-SUMMARY.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-08-PLAN.md
-  - .planning/phases/250-brand-foundation-and-first-whole-investigation/250-08-SUMMARY.md
-  - README.md
-  - examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts
-  - examples/threadline_phoenix/e2e/support/operator-investigation-pair.test.ts
-  - examples/threadline_phoenix/e2e/support/operator-investigation-pair.ts
-  - examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
-  - examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts
-  - examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
-  - examples/threadline_phoenix/priv/static/images/threadline-admin-favicon.svg
-  - examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs
-  - guides/operator-surface.md
-  - lib/threadline/operator_surface/components/logo.ex
-  - lib/threadline/operator_surface/components/surface_header.ex
-  - lib/threadline/operator_surface/fonts.ex
-  - lib/threadline/operator_surface/live/row_history_component.ex
-  - lib/threadline/operator_surface/live/row_history_live.ex
-  - lib/threadline/operator_surface/live/timeline_live.ex
-  - lib/threadline/operator_surface/live/timeline_live/changes.ex
-  - lib/threadline/operator_surface/live/timeline_live/helpers.ex
-  - lib/threadline/operator_surface/live/transaction_live.ex
-  - lib/threadline/operator_surface/style/01_tokens.css
-  - lib/threadline/operator_surface/style/02_base_shell.css
-  - lib/threadline/operator_surface/style/04_controls.css
-  - lib/threadline/operator_surface/style/06_layout_primitives.css
-  - lib/threadline/operator_surface/style/07_find_detail.css
-  - lib/threadline/operator_surface/style/08_overlays_motion.css
-  - lib/threadline/operator_surface/style/09_responsive.css
-  - lib/threadline/operator_surface/ui/data.ex
-  - mix.exs
-  - release-please-config.json
-  - test/fixtures/operator_surface/route-inventory.json
-  - test/fixtures/operator_surface/source-surface-checklist.json
-  - test/fixtures/style/operator_surface.css
-  - test/threadline/brandbook_token_parity_test.exs
-  - test/threadline/code_walkthrough_doc_contract_test.exs
-  - test/threadline/operator_surface/data_state_mapping_wave0_test.exs
-  - test/threadline/operator_surface/fonts_test.exs
-  - test/threadline/operator_surface/live/row_history_live_test.exs
-  - test/threadline/operator_surface/live/start_live_test.exs
-  - test/threadline/operator_surface/live/timeline_live_test.exs
-  - test/threadline/operator_surface/rendered_output_contract_test.exs
-  - test/threadline/operator_surface/row_history_component_test.exs
-  - test/threadline/operator_surface/style_byte_lock_test.exs
-  - test/threadline/operator_surface/style_contract_test.exs
-  - test/threadline/operator_surface/surface_header_test.exs
-  - test/threadline/operator_surface/transaction_live_test.exs
-  - test/threadline/operator_surface/ui_test.exs
-  - test/threadline/operator_surface_doc_contract_test.exs
-  - test/threadline/persona_routing_doc_contract_test.exs
-  - test/threadline/readme_doc_contract_test.exs
-  - test/threadline/release_artifact_contract_test.exs
-covered_digest: "v4:sha256:0a3017db9ce12b81b2dc72c00bacf57b915243d3d82d7fb9819291c2fdb6ace5"
+covered_files: [".planning/phases/250-brand-foundation-and-first-whole-investigation/250-01-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-01-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-02-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-02-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-03-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-03-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-04-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-04-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-05-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-05-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-06-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-06-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-07-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-08-PLAN.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/250-08-SUMMARY.md",".planning/phases/250-brand-foundation-and-first-whole-investigation/deferred-items.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-REVIEW.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-SECURITY.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-UI-REVIEW.md",".planning/tmp/253-recovery/ci7-browser-measurements.json",".planning/tmp/253-recovery/ci7-outcome.json",".planning/tmp/253-recovery/ci7-tested-merge.json",".planning/tmp/253-recovery/milestone-coverage-crosscheck.json",".planning/tmp/253-recovery/milestone-manager-before-audit.json",".planning/tmp/253-recovery/milestone-successor-impact-input.json",".planning/tmp/253-recovery/pre-close-open-audit-02.json",".planning/tmp/253-recovery/pre-close-terminal-normalization.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093457672/operator-ci-executed-mobile-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093845867/operator-ci-receipt-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093945117/operator-ci-executed-desktop-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-jobs.json",".planning/tmp/253-recovery/seventh-ci-runs.json",".planning/v1.48-INTEGRATION.md",".planning/v1.48-MILESTONE-AUDIT.md","README.md","examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts","examples/threadline_phoenix/e2e/support/operator-investigation-pair.test.ts","examples/threadline_phoenix/e2e/support/operator-investigation-pair.ts","examples/threadline_phoenix/e2e/support/operator-journey-inventory.json","examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts","examples/threadline_phoenix/e2e/tests/operator-brand-docs.spec.ts","examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","examples/threadline_phoenix/priv/static/images/threadline-admin-favicon.svg","examples/threadline_phoenix/test/threadline_phoenix_web/operator_surface_test.exs","guides/operator-surface.md","lib/threadline/operator_surface/components/logo.ex","lib/threadline/operator_surface/components/surface_header.ex","lib/threadline/operator_surface/controllers/theme_controller.ex","lib/threadline/operator_surface/fonts.ex","lib/threadline/operator_surface/live/row_history_component.ex","lib/threadline/operator_surface/live/row_history_live.ex","lib/threadline/operator_surface/live/timeline_live.ex","lib/threadline/operator_surface/live/timeline_live/changes.ex","lib/threadline/operator_surface/live/timeline_live/helpers.ex","lib/threadline/operator_surface/live/transaction_live.ex","lib/threadline/operator_surface/style/01_tokens.css","lib/threadline/operator_surface/style/02_base_shell.css","lib/threadline/operator_surface/style/03_page_home.css","lib/threadline/operator_surface/style/04_controls.css","lib/threadline/operator_surface/style/05_feedback.css","lib/threadline/operator_surface/style/06_layout_primitives.css","lib/threadline/operator_surface/style/07_find_detail.css","lib/threadline/operator_surface/style/08_overlays_motion.css","lib/threadline/operator_surface/style/09_responsive.css","lib/threadline/operator_surface/ui/data.ex","mix.exs","release-please-config.json","test/fixtures/operator_surface/route-inventory.json","test/fixtures/operator_surface/source-surface-checklist.json","test/fixtures/style/operator_surface.css","test/threadline/brandbook_token_parity_test.exs","test/threadline/code_walkthrough_doc_contract_test.exs","test/threadline/operator_surface/data_state_mapping_wave0_test.exs","test/threadline/operator_surface/fonts_test.exs","test/threadline/operator_surface/live/row_history_live_test.exs","test/threadline/operator_surface/live/start_live_test.exs","test/threadline/operator_surface/live/timeline_live_test.exs","test/threadline/operator_surface/rendered_output_contract_test.exs","test/threadline/operator_surface/row_history_component_test.exs","test/threadline/operator_surface/style_byte_lock_test.exs","test/threadline/operator_surface/style_contract_test.exs","test/threadline/operator_surface/surface_header_test.exs","test/threadline/operator_surface/transaction_live_test.exs","test/threadline/operator_surface/ui_test.exs","test/threadline/operator_surface_doc_contract_test.exs","test/threadline/persona_routing_doc_contract_test.exs","test/threadline/readme_doc_contract_test.exs","test/threadline/release_artifact_contract_test.exs"]
+covered_digest: "v4:sha256:3155c82bdd748dc801f69668565a54ad818e5793068ceb90c98aeccbc57f887e"
 behavior_unverified: 0
 overrides_applied: 0
 non_authoritative_flags:
   unclassified_taxonomy_requirements: [ADM-10, ADM-11, ADM-14, ADM-16, ADM-17]
   descriptorless_prohibitions: 3
+successor_impact:
+  status: passed
+  current_candidate: "5be2caf71010cb386cf9b4392db799f4e55c0808"
+  scope: "Bounded successor-source impact and normal records; original goal contract and verdict retained"
+  compared_from: "ed68ce8cdb6b7bdb2af57179a595ad38626d232c"
+  historical_verified: "2026-11-12T23:35:05Z"
+  historical_score: "76/76 must-haves verified"
+  historical_covered_digest: "v4:sha256:0a3017db9ce12b81b2dc72c00bacf57b915243d3d82d7fb9819291c2fdb6ace5"
+  historical_report_sha256: "c746142b86092828e8f2e67968df4ae0d47274b81755864e47a8ff8b1d37152f"
+  historical_report_copy: ".planning/tmp/253-recovery/pre-successor-impact-reports/250-VERIFICATION.md"
+  original_source_identity_fields_remain_historical: true
+  basis: ["current independent integration trace", "inspected relevant successor source diffs", "current exact-candidate CI and retained independent owner reviews"]
+  regressions: []
+  product_gaps: []
+  new_runtime_execution: false
+  human_uat_created: false
 ---
+
+# Current successor-impact verification — Phase250
+
+**Shared brand and complete first investigation. Current verdict: passed.** The original **76/76 must-haves verified** score is retained; this is a bounded current-goal successor-impact assessment at `5be2caf71010cb386cf9b4392db799f4e55c0808`, not a new full-phase audit or runtime replay.
+
+The SDK previously marked the old digest stale after approved successor shared-source/record edits. That staleness is real and is preserved in [the pre-audit manager snapshot](../../tmp/253-recovery/milestone-manager-before-audit.json). This refresh first checks the actual relevant changes against the original guarantees, then binds current covered inputs. [The frozen successor packet](../../tmp/253-recovery/milestone-successor-impact-input.json) preserves every original report SHA and covered-input identity; [this exact original report copy](../../tmp/253-recovery/pre-successor-impact-reports/250-VERIFICATION.md) matches byte-for-byte. Only the three separately bound [terminal normalizations](../../tmp/253-recovery/pre-close-terminal-normalization.json) occurred after that input freeze.
+
+## Current goal impact
+
+| Original guarantee | Successor impact and actual support | Disposition |
+| --- | --- | --- |
+| Approved assets/fonts/semantic roles and optional/offline boundaries | Direct comparison shows the approved brand assets, `Logo`, `Fonts`, token shard01, `Presentation`, `UI.Display` and theme controller unchanged after the accepted Phase250 source. Successor headlines apply the existing Familjen role, copy-success feedback becomes neutral, and base warning text now wraps without truncation. Current font/style/package/doc gates and bounded independent visual review cover those actual owner changes; old pixel/byte receipts retain their historical source. | VERIFIED |
+| Native server-resolved Dark/Light/System selection | `SurfaceHeader` extracts the same native form into a private component; action, CSRF/session semantics and immediate choices remain. The coverage badge gains selected-schema truth rather than an all-schema assurance. The current theme/form/keyboard cases pass in both projects; the underlying controller and source security boundary remain unchanged. | VERIFIED |
+| Whole Timeline → Transaction → RowHistory → original search | Inspected successor diffs preserve the actual query/data flow, add pre-normalization UI/stored-input validation, keep explicit unconstrained from=, surface lost context, and distinguish invalid snapshot intent from latest state. Current `Acme4521 whole investigation`, Timeline-origin/transaction-origin history and retained-context/snapshot cases pass once. The strict ordinary path and current31-identity receipt do not depend on optional historical pair custody. | VERIFIED |
+| Exact values, domain/state meaning and timestamp/full-ID/copy contracts | Central presentation/value/time/ref owners remain unchanged; later route handlers pass their validated context to the same query/history/as-of owners. Actual whole-job and history cases retain exact values, actor, full IDs, UTC meanings and returned filters. New conditional clipboard hooks are explicit controlled doubles and do not prove the stopped native clipboard. Before/After labels retain the approved12px label role while adjacent dense values remain13px. | VERIFIED |
+| Source/pixel/behavior evidence is honest and gates remain effective | Shared z-order, named-container fallback, warning wrapping and Retention column allocation are bounded reviewed changes with current host/width/focus/actual2x proof. The old capture loss remains disclosed; the accepted new seven source pairs/three after-only states are not original chronology. The resolved rendered-output receipt item has its existing causal243-case correction and later current corpus proof, now a structured terminal status rather than a fabricated new test. | VERIFIED |
+
+The original76/76 score remains accepted at its documented boundaries, including its three descriptorless prohibition and five unclassified taxonomy flags. No new full rescore, original-capture restoration, native clipboard or global accessibility/performance claim is made.
+
+## Current evidence and limits
+
+[Independent current integration](../../v1.48-INTEGRATION.md) traces12 provider/consumer contracts,16 actual mounted/HTTP routes and seven complete flows, with no missing connection, orphan runtime export or broken flow. [The milestone audit](../../v1.48-MILESTONE-AUDIT.md) and its exact crosscheck reconcile34 assigned requirements across the requirements table, original goal verdicts and owning-plan contribution metadata. These are supporting independent traces, not substitutes for the source/invariant evidence above.
+
+[Actual current CI](../253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md) passes all17 existing jobs for head5be2 via tested PR merge2e66f6. The already independently reconciled raw reports contain225 desktop/217 mobile first-attempt passes,29/37 explicit skips, zero unexpected/flaky/global errors or extra attempts; all31 required unique identities actually passed once. Both dedicated desktop actual2x declarations pass with ordinary `acceptMode:true`. Original invalid/skipped/evidence-only/mobile-zoom rows remain explicit; no broad all-device or all-state claim follows. The unchanged root/package/optional/support gates and retained original/repair reviews provide their named complementary boundaries. No test, suite, app, browser, network, database, capture, retry or new whole-source/security/UI/custody audit was run for this impact check.
+
+The canonical digest covers the current original input set plus relevant added source/evidence/phase artifacts; generated live verification reports and the253 fingerprint are excluded to prevent a self/cross-output cycle. Existing source, completed-record and immutable evidence identities are current; historical receipts retain their own original conditions. No original pixel loss is restored, no future live REL-01 event is completed, and no merge/version/tag/publication/spend/risk/native-clipboard/foreground authority or stopped local execution is renewed.
+
+**Next actor: parent** checkpoints these six current reports and runs the ordinary SDK archive/readiness lifecycle. No new user acknowledgment or routine human verification is needed. A later planning-directory move preserves these exact pre-archive report bytes as historical evidence; this digest is not a claim that moved/deleted live paths remain a future current fingerprint.
+
+---
+
+# Original verification and history — preserved
+
+The remainder is retained verbatim as the historical assessment at its original verification time and source/runtime identities. Old “current”/next-actor/pending paragraphs refer to that checkpoint. They are not rewritten into current executions. The current successor-impact conclusion above supersedes only freshness/next-action statements where supported; original findings, flags, sampling/custody and release limits remain preserved.
+
+
 
 # Phase 250: Brand Foundation and First Whole Investigation — Verification Report
 

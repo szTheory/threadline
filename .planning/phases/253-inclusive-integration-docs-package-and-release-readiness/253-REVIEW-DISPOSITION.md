@@ -1,5 +1,7 @@
 # Review disposition — current local source, acceptance pending
 
+**Current hosted outcome:** [required candidate CI is green](253-CI-RESULTS.md) at `5be2caf71010cb386cf9b4392db799f4e55c0808`, including both voting browser projects,31/31 required receipt identities, strict actual2x and the corrected full-text warning. Final independent goal assessment and normal completion writeback remain next. Historical pending/authority checkpoints below are superseded by this actual result, not erased. REL-01 remains separate and pending; no merge/tag/publish/risk acceptance is inferred.
+
 **Current bounded correction:** seven source hashes in `ci-fix6-review-input-01.json` are independently verified. Code is clean; security remains24/24 with zero open/no accepted risk; UI closes F01 from hosted real2x and F09 from the actual same-fixture text-overflow RED/GREEN plus three viewed images. UI score20/24 remains unchanged. Final source is the reviewed working-tree correction based on `291b1592904a5f2f0d6c7c32f8a65fe6e28c1a99`; exact-candidate Linux CI and final goal refresh remain pending. Historical assessments below retain their original revisions and limits. [Sixth-CI repair](253-CI-REPAIR-06.md) is the current source/evidence boundary. Parent continues the approved push/CI cycle; no user action is needed.
 
 ## Historical local checkpoint

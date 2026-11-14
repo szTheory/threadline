@@ -40,7 +40,7 @@ key-decisions:
   - "Only a strict transaction-history copy and UI-link return can satisfy the after proof."
 
 requirements: ["ADM-14", "ADM-16", "ADM-17"]
-requirements-completed: []
+requirements-completed: ["ADM-14", "ADM-16", "ADM-17"]
 
 coverage:
   - id: D1
@@ -219,3 +219,8 @@ Plan01 tasks and correction work are complete. The corrected candidate is ready 
 ---
 Phase: 250-brand-foundation-and-first-whole-investigation
 Completed: 2026-11-12
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

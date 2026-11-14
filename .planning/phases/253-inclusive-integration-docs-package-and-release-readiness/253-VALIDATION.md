@@ -1,13 +1,17 @@
 ---
 phase: "253"
 slug: "inclusive-integration-docs-package-and-release-readiness"
-status: pending-required-proof
-nyquist_compliant: false
+status: validated
+nyquist_compliant: true
 wave_0_complete: true
 created: "2026-11-13"
 ---
 
 # Phase253 — Validation Strategy
+
+**Current hosted outcome:** [required candidate CI is green](253-CI-RESULTS.md) at `5be2caf71010cb386cf9b4392db799f4e55c0808`, including both voting browser projects,31/31 required receipt identities, strict actual2x and the corrected full-text warning. Final independent goal assessment and normal completion writeback remain next. Historical pending/authority checkpoints below are superseded by this actual result, not erased. REL-01 remains separate and pending; no merge/tag/publish/risk acceptance is inferred.
+
+**Current checkpoint:** both hosted real2x journeys now pass with strict enforcement recorded. Bounded alert-wrap RED/GREEN, independent reviews and actual current source hashes are retained in [repair06](253-CI-REPAIR-06.md). Exact-candidate required CI/final goal remain pending; frontmatter is not promoted before their actual outcome. Original local failures and limits below remain historical evidence.
 
 ## Test infrastructure and custody
 
@@ -163,3 +167,8 @@ Initial final verification preserved an actual ADM31raw-custody gap. Parent comp
 
 
 Current same-verifier result: the prescribed local paired-custody gap is **closed**. Six of nine requirements are locally satisfied; roadmap remains3/5 because real2x/exactcandidateCI are still required and unproven. No further local repair/source gap remains from this assessment. FutureREL01stays separate. Original loss/verdict/history remain preserved; this closes current custody with new controlled evidence, not restored original pixels. Parent completes only normal closeout record hashing, then the maintainer decides on the concrete review-branch/PR/requiredCI action. No human UAT or new local audit/repeat is requested.
+
+
+## Final validation reconciliation
+
+Independent goal passes5/5roadmap/9of9requirements and existing candidate CI passes all17 jobs/31 required journey identities with first-attempt browser results. All previously pending real2x/required-CI task boundaries now have actual proof. Wave0 remains complete; no new suite, disabled check or invented prohibition descriptor is added. Historical red/local limits remain evidence, not current blocking statuses.

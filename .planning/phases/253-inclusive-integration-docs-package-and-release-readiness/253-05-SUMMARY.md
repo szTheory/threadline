@@ -14,8 +14,8 @@ tech-stack:
 key-files:
   created: []
   modified: [mix.exs, lib/threadline.ex, guides/operator-surface.md, test/threadline/operator_surface_doc_contract_test.exs, test/threadline/release_artifact_contract_test.exs]
-requirements-completed: []
-requirements-partial: [ADM-29, ADM-30, ADM-33]
+requirements-completed: [ADM-29, ADM-30, ADM-33]
+requirements-partial: []
 actuals:
   tokens: null
   tasks: 1
@@ -39,6 +39,8 @@ coverage:
 ---
 
 # Plan05 — Current Admin and truthful operation guidance
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 Package metadata uses the approved audit-trail-library description. The main module explains trigger capture on registered tables with context supplied by the host. The Admin guide preserves its old operator-surface fragment, supported mount/auth/HTTP export contracts and technical names. It now describes the actual immediate native theme buttons and the ready-preview → review → typed-confirmation flow, global configured worker-store scope, sequential/transient estimates, recorded outcome/checkpoint meanings and target-mismatch recovery. Pruner.trigger/0 retains its existing behavior; no target-inspection API was invented.
 

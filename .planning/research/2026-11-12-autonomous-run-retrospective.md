@@ -267,3 +267,15 @@ Also distinguish observed success from enabled enforcement. Earlier ordinary zoo
 A contained element rectangle does not prove its text fits. Linux warning text escaped an otherwise contained alert because its wrapping rule was mobile-only. Measure client/scroll widths and actual text Range rectangles; inspect the retained failed image before attributing overflow outside main. The initial outside-main inference was corrected explicitly. A wider valid identifier reproduced the actual failure locally, allowing a same-fixture RED/GREEN comparison before another push. Promote the existing wrapping rule to the base owner and migrate golden/pins/contract together; preserve the complete evidence text.
 
 Four original affected route cases pass retries0 after the CSS fix; five logical fixture maps remain identical. This is bounded proof, not a global speedup or full-suite claim. Preserve sandbox launch failures and use the already required macOS process permission for headless Chromium; preflight known environment restrictions before launching. Contract tests should read the actual CSS owner rather than assume the first media query starts the responsive shard. Existing Linux exact-candidate acceptance remains pending.
+
+
+## Seventh run: required candidate green
+
+All existing17 jobs pass for the corrected candidate, including both browser projects and fail-closed31-identity receipt. Desktop225/mobile217 first-attempt passes;29/37 explicit skips, zero retries/flakes/unexpected results. Both dedicated actual2x declarations pass with strict mode true; Linux warning now measures1280/1280 and alert966/966 with full text. Actual browser report durations317.890s/263.130s are retained; no whole-workflow or global speedup is inferred from earlier partial failures. Final independent goal/normal milestone writeback follows.
+
+The practical process correction is to run cheap ownership/fixture/hygiene checks before pushing, inspect the complete affected runtime path after a premise correction, and prove failure diagnostics survive a red run. Measure the actual escaping content before changing layout. Retain each failed attempt and known environment boundary; keep reviewer inputs small and source-bound, and minimize connector payloads before handing data to a shell. No new caches, concurrency or dependencies are warranted by these observations.
+
+
+## Final phase outcome and bookkeeping lesson
+
+Independent final goal verifies5/5roadmap outcomes and9/9requirements. All six phases/36plan contributions are complete; milestone integration audit is next. GSD correctly refused phase.complete after normal completion notes made its covered digest stale. The same verifier refreshed only16changed record hashes, with source/evidence unchanged; phase.complete then succeeded. This is a metadata dependency to schedule correctly, not a reason for another whole audit or a gate override. The bespoke progress block is checked and reconciled explicitly.

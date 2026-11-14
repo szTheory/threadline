@@ -4,7 +4,7 @@ plan: "04"
 subsystem: ui
 status: complete
 completed: 2026-11-13
-requirements-completed: []
+requirements-completed: ["ADM-21", "ADM-22"]
 provides:
   - "Current configured/deployed policy comparison without zero-policy assurance"
   - "Explicit snapshot recording time and bounded caller-overridable provenance"
@@ -42,3 +42,8 @@ The [bounded continuation](251-04-BOUNDARY-CONTINUATION.md) retains wrong-checko
 ## Self-Check: PASSED
 
 Current source/capture/report identities and scoped outcomes were reconciled; independent review findings have dispositions. This completes the plan's implementation/review tasks, and its independent phase goal check; release readiness remains separate. No user action is needed.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

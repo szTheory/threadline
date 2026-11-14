@@ -14,8 +14,8 @@ tech-stack:
 key-files:
   created: []
   modified: [guides/how-threadline-works.md, guides/integration-contracts.md, guides/evaluating-threadline.md, test/threadline/how_threadline_works_doc_contract_test.exs, test/threadline/integration_contracts_doc_contract_test.exs, test/threadline/code_walkthrough_doc_contract_test.exs, test/threadline/evaluating_threadline_doc_contract_test.exs]
-requirements-completed: []
-requirements-partial: [ADM-29]
+requirements-completed: [ADM-29]
+requirements-partial: []
 actuals:
   tokens: null
   tasks: 2
@@ -39,6 +39,8 @@ coverage:
 ---
 
 # Plan07 — Current architecture and truthful evaluation
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 The architecture guide now states the already accepted three separate layers, keeps actions distinct from changes/transactions and identifies optional Threadline Admin. Its four accessible Mermaid diagrams and source/API ownership contracts remain. Current evidence-plane/posture wording becomes plain operational language; technical module/config/route names and chapter anchors remain. Integration prose preserves usable authorization, scope, pipeline-only caveats and HTTP export fallback. The code-walkthrough guide itself required no adjustment; its existing README-section delimiter contract now uses the current heading instead of reading an accidentally oversized slice.
 

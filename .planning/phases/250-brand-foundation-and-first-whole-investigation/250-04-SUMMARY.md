@@ -46,7 +46,7 @@ key-decisions:
 patterns-established:
   - Theme preference, mounted theme, and effective System scheme are separate observations.
   - Home-route copy-script identity is nullable only when that route has no copy controls.
-requirements-completed: []
+requirements-completed: ["ADM-11", "ADM-09", "ADM-08", "ADM-17"]
 coverage:
   - id: D1
     description: System, Light, and Dark theme choices submit immediately through the existing server flow and retain accessible, persisted behavior.
@@ -191,3 +191,8 @@ The immediate theme flow, source locks, current appearance metadata, and selecte
 
 All listed key files exist, the eight measured plan commits are ancestors of this branch HEAD, the assigned acceptance criteria passed, and the plan-scoped evaluation resolver found the eight commits on this branch.
 
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

@@ -48,7 +48,7 @@ key-decisions:
   - "Use force_change for seed updated_at values so equal-to-current timestamps are not replaced by Ecto's automatic update timestamp."
   - "Repair missing ticket assignees inside seed changesets; keep public HelpDesk casts and schema unchanged."
   - "Keep physical action recording time separate from represented business/event time."
-requirements-completed: []
+requirements-completed: ["ADM-06", "ADM-07"]
 requirements-addressed: [ADM-06, ADM-07]
 coverage:
   - id: D1
@@ -224,3 +224,8 @@ Ready for Plan 249-04 with deterministic seed-clock and capture-boundary evidenc
 *Phase: 249-map-jobs-scenarios-and-the-brand-contract*
 *Completed: 2026-11-11*
 
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

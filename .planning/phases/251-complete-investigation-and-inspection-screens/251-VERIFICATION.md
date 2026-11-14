@@ -1,65 +1,10 @@
 ---
 phase: 251-complete-investigation-and-inspection-screens
-verified: "2026-11-13T06:21:38Z"
+verified: "2026-11-14T02:55:52Z"
 status: passed
 score: "63/63 must-haves verified"
-covered_files:
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-01-PLAN.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-01-SUMMARY.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-02-PLAN.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-02-SUMMARY.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-03-PLAN.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-03-SUMMARY.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-04-PLAN.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-04-SUMMARY.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-REVIEW.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-SECURITY.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-UAT.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-UI-REVIEW.md
-  - .planning/phases/251-complete-investigation-and-inspection-screens/251-VALIDATION.md
-  - examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts
-  - examples/threadline_phoenix/e2e/support/operator-journey-inventory.json
-  - examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-features.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
-  - examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts
-  - lib/threadline/operator_surface/components/surface_header.ex
-  - lib/threadline/operator_surface/live/coverage_live.ex
-  - lib/threadline/operator_surface/live/evidence_live.ex
-  - lib/threadline/operator_surface/live/policy_redaction_live.ex
-  - lib/threadline/operator_surface/live/row_history_component.ex
-  - lib/threadline/operator_surface/live/row_history_live.ex
-  - lib/threadline/operator_surface/live/timeline_live.ex
-  - lib/threadline/operator_surface/live/timeline_live/filters.ex
-  - lib/threadline/operator_surface/live/timeline_live/helpers.ex
-  - lib/threadline/operator_surface/live/transaction_live.ex
-  - lib/threadline/operator_surface/style/03_page_home.css
-  - lib/threadline/operator_surface/style/08_overlays_motion.css
-  - lib/threadline/operator_surface/ui/overlay.ex
-  - lib/threadline/operator_surface/ui/page.ex
-  - test/fixtures/operator_surface/route-inventory.json
-  - test/fixtures/operator_surface/source-surface-checklist.json
-  - test/fixtures/style/README.md
-  - test/fixtures/style/operator_surface.css
-  - test/threadline/operator_surface/coverage_doc_contract_test.exs
-  - test/threadline/operator_surface/live/actor_live_test.exs
-  - test/threadline/operator_surface/live/coverage_live_test.exs
-  - test/threadline/operator_surface/live/evidence_live_test.exs
-  - test/threadline/operator_surface/live/policy_redaction_live_test.exs
-  - test/threadline/operator_surface/live/row_history_live_test.exs
-  - test/threadline/operator_surface/live/start_live_test.exs
-  - test/threadline/operator_surface/live/timeline_live_test.exs
-  - test/threadline/operator_surface/rendered_output_contract_test.exs
-  - test/threadline/operator_surface/row_history_component_test.exs
-  - test/threadline/operator_surface/style_byte_lock_test.exs
-  - test/threadline/operator_surface/style_contract_test.exs
-  - test/threadline/operator_surface/surface_header_test.exs
-  - test/threadline/operator_surface/transaction_live_test.exs
-  - test/threadline/operator_surface/ui_test.exs
-covered_digest: "v4:sha256:b2e5c4b51073f8290cb48dbf037ddaf94ccb93c21a13a389e564dd0d50ac26c2"
+covered_files: [".planning/phases/251-complete-investigation-and-inspection-screens/251-01-PLAN.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-01-SUMMARY.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-02-PLAN.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-02-SUMMARY.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-03-PLAN.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-03-SUMMARY.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-04-PLAN.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-04-SUMMARY.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-PAIR-EVIDENCE.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-REVIEW-DISPOSITION.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-REVIEW.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-SECURITY.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-UAT.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-UI-REVIEW.md",".planning/phases/251-complete-investigation-and-inspection-screens/251-VALIDATION.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-REVIEW.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-SECURITY.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-UI-REVIEW.md",".planning/tmp/253-recovery/ci7-browser-measurements.json",".planning/tmp/253-recovery/ci7-outcome.json",".planning/tmp/253-recovery/ci7-tested-merge.json",".planning/tmp/253-recovery/milestone-coverage-crosscheck.json",".planning/tmp/253-recovery/milestone-manager-before-audit.json",".planning/tmp/253-recovery/milestone-successor-impact-input.json",".planning/tmp/253-recovery/pre-close-open-audit-02.json",".planning/tmp/253-recovery/pre-close-terminal-normalization.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093457672/operator-ci-executed-mobile-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093845867/operator-ci-receipt-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093945117/operator-ci-executed-desktop-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-jobs.json",".planning/tmp/253-recovery/seventh-ci-runs.json",".planning/v1.48-INTEGRATION.md",".planning/v1.48-MILESTONE-AUDIT.md","examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts","examples/threadline_phoenix/e2e/support/operator-journey-inventory.json","examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts","examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts","examples/threadline_phoenix/e2e/tests/operator-features.spec.ts","examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts","lib/threadline/operator_surface/components/surface_header.ex","lib/threadline/operator_surface/live/coverage_live.ex","lib/threadline/operator_surface/live/evidence_live.ex","lib/threadline/operator_surface/live/policy_redaction_live.ex","lib/threadline/operator_surface/live/row_history_component.ex","lib/threadline/operator_surface/live/row_history_live.ex","lib/threadline/operator_surface/live/timeline_live.ex","lib/threadline/operator_surface/live/timeline_live/filters.ex","lib/threadline/operator_surface/live/timeline_live/helpers.ex","lib/threadline/operator_surface/live/transaction_live.ex","lib/threadline/operator_surface/style/03_page_home.css","lib/threadline/operator_surface/style/04_controls.css","lib/threadline/operator_surface/style/05_feedback.css","lib/threadline/operator_surface/style/08_overlays_motion.css","lib/threadline/operator_surface/ui/overlay.ex","lib/threadline/operator_surface/ui/page.ex","test/fixtures/operator_surface/route-inventory.json","test/fixtures/operator_surface/source-surface-checklist.json","test/fixtures/style/README.md","test/fixtures/style/operator_surface.css","test/threadline/operator_surface/coverage_doc_contract_test.exs","test/threadline/operator_surface/live/actor_live_test.exs","test/threadline/operator_surface/live/coverage_live_test.exs","test/threadline/operator_surface/live/evidence_live_test.exs","test/threadline/operator_surface/live/policy_redaction_live_test.exs","test/threadline/operator_surface/live/row_history_live_test.exs","test/threadline/operator_surface/live/start_live_test.exs","test/threadline/operator_surface/live/timeline_live_test.exs","test/threadline/operator_surface/rendered_output_contract_test.exs","test/threadline/operator_surface/row_history_component_test.exs","test/threadline/operator_surface/style_byte_lock_test.exs","test/threadline/operator_surface/style_contract_test.exs","test/threadline/operator_surface/surface_header_test.exs","test/threadline/operator_surface/transaction_live_test.exs","test/threadline/operator_surface/ui_test.exs"]
+covered_digest: "v4:sha256:7cc70af2ea6b1d5d9b836380cb26a8a3182169a1248e68378e1b09c95463e1c3"
 behavior_unverified: 0
 overrides_applied: 0
 source_revision: c0b1508c3c95412e6e2922dd9549b197643343e4
@@ -93,7 +38,59 @@ deferred:
   - truth: "Matched rendered evidence does not include the Redaction/Evidence unavailable and no-match pixels or the broad zoom/inclusive matrix."
     addressed_in: "Phase 253"
     evidence: "Roadmap Phase 253 success criteria 1, 2, and 4 require inclusive whole-job and route/state evidence; 251-REVIEW-DISPOSITION.md assigns these pixels and broader coverage there."
+successor_impact:
+  status: passed
+  current_candidate: "5be2caf71010cb386cf9b4392db799f4e55c0808"
+  scope: "Bounded successor-source impact and normal records; original goal contract and verdict retained"
+  compared_from: "bc114b5ee1f475062bc324370bbc5f2d165302df"
+  historical_verified: "2026-11-13T06:21:38Z"
+  historical_score: "63/63 must-haves verified"
+  historical_covered_digest: "v4:sha256:b2e5c4b51073f8290cb48dbf037ddaf94ccb93c21a13a389e564dd0d50ac26c2"
+  historical_report_sha256: "c2a4db90d58ee3217b4c000a622bb88fefac17b51f8b3715d809badd58660f8b"
+  historical_report_copy: ".planning/tmp/253-recovery/pre-successor-impact-reports/251-VERIFICATION.md"
+  original_source_identity_fields_remain_historical: true
+  basis: ["current independent integration trace", "inspected relevant successor source diffs", "current exact-candidate CI and retained independent owner reviews"]
+  regressions: []
+  product_gaps: []
+  new_runtime_execution: false
+  human_uat_created: false
 ---
+
+# Current successor-impact verification — Phase251
+
+**Scoped investigation and inspection. Current verdict: passed.** The original **63/63 must-haves verified** score is retained; this is a bounded current-goal successor-impact assessment at `5be2caf71010cb386cf9b4392db799f4e55c0808`, not a new full-phase audit or runtime replay.
+
+The SDK previously marked the old digest stale after approved successor shared-source/record edits. That staleness is real and is preserved in [the pre-audit manager snapshot](../../tmp/253-recovery/milestone-manager-before-audit.json). This refresh first checks the actual relevant changes against the original guarantees, then binds current covered inputs. [The frozen successor packet](../../tmp/253-recovery/milestone-successor-impact-input.json) preserves every original report SHA and covered-input identity; [this exact original report copy](../../tmp/253-recovery/pre-successor-impact-reports/251-VERIFICATION.md) matches byte-for-byte. Only the three separately bound [terminal normalizations](../../tmp/253-recovery/pre-close-terminal-normalization.json) occurred after that input freeze.
+
+## Current goal impact
+
+| Original guarantee | Successor impact and actual support | Disposition |
+| --- | --- | --- |
+| Validated Timeline/saved/direct/reload/back/return state and host scope | Inspected post251 changes refactor `with`/case and move existing canonical/future-window helpers without widening accepted input. The parser's removed fallback is unreachable under its explicit result types; outer type/unsupported-key/error guards remain. Current whole investigation, saved-search, retained-context and pending-query cases pass with committed-query equality. The independent code/security repair reviews and current integration trace confirm scoped query consumers remain real. | VERIFIED |
+| Home/actor/correlation and exact row/transaction/as-of history | RowHistoryLive changes after251 are alias ordering; its invalid-time and context-loss protection remain. Transaction's not-found markup is a private extraction with the same scoped return prop. Current Home/actor lifecycle, standalone/transaction snapshot intent, direct-entry and Timeline/transaction-origin return cases pass once. The real2x history/journey proof strengthens reachability without inventing composite-key navigation. | VERIFIED |
+| Selected-schema Coverage facts/remediation/availability | Coverage read/query owner remains unchanged; header badge fallback removal is guarded by existing last-checked/map proof. Current selected-snapshot, role-denial and keyboard/schema cases pass. Integration retains the explicit schema and capability flow, not an all-schema default. | VERIFIED |
+| Configured/deployed Redaction and provenance/state recovery | Post251 production change is equivalent schema-filter branch formatting and alias ordering. Explicit configured-key/policy meaning stays; current comparison and missing-empty-policy/unreadable-deployment cases pass in both projects. | VERIFIED |
+| Subject/reference Evidence, observation/provenance and true availability | Evidence runtime owner remains unchanged; current selected-reference/latest/history and Exports carry flows pass. Existing LiveView/DB unavailable/Retry evidence remains at its unchanged owner boundary; current browser output is not called a newly injected DB outage. | VERIFIED |
+
+The original63/63 score, six unresolved non-authoritative prohibition flags, four unclassified edge assumptions and original deferred notes remain preserved. In particular, the previously recorded shared primary accent-fill UI-SPEC mismatch remains an inherited **nonblocking quality observation**, not a palette fix produced by this refresh. Its old erroneous source-line attribution was already corrected below. The current253 review/20-of24 score does not silently erase that history or create a new full pixel rescore; selected inclusive-use/runtime acceptance and original unpictured-state limits remain distinct.
+
+## Current evidence and limits
+
+[Independent current integration](../../v1.48-INTEGRATION.md) traces12 provider/consumer contracts,16 actual mounted/HTTP routes and seven complete flows, with no missing connection, orphan runtime export or broken flow. [The milestone audit](../../v1.48-MILESTONE-AUDIT.md) and its exact crosscheck reconcile34 assigned requirements across the requirements table, original goal verdicts and owning-plan contribution metadata. These are supporting independent traces, not substitutes for the source/invariant evidence above.
+
+[Actual current CI](../253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md) passes all17 existing jobs for head5be2 via tested PR merge2e66f6. The already independently reconciled raw reports contain225 desktop/217 mobile first-attempt passes,29/37 explicit skips, zero unexpected/flaky/global errors or extra attempts; all31 required unique identities actually passed once. Both dedicated desktop actual2x declarations pass with ordinary `acceptMode:true`. Original invalid/skipped/evidence-only/mobile-zoom rows remain explicit; no broad all-device or all-state claim follows. The unchanged root/package/optional/support gates and retained original/repair reviews provide their named complementary boundaries. No test, suite, app, browser, network, database, capture, retry or new whole-source/security/UI/custody audit was run for this impact check.
+
+The canonical digest covers the current original input set plus relevant added source/evidence/phase artifacts; generated live verification reports and the253 fingerprint are excluded to prevent a self/cross-output cycle. Existing source, completed-record and immutable evidence identities are current; historical receipts retain their own original conditions. No original pixel loss is restored, no future live REL-01 event is completed, and no merge/version/tag/publication/spend/risk/native-clipboard/foreground authority or stopped local execution is renewed.
+
+**Next actor: parent** checkpoints these six current reports and runs the ordinary SDK archive/readiness lifecycle. No new user acknowledgment or routine human verification is needed. A later planning-directory move preserves these exact pre-archive report bytes as historical evidence; this digest is not a claim that moved/deleted live paths remain a future current fingerprint.
+
+---
+
+# Original verification and history — preserved
+
+The remainder is retained verbatim as the historical assessment at its original verification time and source/runtime identities. Old “current”/next-actor/pending paragraphs refer to that checkpoint. They are not rewritten into current executions. The current successor-impact conclusion above supersedes only freshness/next-action statements where supported; original findings, flags, sampling/custody and release limits remain preserved.
+
+
 
 # Phase 251: Complete Investigation and Inspection Screens — Verification Report
 

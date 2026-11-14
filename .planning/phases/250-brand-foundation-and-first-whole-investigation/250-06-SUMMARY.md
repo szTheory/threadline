@@ -41,7 +41,7 @@ key-decisions:
   - "Use the existing empty `from=` parameter to preserve an all-blank applied query across URL reopen while a bare Timeline visit retains its 24-hour default."
   - "Use the UI-SPEC heading `No changes match these filters` for the shared typed `:no_data` state."
   - "Wrap long Timeline status text on mobile and update the reviewed stylesheet fixture and hash pins with the rendered CSS change."
-requirements-completed: []
+requirements-completed: ["ADM-12", "ADM-13", "ADM-14", "ADM-16"]
 coverage:
   - id: D1
     description: Timeline preserves unconstrained applied URLs, pending versus committed identity, accurate empty results, complete long filter values, and narrow viewport access.
@@ -145,3 +145,8 @@ Plan 06 is complete and Plan 07 is next. The parent-owned app served byte-matche
 
 - All 10 modified source/test/style files and this summary exist.
 - All 9 task commits are ancestors of the plan head recorded above.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

@@ -1,13 +1,15 @@
 ---
 phase: 253-inclusive-integration-docs-package-and-release-readiness
 plan: "09"
-status: locally-complete-with-disclosed-evidence-limits
-requirements-completed: []
-requirements-partial: [ADM-29, ADM-30, ADM-31, ADM-32, ADM-33, ADM-34]
+status: complete
+requirements-completed: [ADM-29, ADM-30, ADM-31, ADM-32, ADM-33, ADM-34]
+requirements-partial: []
 actuals: {tasks: 3, tokens: null}
 ---
 
 # Acceptance and local package preparation
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 Existing authorities remain unchanged:427 generic rows (423active/4excluded),34 semantic rows (31required/3nonvoting),11routes,16surfaces,11scenarios,5resources and7carry dispositions are reconciled without a replacement registry. Existing inventory/rendered negative controls passed at their named historical boundary. Unreleased prose and migration guidance describe actual current behavior; package remains1.1.0. The missing font-test owner is admitted to all three existing partition inventories with an explicit uncalibrated6ms local estimate, not invented CI-lane measurement.
 

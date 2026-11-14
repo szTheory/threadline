@@ -52,7 +52,7 @@ key-decisions:
   - "Keep ordinary #4521 selection separate from the named stress fixtures; stress links to it for comparison only."
   - "Keep the approved brand crosswalk reference-only; runtime assets, tokens, and public APIs remain outside this plan."
   - "Leave ADM-05, ADM-06, and ADM-07 addressed but incomplete until phase-level verification resolves their remaining scope."
-requirements-completed: []
+requirements-completed: ["ADM-05", "ADM-06", "ADM-07"]
 requirements-addressed: [ADM-05, ADM-06, ADM-07]
 coverage:
   - id: D1
@@ -200,3 +200,8 @@ Plan 249-04 is complete and ready for the parent-owned phase verification and sh
 - The review result is clean for `b18a59a`, and all five changed-source digests match the readiness capsule.
 - The focused coverage classifier reports all three deliverables auto-covered with no errors.
 - The latest focused Node contract suite passed 30/30; the Task 1 and Task 2 focused ExUnit checks each passed 10/10.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

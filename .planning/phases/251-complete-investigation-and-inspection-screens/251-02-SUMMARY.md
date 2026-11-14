@@ -30,7 +30,7 @@ key-decisions:
   - "Preserve explicit empty from alongside other supported predicates in private UI helpers"
 patterns-established:
   - "A rendered page is not connected LiveView proof; use the existing connection condition"
-requirements-completed: []
+requirements-completed: ["ADM-18", "ADM-19", "ADM-15"]
 actuals:
   tokens: null
   executor_usage: null
@@ -85,3 +85,8 @@ Setup/selector/readiness failures are retained in the [pair evidence](251-PAIR-E
 ## Self-Check: PASSED
 
 Named commits and paired artifacts exist. Current production bytes match the startup-bound after source; exact final test-source hashes and successful receipts are reconciled. The narrow Close finding and independent phase review remain explicitly pending.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

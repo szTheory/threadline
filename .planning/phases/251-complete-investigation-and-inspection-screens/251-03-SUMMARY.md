@@ -4,7 +4,7 @@ plan: "03"
 subsystem: ui
 status: complete
 completed: 2026-11-13
-requirements-completed: []
+requirements-completed: ["ADM-20"]
 provides:
   - "Selected-schema Coverage rows/header share the successful snapshot and checked time"
   - "Invalid, empty, stale, unavailable, disabled and denied meanings remain distinct"
@@ -32,3 +32,8 @@ Independent phase source/security/UI/goal reviews remain pending in Plan04. Requ
 ## Self-Check: PASSED
 
 Current source, passed receipt exits, exact mounted outcomes and both PNG pairs were reconciled before this summary. Native clipboard, zoom, full-root and hosted results are not established.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

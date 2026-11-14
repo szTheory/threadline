@@ -14,8 +14,8 @@ tech-stack:
 key-files:
   created: []
   modified: [guides/upgrade-path.md, test/threadline/upgrade_path_doc_contract_test.exs, priv/fonts/README.md]
-requirements-completed: []
-requirements-partial: [ADM-29, ADM-34]
+requirements-completed: [ADM-29, ADM-34]
+requirements-partial: []
 actuals:
   tokens: null
   tasks: 1
@@ -32,6 +32,8 @@ coverage:
 ---
 
 # Plan08 — Current migration guidance and historical fonts
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 The upgrade guide adds a clearly unreleased section rather than rewriting the historical1.1 release's nothing-required statement. It describes usable unary authorization, the exact intentional-public acknowledgement in every environment, pipeline-only refusal, Preview retention → Review and confirm → exact-name Prune now, cancel/repreview, global configured-worker-store scope, sequential estimates and persisted/checkpoint distinctions. Target/policy/restart refusal and host-owned alignment/restart recovery are explicit; Pruner.trigger/0 remains unchanged. Compatibility matrix, support floors, version, public APIs and existing headings remain.
 

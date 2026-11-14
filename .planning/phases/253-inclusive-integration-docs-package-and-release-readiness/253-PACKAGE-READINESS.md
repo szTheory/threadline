@@ -1,5 +1,7 @@
 # Package readiness — local candidate, required CI pending
 
+**Current hosted outcome:** [required candidate CI is green](253-CI-RESULTS.md) at `5be2caf71010cb386cf9b4392db799f4e55c0808`, including both voting browser projects,31/31 required receipt identities, strict actual2x and the corrected full-text warning. Final independent goal assessment and normal completion writeback remain next. Historical pending/authority checkpoints below are superseded by this actual result, not erased. REL-01 remains separate and pending; no merge/tag/publish/risk acceptance is inferred.
+
 ## Current post-restart candidate
 
 **Current source/runtime: `e42d295c910e11918a1df224a1307c369a2a8767`.** The computer restart removed the earlier `/private/tmp` artifacts, archives, helper scripts and PostgreSQL data. The historical results below were actually observed and independently reviewed before restart, but their raw private files are no longer available. They are not presented as current artifacts. Current durable proof is under the ignored `.planning/tmp/253-recovery/` directory; preserve it outside the child before supported cleanup.

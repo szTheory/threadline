@@ -50,7 +50,7 @@ key-decisions:
 patterns-established:
   - "Timeline links serialize only validated supported raw filters and the existing origin=timeline marker."
   - "Row-history URI filters are decoded separately from route table and record identity."
-requirements-completed: []
+requirements-completed: ["ADM-13", "ADM-16", "ADM-17", "ADM-14"]
 duration: "45min"
 completed: 2026-11-12
 status: complete
@@ -189,3 +189,8 @@ The current shell failed the historical receipt. Restoring only the previous hea
 On the restored current source, the union of both plan verification commands passed:243 tests,0 failures. Warnings-as-errors compilation, mix verify.format and git diff --check passed. The corpus gate is closed; deferred-items.md retains its original report and resolved disposition. This is scoped integration evidence, not a new full-root or browser result. Independent phase review still inspects the correction in Plan08.
 
 Duration is the actual managed executor span. The GSD realized-diff calibration field remains unknown; it is separate from model usage. Executor usage comes from the terminal event: cached input is included in input_tokens and reasoning output is included in output_tokens; neither subset is added twice. Parent reconciliation usage is not available. Phase-wide requirements remain pending and no rendered whole-flow claim is made here.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

@@ -14,8 +14,8 @@ tech-stack:
 key-files:
   created: []
   modified: [DESIGN-SYSTEM.md, brandbook/README.md, brandbook/brand-book.md, brandbook/pressure-test.md, test/threadline/brandbook_token_parity_test.exs]
-requirements-completed: []
-requirements-partial: [ADM-29, ADM-30]
+requirements-completed: [ADM-29, ADM-30]
+requirements-partial: []
 actuals:
   tokens: null
   tasks: 1
@@ -35,6 +35,8 @@ coverage:
 ---
 
 # Plan06 — Current authority, preserved history
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 The design-system introduction links brand/BRAND.md, brand/brand.json, brand/tokens.json and brand/assets/README.md as current authority. Its original heading fragment remains, and ledger scores/cohorts are explicitly historical inventory metadata rather than current acceptance. Functional spacing and gap aliases stay owned by the existing stylesheet.
 

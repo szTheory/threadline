@@ -37,7 +37,7 @@ key-decisions:
   - Reused the compile-time embedder and existing false/default option instead of adding a font route or public configuration.
   - Kept private font aliases and system fallbacks in the shared base lane; light and System themes inherit those role tokens.
   - Kept browser-loaded font and computed-style proof assigned to Plan 250-08.
-requirements-completed: []
+requirements-completed: ["ADM-10", "ADM-09", "ADM-17"]
 coverage:
   - id: D1
     description: Four approved WOFF2 assets use exact bytes, private aliases, approved weight descriptors, and the existing default/opt-out behavior.
@@ -149,3 +149,8 @@ Font source bytes, option behavior, CSS role contracts, compile, format, and sty
 All created/modified key files exist; all three task commits are ancestors of the assigned branch HEAD. The plan-scoped evaluation resolver found three commits for `250-03`, and the task acceptance checks plus plan-level verification passed.
 
 Parent reconciliation uses the complete managed invocation for elapsed time. Provider usage is retained in the process receipt; no scalar token estimate is asserted from source size.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

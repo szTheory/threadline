@@ -44,7 +44,7 @@ key-decisions:
   - "Keep the fixed May 27 2026 12:00Z epoch and private fixture identities; correct only the preceding Tuesday anchor to May 26 2026 14:30Z."
   - "Use mix demo.reset for clean setup; document mix demo.seed as a separate guarded in-place operation without a general idempotence promise."
 
-requirements-completed: []
+requirements-completed: ["ADM-06", "ADM-07"]
 requirements-addressed: [ADM-06, ADM-07]
 
 coverage:
@@ -175,3 +175,8 @@ Plan 02 outputs are ready for the remaining phase work. ADM-06 and ADM-07 are pa
 ---
 *Phase: 249-map-jobs-scenarios-and-the-brand-contract*
 *Completed: 2026-11-11*
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.

@@ -1,73 +1,10 @@
 ---
 phase: 248-reconcile-the-base-and-safety-proof-ownership
-verified: 2026-11-11T23:15:21Z
+verified: "2026-11-14T02:55:52Z"
 status: passed
 score: 15/15 must-haves verified
-covered_files:
-  - .github/workflows/flake-detection.yml
-  - .planning/conventions/research-verification-and-efficiency.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-01-PLAN.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-01-SUMMARY.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-02-PLAN.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-02-SUMMARY.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-03-PLAN.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-03-SUMMARY.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-PLAN.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-SUMMARY.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ADVISORY-PROOF.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CLIPBOARD-PROOF.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CONTEXT.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ISOLATED-CANONICAL-RECEIPT.json
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ISOLATION.json
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-PLAIN-REPEAT-RECEIPT.json
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-RESEARCH.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-REVIEW-DISPOSITION.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-REVIEW.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SECURITY.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-REVIEW.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-SPEC.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-WORKTREE-RECONCILIATION.md
-  - .planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py
-  - AGENTS.md
-  - bench/mix.lock
-  - examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts
-  - examples/threadline_phoenix/mix.lock
-  - guides/code-walkthrough.md
-  - guides/integration-contracts.md
-  - guides/operator-surface.md
-  - lib/threadline/operator_surface/router.ex
-  - mix.lock
-  - release-please-config.json
-  - test/threadline/browser_journey_evidence_contract_test.exs
-  - test/threadline/code_walkthrough_doc_contract_test.exs
-  - test/threadline/formatter_topology_contract_test.exs
-  - test/threadline/operator_surface/breadcrumb_test.exs
-  - test/threadline/operator_surface/card_nesting_regression_test.exs
-  - test/threadline/operator_surface/controllers/export_controller_test.exs
-  - test/threadline/operator_surface/copy_contract_test.exs
-  - test/threadline/operator_surface/exports_mix_parity_test.exs
-  - test/threadline/operator_surface/gating_test.exs
-  - test/threadline/operator_surface/live/actor_live_test.exs
-  - test/threadline/operator_surface/live/coverage_live_test.exs
-  - test/threadline/operator_surface/live/evidence_live_test.exs
-  - test/threadline/operator_surface/live/policy_redaction_live_test.exs
-  - test/threadline/operator_surface/live/retention_history_live_test.exs
-  - test/threadline/operator_surface/live/row_history_live_test.exs
-  - test/threadline/operator_surface/live/start_live_test.exs
-  - test/threadline/operator_surface/live/timeline_live_test.exs
-  - test/threadline/operator_surface/rendered_output_contract_test.exs
-  - test/threadline/operator_surface/router_test.exs
-  - test/threadline/operator_surface/skip_link_test.exs
-  - test/threadline/operator_surface/transaction_live_test.exs
-  - test/threadline/operator_surface_doc_contract_test.exs
-  - test/threadline/public_surface_contract_test.exs
-  - test/threadline/repo_contract_scope_contract_test.exs
-  - test/threadline/storage_schema_call_site_contract_test.exs
-covered_digest: "v4:sha256:faacd7c8c09dc042848c7881a280410e4498c40764279b433ab05c41b9422d7a"
+covered_files: [".github/workflows/flake-detection.yml",".planning/conventions/research-verification-and-efficiency.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-01-PLAN.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-01-SUMMARY.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-02-PLAN.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-02-SUMMARY.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-03-PLAN.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-03-SUMMARY.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-PLAN.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-04-SUMMARY.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ADVISORY-PROOF.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CANDIDATE-BASELINE.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CLIPBOARD-PROOF.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-CONTEXT.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ISOLATED-CANONICAL-RECEIPT.json",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-ISOLATION.json",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-PLAIN-REPEAT-RECEIPT.json",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-RESEARCH.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-REVIEW-DISPOSITION.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-REVIEW.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SECURITY.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-SUITE-PROOF.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-REVIEW.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-UI-SPEC.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-VALIDATION.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-WORKTREE-RECONCILIATION.md",".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/verify-candidate-baseline.py",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-REVIEW.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-SECURITY.md",".planning/phases/253-inclusive-integration-docs-package-and-release-readiness/253-UI-REVIEW.md",".planning/tmp/253-recovery/ci7-browser-measurements.json",".planning/tmp/253-recovery/ci7-outcome.json",".planning/tmp/253-recovery/ci7-tested-merge.json",".planning/tmp/253-recovery/milestone-coverage-crosscheck.json",".planning/tmp/253-recovery/milestone-manager-before-audit.json",".planning/tmp/253-recovery/milestone-successor-impact-input.json",".planning/tmp/253-recovery/pre-close-open-audit-02.json",".planning/tmp/253-recovery/pre-close-terminal-normalization.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093457672/operator-ci-executed-mobile-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093845867/operator-ci-receipt-43544096590.json",".planning/tmp/253-recovery/seventh-ci-artifact-14093945117/operator-ci-executed-desktop-chromium-43544096590.json",".planning/tmp/253-recovery/seventh-ci-jobs.json",".planning/tmp/253-recovery/seventh-ci-runs.json",".planning/v1.48-INTEGRATION.md",".planning/v1.48-MILESTONE-AUDIT.md","AGENTS.md","bench/mix.lock","examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts","examples/threadline_phoenix/mix.lock","guides/code-walkthrough.md","guides/integration-contracts.md","guides/operator-surface.md","lib/threadline/operator_surface/auth.ex","lib/threadline/operator_surface/export_auth_plug.ex","lib/threadline/operator_surface/router.ex","lib/threadline/operator_surface/theme_auth_plug.ex","mix.lock","release-please-config.json","test/threadline/browser_journey_evidence_contract_test.exs","test/threadline/code_walkthrough_doc_contract_test.exs","test/threadline/formatter_topology_contract_test.exs","test/threadline/operator_surface/breadcrumb_test.exs","test/threadline/operator_surface/card_nesting_regression_test.exs","test/threadline/operator_surface/controllers/export_controller_test.exs","test/threadline/operator_surface/copy_contract_test.exs","test/threadline/operator_surface/exports_mix_parity_test.exs","test/threadline/operator_surface/gating_test.exs","test/threadline/operator_surface/live/actor_live_test.exs","test/threadline/operator_surface/live/coverage_live_test.exs","test/threadline/operator_surface/live/evidence_live_test.exs","test/threadline/operator_surface/live/policy_redaction_live_test.exs","test/threadline/operator_surface/live/retention_history_live_test.exs","test/threadline/operator_surface/live/row_history_live_test.exs","test/threadline/operator_surface/live/start_live_test.exs","test/threadline/operator_surface/live/timeline_live_test.exs","test/threadline/operator_surface/rendered_output_contract_test.exs","test/threadline/operator_surface/router_test.exs","test/threadline/operator_surface/skip_link_test.exs","test/threadline/operator_surface/transaction_live_test.exs","test/threadline/operator_surface_doc_contract_test.exs","test/threadline/public_surface_contract_test.exs","test/threadline/repo_contract_scope_contract_test.exs","test/threadline/storage_schema_call_site_contract_test.exs"]
+covered_digest: "v4:sha256:b7b29050215c26e2e3fa3755107b380118c2740c7a51e81f55ef0146f7baf5d7"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -93,7 +30,58 @@ prohibitions:
     human_review_recommended: true
     evidence: ".planning/phases/248-reconcile-the-base-and-safety-proof-ownership/248-TRANSPARENCY-REVIEW.md"
 advisory: []
+successor_impact:
+  status: passed
+  current_candidate: "5be2caf71010cb386cf9b4392db799f4e55c0808"
+  scope: "Bounded successor-source impact and normal records; original goal contract and verdict retained"
+  compared_from: "d1444421277c284c69b20bb1c91814700ce6178a"
+  historical_verified: "2026-11-11T23:15:21Z"
+  historical_score: "15/15 must-haves verified"
+  historical_covered_digest: "v4:sha256:faacd7c8c09dc042848c7881a280410e4498c40764279b433ab05c41b9422d7a"
+  historical_report_sha256: "974a20760ad293c4ddecccca3a23d8f1b067c60cae054affe8327c04a7fb0080"
+  historical_report_copy: ".planning/tmp/253-recovery/pre-successor-impact-reports/248-VERIFICATION.md"
+  original_source_identity_fields_remain_historical: true
+  basis: ["current independent integration trace", "inspected relevant successor source diffs", "current exact-candidate CI and retained independent owner reviews"]
+  regressions: []
+  product_gaps: []
+  new_runtime_execution: false
+  human_uat_created: false
 ---
+
+# Current successor-impact verification — Phase248
+
+**Preserved candidate, fail-closed mount and trustworthy evidence. Current verdict: passed.** The original **15/15 must-haves verified** score is retained; this is a bounded current-goal successor-impact assessment at `5be2caf71010cb386cf9b4392db799f4e55c0808`, not a new full-phase audit or runtime replay.
+
+The SDK previously marked the old digest stale after approved successor shared-source/record edits. That staleness is real and is preserved in [the pre-audit manager snapshot](../../tmp/253-recovery/milestone-manager-before-audit.json). This refresh first checks the actual relevant changes against the original guarantees, then binds current covered inputs. [The frozen successor packet](../../tmp/253-recovery/milestone-successor-impact-input.json) preserves every original report SHA and covered-input identity; [this exact original report copy](../../tmp/253-recovery/pre-successor-impact-reports/248-VERIFICATION.md) matches byte-for-byte. Only the three separately bound [terminal normalizations](../../tmp/253-recovery/pre-close-terminal-normalization.json) occurred after that input freeze.
+
+## Current goal impact
+
+| Original guarantee | Successor impact and actual support | Disposition |
+| --- | --- | --- |
+| Preserved candidate/brand/edit provenance | The dated31-path baseline, retained blobs and approved-source decision matrix remain historical evidence rather than a claim that the final source equals the initial candidate. Successor implementation is separately identified at5be2 and traced by the current integration/acceptance chain. Original failures and original candidate identities are preserved. | VERIFIED |
+| Fail-closed host mount, authorization and scope | Direct diff from the original passed-report commit to5be2 shows no change in `router.ex`, `auth.ex`, `export_auth_plug.ex` or `theme_auth_plug.ex`. The exact acknowledgement/usable unary callback compile guard remains before route generation; LiveView and separate HTTP authorization remain wired. Integration traces actual host callbacks into all16 route consumers and query scopes; current denial/scoped browser owners and canonical root gates pass. | VERIFIED |
+| Compatible advisory remedies/runtime dependency policy | All three root/bench/example lockfiles and the flake workflow's pinned Node/locked setup are unchanged from the accepted Phase248 boundary. Current dependency audit, optional-free and supported current/min/latest gates pass. Updated current docs preserve the full mount options and migration refusal. The release-path exclusion refinement is recorded successor packaging policy, not a dependency/version bump or inferred release. | VERIFIED |
+| Trustworthy affected-suite proof without weakened retries/gates | The original nine-run plain receipt remains an accepted historical event at its actual source, scale, exits and budget. Current source is supported by the later exact-candidate17-job CI rather than relabeling that repeat current. Current browser reports/receipt are fail-closed; earlier natural failures and the consumed full-root window remain disclosed. No new repeat, hosted issue closure, scheduled clean receipt or publication claim is made. | VERIFIED |
+
+The original15/15 score remains accepted; this assessment checks whether later work invalidates the goal and does not claim fifteen new runtime invocations. The original non-authoritative judgment-prohibition disposition and all local/hosted/issue/REL-01 distinctions below remain unchanged.
+
+## Current evidence and limits
+
+[Independent current integration](../../v1.48-INTEGRATION.md) traces12 provider/consumer contracts,16 actual mounted/HTTP routes and seven complete flows, with no missing connection, orphan runtime export or broken flow. [The milestone audit](../../v1.48-MILESTONE-AUDIT.md) and its exact crosscheck reconcile34 assigned requirements across the requirements table, original goal verdicts and owning-plan contribution metadata. These are supporting independent traces, not substitutes for the source/invariant evidence above.
+
+[Actual current CI](../253-inclusive-integration-docs-package-and-release-readiness/253-CI-RESULTS.md) passes all17 existing jobs for head5be2 via tested PR merge2e66f6. The already independently reconciled raw reports contain225 desktop/217 mobile first-attempt passes,29/37 explicit skips, zero unexpected/flaky/global errors or extra attempts; all31 required unique identities actually passed once. Both dedicated desktop actual2x declarations pass with ordinary `acceptMode:true`. Original invalid/skipped/evidence-only/mobile-zoom rows remain explicit; no broad all-device or all-state claim follows. The unchanged root/package/optional/support gates and retained original/repair reviews provide their named complementary boundaries. No test, suite, app, browser, network, database, capture, retry or new whole-source/security/UI/custody audit was run for this impact check.
+
+The canonical digest covers the current original input set plus relevant added source/evidence/phase artifacts; generated live verification reports and the253 fingerprint are excluded to prevent a self/cross-output cycle. Existing source, completed-record and immutable evidence identities are current; historical receipts retain their own original conditions. No original pixel loss is restored, no future live REL-01 event is completed, and no merge/version/tag/publication/spend/risk/native-clipboard/foreground authority or stopped local execution is renewed.
+
+**Next actor: parent** checkpoints these six current reports and runs the ordinary SDK archive/readiness lifecycle. No new user acknowledgment or routine human verification is needed. A later planning-directory move preserves these exact pre-archive report bytes as historical evidence; this digest is not a claim that moved/deleted live paths remain a future current fingerprint.
+
+---
+
+# Original verification and history — preserved
+
+The remainder is retained verbatim as the historical assessment at its original verification time and source/runtime identities. Old “current”/next-actor/pending paragraphs refer to that checkpoint. They are not rewritten into current executions. The current successor-impact conclusion above supersedes only freshness/next-action statements where supported; original findings, flags, sampling/custody and release limits remain preserved.
+
+
 
 # Phase 248: Reconcile the base and safety/proof ownership — Verification Report
 

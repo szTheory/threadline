@@ -22,8 +22,8 @@ key-files:
 key-decisions:
   - "Keep test.exs Retention disabled; enable the supervised worker only after migrated host startup"
   - "Ordinary paths leave confirmation empty and use controlled clipboard doubles before activity"
-requirements-completed: []
-requirements-partial: [ADM-26, ADM-28, ADM-32, ADM-33]
+requirements-completed: [ADM-26, ADM-28, ADM-32, ADM-33]
+requirements-partial: []
 actuals:
   tokens: null
   executor_usage: null
@@ -55,6 +55,8 @@ coverage:
 ---
 
 # Plan01 — Worker-ready ordinary browser startup
+
+**Final contribution:** independent goal verification passes5/5 roadmap truths and9/9 requirements with current required CI green. This plan contribution is complete at the named evidence boundaries. Historical pending checkpoints below preserve original failures and provenance; [final verification](253-VERIFICATION.md) and [CI results](253-CI-RESULTS.md) control the current result. REL-01 remains separate and no release/merge authority is inferred.
 
 The existing runner now generates its final no-start Mix bootstrap after migration/reset, starts the real host app and supervised Pruner, verifies its exact target/options and seeded row invariance, and requires the validated readiness marker plus existing listener/VM/mount checks before browser execution. The disabled test default remains unchanged. Private Export housekeeping options preserve the seeded old running job; this is not default-cleanup proof.
 

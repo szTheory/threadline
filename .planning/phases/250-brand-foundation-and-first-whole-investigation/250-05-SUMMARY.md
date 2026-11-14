@@ -45,7 +45,7 @@ key-decisions:
   - Package the exact three SVGs, four approved WOFF2 files, and three OFL files; exclude the wider brand tree and TTFs.
   - Keep ExDoc and Admin behavior on their existing extension and asset paths without adding dependencies or public APIs.
   - Require the explicit parent-owned docs URL before registering generated-doc browser cases.
-requirements-completed: []
+requirements-completed: ["ADM-09", "ADM-10", "ADM-12"]
 coverage:
   - id: D1
     description: README and operator-guide introductions use the approved product category and paired lockup while retaining technical links.
@@ -170,3 +170,8 @@ Plan 05 is complete. This summary claims no phase-wide requirement completion; p
 ## Self-Check: PASSED
 
 The summary and generated-doc spec exist, and all eight plan-range commits are ancestors of the current HEAD.
+
+
+## Final milestone traceability writeback
+
+This plan's declared requirement contributions are now reflected in `requirements-completed`, following the independently passed phase goal and final34-requirement integration check/current candidate CI. Earlier empty completion fields were local contribution bookkeeping, not a new missing implementation. Historical results remain preserved; the bounded successor-impact verification owns current fingerprint freshness.
