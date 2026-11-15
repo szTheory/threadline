@@ -75,7 +75,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # D-03 green-SHA skip for the nightly: `skip` only on a schedule run when this
       # workflow already succeeded on GITHUB_SHA; push and dispatch always `run`,
@@ -100,7 +100,7 @@ jobs:
         if: steps.gate.outputs.decision == 'run'
         run: bin/retry-network mix local.hex 2.6.0 --force
 
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.gate.outputs.decision == 'run'
         with:
           node-version-file: .tool-versions
@@ -109,7 +109,7 @@ jobs:
 
       - name: Cache deps
         if: steps.gate.outputs.decision == 'run'
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
@@ -117,7 +117,7 @@ jobs:
 
       - name: Cache Playwright browsers
         if: steps.gate.outputs.decision == 'run'
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
